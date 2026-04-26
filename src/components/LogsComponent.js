@@ -19,15 +19,162 @@ import styles from "./LogsComponent.module.css";
 const MAX_LINES = 5000;
 const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
 
+// ── ANSI escape-code → React span parser ──────────────────────
+const ANSI_RE = /\x1b\[([0-9;]*)m/g;
+
+const ANSI_COLORS = [
+  null,           // 0 – default (inherit)
+  "#ef4444",      // 1 – red
+  "#22c55e",      // 2 – green
+  "#eab308",      // 3 – yellow
+  "#3b82f6",      // 4 – blue
+  "#a855f7",      // 5 – magenta
+  "#06b6d4",      // 6 – cyan
+  "#d4d4d8",      // 7 – white
+];
+
+const ANSI_BRIGHT_COLORS = [
+  "#71717a",      // 0 – bright black (gray)
+  "#f87171",      // 1 – bright red
+  "#4ade80",      // 2 – bright green
+  "#fde047",      // 3 – bright yellow
+  "#60a5fa",      // 4 – bright blue
+  "#c084fc",      // 5 – bright magenta
+  "#22d3ee",      // 6 – bright cyan
+  "#ffffff",      // 7 – bright white
+];
+
+/**
+ * Convert a 256-color index to a hex color string.
+ */
+function ansi256ToHex(n) {
+  if (n < 8) return ANSI_COLORS[n];
+  if (n < 16) return ANSI_BRIGHT_COLORS[n - 8];
+  if (n < 232) {
+    const idx = n - 16;
+    const r = Math.floor(idx / 36) * 51;
+    const g = (Math.floor(idx / 6) % 6) * 51;
+    const b = (idx % 6) * 51;
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  }
+  // Grayscale 232-255
+  const v = (n - 232) * 10 + 8;
+  return `#${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}`;
+}
+
+/**
+ * Strip ANSI escape codes from a string.
+ */
+function stripAnsi(text) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+/**
+ * Parse ANSI-coded text into an array of React elements.
+ * Supports SGR codes: reset, bold, dim, italic, underline,
+ * strikethrough, standard 8 colors, bright colors, and 256-color.
+ */
+function parseAnsi(text) {
+  // Fast path — no escape codes present
+  if (!text.includes("\x1b")) return text;
+
+  const parts = [];
+  let lastIndex = 0;
+  let key = 0;
+
+  // Active style state
+  let color = null;
+  let bgColor = null;
+  let bold = false;
+  let dim = false;
+  let italic = false;
+  let underline = false;
+  let strikethrough = false;
+
+  let match;
+  ANSI_RE.lastIndex = 0;
+
+  while ((match = ANSI_RE.exec(text)) !== null) {
+    // Push text before this escape
+    if (match.index > lastIndex) {
+      const chunk = text.slice(lastIndex, match.index);
+      if (color || bgColor || bold || dim || italic || underline || strikethrough) {
+        const style = {};
+        if (color) style.color = color;
+        if (bgColor) style.backgroundColor = bgColor;
+        if (bold) style.fontWeight = 700;
+        if (dim) style.opacity = 0.6;
+        if (italic) style.fontStyle = "italic";
+        if (underline) style.textDecoration = "underline";
+        if (strikethrough) style.textDecoration = (style.textDecoration ? style.textDecoration + " line-through" : "line-through");
+        parts.push(<span key={key++} style={style}>{chunk}</span>);
+      } else {
+        parts.push(chunk);
+      }
+    }
+    lastIndex = match.index + match[0].length;
+
+    // Parse SGR parameters
+    const codes = match[1] ? match[1].split(";").map(Number) : [0];
+    for (let i = 0; i < codes.length; i++) {
+      const c = codes[i];
+      if (c === 0) {
+        color = null; bgColor = null; bold = false; dim = false;
+        italic = false; underline = false; strikethrough = false;
+      } else if (c === 1) bold = true;
+      else if (c === 2) dim = true;
+      else if (c === 3) italic = true;
+      else if (c === 4) underline = true;
+      else if (c === 9) strikethrough = true;
+      else if (c === 22) { bold = false; dim = false; }
+      else if (c === 23) italic = false;
+      else if (c === 24) underline = false;
+      else if (c === 29) strikethrough = false;
+      else if (c === 39) color = null;
+      else if (c === 49) bgColor = null;
+      else if (c >= 30 && c <= 37) color = ANSI_COLORS[c - 30];
+      else if (c >= 40 && c <= 47) bgColor = ANSI_COLORS[c - 40];
+      else if (c >= 90 && c <= 97) color = ANSI_BRIGHT_COLORS[c - 90];
+      else if (c >= 100 && c <= 107) bgColor = ANSI_BRIGHT_COLORS[c - 100];
+      else if (c === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
+        color = ansi256ToHex(codes[i + 2]); i += 2;
+      } else if (c === 48 && codes[i + 1] === 5 && codes[i + 2] != null) {
+        bgColor = ansi256ToHex(codes[i + 2]); i += 2;
+      }
+    }
+  }
+
+  // Push remaining text after last escape
+  if (lastIndex < text.length) {
+    const chunk = text.slice(lastIndex);
+    if (color || bgColor || bold || dim || italic || underline || strikethrough) {
+      const style = {};
+      if (color) style.color = color;
+      if (bgColor) style.backgroundColor = bgColor;
+      if (bold) style.fontWeight = 700;
+      if (dim) style.opacity = 0.6;
+      if (italic) style.fontStyle = "italic";
+      if (underline) style.textDecoration = "underline";
+      if (strikethrough) style.textDecoration = (style.textDecoration ? style.textDecoration + " line-through" : "line-through");
+      parts.push(<span key={key++} style={style}>{chunk}</span>);
+    } else {
+      parts.push(chunk);
+    }
+  }
+
+  return parts.length === 1 ? parts[0] : parts;
+}
+
 /**
  * Detect the log level from a line of text.
  */
 function detectLevel(text) {
-  if (/\bERR(?:OR)?\b/i.test(text)) return "error";
-  if (/\bWARN(?:ING)?\b/i.test(text)) return "warn";
-  if (/\bINFO\b/i.test(text)) return "info";
-  if (/\b(?:OK|SUCCESS)\b/i.test(text)) return "success";
-  if (/\bDBG|DEBUG\b/i.test(text)) return "debug";
+  const clean = stripAnsi(text);
+  if (/\bERR(?:OR)?\b/i.test(clean)) return "error";
+  if (/\bWARN(?:ING)?\b/i.test(clean)) return "warn";
+  if (/\bINFO\b/i.test(clean)) return "info";
+  if (/\b(?:OK|SUCCESS)\b/i.test(clean)) return "success";
+  if (/\bDBG|DEBUG\b/i.test(clean)) return "debug";
   return null;
 }
 
@@ -237,7 +384,7 @@ export default function LogsComponent() {
   const filteredLines = search
     ? lines.filter(
         (l) =>
-          l.content.toLowerCase().includes(search.toLowerCase()) ||
+          stripAnsi(l.content).toLowerCase().includes(search.toLowerCase()) ||
           (l.timestamp && l.timestamp.includes(search)),
       )
     : lines;
@@ -396,7 +543,7 @@ export default function LogsComponent() {
                 <span
                   className={`${styles.lineContent} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
                 >
-                  {line.content}
+                  {parseAnsi(line.content)}
                 </span>
               </div>
             ))}
