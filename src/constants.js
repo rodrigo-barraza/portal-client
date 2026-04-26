@@ -8,7 +8,6 @@ export const NAV_ITEMS = [
   { id: "services", label: "Services", href: "/services", icon: "Server" },
   { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
-  { id: "portfolio", label: "Portfolio", href: "/portfolio", icon: "Briefcase" },
 ];
 
 // ── Service status colors ───────────────────────────────────────

@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Github, Globe, HardDrive, Lock } from "lucide-react";
+import { ArrowDown, ArrowUp, Database, Github, Globe, HardDrive, Lock } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -210,6 +210,42 @@ export default function ServiceCardComponent({ service }) {
       {service.error && !isHealthy && (
         <div className={styles.errorBar}>
           {service.error}
+        </div>
+      )}
+
+      {/* ── Connections (dependency graph) ── */}
+      {((service.dependsOn?.length > 0) || (service.dependedOnBy?.length > 0)) && (
+        <div className={styles.connections}>
+          {service.dependsOn?.length > 0 && (
+            <div className={styles.connectionRow}>
+              <span className={styles.connectionLabel}>
+                <ArrowUp size={10} strokeWidth={2.4} />
+                Requires
+              </span>
+              <div className={styles.connectionTags}>
+                {service.dependsOn.map((dep) => (
+                  <span key={String(dep.id)} className={styles.connectionTag}>
+                    {dep.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {service.dependedOnBy?.length > 0 && (
+            <div className={styles.connectionRow}>
+              <span className={`${styles.connectionLabel} ${styles.connectionLabelDown}`}>
+                <ArrowDown size={10} strokeWidth={2.4} />
+                Required by
+              </span>
+              <div className={styles.connectionTags}>
+                {service.dependedOnBy.map((dep) => (
+                  <span key={String(dep.id)} className={`${styles.connectionTag} ${styles.connectionTagDown}`}>
+                    {dep.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

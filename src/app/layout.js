@@ -10,7 +10,7 @@ const inter = Inter({
 export const metadata = {
   title: "Portal — Sun Ecosystem Hub",
   description:
-    "Central developer portal for observability, service health, analytics, and portfolio across the Sun ecosystem.",
+    "Central developer portal for observability, service health, and analytics across the Sun ecosystem.",
 };
 
 /**

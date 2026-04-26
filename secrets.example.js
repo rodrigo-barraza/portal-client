@@ -1,12 +1,13 @@
 // ============================================================
 // Web Portal — Secrets Template
 // ============================================================
-// Copy this file to secrets.js and fill in your real values.
-//   cp secrets.example.js secrets.js
+// Secrets are resolved from (in priority order):
+//   1. process.env (manual env vars, Docker --env)
+//   2. Vault service (via next.config.mjs → VAULT_URL + VAULT_TOKEN)
+//   3. Fallback .env file (../vault/.env)
+//
+// See vault/.env.example for the full list of variables.
 // ============================================================
 
-// Dev Server
-export const PORTAL_PORT = 4000;
-
-// API Portal Backend
-export const PORTAL_API_URL = "http://localhost:4001";
+// PORTAL_PORT=4000
+// PORTAL_API_URL=http://localhost:4001

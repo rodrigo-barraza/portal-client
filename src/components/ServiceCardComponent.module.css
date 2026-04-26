@@ -212,3 +212,67 @@
     text-underline-offset: 2px;
   }
 }
+
+/* ── Connections (Dependency Graph) ── */
+
+.connections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.connectionRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.connectionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #60a5fa;
+}
+
+.connectionLabelDown {
+  color: #a78bfa;
+}
+
+.connectionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.connectionTag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  color: #93c5fd;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.15);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+
+  &:hover {
+    background: rgba(96, 165, 250, 0.18);
+    border-color: rgba(96, 165, 250, 0.3);
+  }
+}
+
+.connectionTagDown {
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.15);
+
+  &:hover {
+    background: rgba(167, 139, 250, 0.18);
+    border-color: rgba(167, 139, 250, 0.3);
+  }
+}
