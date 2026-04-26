@@ -9,6 +9,7 @@ import { createVaultClient } from "./utils/vault-client.js";
 
 // ── Bootstrap secrets at build/dev time ────────────────────────
 const vault = createVaultClient({
+  localEnvFile: "./.env",
   fallbackEnvFile: "../vault/.env",
 });
 
@@ -35,6 +36,7 @@ function normaliseForBrowser(urlStr) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   allowedDevOrigins: ["portal.clankerbox.com"],
   turbopack: {},
 
