@@ -109,6 +109,15 @@ export default class ApiService {
 
 
 
+  // ── Integrations ─────────────────────────────────────────────
+
+  /**
+   * Get all external API integrations and their configuration status.
+   */
+  static async getIntegrations() {
+    return ApiService._request("/integrations");
+  }
+
   // ── Logs ────────────────────────────────────────────────────
 
   /**

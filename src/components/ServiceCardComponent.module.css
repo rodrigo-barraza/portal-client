@@ -1,30 +1,38 @@
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
+  border-top: 3px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   animation: fadeIn var(--transition-normal) ease-out;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), border-top-color var(--transition-fast), box-shadow var(--transition-fast);
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.1);
   }
 }
 
+.card.healthy {
+  border-top-color: var(--success);
+}
+
 .card.healthy:hover {
   border-color: var(--success);
+  border-top-color: var(--success);
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.08);
 }
 
 .card.unhealthy {
   border-color: var(--danger-subtle);
+  border-top-color: var(--danger);
 }
 
 .card.unhealthy:hover {
   border-color: var(--danger);
+  border-top-color: var(--danger);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.08);
 }
 
