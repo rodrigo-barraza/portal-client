@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Server } from "lucide-react";
+import { useState } from "react";
+import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, RotateCcw, Server } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -28,7 +29,8 @@ const SERVICE_TYPE_ICONS = {
   Storage: HardDrive,
 };
 
-export default function ServiceCardComponent({ service }) {
+export default function ServiceCardComponent({ service, onRestart }) {
+  const [restarting, setRestarting] = useState(false);
   const isHealthy = service.healthy;
   const statusClass = isHealthy ? styles.healthy : styles.unhealthy;
   const isProduction = service.environment === "Production";
@@ -239,6 +241,25 @@ export default function ServiceCardComponent({ service }) {
         <div className={styles.errorBar}>
           {service.error}
         </div>
+      )}
+
+      {/* ── Restart Button (containerized services only) ── */}
+      {service.restartable && (
+        <button
+          className={`${styles.restartButton} ${restarting ? styles.restartButtonLoading : ""}`}
+          disabled={restarting}
+          onClick={async () => {
+            setRestarting(true);
+            try {
+              await onRestart?.(service.id);
+            } finally {
+              setTimeout(() => setRestarting(false), 5000);
+            }
+          }}
+        >
+          <RotateCcw size={12} strokeWidth={2.2} className={restarting ? styles.spin : ""} />
+          {restarting ? "Restarting…" : "Restart Container"}
+        </button>
       )}
 
       {/* ── Connections (dependency graph) ── */}

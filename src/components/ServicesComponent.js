@@ -91,6 +91,16 @@ export default function ServicesComponent() {
   const healthyCount = allItems.filter((s) => s.healthy).length;
   const hasActiveFilter = Object.values(filters).some((v) => v !== "all");
 
+  const handleRestart = async (serviceId) => {
+    try {
+      await PortalApiService.restartService(serviceId);
+      // Refresh health after restart settles
+      setTimeout(() => loadServices(true), 5000);
+    } catch (err) {
+      console.error("Restart failed:", err);
+    }
+  };
+
   return (
     <div className={styles.services}>
       <PageHeaderComponent
@@ -170,7 +180,7 @@ export default function ServicesComponent() {
 
           <div className={styles.grid}>
             {filtered.map((service) => (
-              <ServiceCardComponent key={service.id} service={service} />
+              <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} />
             ))}
             {filtered.length === 0 && (
               <div className={styles.emptyState}>

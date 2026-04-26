@@ -59,6 +59,14 @@ export default class PortalApiService {
     return PortalApiService._request("/services/check", { method: "POST" });
   }
 
+  /**
+   * Restart a containerized service via SSH + Docker Compose.
+   * @param {string} serviceId - Service ID (e.g. "lights", "vault")
+   */
+  static async restartService(serviceId) {
+    return PortalApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
+  }
+
   // ── Stats ─────────────────────────────────────────────────────
 
   /**

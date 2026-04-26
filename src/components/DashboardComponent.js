@@ -49,6 +49,15 @@ export default function DashboardComponent() {
     loadData(true);
   };
 
+  const handleRestart = async (serviceId) => {
+    try {
+      await PortalApiService.restartService(serviceId);
+      setTimeout(() => loadData(true), 5000);
+    } catch (err) {
+      console.error("Restart failed:", err);
+    }
+  };
+
   const healthyCount = services.filter((s) => s.healthy).length;
   const totalServices = services.length;
   const overview = stats?.stats || {};
@@ -120,7 +129,7 @@ export default function DashboardComponent() {
             <h2 className={styles.sectionTitle}>Service Health</h2>
             <div className={styles.servicesGrid}>
               {services.map((service) => (
-                <ServiceCardComponent key={service.id} service={service} />
+                <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} />
               ))}
               {services.length === 0 && (
                 <div className={styles.emptyState}>No services configured</div>
