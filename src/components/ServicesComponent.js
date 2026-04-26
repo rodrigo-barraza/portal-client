@@ -126,10 +126,27 @@ export default function ServicesComponent() {
   const handleRestart = async (serviceId) => {
     try {
       await PortalApiService.restartService(serviceId);
-      // Refresh health after restart settles
       setTimeout(() => loadServices(true), 5000);
     } catch (err) {
       console.error("Restart failed:", err);
+    }
+  };
+
+  const handleStop = async (serviceId) => {
+    try {
+      await PortalApiService.stopService(serviceId);
+      setTimeout(() => loadServices(true), 5000);
+    } catch (err) {
+      console.error("Stop failed:", err);
+    }
+  };
+
+  const handleStart = async (serviceId) => {
+    try {
+      await PortalApiService.startService(serviceId);
+      setTimeout(() => loadServices(true), 5000);
+    } catch (err) {
+      console.error("Start failed:", err);
     }
   };
 
@@ -212,7 +229,7 @@ export default function ServicesComponent() {
 
           <div className={styles.grid}>
             {filtered.map((service) => (
-              <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} />
+              <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} onStop={handleStop} onStart={handleStart} />
             ))}
             {filtered.length === 0 && (
               <div className={styles.emptyState}>

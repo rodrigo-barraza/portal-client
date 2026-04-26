@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, RotateCcw, Server } from "lucide-react";
+import Link from "next/link";
+import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -29,8 +30,10 @@ const SERVICE_TYPE_ICONS = {
   Storage: HardDrive,
 };
 
-export default function ServiceCardComponent({ service, onRestart }) {
+export default function ServiceCardComponent({ service, onRestart, onStop, onStart }) {
   const [restarting, setRestarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [starting, setStarting] = useState(false);
   const isHealthy = service.healthy;
   const statusClass = isHealthy ? styles.healthy : styles.unhealthy;
   const isProduction = service.environment === "Production";
@@ -52,7 +55,70 @@ export default function ServiceCardComponent({ service, onRestart }) {
       </div>
 
       <div className={styles.details}>
-        {/* ── Status (top for immediate visibility) ── */}
+        {/* ── Action Buttons (containerized services only) ── */}
+        {service.restartable && (
+          <div className={styles.actionRow}>
+            {isHealthy ? (
+              <button
+                className={`${styles.actionButton} ${styles.stopButton} ${stopping ? styles.actionButtonLoading : ""}`}
+                disabled={stopping || restarting}
+                onClick={async () => {
+                  setStopping(true);
+                  try {
+                    await onStop?.(service.id);
+                  } finally {
+                    setTimeout(() => setStopping(false), 5000);
+                  }
+                }}
+              >
+                <Square size={10} strokeWidth={2.6} className={stopping ? styles.pulse : ""} />
+                {stopping ? "Stopping…" : "Stop"}
+              </button>
+            ) : (
+              <button
+                className={`${styles.actionButton} ${styles.startButton} ${starting ? styles.actionButtonLoading : ""}`}
+                disabled={starting || restarting}
+                onClick={async () => {
+                  setStarting(true);
+                  try {
+                    await onStart?.(service.id);
+                  } finally {
+                    setTimeout(() => setStarting(false), 5000);
+                  }
+                }}
+              >
+                <Play size={10} strokeWidth={2.6} fill="currentColor" className={starting ? styles.pulse : ""} />
+                {starting ? "Starting…" : "Start"}
+              </button>
+            )}
+
+            <Link
+              href={`/logs?service=${service.id}`}
+              className={`${styles.actionButton} ${styles.logsButton}`}
+            >
+              <ScrollText size={10} strokeWidth={2.6} />
+              Logs
+            </Link>
+
+            <button
+              className={`${styles.actionButton} ${styles.restartButton} ${restarting ? styles.actionButtonLoading : ""}`}
+              disabled={restarting || stopping || starting}
+              onClick={async () => {
+                setRestarting(true);
+                try {
+                  await onRestart?.(service.id);
+                } finally {
+                  setTimeout(() => setRestarting(false), 5000);
+                }
+              }}
+            >
+              <RotateCcw size={10} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
+              {restarting ? "Restarting…" : "Restart"}
+            </button>
+          </div>
+        )}
+
+        {/* ── Status ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Status</span>
           <span className={styles.statusLabel}>
@@ -243,25 +309,6 @@ export default function ServiceCardComponent({ service, onRestart }) {
         <div className={styles.errorBar}>
           {service.error}
         </div>
-      )}
-
-      {/* ── Restart Button (containerized services only) ── */}
-      {service.restartable && (
-        <button
-          className={`${styles.restartButton} ${restarting ? styles.restartButtonLoading : ""}`}
-          disabled={restarting}
-          onClick={async () => {
-            setRestarting(true);
-            try {
-              await onRestart?.(service.id);
-            } finally {
-              setTimeout(() => setRestarting(false), 5000);
-            }
-          }}
-        >
-          <RotateCcw size={12} strokeWidth={2.2} className={restarting ? styles.spin : ""} />
-          {restarting ? "Restarting…" : "Restart Container"}
-        </button>
       )}
 
       {/* ── Connections (dependency graph) ── */}

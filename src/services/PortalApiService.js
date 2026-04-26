@@ -67,6 +67,22 @@ export default class PortalApiService {
     return PortalApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
   }
 
+  /**
+   * Stop a containerized service via SSH + Docker Compose.
+   * @param {string} serviceId
+   */
+  static async stopService(serviceId) {
+    return PortalApiService._request(`/services/${serviceId}/stop`, { method: "POST" });
+  }
+
+  /**
+   * Start a containerized service via SSH + Docker Compose.
+   * @param {string} serviceId
+   */
+  static async startService(serviceId) {
+    return PortalApiService._request(`/services/${serviceId}/start`, { method: "POST" });
+  }
+
   // ── Stats ─────────────────────────────────────────────────────
 
   /**

@@ -202,18 +202,23 @@
   word-break: break-all;
 }
 
-/* ── Restart Button ── */
+/* ── Action Row ── */
 
-.restartButton {
+.actionRow {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.actionButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  gap: 5px;
+  padding: 5px 12px;
   border-radius: var(--border-radius-sm);
-  background: rgba(239, 68, 68, 0.08);
-  color: #f87171;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -224,23 +229,71 @@
     color var(--transition-fast),
     transform var(--transition-fast);
 
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+}
+
+.actionButtonLoading {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+  background: var(--bg-tertiary) !important;
+}
+
+/* Stop — red */
+.stopButton {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+
   &:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.15);
     border-color: rgba(239, 68, 68, 0.4);
     color: #fca5a5;
   }
+}
 
-  &:active:not(:disabled) {
-    transform: scale(0.97);
+/* Start — green */
+.startButton {
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+
+  &:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
   }
 }
 
-.restartButtonLoading {
-  opacity: 0.7;
-  cursor: not-allowed;
-  color: var(--text-muted);
-  border-color: var(--border-color);
-  background: var(--bg-tertiary);
+/* Logs — neutral blue */
+.logsButton {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.06);
+  color: #94a3b8;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(148, 163, 184, 0.14);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #cbd5e1;
+  }
+}
+
+/* Restart — amber */
+.restartButton {
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fbbf24;
+  margin-left: auto;
+
+  &:hover:not(:disabled) {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.4);
+    color: #fcd34d;
+  }
 }
 
 @keyframes iconPulse {
@@ -260,6 +313,15 @@
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+.pulse {
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
 /* ── Endpoint Link ── */
