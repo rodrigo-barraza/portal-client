@@ -168,6 +168,37 @@ export default function TopologyComponent() {
 
   const healthyCount = allServices.filter((s) => s.healthy).length;
 
+  // ── Upstream dependency chain + immediate downstream from selected node ──
+  const connectedNodes = useMemo(() => {
+    if (!selectedNode) return new Set();
+
+    const upstream = new Map();   // target → [sources]
+    const downstream = new Map(); // source → [targets]
+    for (const e of edges) {
+      if (!upstream.has(e.target)) upstream.set(e.target, []);
+      upstream.get(e.target).push(e.source);
+      if (!downstream.has(e.source)) downstream.set(e.source, []);
+      downstream.get(e.source).push(e.target);
+    }
+
+    // Walk full upstream chain
+    const visited = new Set([selectedNode]);
+    const queue = [selectedNode];
+    while (queue.length > 0) {
+      const id = queue.shift();
+      for (const dep of upstream.get(id) || []) {
+        if (!visited.has(dep)) { visited.add(dep); queue.push(dep); }
+      }
+    }
+
+    // Add immediate downstream (one level only)
+    for (const child of downstream.get(selectedNode) || []) {
+      visited.add(child);
+    }
+
+    return visited;
+  }, [selectedNode, edges]);
+
   // ── Coordinate conversion ───────────────────────────────────
   const screenToSvg = useCallback((clientX, clientY) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -333,7 +364,7 @@ export default function TopologyComponent() {
                   const x2 = tp.x + NODE_W / 2;
                   const y2 = tp.y;
 
-                  const isSelected = selectedNode === edge.source || selectedNode === edge.target;
+                  const isSelected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
                   const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
                   const isActive = isSelected || isHovered;
                   const d = edgePath(x1, y1, x2, y2);

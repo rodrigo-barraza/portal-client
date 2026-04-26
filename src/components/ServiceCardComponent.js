@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Database, Github, Globe, HardDrive, Lock } from "lucide-react";
+import { ArrowUp, Database, Github, Globe, HardDrive, Lock } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -49,7 +49,12 @@ export default function ServiceCardComponent({ service }) {
           )}
           <span className={styles.name}>{service.name}</span>
         </div>
-        <div className={styles.badges}>
+      </div>
+
+      <div className={styles.details}>
+        {/* ── Stage / Visibility / Status ── */}
+        <div className={styles.detail}>
+          <span className={styles.detailLabel}>Stage</span>
           {isInfra && infraDef ? (
             <span className={`${styles.stageBadge} ${styles.stageInfra}`}>
               {infraDef.label}
@@ -61,7 +66,20 @@ export default function ServiceCardComponent({ service }) {
               {service.stage || "Unknown"}
             </span>
           )}
-          {service.visibility && (
+        </div>
+
+        {service.serviceType && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Type</span>
+            <span className={`${styles.stageBadge} ${styles.serviceTypeBadge}`}>
+              {service.serviceType}
+            </span>
+          </div>
+        )}
+
+        {service.visibility && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Visibility</span>
             <span
               className={`${styles.stageBadge} ${service.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
             >
@@ -71,14 +89,16 @@ export default function ServiceCardComponent({ service }) {
                 <><Lock size={9} strokeWidth={2.2} /> Internal</>
               )}
             </span>
-          )}
+          </div>
+        )}
+
+        <div className={styles.detail}>
+          <span className={styles.detailLabel}>Status</span>
           <span className={styles.statusLabel}>
             {isHealthy ? "Healthy" : "Down"}
           </span>
         </div>
-      </div>
 
-      <div className={styles.details}>
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Response</span>
@@ -214,38 +234,19 @@ export default function ServiceCardComponent({ service }) {
       )}
 
       {/* ── Connections (dependency graph) ── */}
-      {((service.dependsOn?.length > 0) || (service.dependedOnBy?.length > 0)) && (
+      {service.dependsOn?.length > 0 && (
         <div className={styles.connections}>
-          {service.dependsOn?.length > 0 && (
-            <div className={styles.connectionRow}>
-              <span className={styles.connectionLabel}>
-                <ArrowUp size={10} strokeWidth={2.4} />
-                Requires
+          <span className={styles.connectionLabel}>
+            <ArrowUp size={10} strokeWidth={2.4} />
+            Requires
+          </span>
+          <div className={styles.connectionTags}>
+            {service.dependsOn.map((dep, i) => (
+              <span key={`dep-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
+                {dep.name}
               </span>
-              <div className={styles.connectionTags}>
-                {service.dependsOn.map((dep, i) => (
-                  <span key={`dep-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
-                    {dep.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {service.dependedOnBy?.length > 0 && (
-            <div className={styles.connectionRow}>
-              <span className={`${styles.connectionLabel} ${styles.connectionLabelDown}`}>
-                <ArrowDown size={10} strokeWidth={2.4} />
-                Required by
-              </span>
-              <div className={styles.connectionTags}>
-                {service.dependedOnBy.map((dep, i) => (
-                  <span key={`by-${i}-${dep.name || dep.id || ''}`} className={`${styles.connectionTag} ${styles.connectionTagDown}`}>
-                    {dep.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>
