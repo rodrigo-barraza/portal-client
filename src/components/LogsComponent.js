@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ScrollText,
   ArrowDown,
@@ -67,6 +68,8 @@ export default function LogsComponent() {
   const pauseBufferRef = useRef([]);
   const didFetch = useRef(false);
   const searchInputRef = useRef(null);
+  const didAutoConnect = useRef(false);
+  const searchParams = useSearchParams();
 
   // ── Fetch loggable services on mount ─────────────────────────
   useEffect(() => {
@@ -158,6 +161,19 @@ export default function LogsComponent() {
     },
     [paused],
   );
+
+  // ── Auto-connect when ?service= is in the URL ───────────────
+  useEffect(() => {
+    if (didAutoConnect.current) return;
+    const serviceParam = searchParams.get("service");
+    if (!serviceParam || loggableServices.length === 0) return;
+
+    const match = loggableServices.find((s) => s.id === serviceParam);
+    if (match) {
+      didAutoConnect.current = true;
+      connectToService(match.id);
+    }
+  }, [searchParams, loggableServices, connectToService]);
 
   // ── Cleanup on unmount ───────────────────────────────────────
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
 import LogsComponent from "@/components/LogsComponent";
 
@@ -10,7 +11,9 @@ export default function LogsPage() {
     <div className="page-wrapper">
       <NavigationSidebarComponent />
       <main className="page-content">
-        <LogsComponent />
+        <Suspense>
+          <LogsComponent />
+        </Suspense>
       </main>
     </div>
   );
