@@ -1,7 +1,7 @@
 # ============================================================
 # Portal — Multi-stage Docker Build
 # ============================================================
-# Sun ecosystem developer portal built with Next.js. Uses
+# Developer portal built with Next.js. Uses
 # standalone output mode for minimal image size. Secrets are
 # resolved from Vault at build time via next.config.mjs.
 # ============================================================
