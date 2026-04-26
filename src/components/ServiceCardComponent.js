@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Globe, HardDrive, Lock } from "lucide-react";
+import { Database, Github, Globe, HardDrive, Lock } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -178,6 +178,21 @@ export default function ServiceCardComponent({ service }) {
               className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
             >
               {service.url.replace(/^https?:\/\//, "")}
+            </a>
+          </div>
+        )}
+
+        {service.repo && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Repository</span>
+            <a
+              href={service.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.detailValue} ${styles.mono} ${styles.repoLink}`}
+            >
+              <Github size={12} strokeWidth={2} />
+              {service.repo.replace("https://github.com/", "")}
             </a>
           </div>
         )}

@@ -192,3 +192,23 @@
     text-underline-offset: 2px;
   }
 }
+
+/* ── Repo Link ── */
+
+.repoLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+
+  &:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-color);
+    text-underline-offset: 2px;
+  }
+}
