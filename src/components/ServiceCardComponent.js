@@ -223,8 +223,8 @@ export default function ServiceCardComponent({ service }) {
                 Requires
               </span>
               <div className={styles.connectionTags}>
-                {service.dependsOn.map((dep) => (
-                  <span key={String(dep.id)} className={styles.connectionTag}>
+                {service.dependsOn.map((dep, i) => (
+                  <span key={`dep-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
                     {dep.name}
                   </span>
                 ))}
@@ -238,8 +238,8 @@ export default function ServiceCardComponent({ service }) {
                 Required by
               </span>
               <div className={styles.connectionTags}>
-                {service.dependedOnBy.map((dep) => (
-                  <span key={String(dep.id)} className={`${styles.connectionTag} ${styles.connectionTagDown}`}>
+                {service.dependedOnBy.map((dep, i) => (
+                  <span key={`by-${i}-${dep.name || dep.id || ''}`} className={`${styles.connectionTag} ${styles.connectionTagDown}`}>
                     {dep.name}
                   </span>
                 ))}

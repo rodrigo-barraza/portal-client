@@ -1,0 +1,443 @@
+"use client";
+
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import {
+  RefreshCw, ZoomIn, ZoomOut, Maximize2,
+  Server, Database, HardDrive, Globe,
+} from "lucide-react";
+import PortalApiService from "../services/PortalApiService";
+import styles from "./TopologyComponent.module.css";
+
+// ── Dimensions ───────────────────────────────────────────────────
+const NODE_W = 130;
+const NODE_H = 64;
+
+// ── Icon resolver ────────────────────────────────────────────────
+function getIcon(svc) {
+  if (svc.isInfrastructure) {
+    if (svc.name?.toLowerCase().includes("mongo")) return Database;
+    if (svc.name?.toLowerCase().includes("minio")) return HardDrive;
+    return Database;
+  }
+  if (svc.visibility === "external") return Globe;
+  return Server;
+}
+
+// ── Sugiyama layering ────────────────────────────────────────────
+function computeLayers(services) {
+  const byId = new Map(services.map((s) => [s.id, s]));
+  const idSet = new Set(services.map((s) => s.id));
+  const layerOf = new Map();
+
+  function getLayer(id, visited = new Set()) {
+    if (layerOf.has(id)) return layerOf.get(id);
+    if (visited.has(id)) return 0;
+    visited.add(id);
+    const svc = byId.get(id);
+    if (!svc) return 0;
+    const deps = (svc.dependsOn || [])
+      .map((d) => (typeof d === "string" ? d : d.id))
+      .filter((did) => idSet.has(did));
+    if (!deps.length) { layerOf.set(id, 0); return 0; }
+    const max = Math.max(...deps.map((d) => getLayer(d, visited)));
+    const l = max + 1;
+    layerOf.set(id, l);
+    return l;
+  }
+
+  for (const svc of services) getLayer(svc.id);
+
+  const layers = [];
+  for (const svc of services) {
+    const l = layerOf.get(svc.id) || 0;
+    if (!layers[l]) layers[l] = [];
+    layers[l].push(svc);
+  }
+  for (const layer of layers) layer?.sort((a, b) => a.name.localeCompare(b.name));
+  return layers.filter(Boolean);
+}
+
+// ── Assign positions from layers ─────────────────────────────────
+function layoutNodes(layers) {
+  const GAP_X = 32;
+  const GAP_Y = 100;
+  const positions = {};
+
+  // Find widest layer for centering
+  const layerWidths = layers.map((l) => l.length * (NODE_W + GAP_X) - GAP_X);
+  const maxW = Math.max(...layerWidths);
+
+  layers.forEach((layer, li) => {
+    const totalW = layer.length * (NODE_W + GAP_X) - GAP_X;
+    const offsetX = (maxW - totalW) / 2;
+    layer.forEach((svc, si) => {
+      positions[svc.id] = {
+        x: offsetX + si * (NODE_W + GAP_X),
+        y: li * (NODE_H + GAP_Y),
+      };
+    });
+  });
+
+  return positions;
+}
+
+// ── Collect edges ────────────────────────────────────────────────
+function collectEdges(services) {
+  const idSet = new Set(services.map((s) => s.id));
+  const edges = [];
+  for (const svc of services) {
+    for (const dep of svc.dependsOn || []) {
+      const depId = typeof dep === "string" ? dep : dep.id;
+      if (idSet.has(depId)) edges.push({ source: depId, target: svc.id });
+    }
+  }
+  return edges;
+}
+
+// ── Bézier edge path (same as Retina workflows) ──────────────────
+function edgePath(x1, y1, x2, y2) {
+  const dy = Math.abs(y2 - y1);
+  const cp = Math.max(dy * 0.5, 50);
+  return `M ${x1} ${y1} C ${x1} ${y1 + cp}, ${x2} ${y2 - cp}, ${x2} ${y2}`;
+}
+
+// ── Main Component ───────────────────────────────────────────────
+export default function TopologyComponent() {
+  const [allServices, setAllServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [tooltipData, setTooltipData] = useState(null);
+
+  // Draggable node positions (overrides layout)
+  const [posOverrides, setPosOverrides] = useState({});
+
+  // Pan / zoom
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const [dragging, setDragging] = useState(null);
+
+  const containerRef = useRef(null);
+  const svgRef = useRef(null);
+  const zoomRef = useRef(zoom);
+  const didFetch = useRef(false);
+
+  // Keep zoomRef in sync
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+
+  // ── Data fetching ───────────────────────────────────────────
+  async function loadData(refresh = false) {
+    try {
+      const res = await PortalApiService.getServices(refresh);
+      const svcs = (res.services || []).map((s) => ({ ...s, isInfrastructure: false }));
+      const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
+      setAllServices([...svcs, ...infra]);
+    } catch (err) {
+      console.error("Topology fetch failed:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
+    loadData(true);
+  }, []);
+
+  const handleRefresh = () => { setRefreshing(true); loadData(true); };
+
+  // ── Computed layout ─────────────────────────────────────────
+  const layers = useMemo(() => computeLayers(allServices), [allServices]);
+  const basePositions = useMemo(() => layoutNodes(layers), [layers]);
+  const edges = useMemo(() => collectEdges(allServices), [allServices]);
+
+  // Merged positions (base + overrides from dragging)
+  const positions = useMemo(() => {
+    const merged = { ...basePositions };
+    for (const [id, pos] of Object.entries(posOverrides)) {
+      if (merged[id]) merged[id] = pos;
+    }
+    return merged;
+  }, [basePositions, posOverrides]);
+
+  const healthyCount = allServices.filter((s) => s.healthy).length;
+
+  // ── Coordinate conversion ───────────────────────────────────
+  const screenToSvg = useCallback((clientX, clientY) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return { x: clientX, y: clientY };
+    return {
+      x: (clientX - rect.left - pan.x) / zoom,
+      y: (clientY - rect.top - pan.y) / zoom,
+    };
+  }, [pan, zoom]);
+
+  // ── Node drag ───────────────────────────────────────────────
+  const handleNodeMouseDown = useCallback((e, svc) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    setSelectedNode(svc.id);
+    const pos = positions[svc.id];
+    if (!pos) return;
+    const svgPos = screenToSvg(e.clientX, e.clientY);
+    setDragging({
+      nodeId: svc.id,
+      offsetX: svgPos.x - pos.x,
+      offsetY: svgPos.y - pos.y,
+    });
+  }, [positions, screenToSvg]);
+
+  // ── Canvas pan ──────────────────────────────────────────────
+  const handleCanvasMouseDown = useCallback((e) => {
+    if (e.button !== 0) return;
+    const el = e.target;
+    if (el.closest("[data-topo-node]")) return;
+    setSelectedNode(null); // deselect on background click
+    setIsPanning(true);
+    panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+  }, [pan]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (dragging) {
+      const svgPos = screenToSvg(e.clientX, e.clientY);
+      setPosOverrides((prev) => ({
+        ...prev,
+        [dragging.nodeId]: {
+          x: svgPos.x - dragging.offsetX,
+          y: svgPos.y - dragging.offsetY,
+        },
+      }));
+      return;
+    }
+    if (isPanning) {
+      setPan({
+        x: panStart.current.panX + (e.clientX - panStart.current.x),
+        y: panStart.current.panY + (e.clientY - panStart.current.y),
+      });
+    }
+  }, [dragging, isPanning, screenToSvg]);
+
+  const handleMouseUp = useCallback(() => {
+    if (dragging) setDragging(null);
+    if (isPanning) setIsPanning(false);
+  }, [dragging, isPanning]);
+
+  // ── Zoom toward cursor ──────────────────────────────────────
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const cur = zoomRef.current;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const next = Math.min(3, Math.max(0.2, cur * delta));
+    const ratio = next / cur;
+    zoomRef.current = next;
+    setPan((p) => ({ x: mouseX - ratio * (mouseX - p.x), y: mouseY - ratio * (mouseY - p.y) }));
+    setZoom(next);
+  }, []);
+
+  // Attach listeners
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    const el = containerRef.current;
+    el?.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      el?.removeEventListener("wheel", handleWheel);
+    };
+  }, [handleMouseMove, handleMouseUp, handleWheel]);
+
+  const zoomIn = () => { const n = Math.min(3, zoom * 1.25); setZoom(n); zoomRef.current = n; };
+  const zoomOut = () => { const n = Math.max(0.2, zoom * 0.8); setZoom(n); zoomRef.current = n; };
+  const zoomFit = () => { setPan({ x: 0, y: 0 }); setZoom(1); zoomRef.current = 1; };
+
+  // ── Tooltip ─────────────────────────────────────────────────
+  const handleNodeEnter = useCallback((e, svc) => {
+    setHoveredNode(svc.id);
+    setTooltipPos({ x: e.clientX, y: e.clientY });
+    setTooltipData(svc);
+  }, []);
+  const handleNodeMove = useCallback((e) => {
+    if (hoveredNode) setTooltipPos({ x: e.clientX, y: e.clientY });
+  }, [hoveredNode]);
+  const handleNodeLeave = useCallback(() => {
+    setHoveredNode(null); setTooltipData(null);
+  }, []);
+
+  // ── Render ──────────────────────────────────────────────────
+  return (
+    <div className={styles.topology}>
+      {/* Header */}
+      <div className={styles.header}>
+        <div className={styles.headerInner}>
+          <div className={styles.headerText}>
+            <h1 className={styles.title}>Topology</h1>
+            <p className={styles.subtitle}>
+              {loading ? "Loading…" : `${allServices.length} services · ${healthyCount} healthy`}
+            </p>
+          </div>
+          <div className={styles.headerActions}>
+            <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
+              <RefreshCw size={14} strokeWidth={2} className={refreshing ? styles.spinning : ""} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}>
+          <div className={styles.loadingDot} />
+          <span>Building topology…</span>
+        </div>
+      ) : (
+        <>
+          <div
+            ref={containerRef}
+            className={`${styles.canvasWrapper}${isPanning ? ` ${styles.panning}` : ""}`}
+            onMouseDown={handleCanvasMouseDown}
+          >
+            <svg ref={svgRef} className={styles.svg} style={{ overflow: "visible" }}>
+              <defs>
+                {/* Rainbow flowing gradient — same as Retina workflows */}
+                <linearGradient id="prism-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="300">
+                  <stop offset="0%" stopColor="#ff0000" />
+                  <stop offset="16%" stopColor="#ff8800" />
+                  <stop offset="33%" stopColor="#ffff00" />
+                  <stop offset="50%" stopColor="#00ff88" />
+                  <stop offset="66%" stopColor="#0088ff" />
+                  <stop offset="83%" stopColor="#8800ff" />
+                  <stop offset="100%" stopColor="#ff0088" />
+                  <animateTransform attributeName="gradientTransform" type="rotate" from="0 150 150" to="360 150 150" dur="2s" repeatCount="indefinite" />
+                </linearGradient>
+              </defs>
+              <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+                {/* ── Edges ── */}
+                {edges.map((edge, i) => {
+                  const sp = positions[edge.source];
+                  const tp = positions[edge.target];
+                  if (!sp || !tp) return null;
+
+                  const x1 = sp.x + NODE_W / 2;
+                  const y1 = sp.y + NODE_H;
+                  const x2 = tp.x + NODE_W / 2;
+                  const y2 = tp.y;
+
+                  const isSelected = selectedNode === edge.source || selectedNode === edge.target;
+                  const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
+                  const isActive = isSelected || isHovered;
+                  const d = edgePath(x1, y1, x2, y2);
+
+                  return (
+                    <g key={`${edge.source}-${edge.target}-${i}`} className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}`}>
+                      <path d={d} stroke="transparent" strokeWidth={12} fill="none" />
+                      <path
+                        d={d}
+                        stroke={isSelected ? "url(#prism-gradient)" : "var(--border-color)"}
+                        strokeWidth={isActive ? 2.5 : 1.5}
+                        fill="none"
+                        strokeOpacity={isActive ? 0.9 : 0.35}
+                        className={styles.connectionLine}
+                      />
+                    </g>
+                  );
+                })}
+
+                {/* ── Nodes ── */}
+                {allServices.map((svc) => {
+                  const pos = positions[svc.id];
+                  if (!pos) return null;
+                  const Icon = getIcon(svc);
+                  const isHov = hoveredNode === svc.id;
+                  const isDragging = dragging?.nodeId === svc.id;
+
+                  const typeClass = svc.isInfrastructure
+                    ? styles.nodeInfra
+                    : svc.visibility === "external"
+                      ? styles.nodeExternal
+                      : styles.nodeInternal;
+                  const healthClass = svc.healthy ? styles.nodeHealthy : styles.nodeDown;
+
+                  return (
+                    <foreignObject
+                      key={svc.id}
+                      x={pos.x}
+                      y={pos.y}
+                      width={NODE_W}
+                      height={NODE_H}
+                      data-topo-node
+                      style={{ overflow: "visible" }}
+                    >
+                      <div
+                        className={`${styles.nodeCard} ${typeClass} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === svc.id ? styles.nodeSelected : ""}`}
+                        onMouseDown={(e) => handleNodeMouseDown(e, svc)}
+                        onMouseEnter={(e) => handleNodeEnter(e, svc)}
+                        onMouseMove={handleNodeMove}
+                        onMouseLeave={handleNodeLeave}
+                      >
+                        <div className={styles.nodeGlow} />
+                        <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />
+                        <div className={styles.nodeIconWrap}><Icon size={18} strokeWidth={1.5} /></div>
+                        <span className={styles.nodeName}>{svc.name}</span>
+                        {svc.host && <span className={styles.nodeHost}>{svc.host}</span>}
+                      </div>
+                    </foreignObject>
+                  );
+                })}
+              </g>
+            </svg>
+          </div>
+
+          {/* Legend */}
+          <div className={styles.legend}>
+            <div className={styles.legendTitle}>Legend</div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success-subtle)" }} /><span>Healthy</span></div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--danger)", boxShadow: "0 0 6px var(--danger-subtle)" }} /><span>Down</span></div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#2dd4bf", boxShadow: "0 0 6px rgba(45,212,191,0.3)" }} /><span>External</span></div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#a855f7", boxShadow: "0 0 6px rgba(168,85,247,0.3)" }} /><span>Infrastructure</span></div>
+          </div>
+
+          {/* Zoom */}
+          <div className={styles.zoomControls}>
+            <button className={styles.zoomBtn} onClick={zoomIn} title="Zoom in"><ZoomIn size={15} strokeWidth={1.8} /></button>
+            <button className={styles.zoomBtn} onClick={zoomOut} title="Zoom out"><ZoomOut size={15} strokeWidth={1.8} /></button>
+            <button className={styles.zoomBtn} onClick={zoomFit} title="Fit to view"><Maximize2 size={14} strokeWidth={1.8} /></button>
+          </div>
+
+          {/* Tooltip */}
+          {tooltipData && (
+            <div className={styles.tooltip} style={{
+              left: Math.min(tooltipPos.x + 16, (typeof window !== "undefined" ? window.innerWidth : 1000) - 300),
+              top: tooltipPos.y - 10,
+            }}>
+              <div className={styles.tooltipName}>{tooltipData.name}</div>
+              <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Status</span><span className={`${styles.tooltipValue} ${tooltipData.healthy ? styles.tooltipHealthy : styles.tooltipUnhealthy}`}>{tooltipData.healthy ? "Healthy" : "Down"}</span></div>
+              {tooltipData.host && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Host</span><span className={styles.tooltipValue}>{tooltipData.host}</span></div>}
+              {tooltipData.url && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>URL</span><span className={styles.tooltipValue}>{tooltipData.url}</span></div>}
+              <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Stage</span><span className={styles.tooltipValue}>{tooltipData.stage}</span></div>
+              {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
+              {tooltipData.responseTimeMs != null && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Latency</span><span className={styles.tooltipValue}>{tooltipData.responseTimeMs}ms</span></div>}
+              {tooltipData.error && !tooltipData.healthy && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Error</span><span className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}>{tooltipData.error}</span></div>}
+              {tooltipData.dependsOn?.length > 0 && (
+                <div className={styles.tooltipDeps}>
+                  <span className={styles.tooltipDepLabel}>↑ Depends on</span>
+                  <span className={styles.tooltipDepList}>{tooltipData.dependsOn.map((d) => (typeof d === "string" ? d : d.name)).join(", ")}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

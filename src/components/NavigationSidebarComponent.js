@@ -8,6 +8,7 @@ import {
   BarChart3,
   Briefcase,
   Cpu,
+  Waypoints,
   Sun,
   Moon,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const ICON_MAP = {
   BarChart3,
   Briefcase,
   Cpu,
+  Waypoints,
 };
 
 export default function NavigationSidebarComponent() {

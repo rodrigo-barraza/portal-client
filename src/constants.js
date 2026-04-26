@@ -7,6 +7,7 @@ export const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
   { id: "services", label: "Services", href: "/services", icon: "Server" },
   { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
+  { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
 ];
 
