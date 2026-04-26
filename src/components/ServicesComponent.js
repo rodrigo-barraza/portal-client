@@ -7,8 +7,8 @@ import ServiceCardComponent from "./ServiceCardComponent";
 import PortalApiService from "../services/PortalApiService";
 import styles from "./ServicesComponent.module.css";
 
-// ── Sort option definitions ──────────────────────────────────────
-const SORT_OPTIONS = {
+// ── Static filter option definitions ─────────────────────────────
+const STATIC_SORT_OPTIONS = {
   status: {
     label: "Status",
     values: [
@@ -35,6 +35,33 @@ const SORT_OPTIONS = {
   },
 };
 
+/**
+ * Derive Type and Host filter options from loaded service data.
+ * Returns the full SORT_OPTIONS object, extending the static ones.
+ */
+function buildSortOptions(items) {
+  const types = [...new Set(items.map((s) => s.serviceType).filter(Boolean))].sort();
+  const hosts = [...new Set(items.map((s) => s.host).filter(Boolean))].sort();
+
+  return {
+    ...STATIC_SORT_OPTIONS,
+    serviceType: {
+      label: "Type",
+      values: [
+        { key: "all", label: "All" },
+        ...types.map((t) => ({ key: t, label: t })),
+      ],
+    },
+    host: {
+      label: "Host",
+      values: [
+        { key: "all", label: "All" },
+        ...hosts.map((h) => ({ key: h, label: h })),
+      ],
+    },
+  };
+}
+
 export default function ServicesComponent() {
   const [services, setServices] = useState([]);
   const [infrastructure, setInfrastructure] = useState([]);
@@ -47,6 +74,8 @@ export default function ServicesComponent() {
     status: "all",
     visibility: "all",
     environment: "all",
+    serviceType: "all",
+    host: "all",
   });
 
   async function loadServices(refresh = false) {
@@ -79,12 +108,15 @@ export default function ServicesComponent() {
 
   // ── Apply filters ───────────────────────────────────────────────
   const allItems = [...services, ...infrastructure];
+  const sortOptions = buildSortOptions(allItems);
 
   const filtered = allItems.filter((s) => {
     if (filters.status === "healthy" && !s.healthy) return false;
     if (filters.status === "unhealthy" && s.healthy) return false;
     if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
     if (filters.environment !== "all" && s.environment !== filters.environment) return false;
+    if (filters.serviceType !== "all" && s.serviceType !== filters.serviceType) return false;
+    if (filters.host !== "all" && s.host !== filters.host) return false;
     return true;
   });
 
@@ -133,7 +165,7 @@ export default function ServicesComponent() {
             <span>Filter</span>
           </div>
 
-          {Object.entries(SORT_OPTIONS).map(([dimension, config]) => (
+          {Object.entries(sortOptions).map(([dimension, config]) => (
             <div key={dimension} className={styles.sortGroup}>
               <span className={styles.sortGroupLabel}>{config.label}</span>
               <div className={styles.segmentedControl}>
@@ -156,7 +188,7 @@ export default function ServicesComponent() {
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: "all", visibility: "all", environment: "all" })
+                setFilters({ status: "all", visibility: "all", environment: "all", serviceType: "all", host: "all" })
               }
             >
               Clear

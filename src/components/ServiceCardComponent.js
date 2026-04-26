@@ -42,18 +42,25 @@ export default function ServiceCardComponent({ service, onRestart }) {
     <div className={`${styles.card} ${statusClass}`}>
       <div className={styles.cardHeader}>
         <div className={styles.nameRow}>
-          <div className={`${styles.statusDot} ${statusClass}`} />
           <TypeIcon
-            size={14}
-            strokeWidth={1.8}
-            className={styles.infraIcon}
+            size={16}
+            strokeWidth={2.6}
+            className={`${styles.infraIcon} ${statusClass}`}
           />
           <span className={styles.name}>{service.name}</span>
         </div>
       </div>
 
       <div className={styles.details}>
-        {/* ── Stage / Visibility / Status ── */}
+        {/* ── Status (top for immediate visibility) ── */}
+        <div className={styles.detail}>
+          <span className={styles.detailLabel}>Status</span>
+          <span className={styles.statusLabel}>
+            {isHealthy ? "Healthy" : "Down"}
+          </span>
+        </div>
+
+        {/* ── Stage / Visibility ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Environment</span>
           <span
@@ -87,12 +94,7 @@ export default function ServiceCardComponent({ service, onRestart }) {
           </div>
         )}
 
-        <div className={styles.detail}>
-          <span className={styles.detailLabel}>Status</span>
-          <span className={styles.statusLabel}>
-            {isHealthy ? "Healthy" : "Down"}
-          </span>
-        </div>
+
 
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
@@ -263,21 +265,44 @@ export default function ServiceCardComponent({ service, onRestart }) {
       )}
 
       {/* ── Connections (dependency graph) ── */}
-      {service.dependsOn?.length > 0 && (
-        <div className={styles.connections}>
-          <span className={styles.connectionLabel}>
-            <ArrowUp size={10} strokeWidth={2.4} />
-            Requires
-          </span>
-          <div className={styles.connectionTags}>
-            {service.dependsOn.map((dep, i) => (
-              <span key={`dep-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
-                {dep.name}
-              </span>
-            ))}
+      {service.dependsOn?.length > 0 && (() => {
+        const required = service.dependsOn.filter((d) => d.criticality !== "optional");
+        const optional = service.dependsOn.filter((d) => d.criticality === "optional");
+        return (
+          <div className={styles.connections}>
+            {required.length > 0 && (
+              <>
+                <span className={styles.connectionLabel}>
+                  <ArrowUp size={10} strokeWidth={2.4} />
+                  Requires
+                </span>
+                <div className={styles.connectionTags}>
+                  {required.map((dep, i) => (
+                    <span key={`req-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
+                      {dep.name}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {optional.length > 0 && (
+              <>
+                <span className={`${styles.connectionLabel} ${styles.connectionLabelOptional}`}>
+                  <ArrowUp size={10} strokeWidth={2.4} />
+                  Optional
+                </span>
+                <div className={styles.connectionTags}>
+                  {optional.map((dep, i) => (
+                    <span key={`opt-${i}-${dep.name || dep.id || ''}`} className={`${styles.connectionTag} ${styles.connectionTagOptional}`}>
+                      {dep.name}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

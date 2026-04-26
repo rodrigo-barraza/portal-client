@@ -89,7 +89,8 @@ function collectEdges(services) {
   for (const svc of services) {
     for (const dep of svc.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
-      if (idSet.has(depId)) edges.push({ source: depId, target: svc.id });
+      const criticality = typeof dep === "string" ? "required" : dep.criticality || "required";
+      if (idSet.has(depId)) edges.push({ source: depId, target: svc.id, criticality });
     }
   }
   return edges;
@@ -368,6 +369,7 @@ export default function TopologyComponent() {
                   const isSelected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
                   const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
                   const isActive = isSelected || isHovered;
+                  const isOptional = edge.criticality === "optional";
                   const d = edgePath(x1, y1, x2, y2);
 
                   return (
@@ -376,9 +378,10 @@ export default function TopologyComponent() {
                       <path
                         d={d}
                         stroke={isSelected ? "url(#prism-gradient)" : "var(--border-color)"}
-                        strokeWidth={isActive ? 2.5 : 1.5}
+                        strokeWidth={isActive ? 2.5 : isOptional ? 1 : 1.5}
                         fill="none"
-                        strokeOpacity={isActive ? 0.9 : 0.35}
+                        strokeOpacity={isActive ? 0.9 : isOptional ? 0.2 : 0.35}
+                        strokeDasharray={isOptional && !isSelected ? "6 4" : "none"}
                         className={styles.connectionLine}
                       />
                     </g>
@@ -437,6 +440,8 @@ export default function TopologyComponent() {
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--danger)", boxShadow: "0 0 6px var(--danger-subtle)" }} /><span>Down</span></div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#2dd4bf", boxShadow: "0 0 6px rgba(45,212,191,0.3)" }} /><span>External</span></div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#a855f7", boxShadow: "0 0 6px rgba(168,85,247,0.3)" }} /><span>Infrastructure</span></div>
+            <div className={styles.legendItem}><div className={styles.legendLine} /><span>Required</span></div>
+            <div className={styles.legendItem}><div className={styles.legendLine} style={{ borderTopStyle: "dashed", opacity: 0.5 }} /><span>Optional</span></div>
           </div>
 
           {/* Zoom */}
@@ -460,12 +465,26 @@ export default function TopologyComponent() {
               {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
               {tooltipData.responseTimeMs != null && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Latency</span><span className={styles.tooltipValue}>{tooltipData.responseTimeMs}ms</span></div>}
               {tooltipData.error && !tooltipData.healthy && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Error</span><span className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}>{tooltipData.error}</span></div>}
-              {tooltipData.dependsOn?.length > 0 && (
-                <div className={styles.tooltipDeps}>
-                  <span className={styles.tooltipDepLabel}>↑ Depends on</span>
-                  <span className={styles.tooltipDepList}>{tooltipData.dependsOn.map((d) => (typeof d === "string" ? d : d.name)).join(", ")}</span>
-                </div>
-              )}
+              {tooltipData.dependsOn?.length > 0 && (() => {
+                const required = tooltipData.dependsOn.filter((d) => (typeof d === "string" ? true : d.criticality !== "optional"));
+                const optional = tooltipData.dependsOn.filter((d) => (typeof d === "string" ? false : d.criticality === "optional"));
+                return (
+                  <div className={styles.tooltipDeps}>
+                    {required.length > 0 && (
+                      <>
+                        <span className={styles.tooltipDepLabel}>↑ Requires</span>
+                        <span className={styles.tooltipDepList}>{required.map((d) => (typeof d === "string" ? d : d.name)).join(", ")}</span>
+                      </>
+                    )}
+                    {optional.length > 0 && (
+                      <>
+                        <span className={`${styles.tooltipDepLabel} ${styles.tooltipDepLabelOptional}`}>↑ Optional</span>
+                        <span className={`${styles.tooltipDepList} ${styles.tooltipDepListOptional}`}>{optional.map((d) => (typeof d === "string" ? d : d.name)).join(", ")}</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </>

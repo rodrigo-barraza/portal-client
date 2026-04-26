@@ -246,6 +246,7 @@
 .legendTitle { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 2px; }
 .legendItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
 .legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legendLine { width: 20px; height: 0; border-top: 2px solid var(--text-muted); flex-shrink: 0; }
 
 .tooltip {
   position: fixed;
@@ -273,6 +274,8 @@
 .tooltipDeps { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 3px; }
 .tooltipDepLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #60a5fa; }
 .tooltipDepList { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+.tooltipDepLabelOptional { color: #fbbf24; }
+.tooltipDepListOptional { color: var(--text-tertiary); }
 
 .loadingState { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); font-size: 14px; }
 .loadingDot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); animation: pulse 1.5s ease-in-out infinite; }

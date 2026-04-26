@@ -41,28 +41,40 @@
   gap: 8px;
 }
 
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
 
-.statusDot.healthy {
-  background: var(--success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.statusDot.unhealthy {
-  background: var(--danger);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
-}
 
 .name {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text-muted);
+  opacity: 0.3;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+
+.healthy .name::after {
+  background: var(--success);
+  opacity: 1;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6), 0 0 12px rgba(16, 185, 129, 0.25);
+  animation: underlinePulse 2s ease-in-out infinite;
+}
+
+.unhealthy .name::after {
+  background: var(--danger);
+  opacity: 1;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6), 0 0 12px rgba(239, 68, 68, 0.25);
 }
 
 .statusLabel {
@@ -121,16 +133,30 @@
 }
 
 .infraIcon {
-  color: var(--text-muted);
   flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color var(--transition-fast), filter var(--transition-fast);
+}
+
+.infraIcon.healthy {
+  color: var(--success);
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.infraIcon.unhealthy {
+  color: var(--danger);
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
 }
 
 .healthy .statusLabel {
   color: var(--success);
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.6), 0 0 16px rgba(16, 185, 129, 0.2);
 }
 
 .unhealthy .statusLabel {
   color: var(--danger);
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.6), 0 0 16px rgba(239, 68, 68, 0.2);
 }
 
 /* ── Details ── */
@@ -215,6 +241,16 @@
   color: var(--text-muted);
   border-color: var(--border-color);
   background: var(--bg-tertiary);
+}
+
+@keyframes iconPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5)); }
+  50%      { filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8)); }
+}
+
+@keyframes underlinePulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.6), 0 0 12px rgba(16, 185, 129, 0.25); }
+  50%      { box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.4); }
 }
 
 @keyframes spin {
@@ -305,5 +341,22 @@
   &:hover {
     background: rgba(96, 165, 250, 0.18);
     border-color: rgba(96, 165, 250, 0.3);
+  }
+}
+
+/* ── Optional Dependencies (Soft / Graceful Degradation) ── */
+
+.connectionLabelOptional {
+  color: #fbbf24;
+}
+
+.connectionTagOptional {
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.15);
+
+  &:hover {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.3);
   }
 }
