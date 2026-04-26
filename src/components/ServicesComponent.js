@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown } from "lucide-react";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ServiceCardComponent from "./ServiceCardComponent";
-import PortalApiService from "../services/PortalApiService";
+import ApiService from "../services/ApiService";
 import styles from "./ServicesComponent.module.css";
 
 // ── Static filter option definitions ─────────────────────────────
@@ -80,7 +80,7 @@ export default function ServicesComponent() {
 
   async function loadServices(refresh = false) {
     try {
-      const res = await PortalApiService.getServices(refresh);
+      const res = await ApiService.getServices(refresh);
       setServices(res.services || []);
       setInfrastructure(res.infrastructure || []);
     } catch (err) {
@@ -125,7 +125,7 @@ export default function ServicesComponent() {
 
   const handleRestart = async (serviceId) => {
     try {
-      await PortalApiService.restartService(serviceId);
+      await ApiService.restartService(serviceId);
       setTimeout(() => loadServices(true), 5000);
     } catch (err) {
       console.error("Restart failed:", err);
@@ -134,7 +134,7 @@ export default function ServicesComponent() {
 
   const handleStop = async (serviceId) => {
     try {
-      await PortalApiService.stopService(serviceId);
+      await ApiService.stopService(serviceId);
       setTimeout(() => loadServices(true), 5000);
     } catch (err) {
       console.error("Stop failed:", err);
@@ -143,7 +143,7 @@ export default function ServicesComponent() {
 
   const handleStart = async (serviceId) => {
     try {
-      await PortalApiService.startService(serviceId);
+      await ApiService.startService(serviceId);
       setTimeout(() => loadServices(true), 5000);
     } catch (err) {
       console.error("Start failed:", err);

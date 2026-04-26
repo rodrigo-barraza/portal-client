@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import PageHeaderComponent from "./PageHeaderComponent";
-import PortalApiService from "../services/PortalApiService";
+import ApiService from "../services/ApiService";
 import styles from "./AnalyticsComponent.module.css";
 
 export default function AnalyticsComponent() {
@@ -15,8 +15,8 @@ export default function AnalyticsComponent() {
   async function loadData() {
     try {
       const [statsRes, projectsRes] = await Promise.all([
-        PortalApiService.getStats(),
-        PortalApiService.getProjectStats(),
+        ApiService.getStats(),
+        ApiService.getProjectStats(),
       ]);
       setStats(statsRes);
       setProjects(projectsRes);

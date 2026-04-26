@@ -13,7 +13,7 @@ import {
   Lock,
 } from "lucide-react";
 import PageHeaderComponent from "./PageHeaderComponent";
-import PortalApiService from "../services/PortalApiService";
+import ApiService from "../services/ApiService";
 import { formatDuration } from "../utils/utilities";
 import styles from "./DevicesComponent.module.css";
 
@@ -43,7 +43,7 @@ export default function DevicesComponent() {
 
   async function loadDevices() {
     try {
-      const res = await PortalApiService.getDevices();
+      const res = await ApiService.getDevices();
       setDevices(res.devices || []);
     } catch (err) {
       console.error("Devices fetch failed:", err);

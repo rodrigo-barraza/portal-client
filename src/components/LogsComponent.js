@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import PageHeaderComponent from "./PageHeaderComponent";
-import PortalApiService from "../services/PortalApiService";
+import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";
 
 // ── Constants ──────────────────────────────────────────────────
@@ -222,7 +222,7 @@ export default function LogsComponent() {
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
-    PortalApiService.getLoggableServices()
+    ApiService.getLoggableServices()
       .then((res) => setLoggableServices(res.services || []))
       .catch((err) => console.error("Failed to fetch loggable services:", err));
   }, []);
@@ -259,7 +259,7 @@ export default function LogsComponent() {
       setPaused(false);
       pauseBufferRef.current = [];
 
-      const url = PortalApiService.buildLogStreamUrl(serviceId, {
+      const url = ApiService.buildLogStreamUrl(serviceId, {
         tail: 200,
         follow: true,
       });

@@ -5,7 +5,7 @@ import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
   Server, Database, HardDrive, Monitor, Globe,
 } from "lucide-react";
-import PortalApiService from "../services/PortalApiService";
+import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
 
 // ── Dimensions ───────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export default function TopologyComponent() {
   // ── Data fetching ───────────────────────────────────────────
   async function loadData(refresh = false) {
     try {
-      const res = await PortalApiService.getServices(refresh);
+      const res = await ApiService.getServices(refresh);
       const svcs = (res.services || []).map((s) => ({ ...s, isInfrastructure: false }));
       const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
       setAllServices([...svcs, ...infra]);

@@ -1,5 +1,5 @@
 /**
- * PortalApiService — HTTP client for the API Portal backend.
+ * ApiService — HTTP client for the API backend.
  * Follows the same static-method pattern as Retina's PrismService.
  */
 
@@ -7,7 +7,7 @@ import { PORTAL_API_URL } from "../../config.js";
 
 const API_BASE = PORTAL_API_URL;
 
-export default class PortalApiService {
+export default class ApiService {
   /**
    * Shared fetch helper — centralises request / error handling.
    * @param {string} endpoint
@@ -26,7 +26,7 @@ export default class PortalApiService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `Portal API error: ${res.status}`);
+      throw new Error(err.message || `API error: ${res.status}`);
     }
 
     return res.json();
@@ -38,7 +38,7 @@ export default class PortalApiService {
    * Root health check — returns name, version, endpoints.
    */
   static async getHealth() {
-    return PortalApiService._request("/");
+    return ApiService._request("/");
   }
 
   // ── Services ──────────────────────────────────────────────────
@@ -49,14 +49,14 @@ export default class PortalApiService {
    */
   static async getServices(refresh = false) {
     const qs = refresh ? "?refresh=true" : "";
-    return PortalApiService._request(`/services${qs}`);
+    return ApiService._request(`/services${qs}`);
   }
 
   /**
    * Trigger a manual health check for all services.
    */
   static async checkServices() {
-    return PortalApiService._request("/services/check", { method: "POST" });
+    return ApiService._request("/services/check", { method: "POST" });
   }
 
   /**
@@ -64,7 +64,7 @@ export default class PortalApiService {
    * @param {string} serviceId - Service ID (e.g. "lights", "vault")
    */
   static async restartService(serviceId) {
-    return PortalApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
   }
 
   /**
@@ -72,7 +72,7 @@ export default class PortalApiService {
    * @param {string} serviceId
    */
   static async stopService(serviceId) {
-    return PortalApiService._request(`/services/${serviceId}/stop`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/stop`, { method: "POST" });
   }
 
   /**
@@ -80,7 +80,7 @@ export default class PortalApiService {
    * @param {string} serviceId
    */
   static async startService(serviceId) {
-    return PortalApiService._request(`/services/${serviceId}/start`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/start`, { method: "POST" });
   }
 
   // ── Stats ─────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ export default class PortalApiService {
    * Get overview stats from Prism.
    */
   static async getStats() {
-    return PortalApiService._request("/stats");
+    return ApiService._request("/stats");
   }
 
   /**
@@ -97,14 +97,14 @@ export default class PortalApiService {
    * @param {string} [period="24h"]
    */
   static async getStatsBreakdown(period = "24h") {
-    return PortalApiService._request(`/stats/breakdown?period=${period}`);
+    return ApiService._request(`/stats/breakdown?period=${period}`);
   }
 
   /**
    * Get per-project stats.
    */
   static async getProjectStats() {
-    return PortalApiService._request("/stats/projects");
+    return ApiService._request("/stats/projects");
   }
 
 
@@ -115,7 +115,7 @@ export default class PortalApiService {
    * Get the list of services that support log streaming.
    */
   static async getLoggableServices() {
-    return PortalApiService._request("/logs");
+    return ApiService._request("/logs");
   }
 
   /**
@@ -135,7 +135,6 @@ export default class PortalApiService {
    * Get device topology — physical devices with their hosted services.
    */
   static async getDevices() {
-    return PortalApiService._request("/devices");
+    return ApiService._request("/devices");
   }
 }
-
