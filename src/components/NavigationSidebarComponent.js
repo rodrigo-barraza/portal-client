@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Server,
@@ -36,7 +37,7 @@ export default function NavigationSidebarComponent() {
     <nav className={styles.sidebar}>
       {/* ── Brand ── */}
       <div className={styles.brand}>
-        <div className={styles.brandIcon}>P</div>
+        <Image className={styles.brandIcon} src="/brand-icon.png" alt="Portal" width={32} height={32} />
         <span className={styles.brandLabel}>Portal</span>
       </div>
 

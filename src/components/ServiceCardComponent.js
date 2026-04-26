@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Database, Github, Globe, HardDrive, Lock } from "lucide-react";
+import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Server } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -19,34 +19,33 @@ function formatUptime(seconds) {
 }
 
 /**
- * Map infrastructure type to an icon + display label.
+ * Map serviceType to a Lucide icon — matches TopologyComponent.
  */
-const INFRA_TYPE_MAP = {
-  database: { icon: Database, label: "Database" },
-  "object-store": { icon: HardDrive, label: "Object Store" },
+const SERVICE_TYPE_ICONS = {
+  API: Server,
+  Client: Monitor,
+  Database: Database,
+  Storage: HardDrive,
 };
 
 export default function ServiceCardComponent({ service }) {
   const isHealthy = service.healthy;
   const statusClass = isHealthy ? styles.healthy : styles.unhealthy;
-  const isProduction = service.stage === "Production";
+  const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
-  const infraDef = isInfra ? INFRA_TYPE_MAP[service.type] : null;
-  const InfraIcon = infraDef?.icon || null;
+  const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || Globe;
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
       <div className={styles.cardHeader}>
         <div className={styles.nameRow}>
           <div className={`${styles.statusDot} ${statusClass}`} />
-          {isInfra && InfraIcon && (
-            <InfraIcon
-              size={14}
-              strokeWidth={1.8}
-              className={styles.infraIcon}
-            />
-          )}
+          <TypeIcon
+            size={14}
+            strokeWidth={1.8}
+            className={styles.infraIcon}
+          />
           <span className={styles.name}>{service.name}</span>
         </div>
       </div>
@@ -54,18 +53,12 @@ export default function ServiceCardComponent({ service }) {
       <div className={styles.details}>
         {/* ── Stage / Visibility / Status ── */}
         <div className={styles.detail}>
-          <span className={styles.detailLabel}>Stage</span>
-          {isInfra && infraDef ? (
-            <span className={`${styles.stageBadge} ${styles.stageInfra}`}>
-              {infraDef.label}
-            </span>
-          ) : (
-            <span
-              className={`${styles.stageBadge} ${isProduction ? styles.stageProduction : styles.stageDevelopment}`}
-            >
-              {service.stage || "Unknown"}
-            </span>
-          )}
+          <span className={styles.detailLabel}>Environment</span>
+          <span
+            className={`${styles.stageBadge} ${isProduction ? styles.stageProduction : styles.stageDevelopment}`}
+          >
+            {service.environment || "Unknown"}
+          </span>
         </div>
 
         {service.serviceType && (
@@ -198,6 +191,21 @@ export default function ServiceCardComponent({ service }) {
               className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
             >
               {service.url.replace(/^https?:\/\//, "")}
+            </a>
+          </div>
+        )}
+
+        {service.hostname && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Hostname</span>
+            <a
+              href={`https://${service.hostname}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
+            >
+              <Globe size={12} strokeWidth={2} />
+              {service.hostname}
             </a>
           </div>
         )}

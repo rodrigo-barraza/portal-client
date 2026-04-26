@@ -25,7 +25,7 @@ const SORT_OPTIONS = {
       { key: "internal", label: "Internal" },
     ],
   },
-  stage: {
+  environment: {
     label: "Environment",
     values: [
       { key: "all", label: "All" },
@@ -46,7 +46,7 @@ export default function ServicesComponent() {
   const [filters, setFilters] = useState({
     status: "all",
     visibility: "all",
-    stage: "all",
+    environment: "all",
   });
 
   async function loadServices(refresh = false) {
@@ -84,7 +84,7 @@ export default function ServicesComponent() {
     if (filters.status === "healthy" && !s.healthy) return false;
     if (filters.status === "unhealthy" && s.healthy) return false;
     if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
-    if (filters.stage !== "all" && s.stage !== filters.stage) return false;
+    if (filters.environment !== "all" && s.environment !== filters.environment) return false;
     return true;
   });
 
@@ -146,7 +146,7 @@ export default function ServicesComponent() {
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: "all", visibility: "all", stage: "all" })
+                setFilters({ status: "all", visibility: "all", environment: "all" })
               }
             >
               Clear

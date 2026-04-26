@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
-  Server, Database, HardDrive, Globe,
+  Server, Database, HardDrive, Monitor, Globe,
 } from "lucide-react";
 import PortalApiService from "../services/PortalApiService";
 import styles from "./TopologyComponent.module.css";
@@ -12,15 +12,16 @@ import styles from "./TopologyComponent.module.css";
 const NODE_W = 130;
 const NODE_H = 64;
 
-// ── Icon resolver ────────────────────────────────────────────────
+// ── Icon resolver (by serviceType) ──────────────────────────────
+const SERVICE_TYPE_ICONS = {
+  API: Server,
+  Client: Monitor,
+  Database: Database,
+  Storage: HardDrive,
+};
+
 function getIcon(svc) {
-  if (svc.isInfrastructure) {
-    if (svc.name?.toLowerCase().includes("mongo")) return Database;
-    if (svc.name?.toLowerCase().includes("minio")) return HardDrive;
-    return Database;
-  }
-  if (svc.visibility === "external") return Globe;
-  return Server;
+  return SERVICE_TYPE_ICONS[svc.serviceType] || Globe;
 }
 
 // ── Sugiyama layering ────────────────────────────────────────────
@@ -455,7 +456,7 @@ export default function TopologyComponent() {
               <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Status</span><span className={`${styles.tooltipValue} ${tooltipData.healthy ? styles.tooltipHealthy : styles.tooltipUnhealthy}`}>{tooltipData.healthy ? "Healthy" : "Down"}</span></div>
               {tooltipData.host && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Host</span><span className={styles.tooltipValue}>{tooltipData.host}</span></div>}
               {tooltipData.url && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>URL</span><span className={styles.tooltipValue}>{tooltipData.url}</span></div>}
-              <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Stage</span><span className={styles.tooltipValue}>{tooltipData.stage}</span></div>
+              <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Environment</span><span className={styles.tooltipValue}>{tooltipData.environment}</span></div>
               {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
               {tooltipData.responseTimeMs != null && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Latency</span><span className={styles.tooltipValue}>{tooltipData.responseTimeMs}ms</span></div>}
               {tooltipData.error && !tooltipData.healthy && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Error</span><span className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}>{tooltipData.error}</span></div>}

@@ -203,9 +203,9 @@ function ServiceRow({ service }) {
         />
         <span className={styles.svcName}>{service.name}</span>
         <span
-          className={`${styles.stageBadge} ${service.stage === "Production" ? styles.stageProduction : styles.stageDevelopment}`}
+          className={`${styles.stageBadge} ${service.environment === "Production" ? styles.stageProduction : styles.stageDevelopment}`}
         >
-          {service.stage}
+          {service.environment}
         </span>
         {service.visibility && (
           <span

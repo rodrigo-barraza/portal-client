@@ -23,13 +23,7 @@
 .brandIcon {
   width: 32px;
   height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--portal-gradient);
-  color: #fff;
-  font-weight: 700;
-  font-size: 15px;
+  object-fit: contain;
   border-radius: var(--border-radius-sm);
 }
 
