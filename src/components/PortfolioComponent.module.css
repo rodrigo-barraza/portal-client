@@ -1,0 +1,189 @@
+.portfolio {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Bio Card ── */
+.bioCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+.bioHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--portal-gradient);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+}
+.bioInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bioName {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.bioTitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.bioMeta {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.bioText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.emptyBio {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Skills ── */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.skillTag {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-color);
+  background: var(--accent-subtle);
+  border-radius: var(--border-radius-sm);
+}
+
+/* ── Social Links ── */
+.socialLinks {
+  display: flex;
+  gap: 8px;
+}
+.socialLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  text-decoration: none;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.socialLink:hover {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+}
+
+/* ── Projects ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.projectsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+.projectCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn var(--transition-normal) ease-out;
+  transition: border-color var(--transition-fast);
+}
+.projectCard:hover {
+  border-color: var(--accent-color);
+}
+.projectHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.projectName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.projectLink {
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+}
+.projectLink:hover {
+  color: var(--accent-color);
+}
+.projectDescription {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.projectTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.projectTag {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+}
+
+/* ── States ── */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+.loadingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
