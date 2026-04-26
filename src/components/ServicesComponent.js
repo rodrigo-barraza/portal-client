@@ -41,7 +41,7 @@ const STATIC_SORT_OPTIONS = {
  */
 function buildSortOptions(items) {
   const types = [...new Set(items.map((s) => s.serviceType).filter(Boolean))].sort();
-  const hosts = [...new Set(items.map((s) => s.host).filter(Boolean))].sort();
+  const hosts = [...new Set(items.map((s) => s.device).filter(Boolean))].sort();
 
   return {
     ...STATIC_SORT_OPTIONS,
@@ -52,8 +52,8 @@ function buildSortOptions(items) {
         ...types.map((t) => ({ key: t, label: t })),
       ],
     },
-    host: {
-      label: "Host",
+    device: {
+      label: "Device",
       values: [
         { key: "all", label: "All" },
         ...hosts.map((h) => ({ key: h, label: h })),
@@ -75,7 +75,7 @@ export default function ServicesComponent() {
     visibility: "all",
     environment: "all",
     serviceType: "all",
-    host: "all",
+    device: "all",
   });
 
   async function loadServices(refresh = false) {
@@ -116,7 +116,7 @@ export default function ServicesComponent() {
     if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
     if (filters.environment !== "all" && s.environment !== filters.environment) return false;
     if (filters.serviceType !== "all" && s.serviceType !== filters.serviceType) return false;
-    if (filters.host !== "all" && s.host !== filters.host) return false;
+    if (filters.device !== "all" && s.device !== filters.device) return false;
     return true;
   });
 
@@ -188,7 +188,7 @@ export default function ServicesComponent() {
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: "all", visibility: "all", environment: "all", serviceType: "all", host: "all" })
+                setFilters({ status: "all", visibility: "all", environment: "all", serviceType: "all", device: "all" })
               }
             >
               Clear

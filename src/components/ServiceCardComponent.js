@@ -105,10 +105,10 @@ export default function ServiceCardComponent({ service, onRestart }) {
           </div>
         )}
 
-        {service.host && (
+        {service.device && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Host</span>
-            <span className={styles.detailValue}>{service.host}</span>
+            <span className={styles.detailLabel}>Device</span>
+            <span className={styles.detailValue}>{service.device}</span>
           </div>
         )}
 

@@ -424,7 +424,7 @@ export default function TopologyComponent() {
                         <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />
                         <div className={styles.nodeIconWrap}><Icon size={18} strokeWidth={1.5} /></div>
                         <span className={styles.nodeName}>{svc.name}</span>
-                        {svc.host && <span className={styles.nodeHost}>{svc.host}</span>}
+                        {svc.device && <span className={styles.nodeHost}>{svc.device}</span>}
                       </div>
                     </foreignObject>
                   );
@@ -459,7 +459,7 @@ export default function TopologyComponent() {
             }}>
               <div className={styles.tooltipName}>{tooltipData.name}</div>
               <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Status</span><span className={`${styles.tooltipValue} ${tooltipData.healthy ? styles.tooltipHealthy : styles.tooltipUnhealthy}`}>{tooltipData.healthy ? "Healthy" : "Down"}</span></div>
-              {tooltipData.host && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Host</span><span className={styles.tooltipValue}>{tooltipData.host}</span></div>}
+              {tooltipData.device && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Device</span><span className={styles.tooltipValue}>{tooltipData.device}</span></div>}
               {tooltipData.url && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>URL</span><span className={styles.tooltipValue}>{tooltipData.url}</span></div>}
               <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Environment</span><span className={styles.tooltipValue}>{tooltipData.environment}</span></div>
               {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
