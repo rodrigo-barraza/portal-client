@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  LayoutDashboard,
   Server,
   BarChart3,
   Briefcase,
@@ -19,7 +18,6 @@ import { NAV_ITEMS } from "../constants";
 import styles from "./NavigationSidebarComponent.module.css";
 
 const ICON_MAP = {
-  LayoutDashboard,
   Server,
   BarChart3,
   Briefcase,
