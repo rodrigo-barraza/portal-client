@@ -92,6 +92,15 @@ export default class PortalApiService {
     return PortalApiService._request("/portfolio");
   }
 
+  // ── Devices ──────────────────────────────────────────────────
+
+  /**
+   * Get device topology — physical devices with their hosted services.
+   */
+  static async getDevices() {
+    return PortalApiService._request("/devices");
+  }
+
   /**
    * Update portfolio content.
    * @param {object} content

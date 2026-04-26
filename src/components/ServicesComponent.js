@@ -9,6 +9,7 @@ import styles from "./ServicesComponent.module.css";
 
 export default function ServicesComponent() {
   const [services, setServices] = useState([]);
+  const [infrastructure, setInfrastructure] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const didFetch = useRef(false);
@@ -17,6 +18,7 @@ export default function ServicesComponent() {
     try {
       const res = await PortalApiService.getServices(refresh);
       setServices(res.services || []);
+      setInfrastructure(res.infrastructure || []);
     } catch (err) {
       console.error("Services fetch failed:", err);
     } finally {
@@ -36,7 +38,8 @@ export default function ServicesComponent() {
     loadServices(true);
   };
 
-  const healthyCount = services.filter((s) => s.healthy).length;
+  const allItems = [...services, ...infrastructure];
+  const healthyCount = allItems.filter((s) => s.healthy).length;
 
   return (
     <div className={styles.services}>
@@ -45,7 +48,7 @@ export default function ServicesComponent() {
         subtitle={
           loading
             ? "Checking service health…"
-            : `${healthyCount} of ${services.length} services healthy`
+            : `${healthyCount} of ${allItems.length} services healthy`
         }
       >
         <button
@@ -68,12 +71,26 @@ export default function ServicesComponent() {
           <span>Polling services…</span>
         </div>
       ) : (
-        <div className={styles.grid}>
-          {services.map((service) => (
-            <ServiceCardComponent key={service.id} service={service} />
-          ))}
-        </div>
+        <>
+          <div className={styles.grid}>
+            {services.map((service) => (
+              <ServiceCardComponent key={service.id} service={service} />
+            ))}
+          </div>
+
+          {infrastructure.length > 0 && (
+            <>
+              <div className={styles.sectionLabel}>Infrastructure</div>
+              <div className={styles.grid}>
+                {infrastructure.map((infra) => (
+                  <ServiceCardComponent key={infra.id} service={infra} />
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );
 }
+

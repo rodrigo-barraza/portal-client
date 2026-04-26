@@ -6,7 +6,7 @@
 // ============================================================
 
 // Dev Server
-export const PORT = 4000;
+export const PORTAL_PORT = 4000;
 
 // API Portal Backend
 export const PORTAL_API_URL = "http://localhost:4001";

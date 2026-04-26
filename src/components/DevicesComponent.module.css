@@ -1,0 +1,371 @@
+.devices {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Device List ── */
+
+.deviceList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Device Card ── */
+
+.deviceCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 0;
+  overflow: hidden;
+  animation: fadeIn var(--transition-normal) ease-out both;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--device-accent) 30%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--device-accent) 8%, transparent);
+  }
+}
+
+/* ── Device Header ── */
+
+.deviceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.deviceInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.deviceIconWrap {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  background: color-mix(in srgb, var(--device-accent) 10%, transparent);
+  color: var(--device-accent);
+  transition: background var(--transition-fast);
+}
+
+.deviceCard:hover .deviceIconWrap {
+  background: color-mix(in srgb, var(--device-accent) 16%, transparent);
+}
+
+.deviceName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.deviceMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.deviceType {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--device-accent);
+}
+
+.separator {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.deviceOs {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ── Device Status ── */
+
+.deviceStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDot.healthy {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot.unhealthy {
+  background: var(--danger);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.statusLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Hostname ── */
+
+.hostnameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.hostnameLabel {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.hostname {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 2px 10px;
+  border-radius: 2px;
+}
+
+/* ── Notes ── */
+
+.deviceNotes {
+  padding: 10px 24px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── Services Section ── */
+
+.servicesSection {
+  padding: 0;
+}
+
+.servicesHeader {
+  padding: 10px 24px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.servicesTable {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Service Row ── */
+
+.serviceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  border-top: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--accent-subtle);
+  }
+}
+
+.serviceLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.svcDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.svcDot.healthy {
+  background: var(--success);
+}
+
+.svcDot.unhealthy {
+  background: var(--danger);
+}
+
+.svcName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.stageBadge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 2px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.stageProduction {
+  color: var(--info);
+  background: var(--info-subtle);
+}
+
+.stageDevelopment {
+  color: var(--warning);
+  background: var(--warning-subtle);
+}
+
+.serviceRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.svcPort {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--device-accent);
+  background: color-mix(in srgb, var(--device-accent) 8%, transparent);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.svcUrl {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.svcLatency {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.svcError {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--danger);
+  white-space: nowrap;
+}
+
+/* ── Refresh Button ── */
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: var(--accent-subtle);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* ── Loading State ── */
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 200px;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+.loadingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Infrastructure Styles ── */
+
+.infraHeader {
+  color: #a855f7;
+}
+
+.stageInfra {
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.infraRow {
+  &:hover {
+    background: rgba(168, 85, 247, 0.04);
+  }
+}
+
+.infraRowIcon {
+  color: #a855f7;
+  flex-shrink: 0;
+}
+
+.infraChip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 1px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+

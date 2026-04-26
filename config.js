@@ -6,7 +6,7 @@
 // ============================================================
 
 import {
-  PORT as SECRETS_PORT,
+  PORTAL_PORT as SECRETS_PORT,
   PORTAL_API_URL as DEFAULT_PORTAL_API_URL,
 } from "./secrets.js";
 

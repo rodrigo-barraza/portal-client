@@ -73,6 +73,42 @@
   letter-spacing: 0.04em;
 }
 
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stageBadge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  line-height: 1.6;
+}
+
+.stageProduction {
+  color: var(--info);
+  background: var(--info-subtle);
+}
+
+.stageDevelopment {
+  color: var(--warning);
+  background: var(--warning-subtle);
+}
+
+.stageInfra {
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.infraIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 .healthy .statusLabel {
   color: var(--success);
 }
@@ -122,4 +158,21 @@
   font-family: var(--font-mono);
   color: var(--danger);
   word-break: break-all;
+}
+
+/* ── Endpoint Link ── */
+
+.endpointLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+
+  &:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-color);
+    text-underline-offset: 2px;
+  }
 }

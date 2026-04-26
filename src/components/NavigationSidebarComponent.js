@@ -7,6 +7,7 @@ import {
   Server,
   BarChart3,
   Briefcase,
+  Cpu,
   Sun,
   Moon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const ICON_MAP = {
   Server,
   BarChart3,
   Briefcase,
+  Cpu,
 };
 
 export default function NavigationSidebarComponent() {

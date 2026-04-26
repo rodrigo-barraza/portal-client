@@ -1,22 +1,70 @@
 "use client";
 
+import { Database, HardDrive } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
+
+/**
+ * Format seconds into a human-readable uptime string.
+ * e.g. 86400 → "1d", 3661 → "1h 1m"
+ */
+function formatUptime(seconds) {
+  if (seconds == null) return null;
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+/**
+ * Map infrastructure type to an icon + display label.
+ */
+const INFRA_TYPE_MAP = {
+  database: { icon: Database, label: "Database" },
+  "object-store": { icon: HardDrive, label: "Object Store" },
+};
 
 export default function ServiceCardComponent({ service }) {
   const isHealthy = service.healthy;
   const statusClass = isHealthy ? styles.healthy : styles.unhealthy;
+  const isProduction = service.stage === "Production";
+  const isInfra = service.isInfrastructure;
+
+  const infraDef = isInfra ? INFRA_TYPE_MAP[service.type] : null;
+  const InfraIcon = infraDef?.icon || null;
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
       <div className={styles.cardHeader}>
         <div className={styles.nameRow}>
           <div className={`${styles.statusDot} ${statusClass}`} />
+          {isInfra && InfraIcon && (
+            <InfraIcon
+              size={14}
+              strokeWidth={1.8}
+              className={styles.infraIcon}
+            />
+          )}
           <span className={styles.name}>{service.name}</span>
         </div>
-        <span className={styles.statusLabel}>
-          {isHealthy ? "Healthy" : "Down"}
-        </span>
+        <div className={styles.badges}>
+          {isInfra && infraDef ? (
+            <span className={`${styles.stageBadge} ${styles.stageInfra}`}>
+              {infraDef.label}
+            </span>
+          ) : (
+            <span
+              className={`${styles.stageBadge} ${isProduction ? styles.stageProduction : styles.stageDevelopment}`}
+            >
+              {service.stage || "Unknown"}
+            </span>
+          )}
+          <span className={styles.statusLabel}>
+            {isHealthy ? "Healthy" : "Down"}
+          </span>
+        </div>
       </div>
 
       <div className={styles.details}>
@@ -29,7 +77,69 @@ export default function ServiceCardComponent({ service }) {
           </div>
         )}
 
-        {service.metadata?.version && (
+        {service.host && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Host</span>
+            <span className={styles.detailValue}>{service.host}</span>
+          </div>
+        )}
+
+        {/* ── Infrastructure-specific metadata ── */}
+        {isInfra && service.metadata && (
+          <>
+            {service.metadata.version && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Version</span>
+                <span className={`${styles.detailValue} ${styles.mono}`}>
+                  {service.metadata.version}
+                </span>
+              </div>
+            )}
+            {service.metadata.uptime != null && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Uptime</span>
+                <span className={styles.detailValue}>
+                  {formatUptime(service.metadata.uptime)}
+                </span>
+              </div>
+            )}
+            {service.metadata.connections != null && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Connections</span>
+                <span className={styles.detailValue}>
+                  {service.metadata.connections}
+                </span>
+              </div>
+            )}
+            {service.metadata.databases != null && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Databases</span>
+                <span className={styles.detailValue}>
+                  {service.metadata.databases}
+                </span>
+              </div>
+            )}
+            {service.metadata.buckets != null && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Buckets</span>
+                <span className={styles.detailValue}>
+                  {service.metadata.buckets}
+                </span>
+              </div>
+            )}
+            {service.metadata.bucketNames?.length > 0 && (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Bucket Names</span>
+                <span className={`${styles.detailValue} ${styles.mono}`}>
+                  {service.metadata.bucketNames.join(", ")}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Standard service metadata ── */}
+        {!isInfra && service.metadata?.version && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Version</span>
             <span className={styles.detailValue}>
@@ -38,12 +148,26 @@ export default function ServiceCardComponent({ service }) {
           </div>
         )}
 
-        {service.url && (
+        {service.port && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>URL</span>
-            <span className={styles.detailValue + " " + styles.mono}>
+            <span className={styles.detailLabel}>Port</span>
+            <code className={`${styles.detailValue} ${styles.mono}`}>
+              :{service.port}
+            </code>
+          </div>
+        )}
+
+        {service.url && !isInfra && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Endpoint</span>
+            <a
+              href={service.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
+            >
               {service.url.replace(/^https?:\/\//, "")}
-            </span>
+            </a>
           </div>
         )}
 
@@ -65,3 +189,4 @@ export default function ServiceCardComponent({ service }) {
     </div>
   );
 }
+
