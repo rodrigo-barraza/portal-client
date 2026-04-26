@@ -1,0 +1,404 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  ScrollText,
+  ArrowDown,
+  Trash2,
+  Pause,
+  Play,
+  Search,
+  X,
+} from "lucide-react";
+import PageHeaderComponent from "./PageHeaderComponent";
+import PortalApiService from "../services/PortalApiService";
+import styles from "./LogsComponent.module.css";
+
+// ── Constants ──────────────────────────────────────────────────
+const MAX_LINES = 5000;
+const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
+
+/**
+ * Detect the log level from a line of text.
+ */
+function detectLevel(text) {
+  if (/\bERR(?:OR)?\b/i.test(text)) return "error";
+  if (/\bWARN(?:ING)?\b/i.test(text)) return "warn";
+  if (/\bINFO\b/i.test(text)) return "info";
+  if (/\b(?:OK|SUCCESS)\b/i.test(text)) return "success";
+  if (/\bDBG|DEBUG\b/i.test(text)) return "debug";
+  return null;
+}
+
+const LEVEL_CLASS = {
+  error: styles.levelError,
+  warn: styles.levelWarn,
+  info: styles.levelInfo,
+  success: styles.levelSuccess,
+  debug: styles.levelDebug,
+};
+
+/**
+ * Parse a raw log line into { timestamp, content, level }.
+ */
+function parseLine(raw) {
+  const match = raw.match(TIMESTAMP_REGEX);
+  if (match) {
+    const ts = match[1];
+    const content = raw.slice(match[0].length);
+    return { timestamp: ts.slice(11, 23), content, level: detectLevel(content) };
+  }
+  return { timestamp: null, content: raw, level: detectLevel(raw) };
+}
+
+export default function LogsComponent() {
+  const [loggableServices, setLoggableServices] = useState([]);
+  const [activeService, setActiveService] = useState(null);
+  const [lines, setLines] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const [error, setError] = useState(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [search, setSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
+  const eventSourceRef = useRef(null);
+  const bodyRef = useRef(null);
+  const pauseBufferRef = useRef([]);
+  const didFetch = useRef(false);
+  const searchInputRef = useRef(null);
+
+  // ── Fetch loggable services on mount ─────────────────────────
+  useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
+    PortalApiService.getLoggableServices()
+      .then((res) => setLoggableServices(res.services || []))
+      .catch((err) => console.error("Failed to fetch loggable services:", err));
+  }, []);
+
+  // ── Auto-scroll to bottom ────────────────────────────────────
+  useEffect(() => {
+    if (autoScroll && bodyRef.current && !paused) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }
+  }, [lines, autoScroll, paused]);
+
+  // ── Detect user scroll position ──────────────────────────────
+  const handleScroll = useCallback(() => {
+    if (!bodyRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = bodyRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 60;
+    setAutoScroll(isAtBottom);
+  }, []);
+
+  // ── Connect to SSE stream ────────────────────────────────────
+  const connectToService = useCallback(
+    (serviceId) => {
+      // Disconnect existing stream
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
+      setActiveService(serviceId);
+      setLines([]);
+      setConnected(false);
+      setError(null);
+      setAutoScroll(true);
+      setPaused(false);
+      pauseBufferRef.current = [];
+
+      const url = PortalApiService.buildLogStreamUrl(serviceId, {
+        tail: 200,
+        follow: true,
+      });
+
+      const es = new EventSource(url);
+      eventSourceRef.current = es;
+
+      es.addEventListener("connected", (e) => {
+        setConnected(true);
+        setError(null);
+      });
+
+      es.addEventListener("error", (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          setError(data.error || "Connection error");
+        } catch {
+          setError("Connection lost");
+        }
+        setConnected(false);
+      });
+
+      es.addEventListener("end", () => {
+        setConnected(false);
+      });
+
+      es.onmessage = (e) => {
+        const raw = e.data;
+        const parsed = parseLine(raw);
+
+        if (paused) {
+          pauseBufferRef.current.push(parsed);
+          return;
+        }
+
+        setLines((prev) => {
+          const next = [...prev, parsed];
+          return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
+        });
+      };
+
+      // Native error (e.g., network disconnect)
+      es.onerror = () => {
+        setConnected(false);
+      };
+    },
+    [paused],
+  );
+
+  // ── Cleanup on unmount ───────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  // ── Re-wire the onmessage handler when `paused` changes ─────
+  useEffect(() => {
+    const es = eventSourceRef.current;
+    if (!es) return;
+
+    es.onmessage = (e) => {
+      const raw = e.data;
+      const parsed = parseLine(raw);
+
+      if (paused) {
+        pauseBufferRef.current.push(parsed);
+        return;
+      }
+
+      setLines((prev) => {
+        const next = [...prev, parsed];
+        return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
+      });
+    };
+  }, [paused]);
+
+  // ── Resume: flush buffer ─────────────────────────────────────
+  const handleResume = () => {
+    setPaused(false);
+    const buffered = pauseBufferRef.current;
+    if (buffered.length > 0) {
+      setLines((prev) => {
+        const next = [...prev, ...buffered];
+        return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
+      });
+      pauseBufferRef.current = [];
+    }
+    setAutoScroll(true);
+  };
+
+  // ── Clear ────────────────────────────────────────────────────
+  const handleClear = () => {
+    setLines([]);
+    pauseBufferRef.current = [];
+  };
+
+  // ── Scroll to bottom ────────────────────────────────────────
+  const scrollToBottom = () => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }
+    setAutoScroll(true);
+  };
+
+  // ── Search filter ────────────────────────────────────────────
+  const filteredLines = search
+    ? lines.filter(
+        (l) =>
+          l.content.toLowerCase().includes(search.toLowerCase()) ||
+          (l.timestamp && l.timestamp.includes(search)),
+      )
+    : lines;
+
+  // ── Keyboard shortcut for search ────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        setShowSearch(true);
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+      if (e.key === "Escape" && showSearch) {
+        setShowSearch(false);
+        setSearch("");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showSearch]);
+
+  const activeServiceName =
+    loggableServices.find((s) => s.id === activeService)?.name || activeService;
+
+  return (
+    <div className={styles.logs}>
+      <PageHeaderComponent
+        title="Logs"
+        subtitle={
+          activeService
+            ? `Streaming ${activeServiceName} logs`
+            : "Select a service to view live container logs"
+        }
+      />
+
+      {/* ── Service Chips ── */}
+      <div className={styles.serviceList}>
+        {loggableServices.map((svc) => (
+          <button
+            key={svc.id}
+            className={`${styles.serviceChip} ${activeService === svc.id ? styles.active : ""}`}
+            onClick={() => connectToService(svc.id)}
+          >
+            <span className={styles.chipDot} />
+            {svc.name}
+            <span className={styles.chipDevice}>{svc.deviceName}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Terminal Viewer ── */}
+      {activeService ? (
+        <div className={styles.terminal}>
+          {/* Header */}
+          <div className={styles.terminalHeader}>
+            <div className={styles.terminalTitle}>
+              <span
+                className={`${styles.terminalDot} ${connected ? styles.connected : ""}`}
+              />
+              {activeServiceName}
+              {connected && " — live"}
+            </div>
+
+            <div className={styles.terminalActions}>
+              <span className={styles.lineCount}>
+                {filteredLines.length.toLocaleString()} lines
+              </span>
+
+              {/* Search */}
+              {showSearch && (
+                <input
+                  ref={searchInputRef}
+                  className={styles.searchInput}
+                  type="text"
+                  placeholder="Filter logs…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              )}
+
+              <button
+                className={`${styles.terminalBtn} ${showSearch ? styles.active : ""}`}
+                onClick={() => {
+                  setShowSearch((v) => !v);
+                  if (showSearch) setSearch("");
+                  else setTimeout(() => searchInputRef.current?.focus(), 50);
+                }}
+                title="Search (Ctrl+F)"
+              >
+                {showSearch ? <X size={12} strokeWidth={2} /> : <Search size={12} strokeWidth={2} />}
+              </button>
+
+              <button
+                className={`${styles.terminalBtn} ${paused ? styles.active : ""}`}
+                onClick={() => (paused ? handleResume() : setPaused(true))}
+                title={paused ? "Resume" : "Pause"}
+              >
+                {paused ? (
+                  <Play size={12} strokeWidth={2} />
+                ) : (
+                  <Pause size={12} strokeWidth={2} />
+                )}
+              </button>
+
+              <button
+                className={styles.terminalBtn}
+                onClick={scrollToBottom}
+                title="Scroll to bottom"
+              >
+                <ArrowDown size={12} strokeWidth={2} />
+              </button>
+
+              <button
+                className={styles.terminalBtn}
+                onClick={handleClear}
+                title="Clear"
+              >
+                <Trash2 size={12} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+
+          {/* Error banner */}
+          {error && (
+            <div className={styles.errorState}>
+              ✕ {error}
+            </div>
+          )}
+
+          {/* Log body */}
+          <div
+            ref={bodyRef}
+            className={styles.terminalBody}
+            onScroll={handleScroll}
+          >
+            {filteredLines.length === 0 && connected && (
+              <div className={styles.connecting}>
+                <span className={styles.connectingDot} />
+                Waiting for log output…
+              </div>
+            )}
+
+            {filteredLines.length === 0 && !connected && !error && (
+              <div className={styles.connecting}>
+                <span className={styles.connectingDot} />
+                Connecting…
+              </div>
+            )}
+
+            {filteredLines.map((line, i) => (
+              <div key={i} className={styles.logLine}>
+                <span className={styles.lineNumber}>{i + 1}</span>
+                {line.timestamp && (
+                  <span className={styles.lineTimestamp}>{line.timestamp}</span>
+                )}
+                <span
+                  className={`${styles.lineContent} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
+                >
+                  {line.content}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Paused indicator */}
+          {paused && pauseBufferRef.current.length > 0 && (
+            <div className={styles.errorState} style={{ background: "var(--warning-subtle)", borderColor: "rgba(245, 158, 11, 0.15)", color: "var(--warning)" }}>
+              ⏸ Paused — {pauseBufferRef.current.length} new lines buffered
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className={styles.emptyTerminal}>
+          <ScrollText size={48} strokeWidth={1} />
+          <span>Select a service above to start streaming logs</span>
+        </div>
+      )}
+    </div>
+  );
+}

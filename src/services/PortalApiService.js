@@ -93,6 +93,26 @@ export default class PortalApiService {
 
 
 
+  // ── Logs ────────────────────────────────────────────────────
+
+  /**
+   * Get the list of services that support log streaming.
+   */
+  static async getLoggableServices() {
+    return PortalApiService._request("/logs");
+  }
+
+  /**
+   * Build the SSE URL for streaming container logs.
+   * The caller should use `new EventSource(url)` to connect.
+   * @param {string} serviceId
+   * @param {{ tail?: number, follow?: boolean }} [opts]
+   * @returns {string}
+   */
+  static buildLogStreamUrl(serviceId, { tail = 200, follow = true } = {}) {
+    return `${API_BASE}/logs/${serviceId}?tail=${tail}&follow=${follow ? "1" : "0"}`;
+  }
+
   // ── Devices ──────────────────────────────────────────────────
 
   /**

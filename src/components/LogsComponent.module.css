@@ -1,0 +1,314 @@
+/* ── LogsComponent.module.css ── */
+
+.logs {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+/* ── Service Selector ── */
+
+.serviceList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.serviceChip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.serviceChip:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.serviceChip.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background var(--transition-fast);
+}
+
+.serviceChip.active .chipDot {
+  background: var(--accent-color);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.chipDevice {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* ── Terminal Log Viewer ── */
+
+.terminal {
+  background: #0d0d12;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 240px);
+  min-height: 400px;
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.terminalTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  font-family: var(--font-mono);
+}
+
+.terminalDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background var(--transition-fast);
+}
+
+.terminalDot.connected {
+  background: var(--success);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); }
+}
+
+.terminalActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.terminalBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.terminalBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.terminalBtn.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.lineCount {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+/* ── Log Body ── */
+
+.terminalBody {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  scrollbar-width: thin;
+}
+
+.logLine {
+  display: flex;
+  padding: 0 16px;
+  gap: 0;
+  white-space: pre;
+  transition: background 80ms ease;
+}
+
+.logLine:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.lineNumber {
+  flex-shrink: 0;
+  width: 48px;
+  text-align: right;
+  padding-right: 16px;
+  color: rgba(255, 255, 255, 0.12);
+  user-select: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  margin-right: 16px;
+}
+
+.lineTimestamp {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  margin-right: 12px;
+}
+
+.lineContent {
+  flex: 1;
+  color: #d4d4d8;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* ── Log level coloring ── */
+
+.levelError {
+  color: #f87171;
+}
+
+.levelWarn {
+  color: #fbbf24;
+}
+
+.levelInfo {
+  color: #60a5fa;
+}
+
+.levelSuccess {
+  color: #34d399;
+}
+
+.levelDebug {
+  color: #a78bfa;
+}
+
+/* ── Empty / Loading States ── */
+
+.emptyTerminal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: calc(100dvh - 240px);
+  min-height: 400px;
+  color: var(--text-muted);
+  font-size: 14px;
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.emptyTerminal svg {
+  opacity: 0.3;
+}
+
+.connecting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.connectingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.errorState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--danger-subtle);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* ── Search ── */
+
+.searchInput {
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  width: 160px;
+  transition:
+    width var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.searchInput:focus {
+  width: 220px;
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.highlight {
+  background: rgba(251, 191, 36, 0.25);
+  border-radius: 1px;
+}

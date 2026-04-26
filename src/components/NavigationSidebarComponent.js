@@ -10,6 +10,7 @@ import {
   Briefcase,
   Cpu,
   Waypoints,
+  ScrollText,
   Sun,
   Moon,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const ICON_MAP = {
   Briefcase,
   Cpu,
   Waypoints,
+  ScrollText,
 };
 
 export default function NavigationSidebarComponent() {
