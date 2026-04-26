@@ -347,6 +347,22 @@
   background: rgba(168, 85, 247, 0.1);
 }
 
+.visibilityExternal {
+  color: #2dd4bf;
+  background: rgba(45, 212, 191, 0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.visibilityInternal {
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
 .infraRow {
   &:hover {
     background: rgba(168, 85, 247, 0.04);

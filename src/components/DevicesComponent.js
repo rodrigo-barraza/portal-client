@@ -9,6 +9,8 @@ import {
   Activity,
   AlertCircle,
   Database,
+  Globe,
+  Lock,
 } from "lucide-react";
 import PageHeaderComponent from "./PageHeaderComponent";
 import PortalApiService from "../services/PortalApiService";
@@ -205,6 +207,17 @@ function ServiceRow({ service }) {
         >
           {service.stage}
         </span>
+        {service.visibility && (
+          <span
+            className={`${styles.stageBadge} ${service.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
+          >
+            {service.visibility === "external" ? (
+              <><Globe size={9} strokeWidth={2.2} /> External</>
+            ) : (
+              <><Lock size={9} strokeWidth={2.2} /> Internal</>
+            )}
+          </span>
+        )}
       </div>
       <div className={styles.serviceRight}>
         {service.port && (
@@ -257,6 +270,17 @@ function InfraRow({ infra }) {
         <span className={`${styles.stageBadge} ${styles.stageInfra}`}>
           {infra.type === "database" ? "Database" : "Object Store"}
         </span>
+        {infra.visibility && (
+          <span
+            className={`${styles.stageBadge} ${infra.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
+          >
+            {infra.visibility === "external" ? (
+              <><Globe size={9} strokeWidth={2.2} /> External</>
+            ) : (
+              <><Lock size={9} strokeWidth={2.2} /> Internal</>
+            )}
+          </span>
+        )}
       </div>
       <div className={styles.serviceRight}>
         {infra.port && (

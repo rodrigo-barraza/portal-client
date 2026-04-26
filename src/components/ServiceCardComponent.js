@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, HardDrive } from "lucide-react";
+import { Database, Globe, HardDrive, Lock } from "lucide-react";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -59,6 +59,17 @@ export default function ServiceCardComponent({ service }) {
               className={`${styles.stageBadge} ${isProduction ? styles.stageProduction : styles.stageDevelopment}`}
             >
               {service.stage || "Unknown"}
+            </span>
+          )}
+          {service.visibility && (
+            <span
+              className={`${styles.stageBadge} ${service.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
+            >
+              {service.visibility === "external" ? (
+                <><Globe size={9} strokeWidth={2.2} /> External</>
+              ) : (
+                <><Lock size={9} strokeWidth={2.2} /> Internal</>
+              )}
             </span>
           )}
           <span className={styles.statusLabel}>
