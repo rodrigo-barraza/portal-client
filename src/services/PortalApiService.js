@@ -83,14 +83,7 @@ export default class PortalApiService {
     return PortalApiService._request("/stats/projects");
   }
 
-  // ── Portfolio ─────────────────────────────────────────────────
 
-  /**
-   * Get portfolio content and projects.
-   */
-  static async getPortfolio() {
-    return PortalApiService._request("/portfolio");
-  }
 
   // ── Devices ──────────────────────────────────────────────────
 
@@ -100,15 +93,5 @@ export default class PortalApiService {
   static async getDevices() {
     return PortalApiService._request("/devices");
   }
-
-  /**
-   * Update portfolio content.
-   * @param {object} content
-   */
-  static async updatePortfolioContent(content) {
-    return PortalApiService._request("/portfolio/content", {
-      method: "PUT",
-      body: content,
-    });
-  }
 }
+
