@@ -1,0 +1,74 @@
+{
+    "services": [
+        {
+            "id": "portal",
+            "name": "Portal",
+            "dockerProject": "portal",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "portalApi",
+            "name": "API",
+            "dockerProject": "api",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "prism",
+            "name": "Prism",
+            "dockerProject": "prism",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "toolsApi",
+            "name": "Tools API",
+            "dockerProject": "tools-api",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "retina",
+            "name": "Retina",
+            "dockerProject": "retina",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "lights",
+            "name": "Lights",
+            "dockerProject": "lights",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "lupos",
+            "name": "Lupos",
+            "dockerProject": "lupos",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "vault",
+            "name": "Vault",
+            "dockerProject": "vault",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "rodDev",
+            "name": "Rod.dev",
+            "dockerProject": "rod-dev",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        },
+        {
+            "id": "clockCrew",
+            "name": "Clock Crew",
+            "dockerProject": "clock-crew",
+            "device": "synology",
+            "deviceName": "Synology NAS"
+        }
+    ]
+}

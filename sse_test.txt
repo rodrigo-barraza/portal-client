@@ -1,0 +1,6 @@
+event: connected
+data: {"service":"API","container":"api","tail":5,"follow":false}
+
+event: error
+data: {"error":"spawn ssh ENOENT"}
+
