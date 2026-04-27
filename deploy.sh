@@ -14,7 +14,7 @@
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-IMAGE_NAME="portal"
+IMAGE_NAME="portal-client"
 DISPLAY_NAME="🖥️ Portal"
 
 # ── Inject Vault credentials as Docker build args ─────────────

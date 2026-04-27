@@ -1,6 +1,6 @@
 services:
-  portal:
-    image: portal:latest
+  portal-client:
+    image: portal-client:latest
     container_name: portal
     restart: unless-stopped
     ports:
