@@ -3,9 +3,9 @@
  * Follows the same static-method pattern as Retina's PrismService.
  */
 
-import { PORTAL_API_URL } from "../../config.js";
+import { PORTAL_SERVICE_URL } from "../../config.js";
 
-const API_BASE = PORTAL_API_URL;
+const API_BASE = PORTAL_SERVICE_URL;
 
 export default class ApiService {
   /**

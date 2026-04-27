@@ -6,8 +6,8 @@
 // ============================================================
 
 import {
-  PORTAL_PORT as SECRETS_PORT,
-  PORTAL_API_URL as DEFAULT_PORTAL_API_URL,
+  PORTAL_CLIENT_PORT as SECRETS_PORT,
+  PORTAL_SERVICE_URL as DEFAULT_PORTAL_SERVICE_URL,
 } from "./secrets.js";
 
 export const PORT = SECRETS_PORT || 4000;
@@ -21,6 +21,6 @@ export const IS_LOCALHOST = !IS_PRODUCTION;
 // Environment-aware project name — isolates data between dev and prod
 export const PROJECT_NAME = "portal";
 
-export const PORTAL_API_URL = IS_PRODUCTION
+export const PORTAL_SERVICE_URL = IS_PRODUCTION
   ? "https://portal-api.clankerbox.com"
-  : DEFAULT_PORTAL_API_URL;
+  : DEFAULT_PORTAL_SERVICE_URL;
