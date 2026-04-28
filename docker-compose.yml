@@ -1,7 +1,7 @@
 services:
   portal-client:
     image: portal-client:latest
-    container_name: portal
+    container_name: portal-client
     restart: unless-stopped
     ports:
       - "4000:4000"
