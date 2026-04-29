@@ -2,7 +2,7 @@
 # ============================================================
 # Portal — Build & Deploy to Synology NAS
 #
-# Thin wrapper — all logic lives in ../deploy/lib.sh
+# Thin wrapper — all logic lives in ../deploy-kit/lib.sh
 # Hook: injects VAULT_SERVICE_URL/VAULT_SERVICE_TOKEN as build args for
 #       Next.js secret resolution at build time.
 #
@@ -33,4 +33,4 @@ PRE_BUILD() {
   fi
 }
 
-source "${SCRIPT_DIR}/../deploy/lib.sh"
+source "${SCRIPT_DIR}/../deploy-kit/lib.sh"
