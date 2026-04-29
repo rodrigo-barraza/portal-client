@@ -21,7 +21,7 @@ Object.assign(process.env, secrets);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  allowedDevOrigins: ["portal.clankerbox.com"],
+  allowedDevOrigins: [],
   turbopack: {},
   transpilePackages: ["@rodrigo-barraza/components", "@rodrigo-barraza/utilities"],
 

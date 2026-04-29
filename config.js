@@ -1,8 +1,8 @@
 // ============================================================
 // Web Portal — Runtime Configuration
 // ============================================================
-// Imports defaults from secrets.js and overrides with production
-// values when served from *.com
+// Derives the API backend URL from the browser's current origin
+// so it works from any host (localhost, LAN IP, hostname, etc.).
 // ============================================================
 
 import {
@@ -12,15 +12,19 @@ import {
 
 export const PORT = SECRETS_PORT || 4000;
 
-export const IS_PRODUCTION =
-  typeof window !== "undefined" &&
-  window.location.hostname.endsWith(".com");
-
-export const IS_LOCALHOST = !IS_PRODUCTION;
-
 // Environment-aware project name — isolates data between dev and prod
 export const PROJECT_NAME = "portal";
 
-export const PORTAL_SERVICE_URL = IS_PRODUCTION
-  ? "https://portal-api.clankerbox.com"
-  : DEFAULT_PORTAL_SERVICE_URL;
+// ── Portal API URL ─────────────────────────────────────────────
+// Derives from the browser's current origin, swapping the port
+// to the portal-service port (4001). Falls back to the env var
+// in SSR / Node contexts.
+function resolveServiceUrl() {
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:4001`;
+  }
+  return DEFAULT_PORTAL_SERVICE_URL;
+}
+
+export const PORTAL_SERVICE_URL = resolveServiceUrl();
