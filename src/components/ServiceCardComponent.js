@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import { BadgeComponent } from "@rodrigo-barraza/components";
 import styles from "./ServiceCardComponent.module.css";
 import { formatDuration, timeAgo } from "../utils/utilities";
 
@@ -129,34 +130,36 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {/* ── Stage / Visibility ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Environment</span>
-          <span
-            className={`${styles.stageBadge} ${isProduction ? styles.stageProduction : styles.stageDevelopment}`}
+          <BadgeComponent
+            variant={isProduction ? "success" : "info"}
+            mini
           >
             {service.environment || "Unknown"}
-          </span>
+          </BadgeComponent>
         </div>
 
         {service.serviceType && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Type</span>
-            <span className={`${styles.stageBadge} ${styles.serviceTypeBadge}`}>
+            <BadgeComponent variant="info" mini>
               {service.serviceType}
-            </span>
+            </BadgeComponent>
           </div>
         )}
 
         {service.visibility && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Visibility</span>
-            <span
-              className={`${styles.stageBadge} ${service.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
+            <BadgeComponent
+              variant={service.visibility === "external" ? "accent" : "info"}
+              mini
             >
               {service.visibility === "external" ? (
                 <><Globe size={9} strokeWidth={2.2} /> External</>
               ) : (
                 <><Lock size={9} strokeWidth={2.2} /> Internal</>
               )}
-            </span>
+            </BadgeComponent>
           </div>
         )}
 

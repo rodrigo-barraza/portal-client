@@ -12,6 +12,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
+import { ButtonComponent, BadgeComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ApiService from "../services/ApiService";
 import { formatDuration } from "../utils/utilities";
@@ -77,18 +78,15 @@ export default function DevicesComponent() {
             : `${devices.length} devices · ${totalHealthy}/${totalServices} services healthy`
         }
       >
-        <button
-          className={styles.refreshBtn}
+        <ButtonComponent
+          variant="secondary"
+          size="sm"
+          icon={RefreshCw}
+          loading={refreshing}
           onClick={handleRefresh}
-          disabled={refreshing}
         >
-          <RefreshCw
-            size={15}
-            strokeWidth={2}
-            className={refreshing ? styles.spinning : ""}
-          />
           Refresh
-        </button>
+        </ButtonComponent>
       </PageHeaderComponent>
 
       {loading ? (
@@ -202,21 +200,17 @@ function ServiceRow({ service }) {
           className={`${styles.svcDot} ${isHealthy ? styles.healthy : styles.unhealthy}`}
         />
         <span className={styles.svcName}>{service.name}</span>
-        <span
-          className={`${styles.stageBadge} ${service.environment === "Production" ? styles.stageProduction : styles.stageDevelopment}`}
-        >
+        <BadgeComponent variant={service.environment === "Production" ? "success" : "info"} mini>
           {service.environment}
-        </span>
+        </BadgeComponent>
         {service.visibility && (
-          <span
-            className={`${styles.stageBadge} ${service.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
-          >
+          <BadgeComponent variant={service.visibility === "external" ? "accent" : "info"} mini>
             {service.visibility === "external" ? (
               <><Globe size={9} strokeWidth={2.2} /> External</>
             ) : (
               <><Lock size={9} strokeWidth={2.2} /> Internal</>
             )}
-          </span>
+          </BadgeComponent>
         )}
       </div>
       <div className={styles.serviceRight}>
@@ -267,19 +261,17 @@ function InfraRow({ infra }) {
         />
         <InfraIcon size={13} strokeWidth={1.8} className={styles.infraRowIcon} />
         <span className={styles.svcName}>{infra.name}</span>
-        <span className={`${styles.stageBadge} ${styles.stageInfra}`}>
+        <BadgeComponent variant="info" mini>
           {infra.type === "database" ? "Database" : "Object Store"}
-        </span>
+        </BadgeComponent>
         {infra.visibility && (
-          <span
-            className={`${styles.stageBadge} ${infra.visibility === "external" ? styles.visibilityExternal : styles.visibilityInternal}`}
-          >
+          <BadgeComponent variant={infra.visibility === "external" ? "accent" : "info"} mini>
             {infra.visibility === "external" ? (
               <><Globe size={9} strokeWidth={2.2} /> External</>
             ) : (
               <><Lock size={9} strokeWidth={2.2} /> Internal</>
             )}
-          </span>
+          </BadgeComponent>
         )}
       </div>
       <div className={styles.serviceRight}>

@@ -5,6 +5,7 @@ import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
   Server, Database, HardDrive, Monitor, Globe,
 } from "lucide-react";
+import { ButtonComponent } from "@rodrigo-barraza/components";
 import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
 
@@ -320,10 +321,15 @@ export default function TopologyComponent() {
             </p>
           </div>
           <div className={styles.headerActions}>
-            <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
-              <RefreshCw size={14} strokeWidth={2} className={refreshing ? styles.spinning : ""} />
+            <ButtonComponent
+              variant="secondary"
+              size="sm"
+              icon={RefreshCw}
+              loading={refreshing}
+              onClick={handleRefresh}
+            >
               Refresh
-            </button>
+            </ButtonComponent>
           </div>
         </div>
       </div>

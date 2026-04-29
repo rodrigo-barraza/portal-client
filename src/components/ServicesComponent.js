@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown } from "lucide-react";
+import { ButtonComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ServiceCardComponent from "./ServiceCardComponent";
 import ApiService from "../services/ApiService";
@@ -160,18 +161,15 @@ export default function ServicesComponent() {
             : `${healthyCount} of ${allItems.length} services healthy`
         }
       >
-        <button
-          className={styles.refreshBtn}
+        <ButtonComponent
+          variant="secondary"
+          size="sm"
+          icon={RefreshCw}
+          loading={refreshing}
           onClick={handleRefresh}
-          disabled={refreshing}
         >
-          <RefreshCw
-            size={15}
-            strokeWidth={2}
-            className={refreshing ? styles.spinning : ""}
-          />
           Check All
-        </button>
+        </ButtonComponent>
       </PageHeaderComponent>
 
       {/* ── Sort / Filter Bar ── */}

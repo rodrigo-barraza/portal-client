@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { TableComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ApiService from "../services/ApiService";
 import styles from "./AnalyticsComponent.module.css";
@@ -35,6 +36,26 @@ export default function AnalyticsComponent() {
 
   const overview = stats?.stats || {};
 
+  // ── Transform overview object into rows for TableComponent ──
+  const overviewRows = Object.entries(overview).map(([key, value]) => ({
+    key,
+    value:
+      typeof value === "number"
+        ? value.toLocaleString()
+        : String(value ?? "—"),
+  }));
+
+  const overviewColumns = [
+    { key: "key", label: "Metric", sortable: false },
+    { key: "value", label: "Value", sortable: false, align: "right" },
+  ];
+
+  const projectColumns = [
+    { key: "project", label: "Project", render: (row) => row.project || row._id || "—" },
+    { key: "requests", label: "Requests", align: "right", render: (row) => (row.totalRequests || row.count || 0).toLocaleString() },
+    { key: "cost", label: "Cost", align: "right", render: (row) => `$${(row.totalCost || 0).toFixed(2)}` },
+  ];
+
   return (
     <div className={styles.analytics}>
       <PageHeaderComponent title="Analytics" subtitle="Usage statistics from Prism">
@@ -63,59 +84,23 @@ export default function AnalyticsComponent() {
         </div>
       ) : (
         <div className={styles.content}>
-          <div className={styles.tableCard}>
-            <h3 className={styles.cardTitle}>Overview</h3>
-            <table className={styles.table}>
-              <tbody>
-                {Object.entries(overview).map(([key, value]) => (
-                  <tr key={key}>
-                    <td className={styles.tableKey}>{key}</td>
-                    <td className={styles.tableValue}>
-                      {typeof value === "number"
-                        ? value.toLocaleString()
-                        : String(value ?? "—")}
-                    </td>
-                  </tr>
-                ))}
-                {Object.keys(overview).length === 0 && (
-                  <tr>
-                    <td className={styles.tableKey} colSpan={2}>
-                      No stats available — is Prism running?
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <TableComponent
+            title="Overview"
+            columns={overviewColumns}
+            data={overviewRows}
+            getRowKey={(row) => row.key}
+            emptyText="No stats available — is Prism running?"
+            mini
+          />
 
           {Array.isArray(projects) && projects.length > 0 && (
-            <div className={styles.tableCard}>
-              <h3 className={styles.cardTitle}>Projects</h3>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Project</th>
-                    <th>Requests</th>
-                    <th>Cost</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((p, i) => (
-                    <tr key={i}>
-                      <td className={styles.tableKey}>
-                        {p.project || p._id || "—"}
-                      </td>
-                      <td className={styles.tableValue}>
-                        {(p.totalRequests || p.count || 0).toLocaleString()}
-                      </td>
-                      <td className={styles.tableValue}>
-                        ${(p.totalCost || 0).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <TableComponent
+              title="Projects"
+              columns={projectColumns}
+              data={projects}
+              getRowKey={(row, i) => row.project || row._id || i}
+              mini
+            />
           )}
         </div>
       )}

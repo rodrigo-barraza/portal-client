@@ -15,6 +15,8 @@
     "deploy:dry": "bash deploy.sh --dry-run"
   },
   "dependencies": {
+    "@rodrigo-barraza/components": "github:rodrigo-barraza/components-library",
+    "@rodrigo-barraza/utilities": "github:rodrigo-barraza/utilities-library",
     "lucide-react": "^0.577.0",
     "luxon": "^3.7.2",
     "next": "16.2.4",

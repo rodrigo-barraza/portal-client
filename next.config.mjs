@@ -5,7 +5,7 @@
 // and injects them into process.env for the app.
 // ============================================================
 
-import { createVaultClient } from "./utils/vault-client.js";
+import { createVaultClient } from "@rodrigo-barraza/utilities/node";
 
 // ── Bootstrap secrets at build/dev time ────────────────────────
 const vault = createVaultClient({
@@ -23,6 +23,7 @@ const nextConfig = {
   output: "standalone",
   allowedDevOrigins: ["portal.clankerbox.com"],
   turbopack: {},
+  transpilePackages: ["@rodrigo-barraza/components", "@rodrigo-barraza/utilities"],
 
   env: {
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT || "4000",

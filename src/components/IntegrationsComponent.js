@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ExternalLink, Check, X, Key, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { InputComponent, BadgeComponent, ButtonComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";
@@ -59,8 +60,6 @@ export default function IntegrationsComponent() {
     })
     .filter((cat) => cat.integrations.length > 0);
 
-  const totalConfigured = filteredCategories?.reduce((sum, c) => sum + c.configuredCount, 0) ?? 0;
-  const totalCount = filteredCategories?.reduce((sum, c) => sum + c.totalCount, 0) ?? 0;
 
   return (
     <div className={styles.integrations}>
@@ -72,27 +71,23 @@ export default function IntegrationsComponent() {
             : `${data?.configuredCount ?? 0} of ${data?.totalCount ?? 0} API keys configured`
         }
       >
-        <button
-          className={styles.refreshBtn}
+        <ButtonComponent
+          variant="secondary"
+          size="sm"
+          icon={RefreshCw}
+          loading={refreshing}
           onClick={handleRefresh}
-          disabled={refreshing}
         >
-          <RefreshCw
-            size={15}
-            strokeWidth={2}
-            className={refreshing ? styles.spinning : ""}
-          />
           Refresh
-        </button>
+        </ButtonComponent>
       </PageHeaderComponent>
 
       {/* ── Search Bar ── */}
       {!loading && (
         <div className={styles.searchBar}>
-          <Search size={14} strokeWidth={2} className={styles.searchIcon} />
-          <input
-            type="text"
-            className={styles.searchInput}
+          <InputComponent
+            icon={Search}
+            size="sm"
             placeholder="Search providers, keys…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,11 +151,11 @@ export default function IntegrationsComponent() {
                       {cat.configuredCount}/{cat.totalCount}
                     </span>
                     {cat.configuredCount === cat.totalCount ? (
-                      <span className={`${styles.categoryStatus} ${styles.allConfigured}`}>All Set</span>
+                      <BadgeComponent variant="success" mini>All Set</BadgeComponent>
                     ) : cat.configuredCount === 0 ? (
-                      <span className={`${styles.categoryStatus} ${styles.noneConfigured}`}>None</span>
+                      <BadgeComponent variant="error" mini>None</BadgeComponent>
                     ) : (
-                      <span className={`${styles.categoryStatus} ${styles.partialConfigured}`}>Partial</span>
+                      <BadgeComponent variant="warning" mini>Partial</BadgeComponent>
                     )}
                   </div>
                 </button>

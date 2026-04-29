@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import { ComponentsProvider } from "@rodrigo-barraza/components";
 import { ThemeProvider } from "../components/ThemeProvider";
 import "./globals.css";
 
@@ -43,7 +44,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={inter.variable}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ComponentsProvider>
+            {children}
+          </ComponentsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
