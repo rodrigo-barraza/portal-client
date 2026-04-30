@@ -134,6 +134,13 @@
   box-shadow: inset 0 0 0 1px var(--accent-color);
 }
 
+.segmentBtnIcon {
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .clearBtn {
   padding: 5px 10px;
   font-size: 11px;

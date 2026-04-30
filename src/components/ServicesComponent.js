@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ArrowUpDown, ArrowDownAZ } from "lucide-react";
+import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
 import { ButtonComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ServiceCardComponent from "./ServiceCardComponent";
+import ServiceTableComponent from "./ServiceTableComponent";
 import ApiService from "../services/ApiService";
 import styles from "./ServicesComponent.module.css";
 
@@ -114,6 +115,9 @@ export default function ServicesComponent() {
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
+
+  // ── View mode state ────────────────────────────────────────────
+  const [viewMode, setViewMode] = useState("card");
 
   async function loadServices(refresh = false) {
     try {
@@ -285,6 +289,37 @@ export default function ServicesComponent() {
               ))}
             </div>
           </div>
+
+          {/* ── Divider ── */}
+          <div className={styles.barDivider} />
+
+          {/* ── View Mode Toggle ── */}
+          <div className={styles.sortBarIcon}>
+            <span>View</span>
+          </div>
+
+          <div className={styles.sortGroup}>
+            <div className={styles.segmentedControl}>
+              <button
+                className={`${styles.segmentBtn} ${styles.segmentBtnIcon} ${
+                  viewMode === "card" ? styles.segmentActive : ""
+                }`}
+                onClick={() => setViewMode("card")}
+                title="Card view"
+              >
+                <LayoutGrid size={12} strokeWidth={2.2} />
+              </button>
+              <button
+                className={`${styles.segmentBtn} ${styles.segmentBtnIcon} ${
+                  viewMode === "table" ? styles.segmentActive : ""
+                }`}
+                onClick={() => setViewMode("table")}
+                title="Table view"
+              >
+                <Table2 size={12} strokeWidth={2.2} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -301,16 +336,35 @@ export default function ServicesComponent() {
             </div>
           )}
 
-          <div className={styles.grid}>
-            {filtered.map((service) => (
-              <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} onStop={handleStop} onStart={handleStart} />
-            ))}
-            {filtered.length === 0 && (
-              <div className={styles.emptyState}>
-                No services match the selected filters
-              </div>
-            )}
-          </div>
+          {viewMode === "card" ? (
+            <div className={styles.grid}>
+              {filtered.map((service) => (
+                <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} onStop={handleStop} onStart={handleStart} />
+              ))}
+              {filtered.length === 0 && (
+                <div className={styles.emptyState}>
+                  No services match the selected filters
+                </div>
+              )}
+            </div>
+          ) : (
+            <ServiceTableComponent
+              services={filtered}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={(key) => {
+                if (sortKey === key) {
+                  setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                } else {
+                  setSortKey(key);
+                  setSortDir("asc");
+                }
+              }}
+              onRestart={handleRestart}
+              onStop={handleStop}
+              onStart={handleStart}
+            />
+          )}
         </>
       )}
     </div>

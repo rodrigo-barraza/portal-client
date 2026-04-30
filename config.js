@@ -1,13 +1,14 @@
 // ============================================================
 // Web Portal — Runtime Configuration
 // ============================================================
-// Derives the API backend URL from the browser's current origin
-// so it works from any host (localhost, LAN IP, hostname, etc.).
+// All values are resolved from the Vault via secrets.js.
+// No hardcoded URLs — the Vault serves the correct values
+// for each deployment context.
 // ============================================================
 
 import {
   PORTAL_CLIENT_PORT as SECRETS_PORT,
-  PORTAL_SERVICE_URL as DEFAULT_PORTAL_SERVICE_URL,
+  PORTAL_SERVICE_URL as SECRETS_PORTAL_SERVICE_URL,
 } from "./secrets.js";
 
 export const PORT = SECRETS_PORT || 4000;
@@ -16,13 +17,6 @@ export const PORT = SECRETS_PORT || 4000;
 export const PROJECT_NAME = "portal";
 
 // ── Portal API URL ─────────────────────────────────────────────
-// In the browser, always use the public reverse-proxied domain.
-// Falls back to the env var in SSR / Node contexts (build, dev).
-function resolveServiceUrl() {
-  if (typeof window !== "undefined") {
-    return "https://api.portal.rod.dev";
-  }
-  return DEFAULT_PORTAL_SERVICE_URL;
-}
-
-export const PORTAL_SERVICE_URL = resolveServiceUrl();
+// Resolved from Vault in all contexts (browser + SSR).
+// The Vault serves the correct URL for each environment.
+export const PORTAL_SERVICE_URL = SECRETS_PORTAL_SERVICE_URL;
