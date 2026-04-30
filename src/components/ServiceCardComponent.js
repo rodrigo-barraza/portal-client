@@ -4,22 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
 import { BadgeComponent } from "@rodrigo-barraza/components";
+import { formatDuration, timeAgo, formatElapsedTime } from "@rodrigo-barraza/utilities";
 import styles from "./ServiceCardComponent.module.css";
-import { formatDuration, timeAgo } from "../utils/utilities";
 
-/**
- * Format seconds into a human-readable uptime string.
- * e.g. 86400 → "1d", 3661 → "1h 1m"
- */
-function formatUptime(seconds) {
-  if (seconds == null) return null;
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
+
 
 /**
  * Map serviceType to a Lucide icon — matches TopologyComponent.
@@ -196,7 +184,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
               <div className={styles.detail}>
                 <span className={styles.detailLabel}>Uptime</span>
                 <span className={styles.detailValue}>
-                  {formatUptime(service.metadata.uptime)}
+                  {formatElapsedTime(service.metadata.uptime)}
                 </span>
               </div>
             )}

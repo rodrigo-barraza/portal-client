@@ -11,6 +11,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { SearchInputComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";
@@ -455,13 +456,12 @@ export default function LogsComponent() {
 
               {/* Search */}
               {showSearch && (
-                <input
-                  ref={searchInputRef}
-                  className={styles.searchInput}
-                  type="text"
-                  placeholder="Filter logs…"
+                <SearchInputComponent
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={setSearch}
+                  placeholder="Filter logs…"
+                  autoFocus
+                  className={styles.searchInput}
                 />
               )}
 

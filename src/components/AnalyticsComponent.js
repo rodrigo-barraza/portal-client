@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { TableComponent } from "@rodrigo-barraza/components";
+import { formatCostAdaptive } from "@rodrigo-barraza/utilities";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ApiService from "../services/ApiService";
 import styles from "./AnalyticsComponent.module.css";
@@ -53,7 +54,7 @@ export default function AnalyticsComponent() {
   const projectColumns = [
     { key: "project", label: "Project", render: (row) => row.project || row._id || "—" },
     { key: "requests", label: "Requests", align: "right", render: (row) => (row.totalRequests || row.count || 0).toLocaleString() },
-    { key: "cost", label: "Cost", align: "right", render: (row) => `$${(row.totalCost || 0).toFixed(2)}` },
+    { key: "cost", label: "Cost", align: "right", render: (row) => formatCostAdaptive(row.totalCost || 0) },
   ];
 
   return (
