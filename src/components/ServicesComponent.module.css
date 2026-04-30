@@ -154,6 +154,26 @@
   }
 }
 
+/* ── Bar Divider ── */
+
+.barDivider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-color);
+  flex-shrink: 0;
+}
+
+/* ── Sort Direction Indicator ── */
+
+.sortDirIndicator {
+  display: inline-flex;
+  margin-left: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.7;
+  transition: transform var(--transition-fast) ease;
+}
+
 /* ── Filter Summary ── */
 
 .filterSummary {

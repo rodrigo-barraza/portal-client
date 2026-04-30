@@ -8,6 +8,7 @@ import {
   BarChart3,
   Briefcase,
   Cpu,
+  KeyRound,
   Waypoints,
   ScrollText,
   Sun,
@@ -22,6 +23,7 @@ const ICON_MAP = {
   BarChart3,
   Briefcase,
   Cpu,
+  KeyRound,
   Waypoints,
   ScrollText,
 };

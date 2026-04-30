@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ArrowUpDown } from "lucide-react";
+import { RefreshCw, ArrowUpDown, ArrowDownAZ } from "lucide-react";
 import { ButtonComponent } from "@rodrigo-barraza/components";
 import PageHeaderComponent from "./PageHeaderComponent";
 import ServiceCardComponent from "./ServiceCardComponent";
@@ -9,7 +9,7 @@ import ApiService from "../services/ApiService";
 import styles from "./ServicesComponent.module.css";
 
 // ── Static filter option definitions ─────────────────────────────
-const STATIC_SORT_OPTIONS = {
+const STATIC_FILTER_OPTIONS = {
   status: {
     label: "Status",
     values: [
@@ -36,16 +36,48 @@ const STATIC_SORT_OPTIONS = {
   },
 };
 
+// ── Sort-by options ──────────────────────────────────────────────
+const SORT_BY_OPTIONS = [
+  { key: "name",       label: "Name" },
+  { key: "status",     label: "Status" },
+  { key: "visibility", label: "Visibility" },
+  { key: "type",       label: "Type" },
+  { key: "port",       label: "Port" },
+  { key: "response",   label: "Response" },
+];
+
+/** Compare two services by the chosen sort key. */
+function compareBySortKey(a, b, sortKey, sortDir) {
+  const dir = sortDir === "asc" ? 1 : -1;
+  switch (sortKey) {
+    case "name":
+      return dir * (a.name || "").localeCompare(b.name || "");
+    case "status":
+      // healthy first in asc, down first in desc
+      return dir * ((b.healthy ? 1 : 0) - (a.healthy ? 1 : 0));
+    case "visibility":
+      return dir * (a.visibility || "").localeCompare(b.visibility || "");
+    case "type":
+      return dir * (a.serviceType || "").localeCompare(b.serviceType || "");
+    case "port":
+      return dir * ((a.port || 0) - (b.port || 0));
+    case "response":
+      return dir * ((a.responseTimeMs ?? Infinity) - (b.responseTimeMs ?? Infinity));
+    default:
+      return 0;
+  }
+}
+
 /**
  * Derive Type and Host filter options from loaded service data.
  * Returns the full SORT_OPTIONS object, extending the static ones.
  */
-function buildSortOptions(items) {
+function buildFilterOptions(items) {
   const types = [...new Set(items.map((s) => s.serviceType).filter(Boolean))].sort();
   const hosts = [...new Set(items.map((s) => s.device).filter(Boolean))].sort();
 
   return {
-    ...STATIC_SORT_OPTIONS,
+    ...STATIC_FILTER_OPTIONS,
     serviceType: {
       label: "Type",
       values: [
@@ -79,6 +111,10 @@ export default function ServicesComponent() {
     device: "all",
   });
 
+  // ── Sort state ──────────────────────────────────────────────────
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
+
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
@@ -107,19 +143,21 @@ export default function ServicesComponent() {
     setFilters((prev) => ({ ...prev, [dimension]: value }));
   };
 
-  // ── Apply filters ───────────────────────────────────────────────
+  // ── Apply filters & sort ────────────────────────────────────────
   const allItems = [...services, ...infrastructure];
-  const sortOptions = buildSortOptions(allItems);
+  const filterOptions = buildFilterOptions(allItems);
 
-  const filtered = allItems.filter((s) => {
-    if (filters.status === "healthy" && !s.healthy) return false;
-    if (filters.status === "unhealthy" && s.healthy) return false;
-    if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
-    if (filters.environment !== "all" && s.environment !== filters.environment) return false;
-    if (filters.serviceType !== "all" && s.serviceType !== filters.serviceType) return false;
-    if (filters.device !== "all" && s.device !== filters.device) return false;
-    return true;
-  });
+  const filtered = allItems
+    .filter((s) => {
+      if (filters.status === "healthy" && !s.healthy) return false;
+      if (filters.status === "unhealthy" && s.healthy) return false;
+      if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
+      if (filters.environment !== "all" && s.environment !== filters.environment) return false;
+      if (filters.serviceType !== "all" && s.serviceType !== filters.serviceType) return false;
+      if (filters.device !== "all" && s.device !== filters.device) return false;
+      return true;
+    })
+    .sort((a, b) => compareBySortKey(a, b, sortKey, sortDir));
 
   const healthyCount = allItems.filter((s) => s.healthy).length;
   const hasActiveFilter = Object.values(filters).some((v) => v !== "all");
@@ -172,15 +210,16 @@ export default function ServicesComponent() {
         </ButtonComponent>
       </PageHeaderComponent>
 
-      {/* ── Sort / Filter Bar ── */}
+      {/* ── Filter + Sort Bar ── */}
       {!loading && (
         <div className={styles.sortBar}>
+          {/* ── Filters ── */}
           <div className={styles.sortBarIcon}>
             <ArrowUpDown size={13} strokeWidth={2.2} />
             <span>Filter</span>
           </div>
 
-          {Object.entries(sortOptions).map(([dimension, config]) => (
+          {Object.entries(filterOptions).map(([dimension, config]) => (
             <div key={dimension} className={styles.sortGroup}>
               <span className={styles.sortGroupLabel}>{config.label}</span>
               <div className={styles.segmentedControl}>
@@ -209,6 +248,43 @@ export default function ServicesComponent() {
               Clear
             </button>
           )}
+
+          {/* ── Divider ── */}
+          <div className={styles.barDivider} />
+
+          {/* ── Sort By ── */}
+          <div className={styles.sortBarIcon}>
+            <ArrowDownAZ size={13} strokeWidth={2.2} />
+            <span>Sort</span>
+          </div>
+
+          <div className={styles.sortGroup}>
+            <div className={styles.segmentedControl}>
+              {SORT_BY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  className={`${styles.segmentBtn} ${
+                    sortKey === opt.key ? styles.segmentActive : ""
+                  }`}
+                  onClick={() => {
+                    if (sortKey === opt.key) {
+                      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                    } else {
+                      setSortKey(opt.key);
+                      setSortDir("asc");
+                    }
+                  }}
+                >
+                  {opt.label}
+                  {sortKey === opt.key && (
+                    <span className={styles.sortDirIndicator}>
+                      {sortDir === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
