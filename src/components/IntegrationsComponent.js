@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ExternalLink, Check, X, Key, Search, ChevronDown, ChevronRight } from "lucide-react";
-import { InputComponent, BadgeComponent, ButtonComponent } from "@rodrigo-barraza/components";
-import PageHeaderComponent from "./PageHeaderComponent";
+import { BadgeComponent, ButtonComponent, InputComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";
 
@@ -60,10 +60,9 @@ export default function IntegrationsComponent() {
     })
     .filter((cat) => cat.integrations.length > 0);
 
-
   return (
     <div className={styles.integrations}>
-      <PageHeaderComponent
+      <PageHeaderComponent sticky={false}
         title="Integrations"
         subtitle={
           loading

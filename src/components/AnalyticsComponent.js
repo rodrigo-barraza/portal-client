@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { TableComponent } from "@rodrigo-barraza/components";
+import { PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components";
 import { formatCostAdaptive } from "@rodrigo-barraza/utilities";
-import PageHeaderComponent from "./PageHeaderComponent";
+
 import ApiService from "../services/ApiService";
 import styles from "./AnalyticsComponent.module.css";
 
@@ -59,7 +59,7 @@ export default function AnalyticsComponent() {
 
   return (
     <div className={styles.analytics}>
-      <PageHeaderComponent title="Analytics" subtitle="Usage statistics from Prism">
+      <PageHeaderComponent sticky={false} title="Analytics" subtitle="Usage statistics from Prism">
         <div className={styles.periodTabs}>
           {["24h", "7d", "30d"].map((p) => (
             <button

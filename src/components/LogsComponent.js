@@ -11,8 +11,8 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { SearchInputComponent } from "@rodrigo-barraza/components";
-import PageHeaderComponent from "./PageHeaderComponent";
+import { PageHeaderComponent, SearchInputComponent } from "@rodrigo-barraza/components";
+
 import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";
 
@@ -412,7 +412,7 @@ export default function LogsComponent() {
 
   return (
     <div className={styles.logs}>
-      <PageHeaderComponent
+      <PageHeaderComponent sticky={false}
         title="Logs"
         subtitle={
           activeService

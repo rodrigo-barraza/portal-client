@@ -12,8 +12,8 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { ButtonComponent, BadgeComponent } from "@rodrigo-barraza/components";
-import PageHeaderComponent from "./PageHeaderComponent";
+import { BadgeComponent, ButtonComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+
 import ApiService from "../services/ApiService";
 import { formatDuration } from "@rodrigo-barraza/utilities";
 import styles from "./DevicesComponent.module.css";
@@ -70,7 +70,7 @@ export default function DevicesComponent() {
 
   return (
     <div className={styles.devices}>
-      <PageHeaderComponent
+      <PageHeaderComponent sticky={false}
         title="Devices"
         subtitle={
           loading

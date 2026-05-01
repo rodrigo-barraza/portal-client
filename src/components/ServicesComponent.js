@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
-import { ButtonComponent } from "@rodrigo-barraza/components";
-import PageHeaderComponent from "./PageHeaderComponent";
+import { ButtonComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+
 import ServiceCardComponent from "./ServiceCardComponent";
 import ServiceTableComponent from "./ServiceTableComponent";
 import ApiService from "../services/ApiService";
@@ -195,7 +195,7 @@ export default function ServicesComponent() {
 
   return (
     <div className={styles.services}>
-      <PageHeaderComponent
+      <PageHeaderComponent sticky={false}
         title="Services"
         subtitle={
           loading
