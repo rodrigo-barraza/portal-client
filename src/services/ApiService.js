@@ -1,6 +1,6 @@
 /**
  * ApiService — HTTP client for the API backend.
- * Follows the same static-method pattern as Retina's PrismService.
+ * Follows the same static-method pattern as Prism Client's PrismService.
  */
 
 import { PORTAL_SERVICE_URL } from "../../config.js";

@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    TopologyComponent — SVG tree with draggable nodes + rainbow edges
-   Mirrors Retina /workflows canvas patterns
+   Mirrors Prism Client /workflows canvas patterns
    ═══════════════════════════════════════════════════════════════ */
 
 .topology {
@@ -89,7 +89,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EDGES — Rainbow flowing gradient (from Retina workflows)
+   EDGES — Rainbow flowing gradient (from Prism Client workflows)
    ═══════════════════════════════════════════════════════════════ */
 
 .connectionGroup { pointer-events: auto; }

@@ -97,7 +97,7 @@ function collectEdges(services) {
   return edges;
 }
 
-// ── Bézier edge path (same as Retina workflows) ──────────────────
+// ── Bézier edge path (same as Prism Client workflows) ──────────────────
 function edgePath(x1, y1, x2, y2) {
   const dy = Math.abs(y2 - y1);
   const cp = Math.max(dy * 0.5, 50);
@@ -348,7 +348,7 @@ export default function TopologyComponent() {
           >
             <svg ref={svgRef} className={styles.svg} style={{ overflow: "visible" }}>
               <defs>
-                {/* Rainbow flowing gradient — same as Retina workflows */}
+                {/* Rainbow flowing gradient — same as Prism Client workflows */}
                 <linearGradient id="prism-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="300">
                   <stop offset="0%" stopColor="#ff0000" />
                   <stop offset="16%" stopColor="#ff8800" />

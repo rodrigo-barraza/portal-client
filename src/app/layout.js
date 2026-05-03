@@ -16,7 +16,7 @@ export const metadata = {
 
 /**
  * Inline blocking script to set data-theme before first paint,
- * preventing FOUC. Same pattern as Retina.
+ * preventing FOUC. Same pattern as Prism Client.
  */
 const themeInitScript = `
 (function(){
