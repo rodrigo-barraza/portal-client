@@ -15,35 +15,49 @@
 
 const VAULT_URL = process.env.VAULT_SERVICE_URL;
 const VAULT_TOKEN = process.env.VAULT_SERVICE_TOKEN;
-const FETCH_TIMEOUT_MS = 5_000;
+const FETCH_TIMEOUT_MS = 8_000;
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2_000;
+
+async function fetchVaultSecrets(attempt = 1) {
+  try {
+    const res = await fetch(`${VAULT_URL}/secrets`, {
+      headers: { Authorization: `Bearer ${VAULT_TOKEN}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    }
+
+    const secrets = await res.json();
+    let injected = 0;
+
+    for (const [key, value] of Object.entries(secrets)) {
+      // Don't overwrite values already set by Docker env / .env
+      if (process.env[key] === undefined || process.env[key] === "") {
+        process.env[key] = value;
+        injected++;
+      }
+    }
+
+    console.log(`🔐 Vault → injected ${injected} secrets (${Object.keys(secrets).length} total)`);
+    return true;
+  } catch (err) {
+    if (attempt < MAX_RETRIES) {
+      const delay = RETRY_DELAY_MS * attempt;
+      console.warn(`⚠️  Vault attempt ${attempt}/${MAX_RETRIES} failed (${err.message}) — retrying in ${delay}ms…`);
+      await new Promise((r) => setTimeout(r, delay));
+      return fetchVaultSecrets(attempt + 1);
+    }
+    console.error(`❌ Vault unreachable after ${MAX_RETRIES} attempts (${err.message}) — continuing with env vars only`);
+    return false;
+  }
+}
 
 async function bootstrap() {
   if (VAULT_URL && VAULT_TOKEN) {
-    try {
-      const res = await fetch(`${VAULT_URL}/secrets`, {
-        headers: { Authorization: `Bearer ${VAULT_TOKEN}` },
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} — ${res.statusText}`);
-      }
-
-      const secrets = await res.json();
-      let injected = 0;
-
-      for (const [key, value] of Object.entries(secrets)) {
-        // Don't overwrite values already set by Docker env / .env
-        if (process.env[key] === undefined || process.env[key] === "") {
-          process.env[key] = value;
-          injected++;
-        }
-      }
-
-      console.log(`🔐 Vault → injected ${injected} secrets (${Object.keys(secrets).length} total)`);
-    } catch (err) {
-      console.warn(`⚠️  Vault unreachable (${err.message}) — continuing with env vars only`);
-    }
+    await fetchVaultSecrets();
   } else {
     console.warn("⚠️  No VAULT_SERVICE_URL/TOKEN — skipping vault bootstrap");
   }
