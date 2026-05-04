@@ -120,7 +120,6 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
           <span className={styles.detailLabel}>Environment</span>
           <BadgeComponent
             variant={isProduction ? "success" : "info"}
-            mini
           >
             {service.environment || "Unknown"}
           </BadgeComponent>
@@ -129,7 +128,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {service.serviceType && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Type</span>
-            <BadgeComponent variant="info" mini>
+            <BadgeComponent variant="info">
               {service.serviceType}
             </BadgeComponent>
           </div>
@@ -140,7 +139,6 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
             <span className={styles.detailLabel}>Visibility</span>
             <BadgeComponent
               variant={service.visibility === "external" ? "accent" : "info"}
-              mini
             >
               {service.visibility === "external" ? (
                 <><Globe size={9} strokeWidth={2.2} /> External</>

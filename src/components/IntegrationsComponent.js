@@ -150,11 +150,11 @@ export default function IntegrationsComponent() {
                       {cat.configuredCount}/{cat.totalCount}
                     </span>
                     {cat.configuredCount === cat.totalCount ? (
-                      <BadgeComponent variant="success" mini>All Set</BadgeComponent>
+                      <BadgeComponent variant="success">All Set</BadgeComponent>
                     ) : cat.configuredCount === 0 ? (
-                      <BadgeComponent variant="error" mini>None</BadgeComponent>
+                      <BadgeComponent variant="error">None</BadgeComponent>
                     ) : (
-                      <BadgeComponent variant="warning" mini>Partial</BadgeComponent>
+                      <BadgeComponent variant="warning">Partial</BadgeComponent>
                     )}
                   </div>
                 </button>

@@ -136,7 +136,7 @@ function ServiceRow({ service, onRestart, onStop, onStart }) {
       {/* ── Type ── */}
       <td className={styles.td}>
         {service.serviceType && (
-          <BadgeComponent variant="info" mini>
+          <BadgeComponent variant="info">
             {service.serviceType}
           </BadgeComponent>
         )}
@@ -147,7 +147,6 @@ function ServiceRow({ service, onRestart, onStop, onStart }) {
         {service.visibility && (
           <BadgeComponent
             variant={service.visibility === "external" ? "accent" : "info"}
-            mini
           >
             {service.visibility === "external" ? (
               <><Globe size={9} strokeWidth={2.2} /> External</>

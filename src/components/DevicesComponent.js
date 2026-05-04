@@ -200,11 +200,11 @@ function ServiceRow({ service }) {
           className={`${styles.svcDot} ${isHealthy ? styles.healthy : styles.unhealthy}`}
         />
         <span className={styles.svcName}>{service.name}</span>
-        <BadgeComponent variant={service.environment === "Production" ? "success" : "info"} mini>
+        <BadgeComponent variant={service.environment === "Production" ? "success" : "info"}>
           {service.environment}
         </BadgeComponent>
         {service.visibility && (
-          <BadgeComponent variant={service.visibility === "external" ? "accent" : "info"} mini>
+          <BadgeComponent variant={service.visibility === "external" ? "accent" : "info"}>
             {service.visibility === "external" ? (
               <><Globe size={9} strokeWidth={2.2} /> External</>
             ) : (
@@ -261,11 +261,11 @@ function InfraRow({ infra }) {
         />
         <InfraIcon size={13} strokeWidth={1.8} className={styles.infraRowIcon} />
         <span className={styles.svcName}>{infra.name}</span>
-        <BadgeComponent variant="info" mini>
+        <BadgeComponent variant="info">
           {infra.type === "database" ? "Database" : "Object Store"}
         </BadgeComponent>
         {infra.visibility && (
-          <BadgeComponent variant={infra.visibility === "external" ? "accent" : "info"} mini>
+          <BadgeComponent variant={infra.visibility === "external" ? "accent" : "info"}>
             {infra.visibility === "external" ? (
               <><Globe size={9} strokeWidth={2.2} /> External</>
             ) : (
