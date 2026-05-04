@@ -72,7 +72,6 @@ export default function IntegrationsComponent() {
       >
         <ButtonComponent
           variant="secondary"
-          size="sm"
           icon={RefreshCw}
           loading={refreshing}
           onClick={handleRefresh}

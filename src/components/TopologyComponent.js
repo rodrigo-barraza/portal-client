@@ -323,7 +323,6 @@ export default function TopologyComponent() {
           <div className={styles.headerActions}>
             <ButtonComponent
               variant="secondary"
-              size="sm"
               icon={RefreshCw}
               loading={refreshing}
               onClick={handleRefresh}

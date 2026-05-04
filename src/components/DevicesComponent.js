@@ -80,7 +80,6 @@ export default function DevicesComponent() {
       >
         <ButtonComponent
           variant="secondary"
-          size="sm"
           icon={RefreshCw}
           loading={refreshing}
           onClick={handleRefresh}

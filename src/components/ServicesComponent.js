@@ -205,7 +205,6 @@ export default function ServicesComponent() {
       >
         <ButtonComponent
           variant="secondary"
-          size="sm"
           icon={RefreshCw}
           loading={refreshing}
           onClick={handleRefresh}
