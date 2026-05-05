@@ -1,6 +1,5 @@
 import { Inter } from "next/font/google";
-import { ComponentsProvider } from "@rodrigo-barraza/components";
-import { ThemeProvider } from "../components/ThemeProvider";
+import { ComponentsProvider, ThemeProvider } from "@rodrigo-barraza/components";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,7 +43,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={inter.variable}>
-        <ThemeProvider>
+        <ThemeProvider storageKey="portal:theme">
           <ComponentsProvider>
             {children}
           </ComponentsProvider>

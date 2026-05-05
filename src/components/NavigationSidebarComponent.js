@@ -2,8 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { NavigationSidebarComponent as LibrarySidebar } from "@rodrigo-barraza/components";
-import { useTheme } from "./ThemeProvider";
+import { NavigationSidebarComponent as LibrarySidebar, useTheme } from "@rodrigo-barraza/components";
 import { NAV_ITEMS } from "../constants";
 
 export default function NavigationSidebarComponent() {
