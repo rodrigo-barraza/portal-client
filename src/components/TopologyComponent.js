@@ -3,9 +3,9 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
-  Server, Database, HardDrive, Monitor, Globe,
 } from "lucide-react";
-import { ButtonComponent } from "@rodrigo-barraza/components";
+import { ButtonComponent, LoadingStateComponent } from "@rodrigo-barraza/components";
+import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
 
@@ -14,15 +14,8 @@ const NODE_W = 130;
 const NODE_H = 64;
 
 // ── Icon resolver (by serviceType) ──────────────────────────────
-const SERVICE_TYPE_ICONS = {
-  API: Server,
-  Client: Monitor,
-  Database: Database,
-  Storage: HardDrive,
-};
-
 function getIcon(svc) {
-  return SERVICE_TYPE_ICONS[svc.serviceType] || Globe;
+  return SERVICE_TYPE_ICONS[svc.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
 // ── Sugiyama layering ────────────────────────────────────────────
@@ -202,6 +195,7 @@ export default function TopologyComponent() {
     return visited;
   }, [selectedNode, edges]);
 
+
   // ── Coordinate conversion ───────────────────────────────────
   const screenToSvg = useCallback((clientX, clientY) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -334,10 +328,7 @@ export default function TopologyComponent() {
       </div>
 
       {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.loadingDot} />
-          <span>Building topology…</span>
-        </div>
+        <LoadingStateComponent message="Building topology…" />
       ) : (
         <>
           <div

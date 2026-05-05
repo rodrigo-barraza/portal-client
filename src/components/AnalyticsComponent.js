@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components";
+import { LoadingStateComponent, PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components";
 import { formatCostAdaptive } from "@rodrigo-barraza/utilities";
 
 import ApiService from "../services/ApiService";
@@ -74,10 +74,7 @@ export default function AnalyticsComponent() {
       </PageHeaderComponent>
 
       {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.loadingDot} />
-          <span>Loading analytics…</span>
-        </div>
+        <LoadingStateComponent message="Loading analytics…" />
       ) : stats?.error ? (
         <div className={styles.errorState}>
           <p>Could not fetch analytics data</p>

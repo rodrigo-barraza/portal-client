@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
-import { ButtonComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+import { ButtonComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ServiceTableComponent from "./ServiceTableComponent";
@@ -47,6 +48,7 @@ const SORT_BY_OPTIONS = [
   { key: "response",   label: "Response" },
 ];
 
+
 /** Compare two services by the chosen sort key. */
 function compareBySortKey(a, b, sortKey, sortDir) {
   const dir = sortDir === "asc" ? 1 : -1;
@@ -64,8 +66,10 @@ function compareBySortKey(a, b, sortKey, sortDir) {
       return dir * ((a.port || 0) - (b.port || 0));
     case "address":
       return dir * (a.url || "").localeCompare(b.url || "");
+    case "subdomain":
+      return dir * getSubdomain(a.domain).localeCompare(getSubdomain(b.domain));
     case "domain":
-      return dir * (a.domain || "").localeCompare(b.domain || "");
+      return dir * getRootDomain(a.domain).localeCompare(getRootDomain(b.domain));
     case "response":
       return dir * ((a.responseTimeMs ?? Infinity) - (b.responseTimeMs ?? Infinity));
     case "device":
@@ -329,10 +333,7 @@ export default function ServicesComponent() {
       )}
 
       {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.loadingDot} />
-          <span>Polling services…</span>
-        </div>
+        <LoadingStateComponent message="Polling services…" />
       ) : (
         <>
           {hasActiveFilter && (

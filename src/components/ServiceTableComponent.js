@@ -3,30 +3,18 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
-  Database,
   Globe,
-  HardDrive,
   Lock,
-  Monitor,
   Play,
   RotateCcw,
   ScrollText,
-  Server,
   Square,
 } from "lucide-react";
-import { BadgeComponent, TableComponent } from "@rodrigo-barraza/components";
-import { formatDuration } from "@rodrigo-barraza/utilities";
+import { BadgeComponent, TableComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
+import { formatDuration, getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities";
+import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceTableComponent.module.css";
 
-/**
- * Map serviceType to a Lucide icon — matches TopologyComponent / ServiceCardComponent.
- */
-const SERVICE_TYPE_ICONS = {
-  API: Server,
-  Client: Monitor,
-  Database: Database,
-  Storage: HardDrive,
-};
 
 /**
  * Column definitions for the centralized TableComponent.
@@ -40,7 +28,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) => {
         const isHealthy = service.healthy;
-        const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || Globe;
+        const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
         return (
           <div className={styles.nameCell}>
             <TypeIcon
@@ -75,12 +63,22 @@ function buildColumns({ onRestart, onStop, onStart }) {
       key: "type",
       label: "Type",
       sortable: true,
-      render: (service) =>
-        service.serviceType ? (
-          <BadgeComponent variant="info">
+      render: (service) => {
+        if (!service.serviceType) return null;
+        const colors = SERVICE_TYPE_COLORS[service.serviceType];
+        return (
+          <BadgeComponent
+            variant="info"
+            style={colors ? {
+              color: colors.color,
+              background: colors.subtle,
+              borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+            } : undefined}
+          >
             {service.serviceType}
           </BadgeComponent>
-        ) : null,
+        );
+      },
       sortValue: (row) => row.serviceType || "",
     },
     {
@@ -89,15 +87,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) =>
         service.visibility ? (
-          <BadgeComponent
-            variant={service.visibility === "external" ? "accent" : "info"}
-          >
-            {service.visibility === "external" ? (
-              <><Globe size={9} strokeWidth={2.2} /> External</>
-            ) : (
-              <><Lock size={9} strokeWidth={2.2} /> Internal</>
-            )}
-          </BadgeComponent>
+          <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
         ) : null,
       sortValue: (row) => row.visibility || "",
     },
@@ -125,12 +115,27 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortValue: (row) => row.url || "",
     },
     {
+      key: "subdomain",
+      label: "Subdomain",
+      sortable: true,
+      defaultHidden: true,
+      description: "Subdomain prefix (e.g. api.prism)",
+      render: (service) => {
+        const sub = getSubdomain(service.domain);
+        return sub ? (
+          <span className={styles.mono}>{sub}</span>
+        ) : null;
+      },
+      sortValue: (row) => getSubdomain(row.domain),
+    },
+    {
       key: "domain",
       label: "Domain",
       sortable: true,
-      description: "Public-facing domain name",
-      render: (service) =>
-        service.domain ? (
+      description: "Registrable root domain",
+      render: (service) => {
+        const root = getRootDomain(service.domain);
+        return root ? (
           <a
             href={`https://${service.domain}`}
             target="_blank"
@@ -139,10 +144,11 @@ function buildColumns({ onRestart, onStop, onStart }) {
             onClick={(e) => e.stopPropagation()}
           >
             <Globe size={10} strokeWidth={2} />
-            {service.domain}
+            {root}
           </a>
-        ) : null,
-      sortValue: (row) => row.domain || "",
+        ) : null;
+      },
+      sortValue: (row) => getRootDomain(row.domain),
     },
     {
       key: "response",

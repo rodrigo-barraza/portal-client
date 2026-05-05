@@ -12,7 +12,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ButtonComponent, LoadingStateComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
 
 import ApiService from "../services/ApiService";
 import { formatDuration } from "@rodrigo-barraza/utilities";
@@ -89,10 +89,7 @@ export default function DevicesComponent() {
       </PageHeaderComponent>
 
       {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.loadingDot} />
-          <span>Discovering devices…</span>
-        </div>
+        <LoadingStateComponent message="Discovering devices…" />
       ) : (
         <div className={styles.deviceList}>
           {devices.map((device, idx) => (
@@ -203,13 +200,7 @@ function ServiceRow({ service }) {
           {service.environment}
         </BadgeComponent>
         {service.visibility && (
-          <BadgeComponent variant={service.visibility === "external" ? "accent" : "info"}>
-            {service.visibility === "external" ? (
-              <><Globe size={9} strokeWidth={2.2} /> External</>
-            ) : (
-              <><Lock size={9} strokeWidth={2.2} /> Internal</>
-            )}
-          </BadgeComponent>
+          <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
         )}
       </div>
       <div className={styles.serviceRight}>
@@ -264,13 +255,7 @@ function InfraRow({ infra }) {
           {infra.type === "database" ? "Database" : "Object Store"}
         </BadgeComponent>
         {infra.visibility && (
-          <BadgeComponent variant={infra.visibility === "external" ? "accent" : "info"}>
-            {infra.visibility === "external" ? (
-              <><Globe size={9} strokeWidth={2.2} /> External</>
-            ) : (
-              <><Lock size={9} strokeWidth={2.2} /> Internal</>
-            )}
-          </BadgeComponent>
+          <VisibilityBadgeComponent visibility={infra.visibility} icons={{ Globe, Lock }} />
         )}
       </div>
       <div className={styles.serviceRight}>

@@ -2,22 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Database, Github, Globe, HardDrive, Lock, Monitor, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
-import { BadgeComponent } from "@rodrigo-barraza/components";
+import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Square } from "lucide-react";
+import { BadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
 import { formatDuration, timeAgo, formatElapsedTime } from "@rodrigo-barraza/utilities";
+import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
 
-
-
-/**
- * Map serviceType to a Lucide icon — matches TopologyComponent.
- */
-const SERVICE_TYPE_ICONS = {
-  API: Server,
-  Client: Monitor,
-  Database: Database,
-  Storage: HardDrive,
-};
 
 export default function ServiceCardComponent({ service, onRestart, onStop, onStart }) {
   const [restarting, setRestarting] = useState(false);
@@ -28,7 +18,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
-  const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || Globe;
+  const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
@@ -125,27 +115,29 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
           </BadgeComponent>
         </div>
 
-        {service.serviceType && (
-          <div className={styles.detail}>
-            <span className={styles.detailLabel}>Type</span>
-            <BadgeComponent variant="info">
-              {service.serviceType}
-            </BadgeComponent>
-          </div>
-        )}
+        {service.serviceType && (() => {
+          const colors = SERVICE_TYPE_COLORS[service.serviceType];
+          return (
+            <div className={styles.detail}>
+              <span className={styles.detailLabel}>Type</span>
+              <BadgeComponent
+                variant="info"
+                style={colors ? {
+                  color: colors.color,
+                  background: colors.subtle,
+                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                } : undefined}
+              >
+                {service.serviceType}
+              </BadgeComponent>
+            </div>
+          );
+        })()}
 
         {service.visibility && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Visibility</span>
-            <BadgeComponent
-              variant={service.visibility === "external" ? "accent" : "info"}
-            >
-              {service.visibility === "external" ? (
-                <><Globe size={9} strokeWidth={2.2} /> External</>
-              ) : (
-                <><Lock size={9} strokeWidth={2.2} /> Internal</>
-              )}
-            </BadgeComponent>
+            <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
           </div>
         )}
 
