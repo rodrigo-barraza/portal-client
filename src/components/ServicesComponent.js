@@ -62,8 +62,14 @@ function compareBySortKey(a, b, sortKey, sortDir) {
       return dir * (a.serviceType || "").localeCompare(b.serviceType || "");
     case "port":
       return dir * ((a.port || 0) - (b.port || 0));
+    case "address":
+      return dir * (a.url || "").localeCompare(b.url || "");
+    case "domain":
+      return dir * (a.domain || "").localeCompare(b.domain || "");
     case "response":
       return dir * ((a.responseTimeMs ?? Infinity) - (b.responseTimeMs ?? Infinity));
+    case "device":
+      return dir * (a.device || "").localeCompare(b.device || "");
     default:
       return 0;
   }
