@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Portal — Sun Hub",
+  title: "Portal",
   description:
     "Central developer portal for observability, service health, and analytics across all services.",
 };

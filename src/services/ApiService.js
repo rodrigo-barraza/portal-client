@@ -44,7 +44,7 @@ export default class ApiService {
   // ── Services ──────────────────────────────────────────────────
 
   /**
-   * Get service health status for all Sun services.
+   * Get service health status for all services.
    * @param {boolean} [refresh=false] - Force fresh health check
    */
   static async getServices(refresh = false) {
