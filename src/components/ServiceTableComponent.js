@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
-  ArrowUp,
-  ArrowDown,
   Database,
   Globe,
   HardDrive,
@@ -16,8 +14,8 @@ import {
   Server,
   Square,
 } from "lucide-react";
-import { BadgeComponent } from "@rodrigo-barraza/components";
-import { formatDuration, timeAgo } from "@rodrigo-barraza/utilities";
+import { BadgeComponent, TableComponent } from "@rodrigo-barraza/components";
+import { formatDuration } from "@rodrigo-barraza/utilities";
 import styles from "./ServiceTableComponent.module.css";
 
 /**
@@ -30,14 +28,227 @@ const SERVICE_TYPE_ICONS = {
   Storage: HardDrive,
 };
 
-const COLUMNS = [
-  { key: "name",       label: "Service" },
-  { key: "status",     label: "Status" },
-  { key: "type",       label: "Type" },
-  { key: "visibility", label: "Visibility" },
-  { key: "port",       label: "Port" },
-  { key: "response",   label: "Response" },
-];
+/**
+ * Column definitions for the centralized TableComponent.
+ * Each column maps to a field on the service status object.
+ */
+function buildColumns({ onRestart, onStop, onStart }) {
+  return [
+    {
+      key: "name",
+      label: "Service",
+      sortable: true,
+      render: (service) => {
+        const isHealthy = service.healthy;
+        const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || Globe;
+        return (
+          <div className={styles.nameCell}>
+            <TypeIcon
+              size={14}
+              strokeWidth={2.6}
+              className={`${styles.typeIcon} ${isHealthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+            />
+            <span className={styles.serviceName}>{service.name}</span>
+          </div>
+        );
+      },
+      sortValue: (row) => row.name || "",
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (service) => {
+        const isHealthy = service.healthy;
+        return (
+          <>
+            <span className={`${styles.statusDot} ${isHealthy ? styles.dotHealthy : styles.dotUnhealthy}`} />
+            <span className={`${styles.statusText} ${isHealthy ? styles.textHealthy : styles.textUnhealthy}`}>
+              {isHealthy ? "Healthy" : "Down"}
+            </span>
+          </>
+        );
+      },
+      sortValue: (row) => (row.healthy ? 1 : 0),
+    },
+    {
+      key: "type",
+      label: "Type",
+      sortable: true,
+      render: (service) =>
+        service.serviceType ? (
+          <BadgeComponent variant="info">
+            {service.serviceType}
+          </BadgeComponent>
+        ) : null,
+      sortValue: (row) => row.serviceType || "",
+    },
+    {
+      key: "visibility",
+      label: "Visibility",
+      sortable: true,
+      render: (service) =>
+        service.visibility ? (
+          <BadgeComponent
+            variant={service.visibility === "external" ? "accent" : "info"}
+          >
+            {service.visibility === "external" ? (
+              <><Globe size={9} strokeWidth={2.2} /> External</>
+            ) : (
+              <><Lock size={9} strokeWidth={2.2} /> Internal</>
+            )}
+          </BadgeComponent>
+        ) : null,
+      sortValue: (row) => row.visibility || "",
+    },
+    {
+      key: "port",
+      label: "Port",
+      sortable: true,
+      render: (service) =>
+        service.port ? (
+          <code className={styles.mono}>:{service.port}</code>
+        ) : null,
+      sortValue: (row) => row.port || 0,
+    },
+    {
+      key: "address",
+      label: "Address",
+      sortable: true,
+      description: "Internal IP and port (socket address)",
+      render: (service) =>
+        service.url ? (
+          <span className={styles.mono}>
+            {service.url.replace(/^https?:\/\//, "")}
+          </span>
+        ) : null,
+      sortValue: (row) => row.url || "",
+    },
+    {
+      key: "domain",
+      label: "Domain",
+      sortable: true,
+      description: "Public-facing domain name",
+      render: (service) =>
+        service.domain ? (
+          <a
+            href={`https://${service.domain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.domainLink}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Globe size={10} strokeWidth={2} />
+            {service.domain}
+          </a>
+        ) : null,
+      sortValue: (row) => row.domain || "",
+    },
+    {
+      key: "response",
+      label: "Response",
+      sortable: true,
+      render: (service) =>
+        service.responseTimeMs != null ? (
+          <span className={styles.mono}>
+            {formatDuration(service.responseTimeMs)}
+          </span>
+        ) : null,
+      sortValue: (row) => row.responseTimeMs ?? Infinity,
+    },
+    {
+      key: "device",
+      label: "Device",
+      sortable: true,
+      render: (service) =>
+        service.device ? (
+          <span className={styles.deviceText}>{service.device}</span>
+        ) : null,
+      sortValue: (row) => row.device || "",
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+      align: "right",
+      render: (service) => (
+        <ActionCell
+          service={service}
+          onRestart={onRestart}
+          onStop={onStop}
+          onStart={onStart}
+        />
+      ),
+    },
+  ];
+}
+
+function ActionCell({ service, onRestart, onStop, onStart }) {
+  const [restarting, setRestarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [starting, setStarting] = useState(false);
+
+  const isHealthy = service.healthy;
+
+  if (!service.restartable) return null;
+
+  return (
+    <div className={styles.actionRow}>
+      {isHealthy ? (
+        <button
+          className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
+          disabled={stopping || restarting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setStopping(true);
+            try { await onStop?.(service.id); }
+            finally { setTimeout(() => setStopping(false), 5000); }
+          }}
+          title="Stop"
+        >
+          <Square size={9} strokeWidth={2.6} />
+        </button>
+      ) : (
+        <button
+          className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
+          disabled={starting || restarting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setStarting(true);
+            try { await onStart?.(service.id); }
+            finally { setTimeout(() => setStarting(false), 5000); }
+          }}
+          title="Start"
+        >
+          <Play size={9} strokeWidth={2.6} fill="currentColor" />
+        </button>
+      )}
+
+      <Link
+        href={`/logs?service=${service.id}`}
+        className={`${styles.actionBtn} ${styles.logsBtn}`}
+        title="Logs"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ScrollText size={9} strokeWidth={2.6} />
+      </Link>
+
+      <button
+        className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
+        disabled={restarting || stopping || starting}
+        onClick={async (e) => {
+          e.stopPropagation();
+          setRestarting(true);
+          try { await onRestart?.(service.id); }
+          finally { setTimeout(() => setRestarting(false), 5000); }
+        }}
+        title="Restart"
+      >
+        <RotateCcw size={9} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
+      </button>
+    </div>
+  );
+}
 
 export default function ServiceTableComponent({
   services,
@@ -48,6 +259,16 @@ export default function ServiceTableComponent({
   onStop,
   onStart,
 }) {
+  const columns = useCallback(
+    () => buildColumns({ onRestart, onStop, onStart }),
+    [onRestart, onStop, onStart],
+  )();
+
+  const getRowClassName = useCallback(
+    (row) => row.healthy ? styles.rowHealthy : styles.rowUnhealthy,
+    [],
+  );
+
   if (services.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -57,184 +278,16 @@ export default function ServiceTableComponent({
   }
 
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            {COLUMNS.map((col) => (
-              <th
-                key={col.key}
-                className={`${styles.th} ${
-                  sortKey === col.key ? styles.thActive : ""
-                }`}
-                onClick={() => onSort(col.key)}
-              >
-                <span className={styles.thContent}>
-                  {col.label}
-                  {sortKey === col.key && (
-                    <span className={styles.sortIcon}>
-                      {sortDir === "asc" ? (
-                        <ArrowUp size={10} strokeWidth={2.6} />
-                      ) : (
-                        <ArrowDown size={10} strokeWidth={2.6} />
-                      )}
-                    </span>
-                  )}
-                </span>
-              </th>
-            ))}
-            <th className={styles.th}>Device</th>
-            <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {services.map((service) => (
-            <ServiceRow
-              key={service.id}
-              service={service}
-              onRestart={onRestart}
-              onStop={onStop}
-              onStart={onStart}
-            />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ServiceRow({ service, onRestart, onStop, onStart }) {
-  const [restarting, setRestarting] = useState(false);
-  const [stopping, setStopping] = useState(false);
-  const [starting, setStarting] = useState(false);
-
-  const isHealthy = service.healthy;
-  const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || Globe;
-
-  return (
-    <tr className={`${styles.row} ${isHealthy ? styles.rowHealthy : styles.rowUnhealthy}`}>
-      {/* ── Service Name ── */}
-      <td className={styles.td}>
-        <div className={styles.nameCell}>
-          <TypeIcon
-            size={14}
-            strokeWidth={2.6}
-            className={`${styles.typeIcon} ${isHealthy ? styles.iconHealthy : styles.iconUnhealthy}`}
-          />
-          <span className={styles.serviceName}>{service.name}</span>
-        </div>
-      </td>
-
-      {/* ── Status ── */}
-      <td className={styles.td}>
-        <span className={`${styles.statusDot} ${isHealthy ? styles.dotHealthy : styles.dotUnhealthy}`} />
-        <span className={`${styles.statusText} ${isHealthy ? styles.textHealthy : styles.textUnhealthy}`}>
-          {isHealthy ? "Healthy" : "Down"}
-        </span>
-      </td>
-
-      {/* ── Type ── */}
-      <td className={styles.td}>
-        {service.serviceType && (
-          <BadgeComponent variant="info">
-            {service.serviceType}
-          </BadgeComponent>
-        )}
-      </td>
-
-      {/* ── Visibility ── */}
-      <td className={styles.td}>
-        {service.visibility && (
-          <BadgeComponent
-            variant={service.visibility === "external" ? "accent" : "info"}
-          >
-            {service.visibility === "external" ? (
-              <><Globe size={9} strokeWidth={2.2} /> External</>
-            ) : (
-              <><Lock size={9} strokeWidth={2.2} /> Internal</>
-            )}
-          </BadgeComponent>
-        )}
-      </td>
-
-      {/* ── Port ── */}
-      <td className={styles.td}>
-        {service.port && (
-          <code className={styles.mono}>:{service.port}</code>
-        )}
-      </td>
-
-      {/* ── Response ── */}
-      <td className={styles.td}>
-        {service.responseTimeMs != null && (
-          <span className={styles.mono}>
-            {formatDuration(service.responseTimeMs)}
-          </span>
-        )}
-      </td>
-
-      {/* ── Device ── */}
-      <td className={styles.td}>
-        {service.device && (
-          <span className={styles.deviceText}>{service.device}</span>
-        )}
-      </td>
-
-      {/* ── Actions ── */}
-      <td className={`${styles.td} ${styles.tdActions}`}>
-        {service.restartable && (
-          <div className={styles.actionRow}>
-            {isHealthy ? (
-              <button
-                className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
-                disabled={stopping || restarting}
-                onClick={async () => {
-                  setStopping(true);
-                  try { await onStop?.(service.id); }
-                  finally { setTimeout(() => setStopping(false), 5000); }
-                }}
-                title="Stop"
-              >
-                <Square size={9} strokeWidth={2.6} />
-              </button>
-            ) : (
-              <button
-                className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
-                disabled={starting || restarting}
-                onClick={async () => {
-                  setStarting(true);
-                  try { await onStart?.(service.id); }
-                  finally { setTimeout(() => setStarting(false), 5000); }
-                }}
-                title="Start"
-              >
-                <Play size={9} strokeWidth={2.6} fill="currentColor" />
-              </button>
-            )}
-
-            <Link
-              href={`/logs?service=${service.id}`}
-              className={`${styles.actionBtn} ${styles.logsBtn}`}
-              title="Logs"
-            >
-              <ScrollText size={9} strokeWidth={2.6} />
-            </Link>
-
-            <button
-              className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
-              disabled={restarting || stopping || starting}
-              onClick={async () => {
-                setRestarting(true);
-                try { await onRestart?.(service.id); }
-                finally { setTimeout(() => setRestarting(false), 5000); }
-              }}
-              title="Restart"
-            >
-              <RotateCcw size={9} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
-            </button>
-          </div>
-        )}
-      </td>
-    </tr>
+    <TableComponent
+      columns={columns}
+      data={services}
+      getRowKey={(row) => row.id}
+      sortKey={sortKey}
+      sortDir={sortDir}
+      onSort={(key, dir) => onSort(key, dir)}
+      emptyText="No services match the selected filters"
+      getRowClassName={getRowClassName}
+      storageKey="service-table"
+    />
   );
 }

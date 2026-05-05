@@ -351,13 +351,9 @@ export default function ServicesComponent() {
               services={filtered}
               sortKey={sortKey}
               sortDir={sortDir}
-              onSort={(key) => {
-                if (sortKey === key) {
-                  setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-                } else {
-                  setSortKey(key);
-                  setSortDir("asc");
-                }
+              onSort={(key, dir) => {
+                setSortKey(key);
+                setSortDir(dir);
               }}
               onRestart={handleRestart}
               onStop={handleStop}

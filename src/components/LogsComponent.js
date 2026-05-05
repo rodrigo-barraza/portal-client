@@ -210,6 +210,7 @@ export default function LogsComponent() {
   const [paused, setPaused] = useState(false);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [bufferedCount, setBufferedCount] = useState(0);
 
   const eventSourceRef = useRef(null);
   const bodyRef = useRef(null);
@@ -268,7 +269,7 @@ export default function LogsComponent() {
       const es = new EventSource(url);
       eventSourceRef.current = es;
 
-      es.addEventListener("connected", (e) => {
+      es.addEventListener("connected", (_e) => {
         setConnected(true);
         setError(null);
       });
@@ -293,6 +294,7 @@ export default function LogsComponent() {
 
         if (paused) {
           pauseBufferRef.current.push(parsed);
+          setBufferedCount(pauseBufferRef.current.length);
           return;
         }
 
@@ -319,7 +321,7 @@ export default function LogsComponent() {
     const match = loggableServices.find((s) => s.id === serviceParam);
     if (match) {
       didAutoConnect.current = true;
-      connectToService(match.id);
+      queueMicrotask(() => connectToService(match.id));
     }
   }, [searchParams, loggableServices, connectToService]);
 
@@ -343,6 +345,7 @@ export default function LogsComponent() {
 
       if (paused) {
         pauseBufferRef.current.push(parsed);
+        setBufferedCount(pauseBufferRef.current.length);
         return;
       }
 
@@ -363,6 +366,7 @@ export default function LogsComponent() {
         return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
       });
       pauseBufferRef.current = [];
+      setBufferedCount(0);
     }
     setAutoScroll(true);
   };
@@ -371,6 +375,7 @@ export default function LogsComponent() {
   const handleClear = () => {
     setLines([]);
     pauseBufferRef.current = [];
+    setBufferedCount(0);
   };
 
   // ── Scroll to bottom ────────────────────────────────────────
@@ -550,9 +555,9 @@ export default function LogsComponent() {
           </div>
 
           {/* Paused indicator */}
-          {paused && pauseBufferRef.current.length > 0 && (
+          {paused && bufferedCount > 0 && (
             <div className={styles.errorState} style={{ background: "var(--warning-subtle)", borderColor: "rgba(245, 158, 11, 0.15)", color: "var(--warning)" }}>
-              ⏸ Paused — {pauseBufferRef.current.length} new lines buffered
+              ⏸ Paused — {bufferedCount} new lines buffered
             </div>
           )}
         </div>

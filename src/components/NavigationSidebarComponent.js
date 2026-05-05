@@ -21,7 +21,8 @@ export default function NavigationSidebarComponent() {
       theme={currentTheme}
       onToggleTheme={toggleTheme}
       LinkComponent={Link}
-      collapsible={false}
+      storageKey="portal-nav-collapsed"
     />
   );
 }
+

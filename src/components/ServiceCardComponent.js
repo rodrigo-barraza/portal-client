@@ -242,7 +242,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
 
         {service.url && !isInfra && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Endpoint</span>
+            <span className={styles.detailLabel}>Address</span>
             <a
               href={service.url}
               target="_blank"
@@ -254,17 +254,17 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
           </div>
         )}
 
-        {service.hostname && (
+        {service.domain && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Hostname</span>
+            <span className={styles.detailLabel}>Domain</span>
             <a
-              href={`https://${service.hostname}`}
+              href={`https://${service.domain}`}
               target="_blank"
               rel="noopener noreferrer"
               className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
             >
               <Globe size={12} strokeWidth={2} />
-              {service.hostname}
+              {service.domain}
             </a>
           </div>
         )}

@@ -1,108 +1,6 @@
-/* ── Table Wrapper ── */
-
-.tableWrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  background: var(--bg-card);
-  animation: fadeIn var(--transition-normal) ease-out;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-
-/* ── Header ── */
-
-.th {
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-  transition:
-    color var(--transition-fast),
-    background var(--transition-fast);
-
-  &:hover {
-    color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.03);
-  }
-}
-
-.thActive {
-  color: var(--accent-color);
-}
-
-.thContent {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.sortIcon {
-  display: inline-flex;
-  color: var(--accent-color);
-  opacity: 0.8;
-}
-
-.thActions {
-  text-align: right;
-  cursor: default;
-
-  &:hover {
-    color: var(--text-muted);
-    background: var(--bg-surface);
-  }
-}
-
-/* ── Rows ── */
-
-.row {
-  border-bottom: 1px solid var(--border-color);
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast);
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.015);
-  }
-}
-
-.rowHealthy {
-  border-left: 3px solid var(--success);
-}
-
-.rowUnhealthy {
-  border-left: 3px solid var(--danger);
-}
-
-/* ── Cells ── */
-
-.td {
-  padding: 10px 14px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.tdActions {
-  text-align: right;
-}
+/* ── ServiceTableComponent — Cell-level styles ── */
+/* Table structure (wrapper, th, rows, sorting) is handled by TableComponent. */
+/* These styles only control inner cell content rendering. */
 
 /* ── Name Cell ── */
 
@@ -186,6 +84,38 @@
 .deviceText {
   font-size: 12px;
   color: var(--text-tertiary);
+}
+
+/* ── Domain Link ── */
+
+.domainLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+
+  &:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-color);
+    text-underline-offset: 2px;
+  }
+}
+
+/* ── Row health border ── */
+
+.rowHealthy {
+  border-left: 3px solid var(--success);
+}
+
+.rowUnhealthy {
+  border-left: 3px solid var(--danger);
 }
 
 /* ── Actions ── */
@@ -294,9 +224,4 @@
 @keyframes dotPulse {
   0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
   50%      { box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
