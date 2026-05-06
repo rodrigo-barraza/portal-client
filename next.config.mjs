@@ -26,11 +26,11 @@ const nextConfig = {
   transpilePackages: ["@rodrigo-barraza/components-library", "@rodrigo-barraza/utilities"],
 
   env: {
-    PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT || "4000",
-    PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL || "https://api.portal.rod.dev",
-    PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL || "https://api.portal.rod.dev",
-    NEXT_PUBLIC_PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL || "https://api.portal.rod.dev",
-    NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL || "https://api.portal.rod.dev",
+    PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT,
+    PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL,
+    PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL,
+    NEXT_PUBLIC_PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL,
+    NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL,
   },
 };
 
