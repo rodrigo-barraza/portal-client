@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Component } from "react";
 import {
   Search,
   Blocks,
@@ -11,9 +11,35 @@ import {
   Package,
   Paintbrush,
   FileCode2,
+  Eye,
+  EyeOff,
+  AlertTriangle,
 } from "lucide-react";
 import { PageHeaderComponent } from "@rodrigo-barraza/components";
+import { getPreview } from "./ComponentPreviewRegistry";
 import styles from "./ComponentsComponent.module.css";
+
+// ── Error boundary for individual preview isolation ─────────────
+class PreviewErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className={styles.previewError}>
+          <AlertTriangle size={14} />
+          <span>Preview failed to render</span>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ── Category definitions (presentation only) ────────────────────
 const CATEGORIES = {
@@ -82,6 +108,7 @@ export default function ComponentsComponent({ catalog = [] }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
+  const [showPreviews, setShowPreviews] = useState(true);
 
   // ── Filter logic ─────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -180,6 +207,13 @@ export default function ComponentsComponent({ catalog = [] }) {
         {/* View toggle */}
         <div className={styles.viewToggle}>
           <button
+            className={`${styles.viewBtn} ${showPreviews ? styles.viewBtnActive : ""}`}
+            onClick={() => setShowPreviews((v) => !v)}
+            title={showPreviews ? "Hide previews" : "Show previews"}
+          >
+            {showPreviews ? <Eye size={14} /> : <EyeOff size={14} />}
+          </button>
+          <button
             className={`${styles.viewBtn} ${viewMode === "grid" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("grid")}
             title="Grid view"
@@ -243,6 +277,15 @@ export default function ComponentsComponent({ catalog = [] }) {
               <h3 className={styles.cardName}>{humanize(comp.name)}</h3>
               <p className={styles.cardDesc}>{comp.description}</p>
 
+              {/* ── Inline Preview ── */}
+              {showPreviews && getPreview(comp.name) && (
+                <div className={styles.previewArea}>
+                  <PreviewErrorBoundary key={comp.name}>
+                    {getPreview(comp.name)()}
+                  </PreviewErrorBoundary>
+                </div>
+              )}
+
               <div className={styles.cardFooter}>
                 <span className={styles.cardStat}>
                   <FileCode2 size={11} />
@@ -281,6 +324,14 @@ export default function ComponentsComponent({ catalog = [] }) {
                   )}
                 </div>
                 <div className={styles.listDesc}>{comp.description}</div>
+                {/* ── Inline Preview (list mode) ── */}
+                {showPreviews && getPreview(comp.name) && (
+                  <div className={styles.previewAreaList}>
+                    <PreviewErrorBoundary key={comp.name}>
+                      {getPreview(comp.name)()}
+                    </PreviewErrorBoundary>
+                  </div>
+                )}
               </div>
               <div className={styles.listStats}>
                 <span className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}>

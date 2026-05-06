@@ -1,0 +1,569 @@
+"use client";
+
+/**
+ * ComponentPreviewRegistry — live demo renders for each component.
+ *
+ * Each entry is a React element showing the component in a realistic
+ * but minimal configuration. Components that require complex context
+ * (providers, modals, routers) get a simplified static demo instead.
+ */
+
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Star,
+  Settings,
+  Search,
+  Copy,
+  Check,
+  Bell,
+  Home,
+  FileText,
+  Zap,
+  Globe,
+  Lock,
+  ArrowLeft,
+  Menu,
+  MoreVertical,
+  Share,
+  Download,
+  Bookmark,
+  AlertCircle,
+  Info,
+} from "lucide-react";
+
+// Namespace import — avoids Turbopack build errors if some components
+// aren't yet exported in the locked package version.
+import * as Lib from "@rodrigo-barraza/components";
+
+import styles from "./ComponentPreviewRegistry.module.css";
+
+// ── Safe accessors — returns undefined for missing components ────
+const {
+  BadgeComponent,
+  ButtonComponent,
+  CardComponent,
+  CheckboxComponent,
+  CloseButtonComponent,
+  CollapsibleBlockComponent,
+  CopyButtonComponent,
+  CountBadgeComponent,
+  DatePickerComponent,
+  DividerComponent,
+  EmptyStateComponent,
+  ExtendedFabComponent,
+  FabComponent,
+  FormGroupComponent,
+  InputComponent,
+  LoadingIndicatorComponent,
+  LoadingStateComponent,
+  PaginationComponent,
+  ProgressIndicatorComponent,
+  RadioComponent,
+  ResponseTimeBadgeComponent,
+  SearchInputComponent,
+  SelectComponent,
+  SliderComponent,
+  SplitButtonComponent,
+  StatsCardComponent,
+  SwitchComponent,
+  TabBarComponent,
+  TextAreaComponent,
+  TextFieldComponent,
+  ToggleComponent,
+  ToolbarComponent,
+  TooltipComponent,
+  TopAppBarComponent,
+  VisibilityBadgeComponent,
+  BottomAppBarComponent,
+  NavigationRailComponent,
+  IconButtonComponent,
+} = Lib;
+
+// ── Helpers ──────────────────────────────────────────────────────
+function PreviewRow({ children, gap = 8 }) {
+  return (
+    <div className={styles.previewRow} style={{ gap }}>
+      {children}
+    </div>
+  );
+}
+
+function PreviewStack({ children, gap = 8 }) {
+  return (
+    <div className={styles.previewStack} style={{ gap }}>
+      {children}
+    </div>
+  );
+}
+
+function PreviewLabel({ children }) {
+  return <span className={styles.previewLabel}>{children}</span>;
+}
+
+// ── Preview Registry ─────────────────────────────────────────────
+const PREVIEWS = {
+  BadgeComponent: () => (
+    <PreviewRow>
+      <BadgeComponent>Default</BadgeComponent>
+      <BadgeComponent variant="success">Active</BadgeComponent>
+      <BadgeComponent variant="warning">Pending</BadgeComponent>
+      <BadgeComponent variant="danger">Error</BadgeComponent>
+      <BadgeComponent variant="info">Info</BadgeComponent>
+    </PreviewRow>
+  ),
+
+  ButtonComponent: () => (
+    <PreviewStack>
+      <PreviewRow>
+        <ButtonComponent variant="filled">Filled</ButtonComponent>
+        <ButtonComponent variant="tonal">Tonal</ButtonComponent>
+        <ButtonComponent variant="outlined">Outlined</ButtonComponent>
+        <ButtonComponent variant="text">Text</ButtonComponent>
+      </PreviewRow>
+      <PreviewRow>
+        <ButtonComponent variant="filled" icon={Plus} size="small">
+          Small
+        </ButtonComponent>
+        <ButtonComponent variant="filled" disabled>
+          Disabled
+        </ButtonComponent>
+      </PreviewRow>
+    </PreviewStack>
+  ),
+
+  CardComponent: () => (
+    <CardComponent>
+      <div style={{ padding: "12px 16px", fontSize: 13 }}>
+        <strong>Card Title</strong>
+        <p style={{ margin: "6px 0 0", fontSize: 12, opacity: 0.7 }}>
+          A surface container with elevation.
+        </p>
+      </div>
+    </CardComponent>
+  ),
+
+  CheckboxComponent: () => (
+    <PreviewStack gap={6}>
+      <CheckboxComponent label="Enabled" checked={false} onChange={() => {}} />
+      <CheckboxComponent label="Checked" checked={true} onChange={() => {}} />
+      <CheckboxComponent label="Disabled" disabled checked={false} onChange={() => {}} />
+    </PreviewStack>
+  ),
+
+  CloseButtonComponent: () => (
+    <PreviewRow>
+      <CloseButtonComponent onClick={() => {}} />
+      <CloseButtonComponent onClick={() => {}} variant="dark" />
+    </PreviewRow>
+  ),
+
+  CollapsibleBlockComponent: () => (
+    <CollapsibleBlockComponent label="Collapsible Section" icon={<Info size={14} />}>
+      <div style={{ padding: "8px 12px", fontSize: 12 }}>
+        Content is revealed when expanded. Supports smooth height animations.
+      </div>
+    </CollapsibleBlockComponent>
+  ),
+
+  CopyButtonComponent: () => (
+    <PreviewRow>
+      <CopyButtonComponent text="Hello, World!" showLabel />
+    </PreviewRow>
+  ),
+
+  CountBadgeComponent: () => (
+    <PreviewRow>
+      <CountBadgeComponent count={3} />
+      <CountBadgeComponent count={42} state="new" />
+      <CountBadgeComponent count="99+" rainbow />
+    </PreviewRow>
+  ),
+
+  DatePickerComponent: () => (
+    <DatePickerComponent value="" onChange={() => {}} placeholder="Select date…" />
+  ),
+
+  DialogComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <AlertCircle size={16} />
+      <span>Opens as overlay — click triggers required</span>
+    </div>
+  ),
+
+  DiscordChatComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <span>Requires Discord message data context</span>
+    </div>
+  ),
+
+  DividerComponent: () => (
+    <PreviewStack gap={12}>
+      <PreviewLabel>Full width</PreviewLabel>
+      <DividerComponent />
+      <PreviewLabel>Inset</PreviewLabel>
+      <DividerComponent variant="inset" />
+    </PreviewStack>
+  ),
+
+  EmptyStateComponent: () => (
+    <EmptyStateComponent
+      icon={<FileText size={28} strokeWidth={1.2} />}
+      title="Nothing here yet"
+      subtitle="Create your first item to get started."
+    />
+  ),
+
+  ExtendedFabComponent: () => (
+    <PreviewRow>
+      <ExtendedFabComponent icon={Plus} onClick={() => {}}>
+        Create
+      </ExtendedFabComponent>
+      <ExtendedFabComponent icon={Edit} variant="secondary" onClick={() => {}}>
+        Edit
+      </ExtendedFabComponent>
+    </PreviewRow>
+  ),
+
+  FabComponent: () => (
+    <PreviewRow>
+      <FabComponent icon={Plus} size="small" onClick={() => {}} />
+      <FabComponent icon={Plus} onClick={() => {}} />
+      <FabComponent icon={Plus} size="large" onClick={() => {}} />
+      <FabComponent icon={Plus} color="tertiary" onClick={() => {}} />
+    </PreviewRow>
+  ),
+
+  FabMenuComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Plus size={16} />
+      <span>Expands radially on click — requires fixed positioning</span>
+    </div>
+  ),
+
+  FormGroupComponent: () => (
+    <FormGroupComponent label="Email Address" hint="We'll never share your email.">
+      <InputComponent value="" onChange={() => {}} placeholder="you@example.com" />
+    </FormGroupComponent>
+  ),
+
+  IconButtonComponent: () => (
+    <PreviewRow>
+      <IconButtonComponent icon={<Star size={14} />} onClick={() => {}} tooltip="Favorite" />
+      <IconButtonComponent icon={<Copy size={14} />} onClick={() => {}} tooltip="Copy" />
+      <IconButtonComponent
+        icon={<Trash2 size={14} />}
+        onClick={() => {}}
+        variant="destructive"
+        tooltip="Delete"
+      />
+      <IconButtonComponent icon={<Settings size={14} />} onClick={() => {}} disabled />
+    </PreviewRow>
+  ),
+
+  InputComponent: () => (
+    <PreviewStack>
+      <InputComponent value="" onChange={() => {}} placeholder="Standard input…" />
+      <InputComponent value="Filled value" onChange={() => {}} />
+    </PreviewStack>
+  ),
+
+  LoadingIndicatorComponent: () => (
+    <PreviewRow>
+      <LoadingIndicatorComponent variant="circular" size="small" />
+      <LoadingIndicatorComponent variant="circular" size="medium" />
+      <LoadingIndicatorComponent variant="linear" />
+    </PreviewRow>
+  ),
+
+  LoadingStateComponent: () => <LoadingStateComponent message="Fetching data…" />,
+
+  MenuComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Menu size={16} />
+      <span>Positioned popover — requires trigger click</span>
+    </div>
+  ),
+
+  ModalComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <span>Full-screen overlay — opens via state toggle</span>
+    </div>
+  ),
+
+  NavigationDrawerComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Menu size={16} />
+      <span>Side drawer — slides in from edge</span>
+    </div>
+  ),
+
+  NavigationRailComponent: () => (
+    <div className={styles.previewCompact}>
+      <NavigationRailComponent
+        items={[
+          { id: "home", label: "Home", icon: <Home size={20} /> },
+          { id: "search", label: "Search", icon: <Search size={20} /> },
+          { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+        ]}
+        activeItem="home"
+        onNavigate={() => {}}
+      />
+    </div>
+  ),
+
+  NavigationSidebarComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Menu size={16} />
+      <span>Full sidebar — used as page chrome</span>
+    </div>
+  ),
+
+  PageHeaderComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <span>Sticky page header — wraps title + actions</span>
+    </div>
+  ),
+
+  PaginationComponent: () => (
+    <PaginationComponent
+      currentPage={3}
+      totalPages={10}
+      onPageChange={() => {}}
+    />
+  ),
+
+  ProgressIndicatorComponent: () => (
+    <PreviewStack>
+      <PreviewRow>
+        <ProgressIndicatorComponent variant="linear" value={65} />
+      </PreviewRow>
+      <PreviewRow>
+        <ProgressIndicatorComponent variant="circular" value={75} size={40} />
+        <ProgressIndicatorComponent variant="circular" value={null} size={40} />
+      </PreviewRow>
+    </PreviewStack>
+  ),
+
+  RadioComponent: () => (
+    <PreviewStack gap={6}>
+      <RadioComponent value="a" selectedValue="a" onChange={() => {}} label="Option A" />
+      <RadioComponent value="b" selectedValue="a" onChange={() => {}} label="Option B" />
+      <RadioComponent value="c" selectedValue="a" onChange={() => {}} label="Option C" disabled />
+    </PreviewStack>
+  ),
+
+  ResponseTimeBadgeComponent: () => (
+    <PreviewRow>
+      <ResponseTimeBadgeComponent ms={42} />
+      <ResponseTimeBadgeComponent ms={180} />
+      <ResponseTimeBadgeComponent ms={1250} />
+    </PreviewRow>
+  ),
+
+  SearchInputComponent: () => (
+    <SearchInputComponent value="" onChange={() => {}} placeholder="Search anything…" />
+  ),
+
+  SelectComponent: () => (
+    <SelectComponent
+      value=""
+      onChange={() => {}}
+      options={[
+        { value: "opt1", label: "Option One" },
+        { value: "opt2", label: "Option Two" },
+        { value: "opt3", label: "Option Three" },
+      ]}
+      placeholder="Choose…"
+    />
+  ),
+
+  SliderComponent: () => (
+    <PreviewStack>
+      <SliderComponent value={40} min={0} max={100} onChange={() => {}} />
+      <SliderComponent value={[20, 80]} min={0} max={100} onChange={() => {}} />
+    </PreviewStack>
+  ),
+
+  SnackbarComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Bell size={16} />
+      <span>Triggered via useSnackbar() hook</span>
+    </div>
+  ),
+
+  SplitButtonComponent: () => (
+    <PreviewRow>
+      <SplitButtonComponent icon={Download} onClick={() => {}} onTrailingClick={() => {}}>
+        Download
+      </SplitButtonComponent>
+      <SplitButtonComponent
+        variant="outlined"
+        icon={Share}
+        onClick={() => {}}
+        onTrailingClick={() => {}}
+      >
+        Share
+      </SplitButtonComponent>
+    </PreviewRow>
+  ),
+
+  StatsCardComponent: () => (
+    <PreviewRow>
+      <StatsCardComponent label="Requests" value="12.4k" icon={Zap} variant="accent" glow />
+      <StatsCardComponent label="Uptime" value="99.9%" icon={Check} variant="success" />
+    </PreviewRow>
+  ),
+
+  SwitchComponent: () => (
+    <PreviewStack gap={6}>
+      <SwitchComponent label="Enabled" checked={true} onChange={() => {}} />
+      <SwitchComponent label="Disabled" checked={false} onChange={() => {}} />
+      <SwitchComponent label="Inactive" checked={false} onChange={() => {}} disabled />
+    </PreviewStack>
+  ),
+
+  TabBarComponent: () => (
+    <TabBarComponent
+      tabs={[
+        { key: "overview", label: "Overview" },
+        { key: "details", label: "Details" },
+        { key: "settings", label: "Settings" },
+      ]}
+      activeTab="overview"
+      onChange={() => {}}
+    />
+  ),
+
+  TableComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <FileText size={16} />
+      <span>Data table — requires columns + rows config</span>
+    </div>
+  ),
+
+  TextAreaComponent: () => (
+    <TextAreaComponent
+      value=""
+      onChange={() => {}}
+      placeholder="Write something…"
+      minRows={2}
+      maxRows={4}
+    />
+  ),
+
+  TextFieldComponent: () => (
+    <PreviewStack>
+      <TextFieldComponent
+        value=""
+        onChange={() => {}}
+        label="Label"
+        placeholder="Enter text…"
+      />
+      <TextFieldComponent
+        value="Filled"
+        onChange={() => {}}
+        label="With value"
+      />
+    </PreviewStack>
+  ),
+
+  ToastComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <Bell size={16} />
+      <span>Triggered via useToast() hook</span>
+    </div>
+  ),
+
+  ToggleComponent: () => (
+    <PreviewRow>
+      <ToggleComponent checked={true} onChange={() => {}} label="On" />
+      <ToggleComponent checked={false} onChange={() => {}} label="Off" />
+    </PreviewRow>
+  ),
+
+  ToolbarComponent: () => (
+    <ToolbarComponent>
+      <ButtonComponent variant="text" size="small" icon={ArrowLeft}>
+        Back
+      </ButtonComponent>
+      <span style={{ flex: 1 }} />
+      <IconButtonComponent icon={<Bookmark size={14} />} onClick={() => {}} />
+      <IconButtonComponent icon={<MoreVertical size={14} />} onClick={() => {}} />
+    </ToolbarComponent>
+  ),
+
+  TooltipComponent: () => (
+    <PreviewRow>
+      <TooltipComponent label="I'm a tooltip!" position="top">
+        <ButtonComponent variant="outlined" size="small">
+          Hover me
+        </ButtonComponent>
+      </TooltipComponent>
+    </PreviewRow>
+  ),
+
+  TopAppBarComponent: () => (
+    <TopAppBarComponent
+      variant="small"
+      title="App Title"
+      navigationIcon={<ArrowLeft size={20} />}
+      onNavigationClick={() => {}}
+      position="static"
+    >
+      <TopAppBarComponent.Action
+        icon={<Search size={20} />}
+        ariaLabel="Search"
+        onClick={() => {}}
+      />
+      <TopAppBarComponent.Action
+        icon={<MoreVertical size={20} />}
+        ariaLabel="More"
+        onClick={() => {}}
+      />
+    </TopAppBarComponent>
+  ),
+
+  BottomAppBarComponent: () => (
+    <BottomAppBarComponent position="relative" hideOnScroll={false}>
+      <IconButtonComponent icon={<Search size={18} />} onClick={() => {}} />
+      <IconButtonComponent icon={<Trash2 size={18} />} onClick={() => {}} />
+      <IconButtonComponent icon={<Share size={18} />} onClick={() => {}} />
+    </BottomAppBarComponent>
+  ),
+
+  CarouselComponent: () => (
+    <div className={styles.previewPlaceholder}>
+      <span>Multi-item carousel — requires item content</span>
+    </div>
+  ),
+
+  VisibilityBadgeComponent: () => (
+    <PreviewRow>
+      <VisibilityBadgeComponent visibility="external" icons={{ Globe, Lock }} />
+      <VisibilityBadgeComponent visibility="internal" icons={{ Globe, Lock }} />
+    </PreviewRow>
+  ),
+
+  ThemeProvider: () => (
+    <div className={styles.previewPlaceholder}>
+      <Settings size={16} />
+      <span>Context provider — wraps app for theming</span>
+    </div>
+  ),
+};
+
+/**
+ * Get the preview renderer for a given component name.
+ * Returns null if no preview is available or the component
+ * isn't exported by the installed library version.
+ */
+export function getPreview(componentName) {
+  if (!PREVIEWS[componentName]) return null;
+  // Skip if the actual component isn't available in the installed version
+  if (!Lib[componentName]) return null;
+  return PREVIEWS[componentName];
+}
+
+export default PREVIEWS;
