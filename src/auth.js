@@ -4,7 +4,11 @@
 // Google SSO with email whitelist. Only emails listed in
 // AUTH_ALLOWED_EMAILS can access the portal.
 //
-// Required env vars (resolved from Vault):
+// Auth is CONDITIONALLY ENABLED — if AUTH_GOOGLE_ID and
+// AUTH_GOOGLE_SECRET are both set, OAuth is active. Otherwise,
+// the portal runs fully open (no login required).
+//
+// Required env vars (resolved from Vault) when enabled:
 //   AUTH_SECRET           — random 32+ char string for JWT signing
 //   AUTH_GOOGLE_ID        — Google OAuth2 Client ID
 //   AUTH_GOOGLE_SECRET    — Google OAuth2 Client Secret
@@ -16,6 +20,13 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
 /**
+ * Auth is enabled only when Google OAuth credentials are present.
+ */
+export const AUTH_ENABLED = !!(
+  process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+);
+
+/**
  * Parse the comma-separated allowlist once at module load.
  */
 const ALLOWED_EMAILS = (process.env.AUTH_ALLOWED_EMAILS || "")
@@ -24,15 +35,17 @@ const ALLOWED_EMAILS = (process.env.AUTH_ALLOWED_EMAILS || "")
   .filter(Boolean);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  providers: AUTH_ENABLED ? [Google] : [],
   trustHost: true,
 
   callbacks: {
     /**
      * Gate sign-in to only whitelisted emails.
      * If AUTH_ALLOWED_EMAILS is empty, all Google accounts are allowed.
+     * If auth is disabled, always allow (no-op).
      */
     signIn({ user }) {
+      if (!AUTH_ENABLED) return true;
       if (ALLOWED_EMAILS.length === 0) return true;
       return ALLOWED_EMAILS.includes(user.email?.toLowerCase());
     },
@@ -40,9 +53,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     /**
      * Middleware authorization check. Returning false triggers
      * a redirect to the sign-in page for page requests, or a
-     * 401 for API requests.
+     * 401 for API requests. When auth is disabled, always pass.
      */
     authorized({ auth: session }) {
+      if (!AUTH_ENABLED) return true;
       return !!session?.user;
     },
   },
