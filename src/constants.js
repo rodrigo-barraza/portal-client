@@ -20,6 +20,10 @@ export const NAV_ITEMS = [
   { id: "logs", label: "Logs", href: "/logs", icon: "ScrollText" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
   { id: "components", label: "Components", href: "/components", icon: "Blocks" },
+  { id: "providers", label: "Providers", href: "/providers", icon: "Plug" },
+  { id: "hooks", label: "Hooks", href: "/hooks", icon: "Anchor" },
+  { id: "services", label: "Services Library", href: "/services-library", icon: "Cog" },
+  { id: "utilities", label: "Utilities", href: "/utilities", icon: "Wrench" },
 ];
 
 // ── Service status colors ───────────────────────────────────────

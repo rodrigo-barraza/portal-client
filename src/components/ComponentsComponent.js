@@ -78,11 +78,6 @@ const CATEGORIES = {
     description: "Page structure, toolbars, dividers, and tables",
     icon: "📐",
   },
-  providers: {
-    label: "Providers",
-    description: "Context providers and theme management",
-    icon: "🔌",
-  },
 };
 
 /** Human-readable name from component folder name. */
@@ -110,9 +105,15 @@ export default function ComponentsComponent({ catalog = [] }) {
   const [viewMode, setViewMode] = useState("grid");
   const [showPreviews, setShowPreviews] = useState(true);
 
+  // ── Filter to components only ─────────────────────────────────
+  const components = useMemo(
+    () => catalog.filter((c) => c.type === "component" || !c.type),
+    [catalog]
+  );
+
   // ── Filter logic ─────────────────────────────────────────────
   const filtered = useMemo(() => {
-    let items = catalog;
+    let items = components;
 
     if (activeCategory !== "all") {
       items = items.filter((c) => c.category === activeCategory);
@@ -129,27 +130,27 @@ export default function ComponentsComponent({ catalog = [] }) {
     }
 
     return items;
-  }, [catalog, search, activeCategory]);
+  }, [components, search, activeCategory]);
 
   // ── Category counts ──────────────────────────────────────────
   const categoryCounts = useMemo(() => {
-    const counts = { all: catalog.length };
-    for (const comp of catalog) {
+    const counts = { all: components.length };
+    for (const comp of components) {
       counts[comp.category] = (counts[comp.category] || 0) + 1;
     }
     return counts;
-  }, [catalog]);
+  }, [components]);
 
   // ── Stats ────────────────────────────────────────────────────
-  const m3Count = catalog.filter((c) => c.m3).length;
-  const testedCount = catalog.filter((c) => c.hasTests).length;
-  const totalSize = catalog.reduce((sum, c) => sum + c.sizeKb, 0);
+  const m3Count = components.filter((c) => c.m3).length;
+  const testedCount = components.filter((c) => c.hasTests).length;
+  const totalSize = components.reduce((sum, c) => sum + c.sizeKb, 0);
 
   return (
     <div className={styles.components}>
       <PageHeaderComponent sticky={false}
         title="Components"
-        subtitle={`${catalog.length} components · ${m3Count} M3 · ${testedCount} tested`}
+        subtitle={`${components.length} components · ${m3Count} M3 · ${testedCount} tested`}
       >
         <div className={styles.headerStats}>
           <div className={styles.statPill}>
