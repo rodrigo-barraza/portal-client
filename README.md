@@ -20,7 +20,7 @@ Infrastructure monitoring dashboard for the **Sun** ecosystem — displays real-
 |---|---|
 | Next.js 16 | React framework (App Router) |
 | React 19 | UI library |
-| `@rodrigo-barraza/components` | Shared component library |
+| `@rodrigo-barraza/components-library` | Shared component library |
 | `@rodrigo-barraza/utilities` | Shared utility functions |
 | Lucide React | Icons |
 | Luxon | Date/time formatting |

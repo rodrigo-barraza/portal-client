@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import { ComponentsProvider, ThemeProvider } from "@rodrigo-barraza/components";
+import { ComponentsProvider, ThemeProvider } from "@rodrigo-barraza/components-library";
 import "./globals.css";
 
 const inter = Inter({

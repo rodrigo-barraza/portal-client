@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LoadingStateComponent, PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components";
+import { LoadingStateComponent, PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components-library";
 import { formatCostAdaptive } from "@rodrigo-barraza/utilities";
 
 import ApiService from "../services/ApiService";

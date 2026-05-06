@@ -15,7 +15,7 @@ import {
   Package,
   FileCode2,
 } from "lucide-react";
-import { PageHeaderComponent } from "@rodrigo-barraza/components";
+import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
 import styles from "./LibraryCatalogComponent.module.css";
 
 /** Human-readable name from export name. */

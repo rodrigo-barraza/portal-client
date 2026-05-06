@@ -72,7 +72,7 @@ import {
   NavigationRailComponent,
   IconButtonComponent,
   NavigationDrawerComponent,
-} from "@rodrigo-barraza/components";
+} from "@rodrigo-barraza/components-library";
 
 import styles from "./ComponentPreviewRegistry.module.css";
 

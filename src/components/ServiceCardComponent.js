@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Square } from "lucide-react";
-import { BadgeComponent, ResponseTimeBadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ResponseTimeBadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities";
 import DateTimeBadgeComponent from "./DateTimeBadgeComponent";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";

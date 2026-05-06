@@ -12,7 +12,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, LoadingStateComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ButtonComponent, LoadingStateComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import { formatDuration } from "@rodrigo-barraza/utilities";

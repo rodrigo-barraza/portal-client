@@ -23,7 +23,7 @@ const nextConfig = {
   output: "standalone",
   allowedDevOrigins: [],
   turbopack: {},
-  transpilePackages: ["@rodrigo-barraza/components", "@rodrigo-barraza/utilities"],
+  transpilePackages: ["@rodrigo-barraza/components-library", "@rodrigo-barraza/utilities"],
 
   env: {
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT || "4000",

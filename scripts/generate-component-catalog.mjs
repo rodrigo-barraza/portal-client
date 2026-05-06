@@ -2,7 +2,7 @@
 // ============================================================
 // Generate Component Catalog — Prebuild Script
 // ============================================================
-// Scans the installed @rodrigo-barraza/components package at
+// Scans the installed @rodrigo-barraza/components-library package at
 // build time and writes src/generated/component-catalog.json.
 //
 // Outputs entries with a `type` field: "component", "hook",
@@ -304,7 +304,7 @@ function scanProviders(componentsDir) {
 
 // ── Main ─────────────────────────────────────────────────────────
 function main() {
-  const indexPath = require.resolve("@rodrigo-barraza/components");
+  const indexPath = require.resolve("@rodrigo-barraza/components-library");
   const srcDir = path.dirname(indexPath);
   const componentsDir = path.resolve(srcDir, "components");
   const hooksDir = path.resolve(srcDir, "hooks");

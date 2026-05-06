@@ -11,7 +11,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { PageHeaderComponent, SearchInputComponent } from "@rodrigo-barraza/components";
+import { PageHeaderComponent, SearchInputComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";

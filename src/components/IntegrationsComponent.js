@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ExternalLink, Check, X, Key, Search, ChevronDown, ChevronRight } from "lucide-react";
-import { BadgeComponent, ButtonComponent, InputComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ButtonComponent, InputComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";

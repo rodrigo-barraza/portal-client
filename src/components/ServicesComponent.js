@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
-import { ButtonComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components";
+import { ButtonComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
 import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities";
 
 import ServiceCardComponent from "./ServiceCardComponent";

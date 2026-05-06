@@ -15,7 +15,7 @@ import {
   EyeOff,
   AlertTriangle,
 } from "lucide-react";
-import { PageHeaderComponent } from "@rodrigo-barraza/components";
+import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
 import { getPreview } from "./ComponentPreviewRegistry";
 import styles from "./ComponentsComponent.module.css";
 
@@ -95,7 +95,7 @@ function formatSize(kb) {
  * ComponentsComponent — catalog page for the components library.
  *
  * Receives `catalog` from the server component which scans the
- * installed @rodrigo-barraza/components package at render time.
+ * installed @rodrigo-barraza/components-library package at render time.
  *
  * @param {{ catalog: Array<{ name, category, m3, hasTests, files, sizeKb, description }> }} props
  */
