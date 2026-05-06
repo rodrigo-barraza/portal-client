@@ -28,6 +28,7 @@ const nextConfig = {
   env: {
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT || "4000",
     PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL || "https://api.portal.rod.dev",
+    PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL || "https://api.portal.rod.dev",
   },
 };
 
