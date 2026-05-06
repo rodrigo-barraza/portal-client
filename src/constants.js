@@ -19,6 +19,7 @@ export const NAV_ITEMS = [
   { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
   { id: "logs", label: "Logs", href: "/logs", icon: "ScrollText" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
+  { id: "components", label: "Components", href: "/components", icon: "Blocks" },
 ];
 
 // ── Service status colors ───────────────────────────────────────
