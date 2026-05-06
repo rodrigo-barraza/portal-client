@@ -10,7 +10,7 @@ import {
   ScrollText,
   Square,
 } from "lucide-react";
-import { BadgeComponent, TableComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ResponseTimeBadgeComponent, TableComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
 import { formatDuration, getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceTableComponent.module.css";
@@ -155,9 +155,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) =>
         service.responseTimeMs != null ? (
-          <span className={styles.mono}>
-            {formatDuration(service.responseTimeMs)}
-          </span>
+          <ResponseTimeBadgeComponent ms={service.responseTimeMs} formatter={formatDuration} />
         ) : null,
       sortValue: (row) => row.responseTimeMs ?? Infinity,
     },

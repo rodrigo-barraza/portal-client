@@ -23,7 +23,7 @@ const themeInitScript = `
     var raw = localStorage.getItem('portal:theme');
     if (raw) {
       var theme = JSON.parse(raw);
-      if (theme === 'light' || theme === 'dark') {
+      if (theme === 'light' || theme === 'dark' || theme === 'tropical') {
         document.documentElement.setAttribute('data-theme', theme);
       }
     }

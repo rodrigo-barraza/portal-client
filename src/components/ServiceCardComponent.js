@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Square } from "lucide-react";
-import { BadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
+import { BadgeComponent, ResponseTimeBadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
 import { formatDuration, timeAgo, formatElapsedTime } from "@rodrigo-barraza/utilities";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
@@ -146,9 +146,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Response</span>
-            <span className={styles.detailValue}>
-              {formatDuration(service.responseTimeMs)}
-            </span>
+            <ResponseTimeBadgeComponent ms={service.responseTimeMs} formatter={formatDuration} />
           </div>
         )}
 

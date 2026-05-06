@@ -28,6 +28,10 @@
   background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(245, 245, 247, 0.85) 60%, transparent 100%);
 }
 
+[data-theme="tropical"] .header {
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(12, 26, 26, 0.85) 60%, transparent 100%);
+}
+
 .headerInner {
   display: flex;
   align-items: flex-start;

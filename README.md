@@ -1,34 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal Client
+
+Infrastructure monitoring dashboard for the **Sun** ecosystem — displays real-time service health, response times, topology maps, and analytics across all deployed services.
+
+**Live:** [portal.rod.dev](https://portal.rod.dev)
+
+## Features
+
+- **Service Dashboard** — Card and table views of all services with health status, response times, ports, and domains
+- **Topology Map** — Visual dependency graph of inter-service connections
+- **Analytics** — Usage and performance charts across the ecosystem
+- **Devices** — Device monitoring and management
+- **Integrations** — External integration status
+- **Logs** — Centralized log viewer
+- **Google SSO** — Auth via NextAuth.js with allowed-email gating
+
+## Stack
+
+| Dependency | Purpose |
+|---|---|
+| Next.js 16 | React framework (App Router) |
+| React 19 | UI library |
+| `@rodrigo-barraza/components` | Shared component library |
+| `@rodrigo-barraza/utilities` | Shared utility functions |
+| Lucide React | Icons |
+| Luxon | Date/time formatting |
+| NextAuth.js | Google SSO authentication |
+| Recharts | Analytics charts |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Copy and configure environment
+cp .env.example .env
+
+# 3. Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Secrets are resolved in priority order:
 
-## Learn More
+1. `process.env` (manual env vars, Docker `--env`)
+2. Local `.env` file
+3. Vault service (`VAULT_SERVICE_URL` + `VAULT_SERVICE_TOKEN`)
+4. Shared `../vault-service/.env` fallback
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Description |
+|---|---|
+| `PORTAL_PORT` | Dev server port |
+| `VAULT_SERVICE_URL` | Vault service endpoint |
+| `PORTAL_API_URL` | Portal service backend URL |
+| `AUTH_GOOGLE_ID` | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `AUTH_SECRET` | NextAuth.js session secret |
+| `AUTH_ALLOWED_EMAILS` | Comma-separated allowed emails |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server on configured port |
+| `npm run build` | Production build |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Auto-fix lint issues |
+| `npm run format` | Format with Prettier |
+| `npm run format:check` | Check formatting |
+| `npm run deploy` | Build & deploy to Synology NAS |
+| `npm run deploy:dry` | Dry-run deploy (validate only) |
 
-## Deploy on Vercel
+## Architecture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+portal-client/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── analytics/          # Analytics dashboard page
+│   │   ├── api/auth/           # NextAuth.js route handler
+│   │   ├── devices/            # Devices page
+│   │   ├── integrations/       # Integrations page
+│   │   ├── logs/               # Log viewer page
+│   │   ├── services/           # Service detail page
+│   │   └── topology/           # Topology map page
+│   ├── components/             # React components
+│   ├── constants/              # Service type definitions
+│   └── services/               # API service layer
+├── boot.js                     # Vault bootstrap
+├── config.js                   # Runtime configuration
+├── secrets.js                  # Secret resolution (gitignored)
+├── next.config.mjs             # Next.js + Vault bootstrap
+└── deploy.sh                   # Synology NAS deploy script
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Related Services
+
+- **portal-service** (`:4001`) — Backend API for service registry, health checks, and analytics
+- **vault-service** (`:5599`) — Centralized secrets and service registry
