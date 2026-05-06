@@ -14,7 +14,6 @@ import {
   FlaskConical,
   Package,
   FileCode2,
-  ChevronRight,
 } from "lucide-react";
 import { PageHeaderComponent } from "@rodrigo-barraza/components";
 import styles from "./LibraryCatalogComponent.module.css";
@@ -55,7 +54,6 @@ export default function LibraryCatalogComponent({
   accentSubtle = "rgba(99, 102, 241, 0.1)",
 }) {
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
 
   // Filter to this type only
   const items = useMemo(

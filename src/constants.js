@@ -22,7 +22,7 @@ export const NAV_ITEMS = [
   { id: "components", label: "Components", href: "/components", icon: "Blocks" },
   { id: "providers", label: "Providers", href: "/providers", icon: "Plug" },
   { id: "hooks", label: "Hooks", href: "/hooks", icon: "Anchor" },
-  { id: "services", label: "Services Library", href: "/services-library", icon: "Cog" },
+  { id: "services-library", label: "Services Library", href: "/services-library", icon: "Cog" },
   { id: "utilities", label: "Utilities", href: "/utilities", icon: "Wrench" },
 ];
 
