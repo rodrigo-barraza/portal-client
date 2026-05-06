@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@rodrigo-barraza/components-library": "git+https://github.com/rodrigo-barraza/components-library.git",
-    "@rodrigo-barraza/utilities": "git+https://github.com/rodrigo-barraza/utilities-library.git",
+    "@rodrigo-barraza/utilities-library": "git+https://github.com/rodrigo-barraza/utilities-library.git",
     "lucide-react": "^0.577.0",
     "luxon": "^3.7.2",
     "next": "16.2.4",

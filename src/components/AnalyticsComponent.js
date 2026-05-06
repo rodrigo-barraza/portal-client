@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { LoadingStateComponent, PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components-library";
-import { formatCostAdaptive } from "@rodrigo-barraza/utilities";
+import { formatCostAdaptive } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./AnalyticsComponent.module.css";

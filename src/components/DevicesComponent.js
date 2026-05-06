@@ -15,7 +15,7 @@ import {
 import { BadgeComponent, ButtonComponent, LoadingStateComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
-import { formatDuration } from "@rodrigo-barraza/utilities";
+import { formatDuration } from "@rodrigo-barraza/utilities-library";
 import styles from "./DevicesComponent.module.css";
 
 /**
