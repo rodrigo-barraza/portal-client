@@ -107,7 +107,12 @@ export default class ApiService {
     return ApiService._request("/stats/projects");
   }
 
-
+  /**
+   * Get Docker container resource usage (CPU, memory, network, block I/O).
+   */
+  static async getContainerStats() {
+    return ApiService._request("/stats/containers");
+  }
 
   // ── Integrations ─────────────────────────────────────────────
 

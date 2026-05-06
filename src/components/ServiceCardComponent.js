@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Square } from "lucide-react";
 import { BadgeComponent, ResponseTimeBadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components";
-import { formatDuration, timeAgo, formatElapsedTime } from "@rodrigo-barraza/utilities";
+import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities";
+import DateTimeBadgeComponent from "./DateTimeBadgeComponent";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
 
@@ -277,9 +278,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {service.checkedAt && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Checked</span>
-            <span className={styles.detailValue}>
-              {timeAgo(service.checkedAt)}
-            </span>
+            <DateTimeBadgeComponent date={service.checkedAt} highlightNew />
           </div>
         )}
       </div>
