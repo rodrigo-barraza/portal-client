@@ -30,10 +30,15 @@ export const PROJECT_NAME = "portal";
 const IS_BROWSER = typeof window !== "undefined";
 
 // ── Raw values from process.env ────────────────────────────────
-const RAW_PORTAL_SERVICE_URL = process.env.PORTAL_SERVICE_URL;
+// NEXT_PUBLIC_ vars are guaranteed inlined by both webpack and Turbopack.
+// Non-prefixed vars (from next.config.mjs `env` block) are used as fallback
+// for SSR, where process.env is available at runtime.
+const RAW_PORTAL_SERVICE_URL =
+  process.env.NEXT_PUBLIC_PORTAL_SERVICE_URL || process.env.PORTAL_SERVICE_URL;
 
 // ── Public URL from vault (browser production override) ────────
-const PUBLIC_PORTAL_SERVICE_URL = process.env.PORTAL_SERVICE_PUBLIC_URL;
+const PUBLIC_PORTAL_SERVICE_URL =
+  process.env.NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL || process.env.PORTAL_SERVICE_PUBLIC_URL;
 
 // ── Portal API URL ─────────────────────────────────────────────
 function resolvePortalServiceUrl() {
