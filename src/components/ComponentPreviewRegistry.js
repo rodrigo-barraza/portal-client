@@ -52,7 +52,6 @@ import {
   LoadingIndicatorComponent,
   LoadingStateComponent,
   PaginationComponent,
-  ProgressIndicatorComponent,
   RadioComponent,
   ResponseTimeBadgeComponent,
   SearchInputComponent,
@@ -72,6 +71,7 @@ import {
   BottomAppBarComponent,
   NavigationRailComponent,
   IconButtonComponent,
+  NavigationDrawerComponent,
 } from "@rodrigo-barraza/components";
 
 import styles from "./ComponentPreviewRegistry.module.css";
@@ -288,9 +288,26 @@ const PREVIEWS = {
   ),
 
   NavigationDrawerComponent: () => (
-    <div className={styles.previewPlaceholder}>
-      <Menu size={16} />
-      <span>Side drawer — slides in from edge</span>
+    <div className={styles.previewCompact}>
+      <NavigationDrawerComponent
+        variant="standard"
+        open={true}
+        headline="Mail"
+        style={{ height: "100%", width: 240 }}
+      >
+        <NavigationDrawerComponent.SectionHeader>
+          Folders
+        </NavigationDrawerComponent.SectionHeader>
+        <NavigationDrawerComponent.Item icon={Home} label="Inbox" badge="24" active />
+        <NavigationDrawerComponent.Item icon={FileText} label="Drafts" />
+        <NavigationDrawerComponent.Item icon={Star} label="Starred" />
+        <NavigationDrawerComponent.Divider />
+        <NavigationDrawerComponent.SectionHeader>
+          Labels
+        </NavigationDrawerComponent.SectionHeader>
+        <NavigationDrawerComponent.Item icon={Bell} label="Updates" badge="3" />
+        <NavigationDrawerComponent.Item icon={Globe} label="Social" />
+      </NavigationDrawerComponent>
     </div>
   ),
 
@@ -298,9 +315,9 @@ const PREVIEWS = {
     <div className={styles.previewCompact}>
       <NavigationRailComponent
         items={[
-          { id: "home", label: "Home", icon: <Home size={20} /> },
-          { id: "search", label: "Search", icon: <Search size={20} /> },
-          { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+          { id: "home", label: "Home", icon: Home },
+          { id: "search", label: "Search", icon: Search },
+          { id: "settings", label: "Settings", icon: Settings },
         ]}
         activeItem="home"
         onNavigate={() => {}}
@@ -327,18 +344,6 @@ const PREVIEWS = {
       totalPages={10}
       onPageChange={() => {}}
     />
-  ),
-
-  ProgressIndicatorComponent: () => (
-    <PreviewStack>
-      <PreviewRow>
-        <ProgressIndicatorComponent variant="linear" value={65} />
-      </PreviewRow>
-      <PreviewRow>
-        <ProgressIndicatorComponent variant="circular" value={75} size={40} />
-        <ProgressIndicatorComponent variant="circular" value={null} size={40} />
-      </PreviewRow>
-    </PreviewStack>
   ),
 
   RadioComponent: () => (
