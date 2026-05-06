@@ -14,11 +14,13 @@
     "format:check": "prettier --check .",
     "deploy": "bash deploy.sh",
     "deploy:dry": "bash deploy.sh --dry-run",
-    "catalog:generate": "node scripts/generate-component-catalog.mjs"
+    "catalog:generate": "node scripts/generate-component-catalog.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@rodrigo-barraza/components": "github:rodrigo-barraza/components-library",
-    "@rodrigo-barraza/utilities": "github:rodrigo-barraza/utilities-library",
+    "@rodrigo-barraza/components": "git+https://github.com/rodrigo-barraza/components-library.git",
+    "@rodrigo-barraza/utilities": "git+https://github.com/rodrigo-barraza/utilities-library.git",
     "lucide-react": "^0.577.0",
     "luxon": "^3.7.2",
     "next": "16.2.4",
@@ -31,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.3",
+    "vitest": "^4.1.5"
   }
-}
+}\n
