@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p $(node -e \"import('./config.js').then(c=>console.log(c.PORT))\")",
+    "prebuild": "node scripts/generate-component-catalog.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -12,7 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "deploy": "bash deploy.sh",
-    "deploy:dry": "bash deploy.sh --dry-run"
+    "deploy:dry": "bash deploy.sh --dry-run",
+    "catalog:generate": "node scripts/generate-component-catalog.mjs"
   },
   "dependencies": {
     "@rodrigo-barraza/components": "github:rodrigo-barraza/components-library",

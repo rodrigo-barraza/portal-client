@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# generated (prebuild scripts)
+/src/generated/
+
 # production
 /build
 
