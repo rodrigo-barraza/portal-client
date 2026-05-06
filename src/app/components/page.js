@@ -7,6 +7,10 @@ export const metadata = {
   title: "Components — Portal",
 };
 
+// Render at request time — the catalog scans the installed package's
+// filesystem, which is only available at runtime, not during `next build`.
+export const dynamic = "force-dynamic";
+
 // ── Category map ─────────────────────────────────────────────────
 // Domain knowledge that can't be reliably inferred from code.
 // Everything else (name, files, size, tests, M3, description) is
@@ -156,7 +160,12 @@ function scanComponentLibrary() {
 }
 
 export default function ComponentsPage() {
-  const catalog = scanComponentLibrary();
+  let catalog = [];
+  try {
+    catalog = scanComponentLibrary();
+  } catch (err) {
+    console.error("[ComponentsPage] Failed to scan component library:", err.message);
+  }
 
   return (
     <div className="page-wrapper">
