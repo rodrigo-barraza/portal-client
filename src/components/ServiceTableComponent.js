@@ -118,7 +118,6 @@ function buildColumns({ onRestart, onStop, onStart }) {
       key: "subdomain",
       label: "Subdomain",
       sortable: true,
-      defaultHidden: true,
       description: "Subdomain prefix (e.g. api.prism)",
       render: (service) => {
         const sub = getSubdomain(service.domain);
