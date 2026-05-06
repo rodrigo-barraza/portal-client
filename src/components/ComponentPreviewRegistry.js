@@ -33,14 +33,7 @@ import {
   Info,
 } from "lucide-react";
 
-// Namespace import — avoids Turbopack build errors if some components
-// aren't yet exported in the locked package version.
-import * as Lib from "@rodrigo-barraza/components";
-
-import styles from "./ComponentPreviewRegistry.module.css";
-
-// ── Safe accessors — returns undefined for missing components ────
-const {
+import {
   BadgeComponent,
   ButtonComponent,
   CardComponent,
@@ -79,7 +72,9 @@ const {
   BottomAppBarComponent,
   NavigationRailComponent,
   IconButtonComponent,
-} = Lib;
+} from "@rodrigo-barraza/components";
+
+import styles from "./ComponentPreviewRegistry.module.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
 function PreviewRow({ children, gap = 8 }) {
@@ -556,14 +551,10 @@ const PREVIEWS = {
 
 /**
  * Get the preview renderer for a given component name.
- * Returns null if no preview is available or the component
- * isn't exported by the installed library version.
+ * Returns null if no preview is available.
  */
 export function getPreview(componentName) {
-  if (!PREVIEWS[componentName]) return null;
-  // Skip if the actual component isn't available in the installed version
-  if (!Lib[componentName]) return null;
-  return PREVIEWS[componentName];
+  return PREVIEWS[componentName] || null;
 }
 
 export default PREVIEWS;

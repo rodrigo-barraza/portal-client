@@ -6,6 +6,10 @@ export const metadata = {
   title: "Components — Portal",
 };
 
+// Render at request time — the client component renders live previews
+// from the component library which cannot be statically prerendered.
+export const dynamic = "force-dynamic";
+
 export default function ComponentsPage() {
   return (
     <div className="page-wrapper">
