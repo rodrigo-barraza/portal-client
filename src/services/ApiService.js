@@ -151,4 +151,56 @@ export default class ApiService {
   static async getDevices() {
     return ApiService._request("/devices");
   }
+
+  // ── Storage ─────────────────────────────────────────────────
+
+  /**
+   * List all MinIO buckets with object counts and sizes.
+   */
+  static async getStorageBuckets() {
+    return ApiService._request("/storage/buckets");
+  }
+
+  /**
+   * List objects in a bucket.
+   * @param {string} bucketName
+   * @param {{ prefix?: string, recursive?: boolean }} [opts]
+   */
+  static async getStorageObjects(bucketName, { prefix = "", recursive = false } = {}) {
+    const qs = new URLSearchParams();
+    if (prefix) qs.set("prefix", prefix);
+    if (recursive) qs.set("recursive", "true");
+    const query = qs.toString();
+    return ApiService._request(`/storage/buckets/${bucketName}${query ? `?${query}` : ""}`);
+  }
+
+  /**
+   * Get metadata for a single object.
+   * @param {string} bucketName
+   * @param {string} objectName
+   */
+  static async statStorageObject(bucketName, objectName) {
+    return ApiService._request(`/storage/buckets/${bucketName}/stat/${objectName}`);
+  }
+
+  /**
+   * Build a download URL for a storage object.
+   * @param {string} bucketName
+   * @param {string} objectName
+   * @param {{ inline?: boolean }} [opts]
+   * @returns {string}
+   */
+  static buildStorageDownloadUrl(bucketName, objectName, { inline = false } = {}) {
+    const qs = inline ? "?inline=true" : "";
+    return `${API_BASE}/storage/buckets/${bucketName}/download/${objectName}${qs}`;
+  }
+
+  /**
+   * Delete a storage object.
+   * @param {string} bucketName
+   * @param {string} objectName
+   */
+  static async deleteStorageObject(bucketName, objectName) {
+    return ApiService._request(`/storage/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
+  }
 }

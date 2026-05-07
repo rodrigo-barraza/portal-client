@@ -17,6 +17,7 @@ export const NAV_ITEMS = [
   { id: "integrations", label: "Integrations", href: "/integrations", icon: "KeyRound" },
   { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
   { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
+  { id: "storage", label: "Storage", href: "/storage", icon: "HardDrive" },
   { id: "logs", label: "Logs", href: "/logs", icon: "ScrollText" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
   { id: "components", label: "Components", href: "/components", icon: "Blocks" },
