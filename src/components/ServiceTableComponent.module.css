@@ -34,80 +34,6 @@
   filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.4));
 }
 
-/* ── Status ── */
-
-.statusDot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.dotHealthy {
-  background: var(--success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
-  animation: dotPulse 2s ease-in-out infinite;
-}
-
-.dotUnhealthy {
-  background: var(--danger);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
-}
-
-.statusText {
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.textHealthy {
-  color: var(--success);
-}
-
-.textUnhealthy {
-  color: var(--danger);
-}
-
-/* ── Mono ── */
-
-.mono {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-/* ── Device ── */
-
-.deviceText {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-/* ── Domain Link ── */
-
-.domainLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition:
-    color var(--transition-fast),
-    text-decoration-color var(--transition-fast);
-
-  &:hover {
-    color: var(--accent-color);
-    text-decoration: underline;
-    text-decoration-color: var(--accent-color);
-    text-underline-offset: 2px;
-  }
-}
-
 /* ── Row health border ── */
 
 .rowHealthy {
@@ -219,9 +145,4 @@
 
 .spin {
   animation: spin 1s linear infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
-  50%      { box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); }
 }

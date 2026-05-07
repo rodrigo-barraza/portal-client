@@ -85,12 +85,7 @@
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.6), 0 0 12px rgba(239, 68, 68, 0.25);
 }
 
-.statusLabel {
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+
 
 
 
@@ -157,15 +152,6 @@
   filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
 }
 
-.healthy .statusLabel {
-  color: var(--success);
-  text-shadow: 0 0 8px rgba(16, 185, 129, 0.6), 0 0 16px rgba(16, 185, 129, 0.2);
-}
-
-.unhealthy .statusLabel {
-  color: var(--danger);
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.6), 0 0 16px rgba(239, 68, 68, 0.2);
-}
 
 /* ── Details ── */
 
@@ -332,42 +318,7 @@
   animation: pulse 1.2s ease-in-out infinite;
 }
 
-/* ── Endpoint Link ── */
 
-.endpointLink {
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition:
-    color var(--transition-fast),
-    text-decoration-color var(--transition-fast);
-
-  &:hover {
-    color: var(--accent-color);
-    text-decoration: underline;
-    text-decoration-color: var(--accent-color);
-    text-underline-offset: 2px;
-  }
-}
-
-/* ── Repo Link ── */
-
-.repoLink {
-  color: var(--text-secondary);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition:
-    color var(--transition-fast),
-    text-decoration-color var(--transition-fast);
-
-  &:hover {
-    color: var(--accent-color);
-    text-decoration: underline;
-    text-decoration-color: var(--accent-color);
-    text-underline-offset: 2px;
-  }
-}
 
 /* ── Connections (Dependency Graph) ── */
 

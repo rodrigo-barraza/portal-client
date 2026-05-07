@@ -8,9 +8,20 @@ import {
   Play,
   RotateCcw,
   ScrollText,
+  Server,
   Square,
 } from "lucide-react";
-import { BadgeComponent, ResponseTimeBadgeComponent, TableComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
+import {
+  AddressBadgeComponent,
+  BadgeComponent,
+  DeviceBadgeComponent,
+  DomainBadgeComponent,
+  PortBadgeComponent,
+  ResponseTimeBadgeComponent,
+  StatusBadgeComponent,
+  TableComponent,
+  VisibilityBadgeComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatDuration, getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceTableComponent.module.css";
@@ -46,17 +57,9 @@ function buildColumns({ onRestart, onStop, onStart }) {
       key: "status",
       label: "Status",
       sortable: true,
-      render: (service) => {
-        const isHealthy = service.healthy;
-        return (
-          <>
-            <span className={`${styles.statusDot} ${isHealthy ? styles.dotHealthy : styles.dotUnhealthy}`} />
-            <span className={`${styles.statusText} ${isHealthy ? styles.textHealthy : styles.textUnhealthy}`}>
-              {isHealthy ? "Healthy" : "Down"}
-            </span>
-          </>
-        );
-      },
+      render: (service) => (
+        <StatusBadgeComponent healthy={service.healthy} />
+      ),
       sortValue: (row) => (row.healthy ? 1 : 0),
     },
     {
@@ -97,7 +100,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) =>
         service.port ? (
-          <code className={styles.mono}>:{service.port}</code>
+          <PortBadgeComponent port={service.port} />
         ) : null,
       sortValue: (row) => row.port || 0,
     },
@@ -108,9 +111,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       description: "Internal IP and port (socket address)",
       render: (service) =>
         service.url ? (
-          <span className={styles.mono}>
-            {service.url.replace(/^https?:\/\//, "")}
-          </span>
+          <AddressBadgeComponent address={service.url} link />
         ) : null,
       sortValue: (row) => row.url || "",
     },
@@ -135,16 +136,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       render: (service) => {
         const root = getRootDomain(service.domain);
         return root ? (
-          <a
-            href={`https://${service.domain}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.domainLink}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Globe size={10} strokeWidth={2} />
-            {root}
-          </a>
+          <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
         ) : null;
       },
       sortValue: (row) => getRootDomain(row.domain),
@@ -165,7 +157,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) =>
         service.device ? (
-          <span className={styles.deviceText}>{service.device}</span>
+          <DeviceBadgeComponent device={service.device} icons={{ Server }} />
         ) : null,
       sortValue: (row) => row.device || "",
     },

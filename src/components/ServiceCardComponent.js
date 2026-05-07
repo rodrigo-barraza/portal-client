@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Square } from "lucide-react";
-import { BadgeComponent, ResponseTimeBadgeComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
+import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import {
+  AddressBadgeComponent,
+  BadgeComponent,
+  DeviceBadgeComponent,
+  DomainBadgeComponent,
+  PortBadgeComponent,
+  RepositoryBadgeComponent,
+  ResponseTimeBadgeComponent,
+  StatusBadgeComponent,
+  VisibilityBadgeComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities-library";
 import DateTimeBadgeComponent from "./DateTimeBadgeComponent";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
@@ -101,9 +111,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {/* ── Status ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Status</span>
-          <span className={styles.statusLabel}>
-            {isHealthy ? "Healthy" : "Down"}
-          </span>
+          <StatusBadgeComponent healthy={isHealthy} />
         </div>
 
         {/* ── Stage / Visibility ── */}
@@ -154,7 +162,7 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {service.device && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Device</span>
-            <span className={styles.detailValue}>{service.device}</span>
+            <DeviceBadgeComponent device={service.device} icons={{ Server }} />
           </div>
         )}
 
@@ -225,53 +233,28 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
         {service.port && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Port</span>
-            <code className={`${styles.detailValue} ${styles.mono}`}>
-              :{service.port}
-            </code>
+            <PortBadgeComponent port={service.port} />
           </div>
         )}
 
         {service.url && !isInfra && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Address</span>
-            <a
-              href={service.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
-            >
-              {service.url.replace(/^https?:\/\//, "")}
-            </a>
+            <AddressBadgeComponent address={service.url} link />
           </div>
         )}
 
         {service.domain && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Domain</span>
-            <a
-              href={`https://${service.domain}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${styles.detailValue} ${styles.mono} ${styles.endpointLink}`}
-            >
-              <Globe size={12} strokeWidth={2} />
-              {service.domain}
-            </a>
+            <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
           </div>
         )}
 
         {service.repo && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Repository</span>
-            <a
-              href={service.repo}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${styles.detailValue} ${styles.mono} ${styles.repoLink}`}
-            >
-              <Github size={12} strokeWidth={2} />
-              {service.repo.replace("https://github.com/", "")}
-            </a>
+            <RepositoryBadgeComponent repo={service.repo} icons={{ Github }} />
           </div>
         )}
 
