@@ -6,6 +6,7 @@ import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Server, Squa
 import {
   AddressBadgeComponent,
   BadgeComponent,
+  DateTimeBadgeComponent,
   DeviceBadgeComponent,
   DomainBadgeComponent,
   PortBadgeComponent,
@@ -15,7 +16,6 @@ import {
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities-library";
-import DateTimeBadgeComponent from "./DateTimeBadgeComponent";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
 
