@@ -19,6 +19,8 @@ import {
   Search,
   ChevronRight,
   Database,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import {
   ButtonComponent,
@@ -31,7 +33,7 @@ import ApiService from "../services/ApiService";
 import styles from "./StorageComponent.module.css";
 
 /** Format bytes with human-readable units. */
-const formatBytes = (bytes) => formatFileSize(bytes);
+const formatBytes = (bytes) => formatFileSize(bytes) ?? "0 B";
 
 // ── File type helpers ────────────────────────────────────────────
 
@@ -55,6 +57,10 @@ function getFileIcon(name) {
   if (CODE_EXTS.has(ext)) return FileCode;
   if (ARCHIVE_EXTS.has(ext)) return FileArchive;
   return File;
+}
+
+function isImage(name) {
+  return IMAGE_EXTS.has(getFileExt(name));
 }
 
 function isPreviewable(name) {
@@ -86,6 +92,7 @@ function folderLabel(prefix, currentPrefix) {
 
 export default function StorageComponent() {
   const [view, setView] = useState("buckets"); // "buckets" | "objects"
+  const [objectViewMode, setObjectViewMode] = useState("table"); // "table" | "grid"
   const [buckets, setBuckets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -265,32 +272,54 @@ export default function StorageComponent() {
       {/* ── Breadcrumb Navigation ── */}
       {view === "objects" && (
         <div className={styles.breadcrumb}>
-          {breadcrumbSegments.map((seg, idx) => {
-            const isLast = idx === breadcrumbSegments.length - 1;
-            return (
-              <span key={idx} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                {idx > 0 && (
-                  <ChevronRight size={12} className={styles.breadcrumbSep} />
-                )}
-                <button
-                  className={`${styles.breadcrumbItem} ${isLast ? styles.active : ""}`}
-                  onClick={() => {
-                    if (seg.prefix === null) {
-                      setView("buckets");
-                      setActiveBucket(null);
-                    } else {
-                      navigateToPrefix(seg.prefix);
-                    }
-                  }}
-                >
-                  {idx === 0 && <Database size={13} />}
-                  {idx === 1 && <HardDrive size={13} />}
-                  {idx > 1 && <Folder size={13} />}
-                  {seg.label}
-                </button>
-              </span>
-            );
-          })}
+          <div className={styles.breadcrumbPath}>
+            {breadcrumbSegments.map((seg, idx) => {
+              const isLast = idx === breadcrumbSegments.length - 1;
+              return (
+                <span key={idx} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {idx > 0 && (
+                    <ChevronRight size={12} className={styles.breadcrumbSep} />
+                  )}
+                  <button
+                    className={`${styles.breadcrumbItem} ${isLast ? styles.active : ""}`}
+                    onClick={() => {
+                      if (seg.prefix === null) {
+                        setView("buckets");
+                        setActiveBucket(null);
+                      } else {
+                        navigateToPrefix(seg.prefix);
+                      }
+                    }}
+                  >
+                    {idx === 0 && <Database size={13} />}
+                    {idx === 1 && <HardDrive size={13} />}
+                    {idx > 1 && <Folder size={13} />}
+                    {seg.label}
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+
+          {/* ── View Mode Toggle ── */}
+          <div className={styles.viewToggle}>
+            <div className={styles.segmentedControl}>
+              <button
+                className={`${styles.segmentBtn} ${objectViewMode === "table" ? styles.segmentActive : ""}`}
+                onClick={() => setObjectViewMode("table")}
+                title="Table view"
+              >
+                <Table2 size={13} strokeWidth={2.2} />
+              </button>
+              <button
+                className={`${styles.segmentBtn} ${objectViewMode === "grid" ? styles.segmentActive : ""}`}
+                onClick={() => setObjectViewMode("grid")}
+                title="Grid view"
+              >
+                <LayoutGrid size={13} strokeWidth={2.2} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -345,123 +374,36 @@ export default function StorageComponent() {
         )
       )}
 
-      {/* ── Object List View ── */}
+      {/* ── Object Views ── */}
       {view === "objects" && (
         objectsLoading ? (
           <LoadingStateComponent message={`Loading ${activeBucket}…`} />
+        ) : objectViewMode === "table" ? (
+          /* ── Table View ── */
+          <ObjectTableView
+            objects={filteredObjects}
+            prefixes={filteredPrefixes}
+            prefix={prefix}
+            activeBucket={activeBucket}
+            search={search}
+            setSearch={setSearch}
+            navigateToPrefix={navigateToPrefix}
+            openPreview={openPreview}
+            handleDelete={handleDelete}
+          />
         ) : (
-          <div className={styles.objectListContainer}>
-            <div className={styles.objectListHeader}>
-              <span className={styles.objectListTitle}>
-                {prefix ? displayName(prefix, "") : "Root"}
-              </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span className={styles.totalSize}>
-                  {(filteredPrefixes.length + filteredObjects.length).toLocaleString()} items
-                </span>
-                <div className={styles.searchWrap}>
-                  <Search size={14} className={styles.searchIcon} />
-                  <input
-                    className={styles.searchInput}
-                    type="text"
-                    placeholder="Filter objects…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* ── Column Headers ── */}
-            <div className={styles.columnHeader}>
-              <span>Name</span>
-              <span>Size</span>
-              <span>Modified</span>
-              <span style={{ textAlign: "right" }}>Actions</span>
-            </div>
-
-            {/* ── Folders ── */}
-            {filteredPrefixes.map((pfx) => (
-              <div
-                key={pfx}
-                className={`${styles.objectRow} ${styles.folderRow}`}
-                onClick={() => navigateToPrefix(pfx)}
-              >
-                <div className={styles.objectName}>
-                  <Folder size={16} className={styles.objectIcon} />
-                  <span className={styles.objectNameText}>
-                    {folderLabel(pfx, prefix)}
-                  </span>
-                </div>
-                <span className={styles.objectSize}>—</span>
-                <span className={styles.objectDate}>—</span>
-                <div className={styles.objectActions} />
-              </div>
-            ))}
-
-            {/* ── Objects ── */}
-            {filteredObjects.map((obj, idx) => {
-              const FileIcon = getFileIcon(obj.name);
-              const canPreview = isPreviewable(obj.name);
-              return (
-                <div
-                  key={obj.name}
-                  className={styles.objectRow}
-                  style={{ animationDelay: `${idx * 20}ms` }}
-                >
-                  <div className={styles.objectName}>
-                    <FileIcon size={16} className={styles.objectIcon} />
-                    <span className={styles.objectNameText}>
-                      {displayName(obj.name, prefix)}
-                    </span>
-                  </div>
-                  <span className={styles.objectSize}>
-                    {formatBytes(obj.size)}
-                  </span>
-                  <span className={styles.objectDate}>
-                    {obj.lastModified
-                      ? new Date(obj.lastModified).toLocaleString()
-                      : "—"}
-                  </span>
-                  <div className={styles.objectActions}>
-                    {canPreview && (
-                      <button
-                        className={styles.actionBtn}
-                        title="Preview"
-                        onClick={() => openPreview(obj)}
-                      >
-                        <Eye size={15} />
-                      </button>
-                    )}
-                    <a
-                      className={styles.actionBtn}
-                      title="Download"
-                      href={ApiService.buildStorageDownloadUrl(activeBucket, obj.name)}
-                      download
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Download size={15} />
-                    </a>
-                    <button
-                      className={`${styles.actionBtn} ${styles.danger}`}
-                      title="Delete"
-                      onClick={() => handleDelete(obj)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* ── Empty State ── */}
-            {filteredPrefixes.length === 0 && filteredObjects.length === 0 && (
-              <div className={styles.emptyState}>
-                <Folder size={36} />
-                <span>{search ? "No matches found" : "This folder is empty"}</span>
-              </div>
-            )}
-          </div>
+          /* ── Grid View ── */
+          <ObjectGridView
+            objects={filteredObjects}
+            prefixes={filteredPrefixes}
+            prefix={prefix}
+            activeBucket={activeBucket}
+            search={search}
+            setSearch={setSearch}
+            navigateToPrefix={navigateToPrefix}
+            openPreview={openPreview}
+            handleDelete={handleDelete}
+          />
         )
       )}
 
@@ -475,6 +417,253 @@ export default function StorageComponent() {
         />
       )}
     </div>
+  );
+}
+
+// ── Object Table View ────────────────────────────────────────────
+
+function ObjectTableView({
+  objects, prefixes, prefix, activeBucket,
+  search, setSearch, navigateToPrefix, openPreview, handleDelete,
+}) {
+  return (
+    <div className={styles.objectListContainer}>
+      <div className={styles.objectListHeader}>
+        <span className={styles.objectListTitle}>
+          {prefix ? displayName(prefix, "") : "Root"}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span className={styles.totalSize}>
+            {(prefixes.length + objects.length).toLocaleString()} items
+          </span>
+          <div className={styles.searchWrap}>
+            <Search size={14} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="text"
+              placeholder="Filter objects…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Column Headers ── */}
+      <div className={styles.columnHeader}>
+        <span>Name</span>
+        <span>Size</span>
+        <span>Modified</span>
+        <span style={{ textAlign: "right" }}>Actions</span>
+      </div>
+
+      {/* ── Folders ── */}
+      {prefixes.map((pfx) => (
+        <div
+          key={pfx}
+          className={`${styles.objectRow} ${styles.folderRow}`}
+          onClick={() => navigateToPrefix(pfx)}
+        >
+          <div className={styles.objectName}>
+            <Folder size={16} className={styles.objectIcon} />
+            <span className={styles.objectNameText}>
+              {folderLabel(pfx, prefix)}
+            </span>
+          </div>
+          <span className={styles.objectSize}>—</span>
+          <span className={styles.objectDate}>—</span>
+          <div className={styles.objectActions} />
+        </div>
+      ))}
+
+      {/* ── Objects ── */}
+      {objects.map((obj, idx) => {
+        const FileIcon = getFileIcon(obj.name);
+        const canPreview = isPreviewable(obj.name);
+        const hasThumb = isImage(obj.name);
+        return (
+          <div
+            key={obj.name}
+            className={styles.objectRow}
+            style={{ animationDelay: `${idx * 20}ms` }}
+          >
+            <div className={styles.objectName}>
+              {hasThumb ? (
+                <img
+                  className={styles.tableThumb}
+                  src={ApiService.buildStorageDownloadUrl(activeBucket, obj.name, { inline: true })}
+                  alt=""
+                  loading="lazy"
+                />
+              ) : (
+                <FileIcon size={16} className={styles.objectIcon} />
+              )}
+              <span className={styles.objectNameText}>
+                {displayName(obj.name, prefix)}
+              </span>
+            </div>
+            <span className={styles.objectSize}>
+              {formatBytes(obj.size)}
+            </span>
+            <span className={styles.objectDate}>
+              {obj.lastModified
+                ? new Date(obj.lastModified).toLocaleString()
+                : "—"}
+            </span>
+            <div className={styles.objectActions}>
+              {canPreview && (
+                <button
+                  className={styles.actionBtn}
+                  title="Preview"
+                  onClick={() => openPreview(obj)}
+                >
+                  <Eye size={15} />
+                </button>
+              )}
+              <a
+                className={styles.actionBtn}
+                title="Download"
+                href={ApiService.buildStorageDownloadUrl(activeBucket, obj.name)}
+                download
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download size={15} />
+              </a>
+              <button
+                className={`${styles.actionBtn} ${styles.danger}`}
+                title="Delete"
+                onClick={() => handleDelete(obj)}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* ── Empty State ── */}
+      {prefixes.length === 0 && objects.length === 0 && (
+        <div className={styles.emptyState}>
+          <Folder size={36} />
+          <span>{search ? "No matches found" : "This folder is empty"}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Object Grid View ─────────────────────────────────────────────
+
+function ObjectGridView({
+  objects, prefixes, prefix, activeBucket,
+  search, setSearch, navigateToPrefix, openPreview, handleDelete,
+}) {
+  return (
+    <>
+      {/* ── Header Bar ── */}
+      <div className={styles.gridHeader}>
+        <span className={styles.objectListTitle}>
+          {prefix ? displayName(prefix, "") : "Root"}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span className={styles.totalSize}>
+            {(prefixes.length + objects.length).toLocaleString()} items
+          </span>
+          <div className={styles.searchWrap}>
+            <Search size={14} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="text"
+              placeholder="Filter objects…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.objectGrid}>
+        {/* ── Folders ── */}
+        {prefixes.map((pfx) => (
+          <div
+            key={pfx}
+            className={`${styles.gridCard} ${styles.gridCardFolder}`}
+            onClick={() => navigateToPrefix(pfx)}
+          >
+            <div className={styles.gridCardThumb}>
+              <Folder size={36} />
+            </div>
+            <div className={styles.gridCardInfo}>
+              <span className={styles.gridCardName}>
+                {folderLabel(pfx, prefix)}
+              </span>
+            </div>
+          </div>
+        ))}
+
+        {/* ── Objects ── */}
+        {objects.map((obj, idx) => {
+          const FileIcon = getFileIcon(obj.name);
+          const hasThumb = isImage(obj.name);
+          const canPreview = isPreviewable(obj.name);
+          return (
+            <div
+              key={obj.name}
+              className={styles.gridCard}
+              style={{ animationDelay: `${idx * 30}ms` }}
+              onClick={() => canPreview ? openPreview(obj) : undefined}
+            >
+              <div className={styles.gridCardThumb}>
+                {hasThumb ? (
+                  <img
+                    className={styles.gridThumbImg}
+                    src={ApiService.buildStorageDownloadUrl(activeBucket, obj.name, { inline: true })}
+                    alt=""
+                    loading="lazy"
+                  />
+                ) : (
+                  <FileIcon size={36} />
+                )}
+              </div>
+              <div className={styles.gridCardInfo}>
+                <span className={styles.gridCardName} title={displayName(obj.name, prefix)}>
+                  {displayName(obj.name, prefix)}
+                </span>
+                <span className={styles.gridCardMeta}>
+                  {formatBytes(obj.size)}
+                </span>
+              </div>
+              <div className={styles.gridCardActions}>
+                <a
+                  className={styles.actionBtn}
+                  title="Download"
+                  href={ApiService.buildStorageDownloadUrl(activeBucket, obj.name)}
+                  download
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download size={14} />
+                </a>
+                <button
+                  className={`${styles.actionBtn} ${styles.danger}`}
+                  title="Delete"
+                  onClick={(e) => { e.stopPropagation(); handleDelete(obj); }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* ── Empty State ── */}
+        {prefixes.length === 0 && objects.length === 0 && (
+          <div className={styles.emptyState} style={{ gridColumn: "1 / -1" }}>
+            <Folder size={36} />
+            <span>{search ? "No matches found" : "This folder is empty"}</span>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

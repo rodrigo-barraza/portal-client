@@ -11,8 +11,16 @@
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbPath {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
@@ -44,6 +52,44 @@
   color: var(--text-muted);
   font-size: 12px;
   user-select: none;
+}
+
+/* ── View Mode Toggle ── */
+
+.viewToggle {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.segmentedControl {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.segmentBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  color: var(--text-muted);
+  background: transparent;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.segmentBtn:hover:not(.segmentActive) {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.segmentActive {
+  color: var(--accent-color);
+  background: var(--accent-subtle);
 }
 
 /* ── Bucket Grid ── */
@@ -148,7 +194,7 @@
   font-family: var(--font-mono);
 }
 
-/* ── Object List ── */
+/* ── Object List (Table View) ── */
 
 .objectListContainer {
   background: var(--bg-card);
@@ -254,6 +300,18 @@
   color: var(--accent-color);
 }
 
+/* ── Table Thumbnail ── */
+
+.tableThumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+}
+
 .objectSize {
   font-size: 12px;
   color: var(--text-secondary);
@@ -300,6 +358,140 @@
 .actionBtn.danger:hover {
   color: var(--danger);
   background: var(--danger-subtle);
+}
+
+/* ── Grid View Header ── */
+
+.gridHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 4px;
+}
+
+/* ── Object Grid ── */
+
+.objectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.gridCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  animation: fadeIn var(--transition-normal) ease-out both;
+  position: relative;
+}
+
+.gridCard:hover {
+  border-color: color-mix(in srgb, var(--accent-color) 40%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-color) 8%, transparent);
+  transform: translateY(-1px);
+}
+
+.gridCardFolder {
+  cursor: pointer;
+}
+
+.gridCardFolder:hover {
+  border-color: var(--accent-color);
+}
+
+.gridCardThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+}
+
+.gridCardFolder .gridCardThumb {
+  color: var(--accent-color);
+}
+
+.gridThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.gridCard:hover .gridThumbImg {
+  transform: scale(1.04);
+}
+
+.gridCardInfo {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gridCardName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gridCardFolder .gridCardName {
+  color: var(--accent-color);
+}
+
+.gridCardMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.gridCardActions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.gridCard:hover .gridCardActions {
+  opacity: 1;
+}
+
+.gridCardActions .actionBtn {
+  opacity: 1;
+  width: 26px;
+  height: 26px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.gridCardActions .actionBtn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--accent-color);
+}
+
+.gridCardActions .actionBtn.danger:hover {
+  color: var(--danger);
 }
 
 /* ── Preview Panel ── */
