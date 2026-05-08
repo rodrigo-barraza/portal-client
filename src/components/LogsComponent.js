@@ -274,12 +274,17 @@ export default function LogsComponent() {
         setError(null);
       });
 
+      // Server-sent `event: error` — these carry JSON in e.data
       es.addEventListener("error", (e) => {
+        // Only handle custom SSE error events (which have .data).
+        // Native EventSource errors also fire on this listener but
+        // have no .data — those are handled by es.onerror below.
+        if (!e.data) return;
         try {
           const data = JSON.parse(e.data);
           setError(data.error || "Connection error");
         } catch {
-          setError("Connection lost");
+          setError(e.data);
         }
         setConnected(false);
       });
@@ -304,9 +309,18 @@ export default function LogsComponent() {
         });
       };
 
-      // Native error (e.g., network disconnect)
+      // Native EventSource error — fires on connection loss AND
+      // during auto-reconnect attempts. Only show "Connection lost"
+      // if the EventSource has given up (readyState === CLOSED).
       es.onerror = () => {
-        setConnected(false);
+        if (es.readyState === EventSource.CLOSED) {
+          setConnected(false);
+          setError("Connection lost");
+        } else if (es.readyState === EventSource.CONNECTING) {
+          // EventSource is auto-reconnecting — mark disconnected
+          // but don't set an error since it's transient
+          setConnected(false);
+        }
       };
     },
     [paused],
