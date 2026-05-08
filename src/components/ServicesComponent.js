@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
-import { ButtonComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import { ButtonComponent, LoadingStateComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
 import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ServiceTableComponent from "./ServiceTableComponent";
-import ContainerStatsComponent from "./ContainerStatsComponent";
 import ApiService from "../services/ApiService";
 import styles from "./ServicesComponent.module.css";
 
@@ -16,25 +15,22 @@ const STATIC_FILTER_OPTIONS = {
   status: {
     label: "Status",
     values: [
-      { key: "all", label: "All" },
-      { key: "healthy", label: "Healthy" },
-      { key: "unhealthy", label: "Down" },
+      { value: "healthy", label: "Healthy" },
+      { value: "unhealthy", label: "Down" },
     ],
   },
   visibility: {
     label: "Visibility",
     values: [
-      { key: "all", label: "All" },
-      { key: "external", label: "External" },
-      { key: "internal", label: "Internal" },
+      { value: "external", label: "External" },
+      { value: "internal", label: "Internal" },
     ],
   },
   environment: {
     label: "Environment",
     values: [
-      { key: "all", label: "All" },
-      { key: "Production", label: "Production" },
-      { key: "Development", label: "Development" },
+      { value: "Production", label: "Production" },
+      { value: "Development", label: "Development" },
     ],
   },
 };
@@ -92,17 +88,11 @@ function buildFilterOptions(items) {
     ...STATIC_FILTER_OPTIONS,
     serviceType: {
       label: "Type",
-      values: [
-        { key: "all", label: "All" },
-        ...types.map((t) => ({ key: t, label: t })),
-      ],
+      values: types.map((t) => ({ value: t, label: t })),
     },
     device: {
       label: "Device",
-      values: [
-        { key: "all", label: "All" },
-        ...hosts.map((h) => ({ key: h, label: h })),
-      ],
+      values: hosts.map((h) => ({ value: h, label: h })),
     },
   };
 }
@@ -116,11 +106,11 @@ export default function ServicesComponent() {
 
   // ── Filter state ────────────────────────────────────────────────
   const [filters, setFilters] = useState({
-    status: "all",
-    visibility: "all",
-    environment: "all",
-    serviceType: "all",
-    device: "all",
+    status: [],
+    visibility: [],
+    environment: [],
+    serviceType: [],
+    device: [],
   });
 
   // ── Sort state ──────────────────────────────────────────────────
@@ -128,7 +118,50 @@ export default function ServicesComponent() {
   const [sortDir, setSortDir] = useState("asc");
 
   // ── View mode state ────────────────────────────────────────────
-  const [viewMode, setViewMode] = useState("card");
+  const [viewMode, setViewMode] = useState("table");
+
+  // ── Container stats (polled every 5s) ──────────────────────────
+  const [containerStats, setContainerStats] = useState({});
+
+  const fetchContainerStats = useCallback(async () => {
+    try {
+      const [historyRes, currentRes] = await Promise.all([
+        ApiService.getContainerStatsHistory(),
+        ApiService.getContainerStats(),
+      ]);
+
+      // Build sparkline data per container name from history
+      const sparkMap = {};
+      if (historyRes?.history) {
+        for (const snapshot of historyRes.history) {
+          for (const [name, stats] of Object.entries(snapshot.containers)) {
+            if (!sparkMap[name]) sparkMap[name] = { cpu: [], mem: [] };
+            sparkMap[name].cpu.push(stats.cpu);
+            sparkMap[name].mem.push(stats.memoryUsed);
+          }
+        }
+      }
+
+      // Merge current snapshot with sparklines, keyed by container name
+      const statsMap = {};
+      if (currentRes?.containers) {
+        for (const c of currentRes.containers) {
+          statsMap[c.name] = {
+            cpu: c.cpu,
+            memory: c.memory,
+            network: c.network,
+            blockIO: c.blockIO,
+            pids: c.pids,
+            spark: sparkMap[c.name] || null,
+          };
+        }
+      }
+
+      setContainerStats(statsMap);
+    } catch {
+      // Silently ignore — container stats are supplementary
+    }
+  }, []);
 
   async function loadServices(refresh = false) {
     try {
@@ -147,15 +180,22 @@ export default function ServicesComponent() {
     if (didFetch.current) return;
     didFetch.current = true;
     loadServices(true);
-  }, []);
+    fetchContainerStats();
+  }, [fetchContainerStats]);
+
+  // Poll container stats every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(fetchContainerStats, 5_000);
+    return () => clearInterval(timer);
+  }, [fetchContainerStats]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     loadServices(true);
   };
 
-  const setFilter = (dimension, value) => {
-    setFilters((prev) => ({ ...prev, [dimension]: value }));
+  const setFilter = (dimension, values) => {
+    setFilters((prev) => ({ ...prev, [dimension]: values }));
   };
 
   // ── Apply filters & sort ────────────────────────────────────────
@@ -164,18 +204,20 @@ export default function ServicesComponent() {
 
   const filtered = allItems
     .filter((s) => {
-      if (filters.status === "healthy" && !s.healthy) return false;
-      if (filters.status === "unhealthy" && s.healthy) return false;
-      if (filters.visibility !== "all" && s.visibility !== filters.visibility) return false;
-      if (filters.environment !== "all" && s.environment !== filters.environment) return false;
-      if (filters.serviceType !== "all" && s.serviceType !== filters.serviceType) return false;
-      if (filters.device !== "all" && s.device !== filters.device) return false;
+      if (filters.status.length) {
+        const isHealthy = s.healthy;
+        if (!filters.status.some((v) => (v === "healthy" && isHealthy) || (v === "unhealthy" && !isHealthy))) return false;
+      }
+      if (filters.visibility.length && !filters.visibility.includes(s.visibility)) return false;
+      if (filters.environment.length && !filters.environment.includes(s.environment)) return false;
+      if (filters.serviceType.length && !filters.serviceType.includes(s.serviceType)) return false;
+      if (filters.device.length && !filters.device.includes(s.device)) return false;
       return true;
     })
     .sort((a, b) => compareBySortKey(a, b, sortKey, sortDir));
 
   const healthyCount = allItems.filter((s) => s.healthy).length;
-  const hasActiveFilter = Object.values(filters).some((v) => v !== "all");
+  const hasActiveFilter = Object.values(filters).some((v) => v.length > 0);
 
   const handleRestart = async (serviceId) => {
     try {
@@ -207,7 +249,7 @@ export default function ServicesComponent() {
   return (
     <div className={styles.services}>
       <PageHeaderComponent sticky={false}
-        title="Services"
+        title="Projects"
         subtitle={
           loading
             ? "Checking service health…"
@@ -236,19 +278,12 @@ export default function ServicesComponent() {
           {Object.entries(filterOptions).map(([dimension, config]) => (
             <div key={dimension} className={styles.sortGroup}>
               <span className={styles.sortGroupLabel}>{config.label}</span>
-              <div className={styles.segmentedControl}>
-                {config.values.map((opt) => (
-                  <button
-                    key={opt.key}
-                    className={`${styles.segmentBtn} ${
-                      filters[dimension] === opt.key ? styles.segmentActive : ""
-                    }`}
-                    onClick={() => setFilter(dimension, opt.key)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <MultiSelectComponent
+                value={filters[dimension]}
+                options={config.values}
+                onChange={(values) => setFilter(dimension, values)}
+                allLabel="All"
+              />
             </div>
           ))}
 
@@ -256,7 +291,7 @@ export default function ServicesComponent() {
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: "all", visibility: "all", environment: "all", serviceType: "all", device: "all" })
+                setFilters({ status: [], visibility: [], environment: [], serviceType: [], device: [] })
               }
             >
               Clear
@@ -337,9 +372,6 @@ export default function ServicesComponent() {
         <LoadingStateComponent message="Polling services…" />
       ) : (
         <>
-          {/* ── Live Container Metrics ── */}
-          <ContainerStatsComponent />
-
           {hasActiveFilter && (
             <div className={styles.filterSummary}>
               Showing {filtered.length} of {allItems.length} services
@@ -349,7 +381,14 @@ export default function ServicesComponent() {
           {viewMode === "card" ? (
             <div className={styles.grid}>
               {filtered.map((service) => (
-                <ServiceCardComponent key={service.id} service={service} onRestart={handleRestart} onStop={handleStop} onStart={handleStart} />
+                <ServiceCardComponent
+                  key={service.id}
+                  service={service}
+                  containerStats={service.dockerProject ? containerStats[service.dockerProject] : null}
+                  onRestart={handleRestart}
+                  onStop={handleStop}
+                  onStart={handleStart}
+                />
               ))}
               {filtered.length === 0 && (
                 <div className={styles.emptyState}>

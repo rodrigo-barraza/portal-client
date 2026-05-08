@@ -1,10 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { LoadingStateComponent, PageHeaderComponent, TableComponent } from "@rodrigo-barraza/components-library";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import {
+  LoadingStateComponent,
+  PageHeaderComponent,
+  TableComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatCostAdaptive } from "@rodrigo-barraza/utilities-library";
+import {
+  Container,
+  Cpu,
+  MemoryStick,
+  HardDrive,
+  Database,
+  Layers,
+  Package,
+  Box,
+} from "lucide-react";
 
 import ApiService from "../services/ApiService";
+import ContainerStatsComponent from "./ContainerStatsComponent";
 import styles from "./AnalyticsComponent.module.css";
 
 // ── Byte Formatting ───────────────────────────────────────────────
@@ -16,21 +31,128 @@ function formatBytes(bytes) {
   return `${value < 10 ? value.toFixed(2) : value < 100 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
 
-// ── Auto-refresh interval (ms) ────────────────────────────────────
-const CONTAINER_POLL_INTERVAL = 15_000;
+// ── Donut Chart (SVG ring) ────────────────────────────────────────
+function DonutChart({ segments, size = 120, strokeWidth = 14 }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
 
+  let accumulated = 0;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={styles.donut}>
+      {/* Track */}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke="var(--bg-tertiary)"
+        strokeWidth={strokeWidth}
+      />
+      {/* Segments */}
+      {segments.map((seg, i) => {
+        const pct = total > 0 ? seg.value / total : 0;
+        const dashLength = pct * circumference;
+        const dashOffset = -(accumulated / total) * circumference;
+        accumulated += seg.value;
+
+        return (
+          <circle
+            key={i}
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${dashLength} ${circumference - dashLength}`}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${center} ${center})`}
+            className={styles.donutSegment}
+            style={{ animationDelay: `${i * 100}ms` }}
+          />
+        );
+      })}
+      {/* Center text */}
+      <text x={center} y={center - 4} textAnchor="middle" className={styles.donutTotal}>
+        {formatBytes(total)}
+      </text>
+      <text x={center} y={center + 12} textAnchor="middle" className={styles.donutLabel}>
+        Total
+      </text>
+    </svg>
+  );
+}
+
+// ── Percentage Bar ────────────────────────────────────────────────
+function UsageBar({ value, max, color, label, sublabel }) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+
+  return (
+    <div className={styles.usageBarRow}>
+      <div className={styles.usageBarInfo}>
+        <span className={styles.usageBarLabel}>{label}</span>
+        <span className={styles.usageBarValue}>
+          {formatBytes(value)}
+          {sublabel && <span className={styles.usageBarSub}> · {sublabel}</span>}
+        </span>
+      </div>
+      <div className={styles.usageBarTrack}>
+        <div
+          className={styles.usageBarFill}
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Stat Card ─────────────────────────────────────────────────────
+function StatCard({ icon: Icon, label, value, sub, color, delay = 0 }) {
+  return (
+    <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
+      <div className={styles.statCardIcon} style={{ color, background: `${color}15` }}>
+        <Icon size={18} strokeWidth={2} />
+      </div>
+      <div className={styles.statCardContent}>
+        <span className={styles.statCardValue}>{value}</span>
+        <span className={styles.statCardLabel}>{label}</span>
+        {sub && <span className={styles.statCardSub}>{sub}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ── Disk Category Colors ──────────────────────────────────────────
+const DISK_COLORS = {
+  images: "#6366f1",
+  volumes: "#8b5cf6",
+  buildCache: "#a855f7",
+  containers: "#ec4899",
+};
+
+const BUCKET_COLORS = [
+  "#6366f1", "#8b5cf6", "#a855f7", "#ec4899",
+  "#3b82f6", "#10b981", "#f59e0b", "#ef4444",
+  "#14b8a6", "#f97316",
+];
+
+// ── Main Component ────────────────────────────────────────────────
 export default function AnalyticsComponent() {
   const [stats, setStats] = useState(null);
   const [projects, setProjects] = useState(null);
+  const [systemInfo, setSystemInfo] = useState(null);
+  const [storageSummary, setStorageSummary] = useState(null);
   const [containerStats, setContainerStats] = useState(null);
   const [period, setPeriod] = useState("24h");
   const [loading, setLoading] = useState(true);
-  const [containersLoading, setContainersLoading] = useState(true);
-  const [sortKey, setSortKey] = useState("name");
-  const [sortDir, setSortDir] = useState("asc");
+  const [systemLoading, setSystemLoading] = useState(true);
   const didFetch = useRef(false);
-  const pollRef = useRef(null);
 
+  // ── Fetch Prism Data ──────────────────────────────────────────
   async function loadPrismData() {
     try {
       const [statsRes, projectsRes] = await Promise.all([
@@ -46,14 +168,21 @@ export default function AnalyticsComponent() {
     }
   }
 
-  const loadContainerData = useCallback(async () => {
+  // ── Fetch System / Storage Data ────────────────────────────────
+  const loadSystemData = useCallback(async () => {
     try {
-      const res = await ApiService.getContainerStats();
-      setContainerStats(res);
+      const [sysRes, storageRes, containerRes] = await Promise.all([
+        ApiService.getSystemInfo().catch(() => null),
+        ApiService.getStorageSummary().catch(() => null),
+        ApiService.getContainerStats().catch(() => null),
+      ]);
+      setSystemInfo(sysRes);
+      setStorageSummary(storageRes);
+      setContainerStats(containerRes);
     } catch (err) {
-      console.error("Container stats fetch failed:", err);
+      console.error("System data fetch failed:", err);
     } finally {
-      setContainersLoading(false);
+      setSystemLoading(false);
     }
   }, []);
 
@@ -61,18 +190,21 @@ export default function AnalyticsComponent() {
     if (didFetch.current) return;
     didFetch.current = true;
     loadPrismData();
-    loadContainerData();
-  }, [loadContainerData]);
+    loadSystemData();
+  }, [loadSystemData]);
 
-  // Auto-refresh container stats
-  useEffect(() => {
-    pollRef.current = setInterval(loadContainerData, CONTAINER_POLL_INTERVAL);
-    return () => clearInterval(pollRef.current);
-  }, [loadContainerData]);
+  // ── Computed values for summary cards ──────────────────────────
+  const containers = containerStats?.containers || [];
+  const totalCpuUsage = containers.reduce((sum, c) => sum + c.cpu.percent, 0);
+  const totalMemUsed = containers.reduce((sum, c) => sum + c.memory.used, 0);
+  const totalMemLimit = containers.length > 0 ? containers[0].memory.limit : 0;
+
+  const totalMinioStorage = storageSummary?.totalSize || 0;
+  const totalDockerDisk = systemInfo?.disk?.totalReclaimable || 0;
 
   const overview = stats?.stats || {};
 
-  // ── Transform overview object into rows for TableComponent ──
+  // ── Overview rows for Prism stats ─────────────────────────────
   const overviewRows = Object.entries(overview).map(([key, value]) => ({
     key,
     value:
@@ -92,74 +224,35 @@ export default function AnalyticsComponent() {
     { key: "cost", label: "Cost", align: "right", render: (row) => formatCostAdaptive(row.totalCost || 0) },
   ];
 
-  // ── Container sorting ───────────────────────────────────────
-  const containers = containerStats?.containers || [];
+  // ── Disk usage donut segments ─────────────────────────────────
+  const diskSegments = useMemo(() => {
+    if (!systemInfo?.disk) return [];
+    const d = systemInfo.disk;
+    return [
+      { value: d.images.totalSize, color: DISK_COLORS.images, label: "Images" },
+      { value: d.volumes.totalSize, color: DISK_COLORS.volumes, label: "Volumes" },
+      { value: d.buildCache.totalSize, color: DISK_COLORS.buildCache, label: "Build Cache" },
+      { value: d.containers.totalWritableSize, color: DISK_COLORS.containers, label: "Containers" },
+    ].filter((s) => s.value > 0);
+  }, [systemInfo]);
 
-  function handleSort(key) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir(key === "name" ? "asc" : "desc");
-    }
-  }
+  // ── Bucket donut segments ─────────────────────────────────────
+  const bucketSegments = useMemo(() => {
+    if (!storageSummary?.buckets) return [];
+    return storageSummary.buckets
+      .filter((b) => b.totalSize > 0)
+      .sort((a, b) => b.totalSize - a.totalSize)
+      .map((b, i) => ({
+        value: b.totalSize,
+        color: BUCKET_COLORS[i % BUCKET_COLORS.length],
+        label: b.name,
+        objectCount: b.objectCount,
+      }));
+  }, [storageSummary]);
 
-  function getSortValue(c, key) {
-    switch (key) {
-      case "name": return c.name;
-      case "cpu": return c.cpu.percent;
-      case "memory": return c.memory.used;
-      case "memPercent": return c.memory.percent;
-      case "netRx": return c.network.rx;
-      case "netTx": return c.network.tx;
-      case "pids": return c.pids;
-      default: return c.name;
-    }
-  }
-
-  const sorted = [...containers].sort((a, b) => {
-    const aVal = getSortValue(a, sortKey);
-    const bVal = getSortValue(b, sortKey);
-    const cmp = typeof aVal === "string" ? aVal.localeCompare(bVal) : aVal - bVal;
-    return sortDir === "asc" ? cmp : -cmp;
-  });
-
-  // ── Render helpers ──────────────────────────────────────────
-  function renderBar(percent, color) {
-    const clampedPercent = Math.min(percent, 100);
-    return (
-      <div className={styles.barTrack}>
-        <div
-          className={styles.barFill}
-          style={{
-            width: `${clampedPercent}%`,
-            background: color,
-          }}
-        />
-      </div>
-    );
-  }
-
-  function cpuColor(pct) {
-    if (pct > 80) return "var(--danger)";
-    if (pct > 40) return "var(--warning)";
-    return "var(--success)";
-  }
-
-  function memColor(pct) {
-    if (pct > 85) return "var(--danger)";
-    if (pct > 60) return "var(--warning)";
-    return "var(--info)";
-  }
-
-  const sortIcon = (key) => {
-    if (sortKey !== key) return null;
-    return (
-      <span className={styles.sortArrow}>
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    );
-  };
+  const maxBucketSize = bucketSegments.length > 0
+    ? Math.max(...bucketSegments.map((s) => s.value))
+    : 0;
 
   return (
     <div className={styles.analytics}>
@@ -177,88 +270,173 @@ export default function AnalyticsComponent() {
         </div>
       </PageHeaderComponent>
 
-      {/* ── Container Stats ─────────────────────────────────────── */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Container Resources</h2>
-          {containerStats?.fetchedAt && (
-            <span className={styles.sectionMeta}>
-              {containers.length} container{containers.length !== 1 ? "s" : ""} · {" "}
-              updated {new Date(containerStats.fetchedAt).toLocaleTimeString()}
-            </span>
-          )}
-        </div>
+      {/* ── Summary Cards ───────────────────────────────────────── */}
+      <div className={styles.summaryGrid}>
+        <StatCard
+          icon={Container}
+          label="Containers"
+          value={containers.length}
+          sub={systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : null}
+          color="#6366f1"
+          delay={0}
+        />
+        <StatCard
+          icon={Cpu}
+          label="Total CPU"
+          value={`${totalCpuUsage.toFixed(1)}%`}
+          sub={systemInfo ? `${systemInfo.cpus} cores available` : null}
+          color="#10b981"
+          delay={50}
+        />
+        <StatCard
+          icon={MemoryStick}
+          label="Total Memory"
+          value={formatBytes(totalMemUsed)}
+          sub={totalMemLimit ? `of ${formatBytes(totalMemLimit)} host RAM` : null}
+          color="#3b82f6"
+          delay={100}
+        />
+        <StatCard
+          icon={HardDrive}
+          label="Total Storage"
+          value={formatBytes(totalMinioStorage + totalDockerDisk)}
+          sub={`${formatBytes(totalMinioStorage)} MinIO · ${formatBytes(totalDockerDisk)} Docker`}
+          color="#a855f7"
+          delay={150}
+        />
+      </div>
 
-        {containersLoading ? (
-          <LoadingStateComponent message="Polling Docker engine…" />
-        ) : containers.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>No running containers found</p>
-            <span className={styles.emptyDetail}>Is Docker socket mounted?</span>
-          </div>
+      {/* ── Live Container Metrics ──────────────────────────────── */}
+      <ContainerStatsComponent />
+
+      {/* ── Storage Overview ────────────────────────────────────── */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Storage Overview</h2>
+        <div className={styles.sectionSubtitle}>MinIO object storage and Docker disk usage</div>
+
+        {systemLoading ? (
+          <LoadingStateComponent message="Querying storage…" />
         ) : (
-          <div className={styles.containerTable}>
-            <table className={styles.statsTable}>
-              <thead>
-                <tr>
-                  <th className={styles.thClickable} onClick={() => handleSort("name")}>
-                    Container {sortIcon("name")}
-                  </th>
-                  <th className={styles.thClickable} onClick={() => handleSort("cpu")}>
-                    CPU {sortIcon("cpu")}
-                  </th>
-                  <th className={styles.thClickable} onClick={() => handleSort("memPercent")}>
-                    Memory {sortIcon("memPercent")}
-                  </th>
-                  <th className={styles.thClickable} onClick={() => handleSort("netRx")}>
-                    Net I/O {sortIcon("netRx")}
-                  </th>
-                  <th className={styles.thClickable} onClick={() => handleSort("pids")}>
-                    PIDs {sortIcon("pids")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((c, i) => (
-                  <tr
-                    key={c.id}
-                    className={styles.containerRow}
-                    style={{ animationDelay: `${i * 30}ms` }}
-                  >
-                    <td className={styles.nameCell}>
-                      <div className={styles.containerName}>{c.name}</div>
-                      <div className={styles.containerMeta}>{c.status}</div>
-                    </td>
-                    <td className={styles.metricCell}>
-                      <div className={styles.metricValue}>
-                        <span className={styles.metricNumber}>{c.cpu.percent.toFixed(1)}%</span>
+          <div className={styles.storageGrid}>
+            {/* ── MinIO Buckets ── */}
+            {storageSummary && bucketSegments.length > 0 && (
+              <div className={styles.storagePanel}>
+                <div className={styles.storagePanelHeader}>
+                  <Database size={15} strokeWidth={2.2} className={styles.storagePanelIcon} />
+                  <span className={styles.storagePanelTitle}>MinIO Object Storage</span>
+                  <span className={styles.storagePanelMeta}>
+                    {storageSummary.totalObjects?.toLocaleString()} objects
+                  </span>
+                </div>
+
+                <div className={styles.storagePanelBody}>
+                  <DonutChart segments={bucketSegments} size={130} strokeWidth={16} />
+                  <div className={styles.storageLegend}>
+                    {bucketSegments.map((seg, i) => (
+                      <div key={i} className={styles.legendItem}>
+                        <UsageBar
+                          value={seg.value}
+                          max={maxBucketSize}
+                          color={seg.color}
+                          label={seg.label}
+                          sublabel={`${seg.objectCount.toLocaleString()} objects`}
+                        />
                       </div>
-                      {renderBar(c.cpu.percent, cpuColor(c.cpu.percent))}
-                    </td>
-                    <td className={styles.metricCell}>
-                      <div className={styles.metricValue}>
-                        <span className={styles.metricNumber}>{formatBytes(c.memory.used)}</span>
-                        <span className={styles.metricDim}> / {formatBytes(c.memory.limit)}</span>
-                      </div>
-                      {renderBar(c.memory.percent, memColor(c.memory.percent))}
-                    </td>
-                    <td className={styles.metricCell}>
-                      <div className={styles.netRow}>
-                        <span className={styles.netLabel}>↓</span>
-                        <span className={styles.metricNumber}>{formatBytes(c.network.rx)}</span>
-                      </div>
-                      <div className={styles.netRow}>
-                        <span className={styles.netLabel}>↑</span>
-                        <span className={styles.metricNumber}>{formatBytes(c.network.tx)}</span>
-                      </div>
-                    </td>
-                    <td className={styles.pidCell}>
-                      <span className={styles.metricNumber}>{c.pids}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Docker Disk Usage ── */}
+            {systemInfo?.disk && (
+              <div className={styles.storagePanel}>
+                <div className={styles.storagePanelHeader}>
+                  <Layers size={15} strokeWidth={2.2} className={styles.storagePanelIcon} />
+                  <span className={styles.storagePanelTitle}>Docker Disk Usage</span>
+                  <span className={styles.storagePanelMeta}>
+                    v{systemInfo.serverVersion}
+                  </span>
+                </div>
+
+                <div className={styles.storagePanelBody}>
+                  <DonutChart segments={diskSegments} size={130} strokeWidth={16} />
+                  <div className={styles.storageLegend}>
+                    <UsageBar
+                      value={systemInfo.disk.images.totalSize}
+                      max={systemInfo.disk.totalReclaimable}
+                      color={DISK_COLORS.images}
+                      label="Images"
+                      sublabel={`${systemInfo.disk.images.count} images`}
+                    />
+                    <UsageBar
+                      value={systemInfo.disk.volumes.totalSize}
+                      max={systemInfo.disk.totalReclaimable}
+                      color={DISK_COLORS.volumes}
+                      label="Volumes"
+                      sublabel={`${systemInfo.disk.volumes.count} volumes`}
+                    />
+                    <UsageBar
+                      value={systemInfo.disk.buildCache.totalSize}
+                      max={systemInfo.disk.totalReclaimable}
+                      color={DISK_COLORS.buildCache}
+                      label="Build Cache"
+                      sublabel={`${systemInfo.disk.buildCache.count} layers`}
+                    />
+                    <UsageBar
+                      value={systemInfo.disk.containers.totalWritableSize}
+                      max={systemInfo.disk.totalReclaimable}
+                      color={DISK_COLORS.containers}
+                      label="Container Layers"
+                      sublabel={`${systemInfo.disk.containers.count} containers`}
+                    />
+                  </div>
+                </div>
+
+                {/* ── Top Images ── */}
+                {systemInfo.disk.images.items?.length > 0 && (
+                  <div className={styles.imageList}>
+                    <div className={styles.imageListHeader}>
+                      <Package size={12} strokeWidth={2.2} />
+                      <span>Largest Images</span>
+                    </div>
+                    {systemInfo.disk.images.items.slice(0, 8).map((img, i) => {
+                      const tag = img.tags?.[0] || img.id;
+                      const displayTag = tag.length > 50 ? `…${tag.slice(-48)}` : tag;
+                      return (
+                        <div key={i} className={styles.imageRow}>
+                          <Box size={12} strokeWidth={1.8} className={styles.imageIcon} />
+                          <span className={styles.imageName} title={tag}>{displayTag}</span>
+                          <span className={styles.imageSize}>{formatBytes(img.size)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ── Volumes ── */}
+                {systemInfo.disk.volumes.items?.length > 0 && (
+                  <div className={styles.imageList}>
+                    <div className={styles.imageListHeader}>
+                      <HardDrive size={12} strokeWidth={2.2} />
+                      <span>Volumes</span>
+                    </div>
+                    {systemInfo.disk.volumes.items.slice(0, 8).map((vol, i) => {
+                      const name = vol.name.length > 40
+                        ? `${vol.name.slice(0, 12)}…${vol.name.slice(-24)}`
+                        : vol.name;
+                      return (
+                        <div key={i} className={styles.imageRow}>
+                          <Database size={12} strokeWidth={1.8} className={styles.imageIcon} />
+                          <span className={styles.imageName} title={vol.name}>{name}</span>
+                          <span className={styles.imageSize}>{formatBytes(vol.size)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

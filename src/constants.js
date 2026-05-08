@@ -13,7 +13,7 @@ import {
 
 // ── Navigation ──────────────────────────────────────────────────
 export const NAV_ITEMS = [
-  { id: "services", label: "Services", href: "/services", icon: "Server" },
+  { id: "projects", label: "Projects", href: "/projects", icon: "Server" },
   { id: "integrations", label: "Integrations", href: "/integrations", icon: "KeyRound" },
   { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
   { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUp, Github, Globe, Lock, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import { ArrowUp, Cpu, Github, Globe, Lock, MemoryStick, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
 import {
   AddressBadgeComponent,
   BadgeComponent,
@@ -20,7 +20,103 @@ import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } fr
 import styles from "./ServiceCardComponent.module.css";
 
 
-export default function ServiceCardComponent({ service, onRestart, onStop, onStart }) {
+const MAX_SPARKLINE_POINTS = 60;
+
+/** Format bytes to human-readable. */
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const val = bytes / Math.pow(1024, i);
+  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
+}
+
+/** Format percentage. */
+function formatPercent(pct) {
+  if (pct < 0.01) return "0%";
+  if (pct < 1) return `${pct.toFixed(2)}%`;
+  if (pct < 10) return `${pct.toFixed(1)}%`;
+  return `${Math.round(pct)}%`;
+}
+
+/** Severity color from percentage. */
+function severityColor(pct, thresholds = [40, 80]) {
+  if (pct > thresholds[1]) return "var(--danger)";
+  if (pct > thresholds[0]) return "var(--warning)";
+  return "var(--success)";
+}
+
+// ── Inline Sparkline Canvas ────────────────────────────────────────
+function Sparkline({ data, color, fillColor, max, height = 20 }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !data || data.length < 2) return;
+
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const effectiveMax = max || Math.max(...data, 0.01);
+    const padding = 1;
+    const drawH = h - padding * 2;
+    const step = w / (MAX_SPARKLINE_POINTS - 1);
+    const startX = w - (data.length - 1) * step;
+
+    ctx.beginPath();
+    for (let i = 0; i < data.length; i++) {
+      const x = startX + i * step;
+      const y = padding + drawH - (data[i] / effectiveMax) * drawH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    if (fillColor) {
+      const lastX = startX + (data.length - 1) * step;
+      ctx.lineTo(lastX, h);
+      ctx.lineTo(startX, h);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, fillColor);
+      grad.addColorStop(1, "transparent");
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }, [data, color, fillColor, max, height]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={styles.sparkline}
+      style={{ height: `${height}px` }}
+    />
+  );
+}
+
+// ── Percentage Bar ──────────────────────────────────────────────
+function PercentBar({ percent, color }) {
+  const clamped = Math.min(percent, 100);
+  return (
+    <div className={styles.barTrack}>
+      <div className={styles.barFill} style={{ width: `${clamped}%`, background: color }} />
+    </div>
+  );
+}
+
+export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -113,6 +209,64 @@ export default function ServiceCardComponent({ service, onRestart, onStop, onSta
           <span className={styles.detailLabel}>Status</span>
           <StatusBadgeComponent healthy={isHealthy} />
         </div>
+
+        {/* ── Container Resource Metrics (inline sparklines) ── */}
+        {containerStats && (
+          <div className={styles.metricsSection}>
+            {/* CPU */}
+            <div className={styles.metricBlock}>
+              <div className={styles.metricHeader}>
+                <Cpu size={11} strokeWidth={2.2} className={styles.metricIcon} />
+                <span className={styles.metricLabel}>CPU</span>
+                <span className={styles.metricValues}>
+                  <span style={{ color: severityColor(containerStats.cpu.percent) }}>
+                    {formatPercent(containerStats.cpu.percent)}
+                  </span>
+                  <span className={styles.metricDim}>
+                    · {containerStats.cpu.cores} core{containerStats.cpu.cores !== 1 ? "s" : ""}
+                  </span>
+                </span>
+              </div>
+              <PercentBar percent={containerStats.cpu.percent} color={severityColor(containerStats.cpu.percent)} />
+              {containerStats.spark?.cpu?.length >= 2 && (
+                <Sparkline
+                  data={containerStats.spark.cpu}
+                  color={severityColor(containerStats.cpu.percent)}
+                  fillColor={containerStats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : containerStats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                  max={100}
+                />
+              )}
+            </div>
+
+            {/* Memory */}
+            <div className={styles.metricBlock}>
+              <div className={styles.metricHeader}>
+                <MemoryStick size={11} strokeWidth={2.2} className={styles.metricIcon} />
+                <span className={styles.metricLabel}>RAM</span>
+                <span className={styles.metricValues}>
+                  <span style={{ color: severityColor(containerStats.memory.percent, [60, 85]) }}>
+                    {formatBytes(containerStats.memory.used)}
+                  </span>
+                  <span className={styles.metricDim}>
+                    / {formatBytes(containerStats.memory.limit)}
+                  </span>
+                  <span style={{ color: severityColor(containerStats.memory.percent, [60, 85]) }}>
+                    {formatPercent(containerStats.memory.percent)}
+                  </span>
+                </span>
+              </div>
+              <PercentBar percent={containerStats.memory.percent} color={severityColor(containerStats.memory.percent, [60, 85])} />
+              {containerStats.spark?.mem?.length >= 2 && (
+                <Sparkline
+                  data={containerStats.spark.mem}
+                  color={severityColor(containerStats.memory.percent, [60, 85])}
+                  fillColor={containerStats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : containerStats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                  max={containerStats.memory.limit}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── Stage / Visibility ── */}
         <div className={styles.detail}>

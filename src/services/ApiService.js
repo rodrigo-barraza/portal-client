@@ -122,6 +122,20 @@ export default class ApiService {
     return ApiService._request("/stats/containers/history");
   }
 
+  /**
+   * Get Docker system info — disk usage breakdown (images, volumes, build cache).
+   */
+  static async getSystemInfo() {
+    return ApiService._request("/stats/system");
+  }
+
+  /**
+   * Get MinIO storage summary — bucket counts and total sizes.
+   */
+  static async getStorageSummary() {
+    return ApiService._request("/stats/storage");
+  }
+
   // ── Integrations ─────────────────────────────────────────────
 
   /**

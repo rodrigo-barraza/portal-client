@@ -32,19 +32,90 @@
   color: var(--text-primary);
 }
 
-/* ── Sections ── */
+/* ── Summary Cards ────────────────────────────────────────────── */
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1200px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  animation: fadeIn var(--transition-normal) ease-out both;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--border-subtle);
+  }
+}
+
+.statCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+}
+
+.statCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.statCardValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-family: var(--font-mono);
+}
+
+.statCardLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statCardSub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Sections ─────────────────────────────────────────────────── */
 
 .section {
   display: flex;
   flex-direction: column;
   gap: 12px;
   animation: fadeIn var(--transition-normal) ease-out;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
 }
 
 .sectionTitle {
@@ -54,157 +125,222 @@
   letter-spacing: -0.01em;
 }
 
-.sectionMeta {
-  font-size: 11px;
+.sectionSubtitle {
+  font-size: 12px;
   color: var(--text-tertiary);
-  font-weight: 400;
+  margin-top: -8px;
 }
 
-/* ── Container Table ── */
+/* ── Storage Grid ─────────────────────────────────────────────── */
 
-.containerTable {
+.storageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .storageGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.storagePanel {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
-}
-
-.statsTable {
-  width: 100%;
-  border-collapse: collapse;
-
-  th {
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border-color);
-    white-space: nowrap;
-    user-select: none;
-  }
-
-  td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border-subtle);
-    font-size: 13px;
-    vertical-align: middle;
-  }
-
-  tr:last-child td {
-    border-bottom: none;
-  }
-}
-
-.thClickable {
-  cursor: pointer;
-  transition: color var(--transition-fast);
-
-  &:hover {
-    color: var(--text-secondary);
-  }
-}
-
-.sortArrow {
-  font-size: 10px;
-  margin-left: 4px;
-  color: var(--accent-color);
-}
-
-/* ── Row Animation ── */
-
-.containerRow {
   animation: fadeIn var(--transition-normal) ease-out both;
 }
 
-/* ── Name Cell ── */
-
-.nameCell {
-  min-width: 180px;
-}
-
-.containerName {
-  font-weight: 500;
-  color: var(--text-primary);
-  font-size: 13px;
-  line-height: 1.3;
-}
-
-.containerMeta {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin-top: 2px;
-}
-
-/* ── Metric Cells ── */
-
-.metricCell {
-  min-width: 140px;
-}
-
-.metricValue {
+.storagePanelHeader {
   display: flex;
-  align-items: baseline;
-  gap: 2px;
-  margin-bottom: 5px;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.metricNumber {
-  font-family: var(--font-mono);
-  font-size: 12px;
+.storagePanelIcon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.storagePanelTitle {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
+  flex: 1;
 }
 
-.metricDim {
-  font-family: var(--font-mono);
+.storagePanelMeta {
   font-size: 11px;
+  font-family: var(--font-mono);
   color: var(--text-tertiary);
 }
 
-/* ── Usage Bars ── */
+.storagePanelBody {
+  display: flex;
+  gap: 24px;
+  padding: 20px 18px;
+  align-items: flex-start;
+}
 
-.barTrack {
+.storageLegend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.legendItem {
+  /* used for bucket bars */
+}
+
+/* ── Donut Chart ──────────────────────────────────────────────── */
+
+.donut {
+  flex-shrink: 0;
+}
+
+.donutSegment {
+  animation: donutGrow 600ms ease-out both;
+}
+
+@keyframes donutGrow {
+  from {
+    stroke-dasharray: 0 9999;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.donutTotal {
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.donutLabel {
+  font-size: 10px;
+  fill: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+/* ── Usage Bars ───────────────────────────────────────────────── */
+
+.usageBarRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usageBarInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.usageBarLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.usageBarValue {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.usageBarSub {
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.usageBarTrack {
   width: 100%;
-  height: 3px;
+  height: 4px;
   background: var(--bg-tertiary);
   border-radius: 2px;
   overflow: hidden;
 }
 
-.barFill {
+.usageBarFill {
   height: 100%;
   border-radius: 2px;
   transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: width;
 }
 
-/* ── Network I/O ── */
+/* ── Image / Volume List ──────────────────────────────────────── */
 
-.netRow {
+.imageList {
+  border-top: 1px solid var(--border-color);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.imageListHeader {
   display: flex;
   align-items: center;
   gap: 6px;
-  line-height: 1.6;
-}
-
-.netLabel {
   font-size: 11px;
-  color: var(--text-muted);
   font-weight: 600;
-  width: 10px;
-  text-align: center;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
 }
 
-/* ── PIDs ── */
-
-.pidCell {
-  text-align: center;
+.imageRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  animation: fadeIn 200ms ease-out both;
 }
 
-/* ── Content ── */
+.imageIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.imageName {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imageSize {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── Content ──────────────────────────────────────────────────── */
 
 .content {
   display: flex;
@@ -212,7 +348,7 @@
   gap: 20px;
 }
 
-/* ── States ── */
+/* ── States ───────────────────────────────────────────────────── */
 
 .emptyState {
   display: flex;

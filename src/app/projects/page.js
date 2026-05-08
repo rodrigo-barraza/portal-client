@@ -2,10 +2,10 @@ import NavigationSidebarComponent from "@/components/NavigationSidebarComponent"
 import ServicesComponent from "@/components/ServicesComponent";
 
 export const metadata = {
-  title: "Services — Portal",
+  title: "Projects — Portal",
 };
 
-export default function ServicesPage() {
+export default function ProjectsPage() {
   return (
     <div className="page-wrapper">
       <NavigationSidebarComponent />
