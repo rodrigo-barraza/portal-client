@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import {
   ButtonComponent,
-  LoadingStateComponent,
+  LoadingIndicatorComponent,
   PageHeaderComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatFileSize } from "@rodrigo-barraza/utilities-library";
@@ -326,7 +326,7 @@ export default function StorageComponent() {
       {/* ── Bucket Grid View ── */}
       {view === "buckets" && (
         loading ? (
-          <LoadingStateComponent message="Discovering buckets…" />
+          <LoadingIndicatorComponent size="small" label="Discovering buckets…" className="loading-center" />
         ) : buckets.length === 0 ? (
           <div className={styles.emptyState}>
             <HardDrive size={48} />
@@ -377,7 +377,7 @@ export default function StorageComponent() {
       {/* ── Object Views ── */}
       {view === "objects" && (
         objectsLoading ? (
-          <LoadingStateComponent message={`Loading ${activeBucket}…`} />
+          <LoadingIndicatorComponent size="small" label={`Loading ${activeBucket}…`} className="loading-center" />
         ) : objectViewMode === "table" ? (
           /* ── Table View ── */
           <ObjectTableView

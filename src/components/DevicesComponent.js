@@ -12,7 +12,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, LoadingStateComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
+import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import { formatDuration } from "@rodrigo-barraza/utilities-library";
@@ -89,7 +89,7 @@ export default function DevicesComponent() {
       </PageHeaderComponent>
 
       {loading ? (
-        <LoadingStateComponent message="Discovering devices…" />
+        <LoadingIndicatorComponent size="small" label="Discovering devices…" className="loading-center" />
       ) : (
         <div className={styles.deviceList}>
           {devices.map((device, idx) => (

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ExternalLink, Check, X, Key, Search, ChevronDown, ChevronRight } from "lucide-react";
-import { BadgeComponent, ButtonComponent, InputComponent, LoadingStateComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import { BadgeComponent, ButtonComponent, InputComponent, LoadingIndicatorComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";
@@ -117,7 +117,7 @@ export default function IntegrationsComponent() {
       )}
 
       {loading ? (
-        <LoadingStateComponent message="Loading integrations…" />
+        <LoadingIndicatorComponent size="small" label="Loading integrations…" className="loading-center" />
       ) : (
         <div className={styles.categoryList}>
           {filteredCategories?.map((cat, catIndex) => {

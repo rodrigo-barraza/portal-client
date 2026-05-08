@@ -1,0 +1,226 @@
+/* ── Container Stats — Analytics Live Metrics Table ──────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.headerTotals {
+  display: flex;
+  gap: 16px;
+}
+
+.headerStat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.headerStatLabel {
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+}
+
+/* ── Table ────────────────────────────────────────────────────── */
+
+.table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.5fr) 90px 1fr 110px 1fr 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color);
+  animation: rowSlideIn var(--transition-normal) ease-out both;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowHeader {
+  background: var(--bg-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+  animation: none;
+}
+
+/* ── Cells ────────────────────────────────────────────────────── */
+
+.cellName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.containerIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.containerName {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.cellMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metricRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.metricValue {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.metricDim {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.cellSpark {
+  min-width: 0;
+}
+
+.cellPids {
+  text-align: right;
+}
+
+.pidValue {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.noData {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Percentage Bar ──────────────────────────────────────────── */
+
+.barTrack {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 1.5px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 1.5px;
+  transition: width 800ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* ── Sparkline Canvas ────────────────────────────────────────── */
+
+.sparkline {
+  width: 100%;
+  display: block;
+  border-radius: 2px;
+}
+
+/* ── Animations ──────────────────────────────────────────────── */
+
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .row {
+    grid-template-columns: minmax(120px, 1.5fr) 80px 1fr 100px 1fr;
+  }
+
+  .cellPids {
+    display: none;
+  }
+
+  .rowHeader .cellPids {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(100px, 1fr) 70px 70px;
+  }
+
+  .cellSpark,
+  .cellPids {
+    display: none;
+  }
+
+  .rowHeader .cellSpark,
+  .rowHeader .cellPids {
+    display: none;
+  }
+}

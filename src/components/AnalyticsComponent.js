@@ -2,13 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
-  LoadingStateComponent,
+  LoadingIndicatorComponent,
   PageHeaderComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatCostAdaptive } from "@rodrigo-barraza/utilities-library";
 import {
-  Container,
   Cpu,
   MemoryStick,
   HardDrive,
@@ -16,6 +15,7 @@ import {
   Layers,
   Package,
   Box,
+  Server,
 } from "lucide-react";
 
 import ApiService from "../services/ApiService";
@@ -197,8 +197,10 @@ export default function AnalyticsComponent() {
   const containers = containerStats?.containers || [];
   const totalCpuUsage = containers.reduce((sum, c) => sum + c.cpu.percent, 0);
   const totalMemUsed = containers.reduce((sum, c) => sum + c.memory.used, 0);
-  const totalMemLimit = containers.length > 0 ? containers[0].memory.limit : 0;
+  const totalMemLimit = systemInfo?.totalMemory || (containers.length > 0 ? containers[0].memory.limit : 0);
+  const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
 
+  const hostDisk = systemInfo?.hostDisk;
   const totalMinioStorage = storageSummary?.totalSize || 0;
   const totalDockerDisk = systemInfo?.disk?.totalReclaimable || 0;
 
@@ -270,10 +272,10 @@ export default function AnalyticsComponent() {
         </div>
       </PageHeaderComponent>
 
-      {/* ── Summary Cards ───────────────────────────────────────── */}
+      {/* ── System Summary Cards ────────────────────────────────── */}
       <div className={styles.summaryGrid}>
         <StatCard
-          icon={Container}
+          icon={Server}
           label="Containers"
           value={containers.length}
           sub={systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : null}
@@ -282,25 +284,25 @@ export default function AnalyticsComponent() {
         />
         <StatCard
           icon={Cpu}
-          label="Total CPU"
-          value={`${totalCpuUsage.toFixed(1)}%`}
-          sub={systemInfo ? `${systemInfo.cpus} cores available` : null}
+          label="Total Cores"
+          value={systemInfo?.cpus || "—"}
+          sub={`${totalCpuUsage.toFixed(1)}% aggregate usage`}
           color="#10b981"
           delay={50}
         />
         <StatCard
           icon={MemoryStick}
           label="Total Memory"
-          value={formatBytes(totalMemUsed)}
-          sub={totalMemLimit ? `of ${formatBytes(totalMemLimit)} host RAM` : null}
+          value={totalMemLimit ? formatBytes(totalMemLimit) : "—"}
+          sub={totalMemLimit ? `${formatBytes(totalMemUsed)} used · ${memPercent.toFixed(1)}%` : null}
           color="#3b82f6"
           delay={100}
         />
         <StatCard
           icon={HardDrive}
           label="Total Storage"
-          value={formatBytes(totalMinioStorage + totalDockerDisk)}
-          sub={`${formatBytes(totalMinioStorage)} MinIO · ${formatBytes(totalDockerDisk)} Docker`}
+          value={hostDisk ? formatBytes(hostDisk.total) : "—"}
+          sub={hostDisk ? `${formatBytes(hostDisk.used)} used · ${hostDisk.percent}%` : `${formatBytes(totalMinioStorage)} MinIO · ${formatBytes(totalDockerDisk)} Docker`}
           color="#a855f7"
           delay={150}
         />
@@ -315,7 +317,7 @@ export default function AnalyticsComponent() {
         <div className={styles.sectionSubtitle}>MinIO object storage and Docker disk usage</div>
 
         {systemLoading ? (
-          <LoadingStateComponent message="Querying storage…" />
+          <LoadingIndicatorComponent size="small" label="Querying storage…" className="loading-center" />
         ) : (
           <div className={styles.storageGrid}>
             {/* ── MinIO Buckets ── */}
@@ -443,7 +445,7 @@ export default function AnalyticsComponent() {
 
       {/* ── Prism Stats ────────────────────────────────────────── */}
       {loading ? (
-        <LoadingStateComponent message="Loading analytics…" />
+        <LoadingIndicatorComponent size="small" label="Loading analytics…" className="loading-center" />
       ) : stats?.error ? (
         <div className={styles.errorState}>
           <p>Could not fetch analytics data</p>

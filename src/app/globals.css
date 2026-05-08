@@ -380,6 +380,17 @@ a:hover {
   animation: slideIn var(--transition-normal) ease-out;
 }
 
+/* ── Loading indicator centering ─────────────────────────────── */
+/* Wraps LoadingIndicatorComponent to center it in page sections  */
+
+.loading-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  width: 100%;
+}
+
 /* ── Portal Gradient ─────────────────────────────────────────── */
 
 :root {

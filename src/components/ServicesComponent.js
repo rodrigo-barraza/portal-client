@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2 } from "lucide-react";
-import { ButtonComponent, LoadingStateComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
+import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2, Cpu, MemoryStick, HardDrive, Server } from "lucide-react";
+import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
 import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
@@ -97,6 +97,15 @@ function buildFilterOptions(items) {
   };
 }
 
+// ── Byte Formatting ───────────────────────────────────────────────
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const val = bytes / Math.pow(1024, i);
+  return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
+}
+
 export default function ServicesComponent() {
   const [services, setServices] = useState([]);
   const [infrastructure, setInfrastructure] = useState([]);
@@ -112,6 +121,9 @@ export default function ServicesComponent() {
     serviceType: [],
     device: [],
   });
+
+  // ── System info state ──────────────────────────────────────────
+  const [systemInfo, setSystemInfo] = useState(null);
 
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
@@ -163,6 +175,16 @@ export default function ServicesComponent() {
     }
   }, []);
 
+  // ── Fetch system info ──────────────────────────────────────────
+  const fetchSystemInfo = useCallback(async () => {
+    try {
+      const res = await ApiService.getSystemInfo().catch(() => null);
+      setSystemInfo(res);
+    } catch {
+      // Supplementary — silently ignore
+    }
+  }, []);
+
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
@@ -181,7 +203,8 @@ export default function ServicesComponent() {
     didFetch.current = true;
     loadServices(true);
     fetchContainerStats();
-  }, [fetchContainerStats]);
+    fetchSystemInfo();
+  }, [fetchContainerStats, fetchSystemInfo]);
 
   // Poll container stats every 5 seconds
   useEffect(() => {
@@ -218,6 +241,14 @@ export default function ServicesComponent() {
 
   const healthyCount = allItems.filter((s) => s.healthy).length;
   const hasActiveFilter = Object.values(filters).some((v) => v.length > 0);
+
+  // ── System summary computed values ──────────────────────────────
+  const allContainerStats = Object.values(containerStats);
+  const totalCpuUsage = allContainerStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
+  const totalMemUsed = allContainerStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
+  const totalMemLimit = systemInfo?.totalMemory || (allContainerStats.length > 0 ? allContainerStats[0]?.memory?.limit || 0 : 0);
+  const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
+  const hostDisk = systemInfo?.hostDisk;
 
   const handleRestart = async (serviceId) => {
     try {
@@ -265,6 +296,57 @@ export default function ServicesComponent() {
           Check All
         </ButtonComponent>
       </PageHeaderComponent>
+
+      {/* ── System Summary Cards ────────────────────────────────── */}
+      {!loading && (
+        <div className={styles.summaryGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}>
+              <Server size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{allItems.length}</span>
+              <span className={styles.statCardLabel}>Containers</span>
+              <span className={styles.statCardSub}>
+                {systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : `${healthyCount} healthy`}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
+              <Cpu size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{systemInfo?.cpus || "—"}</span>
+              <span className={styles.statCardLabel}>Total Cores</span>
+              <span className={styles.statCardSub}>{totalCpuUsage.toFixed(1)}% aggregate usage</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
+              <MemoryStick size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{totalMemLimit ? formatBytes(totalMemLimit) : "—"}</span>
+              <span className={styles.statCardLabel}>Total Memory</span>
+              <span className={styles.statCardSub}>{totalMemLimit ? `${formatBytes(totalMemUsed)} used · ${memPercent.toFixed(1)}%` : "Loading…"}</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
+              <HardDrive size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{hostDisk ? formatBytes(hostDisk.total) : "—"}</span>
+              <span className={styles.statCardLabel}>Total Storage</span>
+              <span className={styles.statCardSub}>{hostDisk ? `${formatBytes(hostDisk.used)} used · ${hostDisk.percent}%` : "Loading…"}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
@@ -369,7 +451,7 @@ export default function ServicesComponent() {
       )}
 
       {loading ? (
-        <LoadingStateComponent message="Polling services…" />
+        <LoadingIndicatorComponent size="small" label="Polling services…" className="loading-center" />
       ) : (
         <>
           {hasActiveFilter && (

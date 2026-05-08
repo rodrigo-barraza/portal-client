@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
 } from "lucide-react";
-import { ButtonComponent, LoadingStateComponent } from "@rodrigo-barraza/components-library";
+import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
@@ -328,7 +328,7 @@ export default function TopologyComponent() {
       </div>
 
       {loading ? (
-        <LoadingStateComponent message="Building topology…" />
+        <LoadingIndicatorComponent size="small" label="Building topology…" className="loading-center" />
       ) : (
         <>
           <div
