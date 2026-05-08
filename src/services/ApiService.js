@@ -225,4 +225,75 @@ export default class ApiService {
   static async deleteStorageObject(bucketName, objectName) {
     return ApiService._request(`/storage/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
   }
+
+  // ── Google Analytics ────────────────────────────────────────
+
+  /**
+   * List configured GA4 properties.
+   */
+  static async getGAProperties() {
+    return ApiService._request("/google-analytics/properties");
+  }
+
+  /**
+   * Get realtime active users for a GA4 property.
+   * @param {string} propertyId
+   */
+  static async getGARealtime(propertyId) {
+    return ApiService._request(`/google-analytics/${propertyId}/realtime`);
+  }
+
+  /**
+   * Get overview metrics for a GA4 property.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAOverview(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/overview?period=${period}`);
+  }
+
+  /**
+   * Get top pages for a GA4 property.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAPages(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/pages?period=${period}`);
+  }
+
+  /**
+   * Get traffic source breakdown for a GA4 property.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGASources(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/sources?period=${period}`);
+  }
+
+  /**
+   * Get geographic breakdown for a GA4 property.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAGeography(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/geography?period=${period}`);
+  }
+
+  /**
+   * Get device and browser breakdown for a GA4 property.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGADevices(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/devices?period=${period}`);
+  }
+
+  /**
+   * Get daily time-series data (pageviews, users, sessions).
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGATimeSeries(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/timeseries?period=${period}`);
+  }
 }

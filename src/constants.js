@@ -20,6 +20,7 @@ export const NAV_ITEMS = [
   { id: "storage", label: "Storage", href: "/storage", icon: "HardDrive" },
   { id: "logs", label: "Logs", href: "/logs", icon: "ScrollText" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
+  { id: "web-analytics", label: "Web Analytics", href: "/web-analytics", icon: "TrendingUp" },
   { id: "components", label: "Components", href: "/components", icon: "Blocks" },
   { id: "providers", label: "Providers", href: "/providers", icon: "Plug" },
   { id: "hooks", label: "Hooks", href: "/hooks", icon: "Anchor" },
