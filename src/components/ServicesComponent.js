@@ -7,6 +7,7 @@ import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library"
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ServiceTableComponent from "./ServiceTableComponent";
+import ContainerStatsComponent from "./ContainerStatsComponent";
 import ApiService from "../services/ApiService";
 import styles from "./ServicesComponent.module.css";
 
@@ -336,6 +337,9 @@ export default function ServicesComponent() {
         <LoadingStateComponent message="Polling services…" />
       ) : (
         <>
+          {/* ── Live Container Metrics ── */}
+          <ContainerStatsComponent />
+
           {hasActiveFilter && (
             <div className={styles.filterSummary}>
               Showing {filtered.length} of {allItems.length} services

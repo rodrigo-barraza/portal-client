@@ -114,6 +114,14 @@ export default class ApiService {
     return ApiService._request("/stats/containers");
   }
 
+  /**
+   * Get time-series container stats history (last 5 minutes, 5s intervals).
+   * Used for live sparkline charts.
+   */
+  static async getContainerStatsHistory() {
+    return ApiService._request("/stats/containers/history");
+  }
+
   // ── Integrations ─────────────────────────────────────────────
 
   /**
