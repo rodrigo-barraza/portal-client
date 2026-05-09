@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, Cpu, MemoryStick, HardDrive, Server } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
 import { getRootDomain } from "@rodrigo-barraza/utilities-library";
 
@@ -88,18 +88,10 @@ function buildFilterOptions(items) {
   };
 }
 
-// ── Byte Formatting ───────────────────────────────────────────────
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
-}
+
 
 export default function ProjectsComponent() {
   const [services, setServices] = useState([]);
-  const [infrastructure, setInfrastructure] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const didFetch = useRef(false);
@@ -113,8 +105,7 @@ export default function ProjectsComponent() {
     device: [],
   });
 
-  // ── System info state ──────────────────────────────────────────
-  const [systemInfo, setSystemInfo] = useState(null);
+
 
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
@@ -123,64 +114,14 @@ export default function ProjectsComponent() {
   // ── View mode state ────────────────────────────────────────────
   const [viewMode, setViewMode] = useState("table");
 
-  // ── Container stats (polled every 5s) ──────────────────────────
-  const [containerStats, setContainerStats] = useState({});
 
-  const fetchContainerStats = useCallback(async () => {
-    try {
-      const [historyRes, currentRes] = await Promise.all([
-        ApiService.getContainerStatsHistory(),
-        ApiService.getContainerStats(),
-      ]);
 
-      // Build sparkline data per container name from history
-      const sparkMap = {};
-      if (historyRes?.history) {
-        for (const snapshot of historyRes.history) {
-          for (const [name, stats] of Object.entries(snapshot.containers)) {
-            if (!sparkMap[name]) sparkMap[name] = { cpu: [], mem: [] };
-            sparkMap[name].cpu.push(stats.cpu);
-            sparkMap[name].mem.push(stats.memoryUsed);
-          }
-        }
-      }
 
-      // Merge current snapshot with sparklines, keyed by container name
-      const statsMap = {};
-      if (currentRes?.containers) {
-        for (const c of currentRes.containers) {
-          statsMap[c.name] = {
-            cpu: c.cpu,
-            memory: c.memory,
-            network: c.network,
-            blockIO: c.blockIO,
-            pids: c.pids,
-            spark: sparkMap[c.name] || null,
-          };
-        }
-      }
-
-      setContainerStats(statsMap);
-    } catch {
-      // Silently ignore — container stats are supplementary
-    }
-  }, []);
-
-  // ── Fetch system info ──────────────────────────────────────────
-  const fetchSystemInfo = useCallback(async () => {
-    try {
-      const res = await ApiService.getSystemInfo().catch(() => null);
-      setSystemInfo(res);
-    } catch {
-      // Supplementary — silently ignore
-    }
-  }, []);
 
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
-      setServices((res.services || []).map((s) => ({ ...s, isInfrastructure: false })));
-      setInfrastructure((res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true })));
+      setServices((res.services || []).filter((s) => s.projectType !== "Infrastructure"));
     } catch (err) {
       console.error("Services fetch failed:", err);
     } finally {
@@ -193,15 +134,7 @@ export default function ProjectsComponent() {
     if (didFetch.current) return;
     didFetch.current = true;
     loadServices(true);
-    fetchContainerStats();
-    fetchSystemInfo();
-  }, [fetchContainerStats, fetchSystemInfo]);
-
-  // Poll container stats every 5 seconds
-  useEffect(() => {
-    const timer = setInterval(fetchContainerStats, 5_000);
-    return () => clearInterval(timer);
-  }, [fetchContainerStats]);
+  }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -213,7 +146,7 @@ export default function ProjectsComponent() {
   };
 
   // ── Apply filters & sort ────────────────────────────────────────
-  const allItems = [...services, ...infrastructure];
+  const allItems = services;
   const filterOptions = buildFilterOptions(allItems);
 
   const filtered = allItems
@@ -233,40 +166,12 @@ export default function ProjectsComponent() {
   const healthyCount = allItems.filter((s) => s.healthy).length;
   const hasActiveFilter = Object.values(filters).some((v) => v.length > 0);
 
-  // ── System summary computed values ──────────────────────────────
-  const allContainerStats = Object.values(containerStats);
-  const totalCpuUsage = allContainerStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
-  const totalMemUsed = allContainerStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
-  const totalMemLimit = systemInfo?.totalMemory || (allContainerStats.length > 0 ? allContainerStats[0]?.memory?.limit || 0 : 0);
-  const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
-  const hostDisk = systemInfo?.hostDisk;
+  // ── Project summary computed values ─────────────────────────────
+  const unhealthyCount = allItems.length - healthyCount;
+  const uniqueDevices = [...new Set(allItems.map((s) => s.device).filter(Boolean))];
+  const uniqueTypes = [...new Set(allItems.map((s) => s.projectType).filter(Boolean))];
 
-  const handleRestart = async (serviceId) => {
-    try {
-      await ApiService.restartService(serviceId);
-      setTimeout(() => loadServices(true), 5000);
-    } catch (err) {
-      console.error("Restart failed:", err);
-    }
-  };
 
-  const handleStop = async (serviceId) => {
-    try {
-      await ApiService.stopService(serviceId);
-      setTimeout(() => loadServices(true), 5000);
-    } catch (err) {
-      console.error("Stop failed:", err);
-    }
-  };
-
-  const handleStart = async (serviceId) => {
-    try {
-      await ApiService.startService(serviceId);
-      setTimeout(() => loadServices(true), 5000);
-    } catch (err) {
-      console.error("Start failed:", err);
-    }
-  };
 
   return (
     <div className={styles.services}>
@@ -288,52 +193,50 @@ export default function ProjectsComponent() {
         </ButtonComponent>
       </PageHeaderComponent>
 
-      {/* ── System Summary Cards ────────────────────────────────── */}
+      {/* ── Project Summary Cards ───────────────────────────────── */}
       {!loading && (
         <div className={styles.summaryGrid}>
           <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}>
-              <Server size={18} strokeWidth={2} />
+              <FolderKanban size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue}>{allItems.length}</span>
-              <span className={styles.statCardLabel}>Containers</span>
-              <span className={styles.statCardSub}>
-                {systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : `${healthyCount} healthy`}
-              </span>
+              <span className={styles.statCardLabel}>Projects</span>
+              <span className={styles.statCardSub}>{filtered.length !== allItems.length ? `${filtered.length} matching filters` : `${allItems.length} registered`}</span>
             </div>
           </div>
 
           <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
-              <Cpu size={18} strokeWidth={2} />
+              <HeartPulse size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{systemInfo?.cpus || "—"}</span>
-              <span className={styles.statCardLabel}>Total Cores</span>
-              <span className={styles.statCardSub}>{totalCpuUsage.toFixed(1)}% aggregate usage</span>
+              <span className={styles.statCardValue}>{healthyCount}</span>
+              <span className={styles.statCardLabel}>Healthy</span>
+              <span className={styles.statCardSub}>{unhealthyCount > 0 ? `${unhealthyCount} unhealthy` : "All systems nominal"}</span>
             </div>
           </div>
 
           <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
-              <MemoryStick size={18} strokeWidth={2} />
+              <Server size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{totalMemLimit ? formatBytes(totalMemLimit) : "—"}</span>
-              <span className={styles.statCardLabel}>Total Memory</span>
-              <span className={styles.statCardSub}>{totalMemLimit ? `${formatBytes(totalMemUsed)} used · ${memPercent.toFixed(1)}%` : "Loading…"}</span>
+              <span className={styles.statCardValue}>{uniqueDevices.length}</span>
+              <span className={styles.statCardLabel}>Devices</span>
+              <span className={styles.statCardSub}>{uniqueDevices.join(" · ") || "No devices"}</span>
             </div>
           </div>
 
           <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
-              <HardDrive size={18} strokeWidth={2} />
+              <Layers size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{hostDisk ? formatBytes(hostDisk.total) : "—"}</span>
-              <span className={styles.statCardLabel}>Total Storage</span>
-              <span className={styles.statCardSub}>{hostDisk ? `${formatBytes(hostDisk.used)} used · ${hostDisk.percent}%` : "Loading…"}</span>
+              <span className={styles.statCardValue}>{uniqueTypes.length}</span>
+              <span className={styles.statCardLabel}>Types</span>
+              <span className={styles.statCardSub}>{uniqueTypes.join(" · ") || "No types"}</span>
             </div>
           </div>
         </div>
@@ -422,10 +325,6 @@ export default function ProjectsComponent() {
                 <ServiceCardComponent
                   key={service.id}
                   service={service}
-                  containerStats={service.dockerProject ? containerStats[service.dockerProject] : null}
-                  onRestart={handleRestart}
-                  onStop={handleStop}
-                  onStart={handleStart}
                 />
               ))}
               {filtered.length === 0 && (
@@ -438,16 +337,12 @@ export default function ProjectsComponent() {
             <ProjectTableComponent
               services={filtered}
               allServices={allItems}
-              containerStats={containerStats}
               sortKey={sortKey}
               sortDir={sortDir}
               onSort={(key, dir) => {
                 setSortKey(key);
                 setSortDir(dir);
               }}
-              onRestart={handleRestart}
-              onStop={handleStop}
-              onStart={handleStart}
             />
           )}
         </>

@@ -13,7 +13,6 @@ import {
   Lock,
   Cpu,
   MemoryStick,
-  Gauge,
 } from "lucide-react";
 import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
@@ -211,52 +210,7 @@ function DeviceCard({ device, delay, containerStats }) {
         <code className={styles.hostname}>{device.hostname}</code>
       </div>
 
-      {/* ── Specs ── */}
-      {device.specs && (
-        <div className={styles.specsBar}>
-          <div className={styles.specItem} title={device.specs.cpu}>
-            <Cpu size={13} strokeWidth={1.8} className={styles.specIcon} />
-            <div className={styles.specContent}>
-              <span className={styles.specValue}>{device.specs.cpu}</span>
-              <span className={styles.specLabel}>
-                {device.specs.cores}C / {device.specs.threads}T
-              </span>
-            </div>
-          </div>
-          <div className={styles.specDivider} />
-          <div className={styles.specItem}>
-            <MemoryStick size={13} strokeWidth={1.8} className={styles.specIcon} />
-            <div className={styles.specContent}>
-              <span className={styles.specValue}>{device.specs.memoryGB} GB</span>
-              <span className={styles.specLabel}>Memory</span>
-            </div>
-          </div>
-          <div className={styles.specDivider} />
-          <div className={styles.specItem}>
-            <HardDrive size={13} strokeWidth={1.8} className={styles.specIcon} />
-            <div className={styles.specContent}>
-              <span className={styles.specValue}>
-                {device.specs.storageGB >= 1000
-                  ? `${(device.specs.storageGB / 1000).toFixed(device.specs.storageGB % 1000 === 0 ? 0 : 1)} TB`
-                  : `${device.specs.storageGB} GB`}
-              </span>
-              <span className={styles.specLabel}>{device.specs.storageType}</span>
-            </div>
-          </div>
-          {device.specs.gpu && (
-            <>
-              <div className={styles.specDivider} />
-              <div className={styles.specItem}>
-                <Gauge size={13} strokeWidth={1.8} className={styles.specIcon} />
-                <div className={styles.specContent}>
-                  <span className={styles.specValue}>{device.specs.gpu}</span>
-                  <span className={styles.specLabel}>GPU</span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+
 
       {/* ── Notes ── */}
       {device.notes && (

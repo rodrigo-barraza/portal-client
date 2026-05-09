@@ -1,393 +1,449 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { Cpu, MemoryStick, Container } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
+import {
+  Container,
+  Cpu,
+  Globe,
+  HardDrive,
+  Lock,
+  MemoryStick,
+  Play,
+  RotateCcw,
+  ScrollText,
+  Server,
+  Square,
+} from "lucide-react";
+import {
+  AddressBadgeComponent,
+  DeviceBadgeComponent,
+  DomainBadgeComponent,
+  LoadingIndicatorComponent,
+  PageHeaderComponent,
+  PortBadgeComponent,
+  ResponseTimeBadgeComponent,
+  StatusBadgeComponent,
+  TableComponent,
+  VisibilityBadgeComponent,
+} from "@rodrigo-barraza/components-library";
+import { formatDuration, getRootDomain } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import styles from "./ContainerStatsComponent.module.css";
 
-const MAX_SPARKLINE_POINTS = 60;
 const POLL_INTERVAL = 5_000;
 
-// ── Formatting ──────────────────────────────────────────────────
-
+// ── Byte Formatting ───────────────────────────────────────────────
 function formatBytes(bytes) {
   if (!bytes || bytes === 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
+  return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
 }
 
-function formatPercent(pct) {
-  if (pct < 0.01) return "0%";
-  if (pct < 1) return `${pct.toFixed(2)}%`;
-  if (pct < 10) return `${pct.toFixed(1)}%`;
-  return `${Math.round(pct)}%`;
-}
+// ── Action Cell ─────────────────────────────────────────────────
 
-function formatCompact(val, isMemory = false) {
-  if (isMemory) return formatBytes(val);
-  if (val < 0.01) return "0";
-  if (val < 1) return val.toFixed(2);
-  if (val < 10) return val.toFixed(1);
-  return Math.round(val).toString();
-}
+function ActionCell({ service, onRestart, onStop, onStart }) {
+  const [restarting, setRestarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [starting, setStarting] = useState(false);
 
-function severityColor(pct, thresholds = [40, 80]) {
-  if (pct > thresholds[1]) return "var(--danger)";
-  if (pct > thresholds[0]) return "var(--warning)";
-  return "var(--success)";
-}
+  const isHealthy = service.healthy;
 
-// ── Enhanced Sparkline (Canvas) — auto-scaled with markers ──────
-
-function Sparkline({ data, color, fillColor, max: hardMax, height = 32, isMemory = false }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !data || data.length < 2) return;
-
-    const ctx = canvas.getContext("2d");
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, w, h);
-
-    // ── Compute auto-scaled range ──────────────────────────
-    const dataMin = Math.min(...data);
-    const dataMax = Math.max(...data);
-    const dataRange = dataMax - dataMin;
-
-    // Use auto-scaling: pad the local range by 20% on each side
-    // so fluctuations are always visible. Fall back to hardMax
-    // only when all values are identical (flat line).
-    const MARKER_W = 30; // reserved width for Y-axis labels
-    const chartW = w - MARKER_W;
-    const paddingY = 4;
-    const drawH = h - paddingY * 2;
-
-    let yMin, yMax;
-    if (dataRange < 0.001) {
-      // Flat line — center it
-      yMin = Math.max(0, dataMin - 1);
-      yMax = dataMin + 1;
-    } else {
-      const rangePad = dataRange * 0.2;
-      yMin = Math.max(0, dataMin - rangePad);
-      yMax = dataMax + rangePad;
-      // If there's a hard max and data is close to it, cap there
-      if (hardMax && yMax > hardMax) yMax = hardMax;
-    }
-
-    const yRange = yMax - yMin || 1;
-    const toY = (val) => paddingY + drawH - ((val - yMin) / yRange) * drawH;
-    const step = chartW / (MAX_SPARKLINE_POINTS - 1);
-    const startX = MARKER_W + chartW - (data.length - 1) * step;
-
-    // ── Gridlines (2 horizontal references) ────────────────
-    const gridValues = [yMin + yRange * 0.25, yMin + yRange * 0.75];
-    ctx.strokeStyle = "rgba(255,255,255,0.04)";
-    ctx.lineWidth = 1;
-    for (const gv of gridValues) {
-      const gy = Math.round(toY(gv)) + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(MARKER_W, gy);
-      ctx.lineTo(w, gy);
-      ctx.stroke();
-    }
-
-    // ── Draw line ──────────────────────────────────────────
-    ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const x = startX + i * step;
-      const y = toY(data[i]);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
-
-    // ── Fill gradient ──────────────────────────────────────
-    if (fillColor) {
-      const lastX = startX + (data.length - 1) * step;
-      ctx.lineTo(lastX, h);
-      ctx.lineTo(startX, h);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, fillColor);
-      grad.addColorStop(1, "transparent");
-      ctx.fillStyle = grad;
-      ctx.fill();
-    }
-
-    // ── Latest point dot ───────────────────────────────────
-    const lastIdx = data.length - 1;
-    const dotX = startX + lastIdx * step;
-    const dotY = toY(data[lastIdx]);
-
-    ctx.beginPath();
-    ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    // Glow ring
-    ctx.beginPath();
-    ctx.arc(dotX, dotY, 4.5, 0, Math.PI * 2);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.35;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // ── Y-axis markers (min/max labels) ────────────────────
-    const computedStyle = getComputedStyle(canvas);
-    const fontFamily = computedStyle.fontFamily || "monospace";
-
-    ctx.font = `500 9px ${fontFamily}`;
-    ctx.textAlign = "right";
-    ctx.textBaseline = "top";
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-
-    // Max label (top)
-    const maxLabel = isMemory ? formatBytes(dataMax) : formatCompact(dataMax);
-    ctx.fillText(maxLabel, MARKER_W - 4, paddingY - 1);
-
-    // Min label (bottom)
-    ctx.textBaseline = "bottom";
-    const minLabel = isMemory ? formatBytes(dataMin) : formatCompact(dataMin);
-    ctx.fillText(minLabel, MARKER_W - 4, h - paddingY + 1);
-
-  }, [data, color, fillColor, hardMax, height, isMemory]);
+  if (!service.restartable) return null;
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={styles.sparkline}
-      style={{ height: `${height}px` }}
-    />
-  );
-}
+    <div className={styles.actionRow}>
+      {isHealthy ? (
+        <button
+          className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
+          disabled={stopping || restarting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setStopping(true);
+            try { await onStop?.(service.id); }
+            finally { setTimeout(() => setStopping(false), 5000); }
+          }}
+          title="Stop"
+        >
+          <Square size={9} strokeWidth={2.6} />
+        </button>
+      ) : (
+        <button
+          className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
+          disabled={starting || restarting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setStarting(true);
+            try { await onStart?.(service.id); }
+            finally { setTimeout(() => setStarting(false), 5000); }
+          }}
+          title="Start"
+        >
+          <Play size={9} strokeWidth={2.6} fill="currentColor" />
+        </button>
+      )}
 
-// ── Percentage Bar ──────────────────────────────────────────────
+      <Link
+        href={`/logs?service=${service.id}`}
+        className={`${styles.actionBtn} ${styles.logsBtn}`}
+        title="Logs"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ScrollText size={9} strokeWidth={2.6} />
+      </Link>
 
-function PercentBar({ percent, color }) {
-  const clamped = Math.min(percent, 100);
-  return (
-    <div className={styles.barTrack}>
-      <div className={styles.barFill} style={{ width: `${clamped}%`, background: color }} />
+      <button
+        className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
+        disabled={restarting || stopping || starting}
+        onClick={async (e) => {
+          e.stopPropagation();
+          setRestarting(true);
+          try { await onRestart?.(service.id); }
+          finally { setTimeout(() => setRestarting(false), 5000); }
+        }}
+        title="Restart"
+      >
+        <RotateCcw size={9} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
+      </button>
     </div>
   );
+}
+
+// ── Column Definitions ──────────────────────────────────────────
+
+function buildColumns({ onRestart, onStop, onStart }) {
+  return [
+    {
+      key: "name",
+      label: "Container",
+      sortable: true,
+      render: (row) => (
+        <div className={styles.nameCell}>
+          <Container
+            size={14}
+            strokeWidth={2.6}
+            className={`${styles.typeIcon} ${row.healthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+          />
+          <span className={styles.containerName}>{row.containerName}</span>
+        </div>
+      ),
+      sortValue: (row) => row.containerName || "",
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (row) => (
+        <StatusBadgeComponent healthy={row.healthy} />
+      ),
+      sortValue: (row) => (row.healthy ? 1 : 0),
+    },
+    {
+      key: "visibility",
+      label: "Visibility",
+      sortable: true,
+      render: (row) =>
+        row.visibility ? (
+          <VisibilityBadgeComponent visibility={row.visibility} icons={{ Globe, Lock }} />
+        ) : null,
+      sortValue: (row) => row.visibility || "",
+    },
+    {
+      key: "port",
+      label: "Port",
+      sortable: true,
+      render: (row) =>
+        row.port ? (
+          <PortBadgeComponent port={row.port} />
+        ) : null,
+      sortValue: (row) => row.port || 0,
+    },
+    {
+      key: "address",
+      label: "Address",
+      sortable: true,
+      description: "Internal IP and port (socket address)",
+      render: (row) =>
+        row.url ? (
+          <AddressBadgeComponent address={row.url} link />
+        ) : null,
+      sortValue: (row) => row.url || "",
+    },
+    {
+      key: "domain",
+      label: "Domain",
+      sortable: true,
+      description: "Registrable root domain",
+      render: (row) => {
+        const root = getRootDomain(row.domain);
+        return root ? (
+          <DomainBadgeComponent domain={row.domain} icons={{ Globe }} />
+        ) : null;
+      },
+      sortValue: (row) => getRootDomain(row.domain),
+    },
+    {
+      key: "response",
+      label: "Response",
+      sortable: true,
+      render: (row) =>
+        row.responseTimeMs != null ? (
+          <ResponseTimeBadgeComponent ms={row.responseTimeMs} formatter={formatDuration} />
+        ) : null,
+      sortValue: (row) => row.responseTimeMs ?? Infinity,
+    },
+    {
+      key: "device",
+      label: "Device",
+      sortable: true,
+      render: (row) =>
+        row.device ? (
+          <DeviceBadgeComponent device={row.device} icons={{ Server }} />
+        ) : null,
+      sortValue: (row) => row.device || "",
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+      align: "right",
+      render: (row) => (
+        <ActionCell
+          service={row}
+          onRestart={onRestart}
+          onStop={onStop}
+          onStart={onStart}
+        />
+      ),
+    },
+  ];
 }
 
 // ── Main Component ──────────────────────────────────────────────
 
 export default function ContainerStatsComponent() {
-  const [containerData, setContainerData] = useState(null);
+  const [containerRows, setContainerRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [systemInfo, setSystemInfo] = useState(null);
+  const [containerStats, setContainerStats] = useState({});
   const didFetch = useRef(false);
 
-  const fetchStats = useCallback(async () => {
+  // Fetch container stats and project registry, then join them
+  const fetchData = useCallback(async () => {
     try {
-      const [currentRes, historyRes] = await Promise.all([
+      const [containerRes, servicesRes] = await Promise.all([
         ApiService.getContainerStats(),
-        ApiService.getContainerStatsHistory(),
+        ApiService.getServices(),
       ]);
 
-      // Build sparkline data per container name from history
-      const sparkMap = {};
-      if (historyRes?.history) {
-        for (const snapshot of historyRes.history) {
-          for (const [name, stats] of Object.entries(snapshot.containers)) {
-            if (!sparkMap[name]) sparkMap[name] = { cpu: [], mem: [] };
-            sparkMap[name].cpu.push(stats.cpu);
-            sparkMap[name].mem.push(stats.memoryUsed);
-          }
+      const containers = containerRes?.containers || [];
+      const services = servicesRes?.services || [];
+
+      // Build lookup: dockerProject → service data
+      const projectByDocker = {};
+      for (const svc of services) {
+        if (svc.dockerProject) {
+          projectByDocker[svc.dockerProject] = svc;
         }
       }
 
-      // Merge current snapshot with sparklines
-      const containers = (currentRes?.containers || []).map((c) => ({
-        ...c,
-        spark: sparkMap[c.name] || null,
-      }));
+      // Merge container data with project metadata
+      const rows = containers.map((c) => {
+        const svc = projectByDocker[c.name] || null;
+        return {
+          // Container identity
+          id: svc?.id || c.name,
+          containerName: c.name,
+          // Project registry fields
+          healthy: svc?.healthy ?? (c.state === "running"),
+          visibility: svc?.visibility || null,
+          port: svc?.port || null,
+          url: svc?.url || null,
+          domain: svc?.domain || null,
+          responseTimeMs: svc?.responseTimeMs ?? null,
+          device: svc?.device || null,
+          restartable: svc?.restartable ?? false,
+          dockerProject: c.name,
+        };
+      });
 
-      // Sort by CPU desc
-      containers.sort((a, b) => b.cpu.percent - a.cpu.percent);
+      // Sort by name
+      rows.sort((a, b) => a.containerName.localeCompare(b.containerName));
 
-      setContainerData(containers);
+      setContainerRows(rows);
     } catch {
-      // Supplementary data — don't break the page
+      // Don't break the page on error
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  // Fetch system info + aggregate container stats for summary cards
+  const fetchSystemInfo = useCallback(async () => {
+    try {
+      const res = await ApiService.getSystemInfo().catch(() => null);
+      setSystemInfo(res);
+    } catch {
+      // Supplementary — silently ignore
+    }
+  }, []);
+
+  const fetchContainerStats = useCallback(async () => {
+    try {
+      const currentRes = await ApiService.getContainerStats();
+      const statsMap = {};
+      if (currentRes?.containers) {
+        for (const c of currentRes.containers) {
+          statsMap[c.name] = {
+            cpu: c.cpu,
+            memory: c.memory,
+          };
+        }
+      }
+      setContainerStats(statsMap);
+    } catch {
+      // Supplementary — silently ignore
     }
   }, []);
 
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
-    fetchStats();
-  }, [fetchStats]);
+    fetchData();
+    fetchSystemInfo();
+    fetchContainerStats();
+  }, [fetchData, fetchSystemInfo, fetchContainerStats]);
 
   // Poll every 5s
   useEffect(() => {
-    const timer = setInterval(fetchStats, POLL_INTERVAL);
+    const timer = setInterval(() => {
+      fetchData();
+      fetchContainerStats();
+    }, POLL_INTERVAL);
     return () => clearInterval(timer);
-  }, [fetchStats]);
+  }, [fetchData, fetchContainerStats]);
 
-  // Aggregated totals
-  const totals = useMemo(() => {
-    if (!containerData || containerData.length === 0) return null;
-    const totalCpu = containerData.reduce((sum, c) => sum + c.cpu.percent, 0);
-    const totalMem = containerData.reduce((sum, c) => sum + c.memory.used, 0);
-    const memLimit = containerData[0]?.memory.limit || 0;
-    const memPct = memLimit > 0 ? (totalMem / memLimit) * 100 : 0;
-    return { totalCpu, totalMem, memLimit, memPct, count: containerData.length };
-  }, [containerData]);
+  const handleRestart = async (serviceId) => {
+    try {
+      await ApiService.restartService(serviceId);
+      setTimeout(fetchData, 5000);
+    } catch (err) {
+      console.error("Restart failed:", err);
+    }
+  };
+
+  const handleStop = async (serviceId) => {
+    try {
+      await ApiService.stopService(serviceId);
+      setTimeout(fetchData, 5000);
+    } catch (err) {
+      console.error("Stop failed:", err);
+    }
+  };
+
+  const handleStart = async (serviceId) => {
+    try {
+      await ApiService.startService(serviceId);
+      setTimeout(fetchData, 5000);
+    } catch (err) {
+      console.error("Start failed:", err);
+    }
+  };
+
+  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart });
+  const healthyCount = containerRows.filter((r) => r.healthy).length;
+
+  // ── Infrastructure summary computed values ─────────────────────
+  const allStats = Object.values(containerStats);
+  const totalCpuUsage = allStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
+  const totalMemUsed = allStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
+  const totalMemLimit = systemInfo?.totalMemory || (allStats.length > 0 ? allStats[0]?.memory?.limit || 0 : 0);
+  const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
+  const hostDisk = systemInfo?.hostDisk;
+
+  const getRowClassName = (row) =>
+    row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
 
   if (loading) {
     return (
       <div className={styles.section}>
-        <LoadingIndicatorComponent size="small" label="Querying container metrics…" className="loading-center" />
+        <LoadingIndicatorComponent size="small" label="Querying containers…" className="loading-center" />
       </div>
     );
   }
 
-  if (!containerData || containerData.length === 0) return null;
-
   return (
     <div className={styles.section}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h2 className={styles.sectionTitle}>Live Container Metrics</h2>
-          <span className={styles.sectionSubtitle}>
-            {totals.count} containers · polling every 5s
-          </span>
-        </div>
-        <div className={styles.headerTotals}>
-          <div className={styles.headerStat}>
-            <Cpu size={12} strokeWidth={2.2} />
-            <span style={{ color: severityColor(totals.totalCpu) }}>
-              {formatPercent(totals.totalCpu)}
-            </span>
-            <span className={styles.headerStatLabel}>CPU</span>
-          </div>
-          <div className={styles.headerStat}>
-            <MemoryStick size={12} strokeWidth={2.2} />
-            <span style={{ color: severityColor(totals.memPct, [60, 85]) }}>
-              {formatBytes(totals.totalMem)}
-            </span>
-            <span className={styles.headerStatLabel}>
-              / {formatBytes(totals.memLimit)}
-            </span>
-          </div>
-        </div>
-      </div>
+      <PageHeaderComponent sticky={false}
+        title="Containers"
+        subtitle={`${healthyCount} of ${containerRows.length} containers healthy · polling every 5s`}
+      />
 
-      <div className={styles.table}>
-        {/* Header */}
-        <div className={`${styles.row} ${styles.rowHeader}`}>
-          <span className={styles.cellName}>Container</span>
-          <span className={styles.cellMetric}>CPU</span>
-          <span className={styles.cellSpark}>CPU History</span>
-          <span className={styles.cellMetric}>Memory</span>
-          <span className={styles.cellSpark}>MEM History</span>
-          <span className={styles.cellPids}>PIDs</span>
-        </div>
-
-        {/* Rows */}
-        {containerData.map((c, i) => {
-          const cpuColor = severityColor(c.cpu.percent);
-          const memColor = severityColor(c.memory.percent, [60, 85]);
-          const cpuFill = c.cpu.percent > 80
-            ? "rgba(239,68,68,0.12)"
-            : c.cpu.percent > 40
-              ? "rgba(245,158,11,0.12)"
-              : "rgba(16,185,129,0.12)";
-          const memFill = c.memory.percent > 85
-            ? "rgba(239,68,68,0.12)"
-            : c.memory.percent > 60
-              ? "rgba(245,158,11,0.12)"
-              : "rgba(16,185,129,0.12)";
-
-          return (
-            <div
-              key={c.name}
-              className={styles.row}
-              style={{ animationDelay: `${i * 30}ms` }}
-            >
-              {/* Name */}
-              <div className={styles.cellName}>
-                <Container size={12} strokeWidth={1.8} className={styles.containerIcon} />
-                <span className={styles.containerName} title={c.name}>{c.name}</span>
-              </div>
-
-              {/* CPU */}
-              <div className={styles.cellMetric}>
-                <span className={styles.metricValue} style={{ color: cpuColor }}>
-                  {formatPercent(c.cpu.percent)}
-                </span>
-                <PercentBar percent={c.cpu.percent} color={cpuColor} />
-              </div>
-
-              {/* CPU Sparkline — auto-scaled, no hardMax */}
-              <div className={styles.cellSpark}>
-                {c.spark?.cpu?.length >= 2 ? (
-                  <Sparkline
-                    data={c.spark.cpu}
-                    color={cpuColor}
-                    fillColor={cpuFill}
-                    height={32}
-                  />
-                ) : (
-                  <span className={styles.noData}>—</span>
-                )}
-              </div>
-
-              {/* Memory */}
-              <div className={styles.cellMetric}>
-                <div className={styles.metricRow}>
-                  <span className={styles.metricValue} style={{ color: memColor }}>
-                    {formatBytes(c.memory.used)}
-                  </span>
-                  <span className={styles.metricDim}>
-                    {formatPercent(c.memory.percent)}
-                  </span>
-                </div>
-                <PercentBar percent={c.memory.percent} color={memColor} />
-              </div>
-
-              {/* Memory Sparkline — auto-scaled with limit reference */}
-              <div className={styles.cellSpark}>
-                {c.spark?.mem?.length >= 2 ? (
-                  <Sparkline
-                    data={c.spark.mem}
-                    color={memColor}
-                    fillColor={memFill}
-                    height={32}
-                    isMemory
-                  />
-                ) : (
-                  <span className={styles.noData}>—</span>
-                )}
-              </div>
-
-              {/* PIDs */}
-              <div className={styles.cellPids}>
-                <span className={styles.pidValue}>{c.pids}</span>
-              </div>
+      {/* ── Infrastructure Summary Cards ──────────────────────────── */}
+      {!loading && (
+        <div className={styles.summaryGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}>
+              <Server size={18} strokeWidth={2} />
             </div>
-          );
-        })}
-      </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{containerRows.length}</span>
+              <span className={styles.statCardLabel}>Containers</span>
+              <span className={styles.statCardSub}>
+                {systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : `${healthyCount} healthy`}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
+              <Cpu size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{systemInfo?.cpus || "—"}</span>
+              <span className={styles.statCardLabel}>Total Cores</span>
+              <span className={styles.statCardSub}>{totalCpuUsage.toFixed(1)}% aggregate usage</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
+              <MemoryStick size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{totalMemLimit ? formatBytes(totalMemLimit) : "—"}</span>
+              <span className={styles.statCardLabel}>Total Memory</span>
+              <span className={styles.statCardSub}>{totalMemLimit ? `${formatBytes(totalMemUsed)} used · ${memPercent.toFixed(1)}%` : "Loading…"}</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
+              <HardDrive size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{hostDisk ? formatBytes(hostDisk.total) : "—"}</span>
+              <span className={styles.statCardLabel}>Total Storage</span>
+              <span className={styles.statCardSub}>{hostDisk ? `${formatBytes(hostDisk.used)} used · ${hostDisk.percent}%` : "Loading…"}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {containerRows.length === 0 ? (
+        <div className={styles.emptyState}>No containers found</div>
+      ) : (
+        <TableComponent
+          columns={columns}
+          data={containerRows}
+          getRowKey={(row) => row.id}
+          emptyText="No containers found"
+          getRowClassName={getRowClassName}
+          storageKey="container-table"
+        />
+      )}
     </div>
   );
 }

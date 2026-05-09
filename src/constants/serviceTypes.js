@@ -40,3 +40,13 @@ export const DEFAULT_SERVICE_TYPE_COLORS = {
   Database: { color: "#a855f7", subtle: "rgba(168, 85, 247, 0.12)" },
   Store:    { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)" },
 };
+
+/**
+ * Default deploy tier colors — mirrors vault-service deployTierColors.
+ * Orange (Tier 0 Foundation), Blue (Tier 1 Services), Green (Tier 2 Clients).
+ */
+export const DEFAULT_DEPLOY_TIER_COLORS = {
+  0: { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)", stroke: "rgba(249, 115, 22, 0.35)", fill: "rgba(249, 115, 22, 0.04)" },
+  1: { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)", stroke: "rgba(59, 130, 246, 0.35)", fill: "rgba(59, 130, 246, 0.04)" },
+  2: { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)", stroke: "rgba(34, 197, 94, 0.35)", fill: "rgba(34, 197, 94, 0.04)" },
+};

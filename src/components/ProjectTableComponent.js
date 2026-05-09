@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import {
   Globe,
   Lock,
-  Play,
-  RotateCcw,
-  ScrollText,
   Server,
-  Square,
 } from "lucide-react";
 import {
   AddressBadgeComponent,
@@ -24,7 +19,7 @@ import {
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, getRootDomain } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ExpandedProjectPanel from "./ExpandedProjectPanel";
 import styles from "./ProjectTableComponent.module.css";
 
@@ -35,7 +30,7 @@ import styles from "./ProjectTableComponent.module.css";
  * Column definitions for the centralized TableComponent.
  * Each column maps to a field on the service status object.
  */
-function buildColumns({ onRestart, onStop, onStart }) {
+function buildColumns() {
   return [
     {
       key: "name",
@@ -87,6 +82,29 @@ function buildColumns({ onRestart, onStop, onStart }) {
         );
       },
       sortValue: (row) => row.projectType || "",
+    },
+    {
+      key: "tier",
+      label: "Tier",
+      sortable: true,
+      render: (service) => {
+        const tier = service.deployTier;
+        if (tier == null) return null;
+        const colors = DEPLOY_TIER_COLORS[tier];
+        return (
+          <BadgeComponent
+            variant="info"
+            style={colors ? {
+              color: colors.color,
+              background: colors.subtle,
+              borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+            } : undefined}
+          >
+            {tier}
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => row.deployTier ?? 99,
     },
     {
       key: "visibility",
@@ -153,89 +171,10 @@ function buildColumns({ onRestart, onStop, onStart }) {
         ) : null,
       sortValue: (row) => row.device || "",
     },
-    {
-      key: "actions",
-      label: "Actions",
-      sortable: false,
-      align: "right",
-      render: (service) => (
-        <ActionCell
-          service={service}
-          onRestart={onRestart}
-          onStop={onStop}
-          onStart={onStart}
-        />
-      ),
-    },
   ];
 }
 
-function ActionCell({ service, onRestart, onStop, onStart }) {
-  const [restarting, setRestarting] = useState(false);
-  const [stopping, setStopping] = useState(false);
-  const [starting, setStarting] = useState(false);
 
-  const isHealthy = service.healthy;
-
-  if (!service.restartable) return null;
-
-  return (
-    <div className={styles.actionRow}>
-      {isHealthy ? (
-        <button
-          className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
-          disabled={stopping || restarting}
-          onClick={async (e) => {
-            e.stopPropagation();
-            setStopping(true);
-            try { await onStop?.(service.id); }
-            finally { setTimeout(() => setStopping(false), 5000); }
-          }}
-          title="Stop"
-        >
-          <Square size={9} strokeWidth={2.6} />
-        </button>
-      ) : (
-        <button
-          className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
-          disabled={starting || restarting}
-          onClick={async (e) => {
-            e.stopPropagation();
-            setStarting(true);
-            try { await onStart?.(service.id); }
-            finally { setTimeout(() => setStarting(false), 5000); }
-          }}
-          title="Start"
-        >
-          <Play size={9} strokeWidth={2.6} fill="currentColor" />
-        </button>
-      )}
-
-      <Link
-        href={`/logs?service=${service.id}`}
-        className={`${styles.actionBtn} ${styles.logsBtn}`}
-        title="Logs"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ScrollText size={9} strokeWidth={2.6} />
-      </Link>
-
-      <button
-        className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
-        disabled={restarting || stopping || starting}
-        onClick={async (e) => {
-          e.stopPropagation();
-          setRestarting(true);
-          try { await onRestart?.(service.id); }
-          finally { setTimeout(() => setRestarting(false), 5000); }
-        }}
-        title="Restart"
-      >
-        <RotateCcw size={9} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
-      </button>
-    </div>
-  );
-}
 
 
 
@@ -246,15 +185,12 @@ export default function ProjectTableComponent({
   sortKey,
   sortDir,
   onSort,
-  onRestart,
-  onStop,
-  onStart,
 }) {
   const [selectedProject, setSelectedProject] = useState(null);
 
   const columns = useCallback(
-    () => buildColumns({ onRestart, onStop, onStart }),
-    [onRestart, onStop, onStart],
+    () => buildColumns(),
+    [],
   )();
 
   const getRowClassName = useCallback(

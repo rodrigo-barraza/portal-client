@@ -16,7 +16,7 @@ import {
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
 
 
@@ -292,6 +292,25 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                 } : undefined}
               >
                 {service.projectType}
+              </BadgeComponent>
+            </div>
+          );
+        })()}
+
+        {service.deployTier != null && (() => {
+          const colors = DEPLOY_TIER_COLORS[service.deployTier];
+          return (
+            <div className={styles.detail}>
+              <span className={styles.detailLabel}>Tier</span>
+              <BadgeComponent
+                variant="info"
+                style={colors ? {
+                  color: colors.color,
+                  background: colors.subtle,
+                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                } : undefined}
+              >
+                {`Tier ${service.deployTier}`}
               </BadgeComponent>
             </div>
           );

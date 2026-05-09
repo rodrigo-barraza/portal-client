@@ -189,7 +189,7 @@
 
 .nodeCard:hover .nodeGlow { opacity: 1; }
 
-/* Type colors */
+/* Type colors — used by mini-topology in ExpandedProjectPanel */
 .nodeInternal .nodeIconWrap { color: var(--success); }
 .nodeInternal.nodeHealthy { border-color: rgba(16, 185, 129, 0.1); }
 .nodeInternal.nodeHealthy:hover { border-color: rgba(16, 185, 129, 0.3); }
@@ -204,6 +204,9 @@
 .nodeInfra.nodeHealthy { border-color: rgba(168, 85, 247, 0.1); }
 .nodeInfra.nodeHealthy:hover { border-color: rgba(168, 85, 247, 0.3); }
 .nodeInfra.nodeHealthy .nodeGlow { box-shadow: 0 0 20px rgba(168, 85, 247, 0.1); }
+
+/* Tier-colored nodes — inline styles handle colors, hover brightens border */
+.nodeCard.nodeHealthy:hover .nodeGlow { opacity: 1; }
 
 .nodeDown { border-color: rgba(239, 68, 68, 0.15); }
 .nodeDown .nodeIconWrap { color: var(--danger); }
@@ -307,6 +310,7 @@
 .legendItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
 .legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .legendLine { width: 20px; height: 0; border-top: 2px solid var(--text-muted); flex-shrink: 0; }
+.legendSep { width: 100%; height: 0; border-top: 1px solid var(--border-color); margin: 2px 0; }
 
 .tooltip {
   position: fixed;

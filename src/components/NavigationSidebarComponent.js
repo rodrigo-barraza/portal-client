@@ -7,7 +7,7 @@ import { NAV_SECTIONS } from "../constants";
 
 export default function NavigationSidebarComponent() {
   const pathname = usePathname();
-  const { theme, toggleTheme, mounted } = useTheme();
+  const { theme, themes, setTheme, mounted } = useTheme();
 
   // Resolve theme-dependent values only after hydration
   const currentTheme = !mounted ? "dark" : theme;
@@ -19,7 +19,8 @@ export default function NavigationSidebarComponent() {
       sections={NAV_SECTIONS}
       activeItem={pathname}
       theme={currentTheme}
-      onToggleTheme={toggleTheme}
+      themes={themes}
+      setTheme={setTheme}
       LinkComponent={Link}
       storageKey="portal-nav-collapsed"
     />

@@ -5,7 +5,7 @@ import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
 
@@ -23,13 +23,8 @@ function getIcon(svc) {
   return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
-// ── Tier labels & colors ────────────────────────────────────────
+// ── Tier labels ─────────────────────────────────────────────────
 const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
-const TIER_COLORS = [
-  { stroke: "rgba(168, 85, 247, 0.35)", fill: "rgba(168, 85, 247, 0.04)" }, // Tier 0 — purple (infrastructure)
-  { stroke: "rgba(59, 130, 246, 0.35)",  fill: "rgba(59, 130, 246, 0.04)" },  // Tier 1 — blue (services)
-  { stroke: "rgba(34, 197, 94, 0.35)",   fill: "rgba(34, 197, 94, 0.04)" },   // Tier 2 — green (clients)
-];
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services) {
@@ -115,6 +110,7 @@ function edgePath(x1, y1, x2, y2) {
 // ── Main Component ───────────────────────────────────────────────
 export default function TopologyComponent() {
   const [allServices, setAllServices] = useState([]);
+  const [tierColors, setTierColors] = useState(DEPLOY_TIER_COLORS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -147,6 +143,7 @@ export default function TopologyComponent() {
       const svcs = (res.services || []).map((s) => ({ ...s, isInfrastructure: false }));
       const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
       setAllServices([...svcs, ...infra]);
+      if (res.deployTierColors) setTierColors(res.deployTierColors);
     } catch (err) {
       console.error("Topology fetch failed:", err);
     } finally {
@@ -470,7 +467,7 @@ export default function TopologyComponent() {
                 {/* ── Cluster backgrounds + tier labels ── */}
                 {dynamicClusterRects.map((cr, li) => {
                   if (!cr) return null;
-                  const tc = TIER_COLORS[li] || TIER_COLORS[0];
+                  const tc = tierColors[li] || DEPLOY_TIER_COLORS[li] || DEPLOY_TIER_COLORS[0];
                   return (
                     <g key={`cluster-${li}`} className={selectedNode ? styles.tierLabelFaded : undefined}>
                       <rect
@@ -505,12 +502,10 @@ export default function TopologyComponent() {
                   const isDragging = dragging?.nodeId === svc.id;
                   const isFaded = selectedNode && !connectedNodes.has(svc.id);
 
-                  const typeClass = svc.isInfrastructure
-                    ? styles.nodeInfra
-                    : svc.visibility === "external"
-                      ? styles.nodeExternal
-                      : styles.nodeInternal;
+                  const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
+                  const tc = tierColors[tier] || DEPLOY_TIER_COLORS[tier] || DEPLOY_TIER_COLORS[0];
                   const healthClass = svc.healthy ? styles.nodeHealthy : styles.nodeDown;
+                  const nodeColor = svc.healthy ? tc.color : undefined;
 
                   return (
                     <foreignObject
@@ -523,15 +518,16 @@ export default function TopologyComponent() {
                       style={{ overflow: "visible" }}
                     >
                       <div
-                        className={`${styles.nodeCard} ${typeClass} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === svc.id ? styles.nodeSelected : ""}${isFaded ? ` ${styles.nodeFaded}` : ""}`}
+                        className={`${styles.nodeCard} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === svc.id ? styles.nodeSelected : ""}${isFaded ? ` ${styles.nodeFaded}` : ""}`}
                         onMouseDown={(e) => handleNodeMouseDown(e, svc)}
                         onMouseEnter={(e) => handleNodeEnter(e, svc)}
                         onMouseMove={handleNodeMove}
                         onMouseLeave={handleNodeLeave}
+                        style={svc.healthy ? { borderColor: `color-mix(in srgb, ${tc.color} 15%, transparent)` } : undefined}
                       >
-                        <div className={styles.nodeGlow} />
+                        <div className={styles.nodeGlow} style={nodeColor ? { boxShadow: `0 0 20px ${tc.subtle}` } : undefined} />
                         <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />
-                        <div className={styles.nodeIconWrap}><Icon size={18} strokeWidth={1.5} /></div>
+                        <div className={styles.nodeIconWrap} style={nodeColor ? { color: nodeColor } : undefined}><Icon size={18} strokeWidth={1.5} /></div>
                         <span className={styles.nodeName}>{svc.name}</span>
                         {svc.device && <span className={styles.nodeHost}>{svc.device}</span>}
                       </div>
@@ -547,8 +543,11 @@ export default function TopologyComponent() {
             <div className={styles.legendTitle}>Legend</div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success-subtle)" }} /><span>Healthy</span></div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--danger)", boxShadow: "0 0 6px var(--danger-subtle)" }} /><span>Down</span></div>
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#2dd4bf", boxShadow: "0 0 6px rgba(45,212,191,0.3)" }} /><span>External</span></div>
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "#a855f7", boxShadow: "0 0 6px rgba(168,85,247,0.3)" }} /><span>Infrastructure</span></div>
+            <div className={styles.legendSep} />
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[0] || DEPLOY_TIER_COLORS[0]).color, boxShadow: `0 0 6px ${(tierColors[0] || DEPLOY_TIER_COLORS[0]).subtle}` }} /><span>Tier 0</span></div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[1] || DEPLOY_TIER_COLORS[1]).color, boxShadow: `0 0 6px ${(tierColors[1] || DEPLOY_TIER_COLORS[1]).subtle}` }} /><span>Tier 1</span></div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[2] || DEPLOY_TIER_COLORS[2]).color, boxShadow: `0 0 6px ${(tierColors[2] || DEPLOY_TIER_COLORS[2]).subtle}` }} /><span>Tier 2</span></div>
+            <div className={styles.legendSep} />
             <div className={styles.legendItem}><div className={styles.legendLine} /><span>Required</span></div>
             <div className={styles.legendItem}><div className={styles.legendLine} style={{ borderTopStyle: "dashed", opacity: 0.5 }} /><span>Optional</span></div>
           </div>
