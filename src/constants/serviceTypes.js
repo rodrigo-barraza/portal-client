@@ -3,15 +3,15 @@
 // ============================================================
 // SERVICE_TYPE_ICONS: Lucide icon mapping for each service type.
 // SERVICE_TYPE_COLORS: Hardcoded fallback colors that match the
-//   vault-service serviceTypeColors. At runtime, prefer the
+//   vault-service projectTypeColors. At runtime, prefer the
 //   colors returned from the portal-service API response
-//   (res.serviceTypeColors) since those are the canonical source.
+//   (res.projectTypeColors) since those are the canonical source.
 // ============================================================
 
 import { Bot, Database, Globe, HardDrive, Monitor, Server } from "lucide-react";
 
 /**
- * Map serviceType → Lucide icon component.
+ * Map projectType → Lucide icon component.
  */
 export const SERVICE_TYPE_ICONS = {
   Service: Server,
@@ -26,11 +26,11 @@ export const SERVICE_TYPE_ICONS = {
  * Falls back to Globe for unknown types.
  */
 export function getServiceIcon(service) {
-  return SERVICE_TYPE_ICONS[service.serviceType] || Globe;
+  return SERVICE_TYPE_ICONS[service.projectType] || Globe;
 }
 
 /**
- * Default service type colors — mirrors vault-service serviceTypeColors.
+ * Default service type colors — mirrors vault-service projectTypeColors.
  * Used as a fallback when the API response doesn't include colors.
  */
 export const DEFAULT_SERVICE_TYPE_COLORS = {

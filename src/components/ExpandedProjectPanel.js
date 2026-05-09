@@ -156,8 +156,8 @@ function ProjectTab({ service }) {
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Identity</h4>
         <div className={styles.fieldGrid}>
-          {service.serviceType && (() => {
-            const colors = SERVICE_TYPE_COLORS[service.serviceType];
+          {service.projectType && (() => {
+            const colors = SERVICE_TYPE_COLORS[service.projectType];
             return (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Type</span>
@@ -166,7 +166,7 @@ function ProjectTab({ service }) {
                   background: colors.subtle,
                   borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
                 } : undefined}>
-                  {service.serviceType}
+                  {service.projectType}
                 </BadgeComponent>
               </div>
             );
@@ -516,7 +516,7 @@ function WebAnalyticsTab({ service }) {
         <TrendingUp size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
         <span>No analytics property configured</span>
         <span className={styles.emptyTabHint}>
-          Add <code>analyticsPropertyId</code> to this service in services.json
+          Add <code>analyticsPropertyId</code> to this project in projects.json
         </span>
       </div>
     );

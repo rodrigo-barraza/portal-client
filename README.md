@@ -97,5 +97,5 @@ portal-client/
 
 ## Related Services
 
-- **portal-service** (`:4001`) — Backend API for service registry, health checks, and analytics
-- **vault-service** (`:5599`) — Centralized secrets and service registry
+- **portal-service** (`:4001`) — Backend API for project registry, health checks, and analytics
+- **vault-service** (`:5599`) — Centralized secrets and project registry

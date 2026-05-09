@@ -13,15 +13,15 @@ import styles from "./TopologyComponent.module.css";
 const NODE_W = 130;
 const NODE_H = 64;
 
-// ── Icon resolver (by serviceType) ──────────────────────────────
+// ── Icon resolver (by projectType) ──────────────────────────────
 function getIcon(svc) {
-  return SERVICE_TYPE_ICONS[svc.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
+  return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
 // ── Tier labels ─────────────────────────────────────────────────
 const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
 
-// ── Fixed tier layering (uses deployTier from service registry) ──
+// ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services) {
   // Group by deployTier, defaulting to tier 2 for unknowns
   const tiers = [[], [], []];
@@ -352,10 +352,11 @@ export default function TopologyComponent() {
                   const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
                   const isActive = isSelected || isHovered;
                   const isOptional = edge.criticality === "optional";
+                  const isFaded = selectedNode && !isSelected;
                   const d = edgePath(x1, y1, x2, y2);
 
                   return (
-                    <g key={`${edge.source}-${edge.target}-${i}`} className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}`}>
+                    <g key={`${edge.source}-${edge.target}-${i}`} className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}${isFaded ? ` ${styles.edgeFaded}` : ""}`}>
                       <path d={d} stroke="transparent" strokeWidth={12} fill="none" />
                       <path
                         d={d}
@@ -379,7 +380,7 @@ export default function TopologyComponent() {
                       key={`tier-label-${li}`}
                       x={0}
                       y={y}
-                      className={styles.tierLabel}
+                      className={`${styles.tierLabel}${selectedNode ? ` ${styles.tierLabelFaded}` : ""}`}
                       dominantBaseline="middle"
                     >
                       {TIER_LABELS[li] || `Tier ${li}`}
@@ -394,6 +395,7 @@ export default function TopologyComponent() {
                   const Icon = getIcon(svc);
                   const isHov = hoveredNode === svc.id;
                   const isDragging = dragging?.nodeId === svc.id;
+                  const isFaded = selectedNode && !connectedNodes.has(svc.id);
 
                   const typeClass = svc.isInfrastructure
                     ? styles.nodeInfra
@@ -413,7 +415,7 @@ export default function TopologyComponent() {
                       style={{ overflow: "visible" }}
                     >
                       <div
-                        className={`${styles.nodeCard} ${typeClass} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === svc.id ? styles.nodeSelected : ""}`}
+                        className={`${styles.nodeCard} ${typeClass} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === svc.id ? styles.nodeSelected : ""}${isFaded ? ` ${styles.nodeFaded}` : ""}`}
                         onMouseDown={(e) => handleNodeMouseDown(e, svc)}
                         onMouseEnter={(e) => handleNodeEnter(e, svc)}
                         onMouseMove={handleNodeMove}

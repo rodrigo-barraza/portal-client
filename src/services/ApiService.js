@@ -41,7 +41,7 @@ export default class ApiService {
     return ApiService._request("/");
   }
 
-  // ── Services ──────────────────────────────────────────────────
+  // ── Projects ──────────────────────────────────────────────────
 
   /**
    * Get service health status for all services.

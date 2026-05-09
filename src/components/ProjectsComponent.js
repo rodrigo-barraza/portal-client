@@ -50,7 +50,7 @@ function compareBySortKey(a, b, sortKey, sortDir) {
     case "visibility":
       return dir * (a.visibility || "").localeCompare(b.visibility || "");
     case "type":
-      return dir * (a.serviceType || "").localeCompare(b.serviceType || "");
+      return dir * (a.projectType || "").localeCompare(b.projectType || "");
     case "port":
       return dir * ((a.port || 0) - (b.port || 0));
     case "address":
@@ -72,12 +72,12 @@ function compareBySortKey(a, b, sortKey, sortDir) {
  * Returns the full SORT_OPTIONS object, extending the static ones.
  */
 function buildFilterOptions(items) {
-  const types = [...new Set(items.map((s) => s.serviceType).filter(Boolean))].sort();
+  const types = [...new Set(items.map((s) => s.projectType).filter(Boolean))].sort();
   const hosts = [...new Set(items.map((s) => s.device).filter(Boolean))].sort();
 
   return {
     ...STATIC_FILTER_OPTIONS,
-    serviceType: {
+    projectType: {
       label: "Type",
       values: types.map((t) => ({ value: t, label: t })),
     },
@@ -109,7 +109,7 @@ export default function ProjectsComponent() {
     status: [],
     visibility: [],
     environment: [],
-    serviceType: [],
+    projectType: [],
     device: [],
   });
 
@@ -224,7 +224,7 @@ export default function ProjectsComponent() {
       }
       if (filters.visibility.length && !filters.visibility.includes(s.visibility)) return false;
       if (filters.environment.length && !filters.environment.includes(s.environment)) return false;
-      if (filters.serviceType.length && !filters.serviceType.includes(s.serviceType)) return false;
+      if (filters.projectType.length && !filters.projectType.includes(s.projectType)) return false;
       if (filters.device.length && !filters.device.includes(s.device)) return false;
       return true;
     })
@@ -364,7 +364,7 @@ export default function ProjectsComponent() {
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: [], visibility: [], environment: [], serviceType: [], device: [] })
+                setFilters({ status: [], visibility: [], environment: [], projectType: [], device: [] })
               }
             >
               Clear

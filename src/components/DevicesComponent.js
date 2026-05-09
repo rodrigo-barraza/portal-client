@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   RefreshCw,
   Monitor,
@@ -11,6 +11,8 @@ import {
   Database,
   Globe,
   Lock,
+  Cpu,
+  MemoryStick,
 } from "lucide-react";
 import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
@@ -36,10 +38,41 @@ const DEVICE_COLOR_MAP = {
   NAS: "var(--info)",
 };
 
+/**
+ * Format bytes into human-readable units.
+ */
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const val = bytes / Math.pow(1024, i);
+  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
+}
+
+/**
+ * Format percentage with appropriate precision.
+ */
+function formatPercent(pct) {
+  if (pct < 0.01) return "0%";
+  if (pct < 1) return `${pct.toFixed(2)}%`;
+  if (pct < 10) return `${pct.toFixed(1)}%`;
+  return `${Math.round(pct)}%`;
+}
+
+/**
+ * Color by severity threshold for CPU/memory values.
+ */
+function severityColor(pct, thresholds = [40, 80]) {
+  if (pct > thresholds[1]) return "var(--danger)";
+  if (pct > thresholds[0]) return "var(--warning)";
+  return "var(--success)";
+}
+
 export default function DevicesComponent() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [containerStats, setContainerStats] = useState({});
   const didFetch = useRef(false);
 
   async function loadDevices() {
@@ -54,17 +87,47 @@ export default function DevicesComponent() {
     }
   }
 
+  const fetchContainerStats = useCallback(async () => {
+    try {
+      const currentRes = await ApiService.getContainerStats();
+      const statsMap = {};
+      if (currentRes?.containers) {
+        for (const c of currentRes.containers) {
+          statsMap[c.name] = {
+            cpu: c.cpu,
+            memory: c.memory,
+            network: c.network,
+            blockIO: c.blockIO,
+            pids: c.pids,
+          };
+        }
+      }
+      setContainerStats(statsMap);
+    } catch {
+      // Container stats are supplementary — silently ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
     loadDevices();
-  }, []);
+    fetchContainerStats();
+  }, [fetchContainerStats]);
+
+  // Poll container stats every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(fetchContainerStats, 5_000);
+    return () => clearInterval(timer);
+  }, [fetchContainerStats]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     loadDevices();
+    fetchContainerStats();
   };
 
+  const sortedDevices = [...devices].sort((a, b) => b.serviceCount - a.serviceCount);
   const totalServices = devices.reduce((sum, d) => sum + d.serviceCount, 0);
   const totalHealthy = devices.reduce((sum, d) => sum + d.healthyCount, 0);
 
@@ -75,7 +138,7 @@ export default function DevicesComponent() {
         subtitle={
           loading
             ? "Loading device topology…"
-            : `${devices.length} devices · ${totalHealthy}/${totalServices} services healthy`
+            : `${devices.length} devices · ${totalHealthy}/${totalServices} projects healthy`
         }
       >
         <ButtonComponent
@@ -92,8 +155,8 @@ export default function DevicesComponent() {
         <LoadingIndicatorComponent size="small" label="Discovering devices…" className="loading-center" />
       ) : (
         <div className={styles.deviceList}>
-          {devices.map((device, idx) => (
-            <DeviceCard key={device.id} device={device} delay={idx * 60} />
+          {sortedDevices.map((device, idx) => (
+            <DeviceCard key={device.id} device={device} delay={idx * 60} containerStats={containerStats} />
           ))}
         </div>
       )}
@@ -103,7 +166,7 @@ export default function DevicesComponent() {
 
 // ── Device Card ───────────────────────────────────────────────────
 
-function DeviceCard({ device, delay }) {
+function DeviceCard({ device, delay, containerStats }) {
   const DeviceIcon = DEVICE_ICON_MAP[device.type] || Monitor;
   const accentColor = DEVICE_COLOR_MAP[device.type] || "var(--accent-color)";
   const allHealthy = device.healthyCount === device.serviceCount;
@@ -152,15 +215,19 @@ function DeviceCard({ device, delay }) {
         <p className={styles.deviceNotes}>{device.notes}</p>
       )}
 
-      {/* ── Services Table ── */}
+      {/* ── Projects Table ── */}
       {device.services.length > 0 && (
         <div className={styles.servicesSection}>
           <div className={styles.servicesHeader}>
-            <span>Services</span>
+            <span>Projects</span>
           </div>
           <div className={styles.servicesTable}>
             {device.services.map((svc) => (
-              <ServiceRow key={svc.id} service={svc} />
+              <ServiceRow
+                key={svc.id}
+                service={svc}
+                stats={svc.dockerProject ? containerStats[svc.dockerProject] : null}
+              />
             ))}
           </div>
         </div>
@@ -185,7 +252,7 @@ function DeviceCard({ device, delay }) {
 
 // ── Service Row ───────────────────────────────────────────────────
 
-function ServiceRow({ service }) {
+function ServiceRow({ service, stats }) {
   const isHealthy = service.healthy;
   const displayUrl = service.url?.replace(/^https?:\/\//, "") || "—";
 
@@ -204,6 +271,28 @@ function ServiceRow({ service }) {
         )}
       </div>
       <div className={styles.serviceRight}>
+        {/* ── Docker Metrics ── */}
+        {stats && (
+          <div className={styles.metricBadges}>
+            <span
+              className={styles.metricBadge}
+              style={{ "--metric-color": severityColor(stats.cpu.percent) }}
+              title={`CPU: ${formatPercent(stats.cpu.percent)} · ${stats.cpu.cores} core${stats.cpu.cores !== 1 ? "s" : ""}`}
+            >
+              <Cpu size={10} strokeWidth={2.4} />
+              <span className={styles.metricValue}>{formatPercent(stats.cpu.percent)}</span>
+            </span>
+            <span
+              className={styles.metricBadge}
+              style={{ "--metric-color": severityColor(stats.memory.percent, [60, 85]) }}
+              title={`RAM: ${formatBytes(stats.memory.used)} / ${formatBytes(stats.memory.limit)} (${formatPercent(stats.memory.percent)})`}
+            >
+              <MemoryStick size={10} strokeWidth={2.4} />
+              <span className={styles.metricValue}>{formatBytes(stats.memory.used)}</span>
+            </span>
+          </div>
+        )}
+
         {service.port && (
           <code className={styles.svcPort}>:{service.port}</code>
         )}

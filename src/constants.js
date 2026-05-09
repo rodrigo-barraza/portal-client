@@ -69,7 +69,7 @@ export const SERVICE_TYPE_ICONS = {
   Store: HardDrive,
 };
 
-/** Default icon when serviceType is unrecognized. */
+/** Default icon when projectType is unrecognized. */
 export const DEFAULT_SERVICE_TYPE_ICON = Globe;
 
 // ── Service type → badge colors (mirrors vault-service) ─────────

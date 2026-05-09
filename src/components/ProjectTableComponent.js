@@ -16,6 +16,7 @@ import {
   BadgeComponent,
   DeviceBadgeComponent,
   DomainBadgeComponent,
+  DrawerComponent,
   PortBadgeComponent,
   ResponseTimeBadgeComponent,
   StatusBadgeComponent,
@@ -42,7 +43,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortable: true,
       render: (service) => {
         const isHealthy = service.healthy;
-        const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
+        const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
         return (
           <div className={styles.nameCell}>
             <TypeIcon
@@ -70,8 +71,8 @@ function buildColumns({ onRestart, onStop, onStart }) {
       label: "Type",
       sortable: true,
       render: (service) => {
-        if (!service.serviceType) return null;
-        const colors = SERVICE_TYPE_COLORS[service.serviceType];
+        if (!service.projectType) return null;
+        const colors = SERVICE_TYPE_COLORS[service.projectType];
         return (
           <BadgeComponent
             variant="info"
@@ -81,11 +82,11 @@ function buildColumns({ onRestart, onStop, onStart }) {
               borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
             } : undefined}
           >
-            {service.serviceType}
+            {service.projectType}
           </BadgeComponent>
         );
       },
-      sortValue: (row) => row.serviceType || "",
+      sortValue: (row) => row.projectType || "",
     },
     {
       key: "visibility",
@@ -248,6 +249,8 @@ export default function ProjectTableComponent({
   onStop,
   onStart,
 }) {
+  const [selectedProject, setSelectedProject] = useState(null);
+
   const columns = useCallback(
     () => buildColumns({ onRestart, onStop, onStart }),
     [onRestart, onStop, onStart],
@@ -258,12 +261,9 @@ export default function ProjectTableComponent({
     [],
   );
 
-  const renderExpandedContent = useCallback(
-    (row) => {
-      const stats = row.dockerProject ? containerStats[row.dockerProject] : null;
-      return <ExpandedProjectPanel service={row} stats={stats} />;
-    },
-    [containerStats],
+  const handleRowClick = useCallback(
+    (row) => setSelectedProject(row),
+    [],
   );
 
   if (services.length === 0) {
@@ -274,18 +274,36 @@ export default function ProjectTableComponent({
     );
   }
 
+  const stats = selectedProject?.dockerProject
+    ? containerStats[selectedProject.dockerProject]
+    : null;
+
   return (
-    <TableComponent
-      columns={columns}
-      data={services}
-      getRowKey={(row) => row.id}
-      sortKey={sortKey}
-      sortDir={sortDir}
-      onSort={(key, dir) => onSort(key, dir)}
-      emptyText="No projects match the selected filters"
-      getRowClassName={getRowClassName}
-      renderExpandedContent={renderExpandedContent}
-      storageKey="project-table"
-    />
+    <>
+      <TableComponent
+        columns={columns}
+        data={services}
+        getRowKey={(row) => row.id}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={(key, dir) => onSort(key, dir)}
+        emptyText="No projects match the selected filters"
+        getRowClassName={getRowClassName}
+        onRowClick={handleRowClick}
+        activeRowKey={selectedProject?.id}
+        storageKey="project-table"
+      />
+
+      <DrawerComponent
+        open={!!selectedProject}
+        onClose={() => setSelectedProject(null)}
+        title={selectedProject?.name || "Project Detail"}
+        width={640}
+      >
+        {selectedProject && (
+          <ExpandedProjectPanel service={selectedProject} stats={stats} />
+        )}
+      </DrawerComponent>
+    </>
   );
 }

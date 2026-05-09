@@ -450,7 +450,7 @@ export default function GoogleAnalyticsComponent() {
           <span className={styles.emptyDetail}>
             {error
               ? `Error: ${error}`
-              : "Add GOOGLE_ANALYTICS_CREDENTIALS to your vault environment and declare analyticsPropertyId on service entries in services.json to start tracking."}
+              : "Add GOOGLE_ANALYTICS_CREDENTIALS to your vault environment and declare analyticsPropertyId on project entries in projects.json to start tracking."}
           </span>
         </div>
       </div>

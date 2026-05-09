@@ -125,7 +125,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
-  const TypeIcon = SERVICE_TYPE_ICONS[service.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
+  const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
@@ -278,8 +278,8 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
           </BadgeComponent>
         </div>
 
-        {service.serviceType && (() => {
-          const colors = SERVICE_TYPE_COLORS[service.serviceType];
+        {service.projectType && (() => {
+          const colors = SERVICE_TYPE_COLORS[service.projectType];
           return (
             <div className={styles.detail}>
               <span className={styles.detailLabel}>Type</span>
@@ -291,7 +291,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
                 } : undefined}
               >
-                {service.serviceType}
+                {service.projectType}
               </BadgeComponent>
             </div>
           );
