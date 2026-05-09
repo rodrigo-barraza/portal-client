@@ -14,16 +14,12 @@ import {
 // ── Navigation ──────────────────────────────────────────────────
 export const NAV_SECTIONS = [
   {
-    label: null,
-    items: [
-      { id: "projects", label: "Projects", href: "/projects", icon: "Server" },
-    ],
-  },
-  {
     label: "Infrastructure",
     items: [
-      { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
+      { id: "projects", label: "Projects", href: "/projects", icon: "Server" },
+      { id: "containers", label: "Containers", href: "/containers", icon: "Container" },
       { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
+      { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
       { id: "storage", label: "Storage", href: "/storage", icon: "HardDrive" },
     ],
   },
