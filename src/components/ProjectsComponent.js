@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { RefreshCw, ArrowUpDown, ArrowDownAZ, LayoutGrid, Table2, Cpu, MemoryStick, HardDrive, Server } from "lucide-react";
+import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, Cpu, MemoryStick, HardDrive, Server } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
-import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
+import { getRootDomain } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
@@ -35,15 +35,7 @@ const STATIC_FILTER_OPTIONS = {
   },
 };
 
-// ── Sort-by options ──────────────────────────────────────────────
-const SORT_BY_OPTIONS = [
-  { key: "name",       label: "Name" },
-  { key: "status",     label: "Status" },
-  { key: "visibility", label: "Visibility" },
-  { key: "type",       label: "Type" },
-  { key: "port",       label: "Port" },
-  { key: "response",   label: "Response" },
-];
+
 
 
 /** Compare two services by the chosen sort key. */
@@ -63,8 +55,7 @@ function compareBySortKey(a, b, sortKey, sortDir) {
       return dir * ((a.port || 0) - (b.port || 0));
     case "address":
       return dir * (a.url || "").localeCompare(b.url || "");
-    case "subdomain":
-      return dir * getSubdomain(a.domain).localeCompare(getSubdomain(b.domain));
+
     case "domain":
       return dir * getRootDomain(a.domain).localeCompare(getRootDomain(b.domain));
     case "response":
@@ -380,42 +371,7 @@ export default function ProjectsComponent() {
             </button>
           )}
 
-          {/* ── Divider ── */}
-          <div className={styles.barDivider} />
 
-          {/* ── Sort By ── */}
-          <div className={styles.sortBarIcon}>
-            <ArrowDownAZ size={13} strokeWidth={2.2} />
-            <span>Sort</span>
-          </div>
-
-          <div className={styles.sortGroup}>
-            <div className={styles.segmentedControl}>
-              {SORT_BY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.key}
-                  className={`${styles.segmentBtn} ${
-                    sortKey === opt.key ? styles.segmentActive : ""
-                  }`}
-                  onClick={() => {
-                    if (sortKey === opt.key) {
-                      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-                    } else {
-                      setSortKey(opt.key);
-                      setSortDir("asc");
-                    }
-                  }}
-                >
-                  {opt.label}
-                  {sortKey === opt.key && (
-                    <span className={styles.sortDirIndicator}>
-                      {sortDir === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* ── Divider ── */}
           <div className={styles.barDivider} />

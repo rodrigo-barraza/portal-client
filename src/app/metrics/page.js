@@ -2,7 +2,7 @@ import NavigationSidebarComponent from "@/components/NavigationSidebarComponent"
 import AnalyticsComponent from "@/components/AnalyticsComponent";
 
 export const metadata = {
-  title: "Analytics — Portal",
+  title: "Metrics — Portal",
 };
 
 export default function AnalyticsPage() {

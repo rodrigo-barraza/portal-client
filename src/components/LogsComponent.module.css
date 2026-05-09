@@ -13,6 +13,21 @@
   margin-bottom: 20px;
 }
 
+.tierLabel {
+  width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 0 2px;
+  opacity: 0.7;
+}
+
+.tierLabel:first-child {
+  padding-top: 0;
+}
+
 .serviceChip {
   display: inline-flex;
   align-items: center;

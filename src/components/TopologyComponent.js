@@ -18,44 +18,30 @@ function getIcon(svc) {
   return SERVICE_TYPE_ICONS[svc.serviceType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
-// ── Sugiyama layering ────────────────────────────────────────────
+// ── Tier labels ─────────────────────────────────────────────────
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
+
+// ── Fixed tier layering (uses deployTier from service registry) ──
 function computeLayers(services) {
-  const byId = new Map(services.map((s) => [s.id, s]));
-  const idSet = new Set(services.map((s) => s.id));
-  const layerOf = new Map();
+  // Group by deployTier, defaulting to tier 2 for unknowns
+  const tiers = [[], [], []];
 
-  function getLayer(id, visited = new Set()) {
-    if (layerOf.has(id)) return layerOf.get(id);
-    if (visited.has(id)) return 0;
-    visited.add(id);
-    const svc = byId.get(id);
-    if (!svc) return 0;
-    const deps = (svc.dependsOn || [])
-      .map((d) => (typeof d === "string" ? d : d.id))
-      .filter((did) => idSet.has(did));
-    if (!deps.length) { layerOf.set(id, 0); return 0; }
-    const max = Math.max(...deps.map((d) => getLayer(d, visited)));
-    const l = max + 1;
-    layerOf.set(id, l);
-    return l;
-  }
-
-  for (const svc of services) getLayer(svc.id);
-
-  const layers = [];
   for (const svc of services) {
-    const l = layerOf.get(svc.id) || 0;
-    if (!layers[l]) layers[l] = [];
-    layers[l].push(svc);
+    const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
+    tiers[tier].push(svc);
   }
-  for (const layer of layers) layer?.sort((a, b) => a.name.localeCompare(b.name));
-  return layers.filter(Boolean);
+
+  // Sort each tier alphabetically for consistent ordering
+  for (const tier of tiers) tier.sort((a, b) => a.name.localeCompare(b.name));
+
+  return tiers;
 }
 
 // ── Assign positions from layers ─────────────────────────────────
 function layoutNodes(layers) {
   const GAP_X = 32;
   const GAP_Y = 100;
+  const LABEL_INSET = 180; // horizontal space reserved for tier labels
   const positions = {};
 
   // Find widest layer for centering
@@ -64,7 +50,7 @@ function layoutNodes(layers) {
 
   layers.forEach((layer, li) => {
     const totalW = layer.length * (NODE_W + GAP_X) - GAP_X;
-    const offsetX = (maxW - totalW) / 2;
+    const offsetX = LABEL_INSET + (maxW - totalW) / 2;
     layer.forEach((svc, si) => {
       positions[svc.id] = {
         x: offsetX + si * (NODE_W + GAP_X),
@@ -381,6 +367,23 @@ export default function TopologyComponent() {
                         className={styles.connectionLine}
                       />
                     </g>
+                  );
+                })}
+
+                {/* ── Tier labels ── */}
+                {layers.map((layer, li) => {
+                  if (!layer.length) return null;
+                  const y = li * (NODE_H + 100) + NODE_H / 2;
+                  return (
+                    <text
+                      key={`tier-label-${li}`}
+                      x={0}
+                      y={y}
+                      className={styles.tierLabel}
+                      dominantBaseline="middle"
+                    >
+                      {TIER_LABELS[li] || `Tier ${li}`}
+                    </text>
                   );
                 })}
 

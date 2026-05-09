@@ -97,6 +97,21 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   TIER LABELS — Row labels rendered in SVG
+   ═══════════════════════════════════════════════════════════════ */
+
+.tierLabel {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    EDGES — Rainbow flowing gradient (from Prism Client workflows)
    ═══════════════════════════════════════════════════════════════ */
 

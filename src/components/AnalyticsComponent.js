@@ -258,7 +258,7 @@ export default function AnalyticsComponent() {
 
   return (
     <div className={styles.analytics}>
-      <PageHeaderComponent sticky={false} title="Analytics" subtitle="Usage statistics and container telemetry">
+      <PageHeaderComponent sticky={false} title="Metrics" subtitle="Usage statistics and container telemetry">
         <div className={styles.periodTabs}>
           {["24h", "7d", "30d"].map((p) => (
             <button

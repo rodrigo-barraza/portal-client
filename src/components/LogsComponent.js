@@ -448,17 +448,41 @@ export default function LogsComponent() {
 
       {/* ── Service Chips ── */}
       <div className={styles.serviceList}>
-        {loggableServices.map((svc) => (
-          <button
-            key={svc.id}
-            className={`${styles.serviceChip} ${activeService === svc.id ? styles.active : ""}`}
-            onClick={() => connectToService(svc.id)}
-          >
-            <span className={styles.chipDot} />
-            {svc.name}
-            <span className={styles.chipDevice}>{svc.deviceName}</span>
-          </button>
-        ))}
+        {(() => {
+          const TIER_LABELS = { 0: "Tier 0 — Infrastructure", 1: "Tier 1 — Core Services", 2: "Tier 2 — Applications" };
+          const sorted = [...loggableServices].sort((a, b) => {
+            const tierA = a.deployTier ?? 99;
+            const tierB = b.deployTier ?? 99;
+            if (tierA !== tierB) return tierA - tierB;
+            return a.name.localeCompare(b.name);
+          });
+
+          const groups = [];
+          let lastTier = null;
+          for (const svc of sorted) {
+            const tier = svc.deployTier ?? 99;
+            if (tier !== lastTier) {
+              groups.push(
+                <span key={`tier-${tier}`} className={styles.tierLabel}>
+                  {TIER_LABELS[tier] || `Tier ${tier}`}
+                </span>
+              );
+              lastTier = tier;
+            }
+            groups.push(
+              <button
+                key={svc.id}
+                className={`${styles.serviceChip} ${activeService === svc.id ? styles.active : ""}`}
+                onClick={() => connectToService(svc.id)}
+              >
+                <span className={styles.chipDot} />
+                {svc.name}
+                <span className={styles.chipDevice}>{svc.deviceName}</span>
+              </button>
+            );
+          }
+          return groups;
+        })()}
       </div>
 
       {/* ── Terminal Viewer ── */}

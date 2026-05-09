@@ -31,7 +31,7 @@ export const NAV_SECTIONS = [
     label: "Observability",
     items: [
       { id: "logs", label: "Logs", href: "/logs", icon: "ScrollText" },
-      { id: "analytics", label: "Analytics", href: "/analytics", icon: "BarChart3" },
+      { id: "metrics", label: "Metrics", href: "/metrics", icon: "BarChart3" },
       { id: "web-analytics", label: "Web Analytics", href: "/web-analytics", icon: "TrendingUp" },
     ],
   },

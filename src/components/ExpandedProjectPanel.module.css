@@ -1,0 +1,570 @@
+/* ══════════════════════════════════════════════════════════════════
+   ExpandedProjectPanel — Tabbed detail panel for project rows
+   ══════════════════════════════════════════════════════════════════ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  animation: panelSlideIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Tab Bar ───────────────────────────────────────────────────── */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--text-tertiary);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+  }
+}
+
+.tabActive {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+/* ── Tab Content ───────────────────────────────────────────────── */
+
+.tabContent {
+  padding: 14px 8px;
+  min-height: 120px;
+}
+
+/* ── Shared Section Styles ─────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin: 0;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 16px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.fieldValue {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 450;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ── Empty Tab ─────────────────────────────────────────────────── */
+
+.emptyTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.emptyTabIcon {
+  opacity: 0.4;
+}
+
+.emptyTabHint {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.emptyTabHint code {
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Tab: Container Details
+   ══════════════════════════════════════════════════════════════════ */
+
+.detailsTab {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .detailsTab {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detailsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Quick Metrics Summary (right side of details) ─────────────── */
+
+.detailsMetricsSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.miniMetric {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.miniMetricIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.miniMetricLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.miniMetricValue {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.miniMetricDim {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Tab: Topology
+   ══════════════════════════════════════════════════════════════════ */
+
+.topologyTab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topologyGraph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.topologyCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.topologyNode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+  transition: transform var(--transition-fast);
+}
+
+.topologyNodeSelf {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1.5px solid var(--text-muted);
+  font-size: 13px;
+  padding: 8px 18px;
+}
+
+.topologyNodeRequired {
+  color: #93c5fd;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.topologyNodeOptional {
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.topologyArrows {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.topologyGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.topologyGroupLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #60a5fa;
+}
+
+.topologyGroupLabelOptional {
+  color: #fbbf24;
+}
+
+.topologyNodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.topologyEdge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.topologyConnector {
+  width: 1px;
+  height: 12px;
+  background: rgba(96, 165, 250, 0.3);
+}
+
+.topologyConnectorOptional {
+  background: rgba(251, 191, 36, 0.25);
+  border-left: 1px dashed rgba(251, 191, 36, 0.4);
+  width: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Tab: Metrics
+   ══════════════════════════════════════════════════════════════════ */
+
+.metricsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.metricCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metricCardIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.metricCardTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.metricCardValue {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.metricCardDim {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+/* ── Percent Bar ───────────────────────────────────────────────── */
+
+.barTrack {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* ── Sparkline ─────────────────────────────────────────────────── */
+
+.sparkline {
+  width: 100%;
+  display: block;
+  border-radius: 2px;
+}
+
+/* ── I/O Stats ─────────────────────────────────────────────────── */
+
+.ioStats {
+  display: flex;
+  gap: 16px;
+  padding-top: 2px;
+}
+
+.ioStat {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.ioDir {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.ioValue {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Tab: Web Analytics
+   ══════════════════════════════════════════════════════════════════ */
+
+.webAnalyticsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.realtimePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 100px;
+  align-self: flex-start;
+}
+
+.realtimeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.realtimeValue {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.realtimeLabel {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.gaCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.gaCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.gaCardValue {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.gaCardLabel {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.gaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gaPageList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gaPageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.gaPageRow:last-child {
+  border-bottom: none;
+}
+
+.gaPagePath {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.gaPageViews {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Error Bar ─────────────────────────────────────────────────── */
+
+.errorBar {
+  padding: 8px 10px;
+  background: var(--danger-subtle);
+  border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--danger);
+  word-break: break-all;
+}
