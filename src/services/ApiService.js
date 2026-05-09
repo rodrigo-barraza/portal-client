@@ -174,13 +174,13 @@ export default class ApiService {
     return ApiService._request("/devices");
   }
 
-  // ── Storage ─────────────────────────────────────────────────
+  // ── Object Store ────────────────────────────────────────────
 
   /**
    * List all MinIO buckets with object counts and sizes.
    */
   static async getStorageBuckets() {
-    return ApiService._request("/storage/buckets");
+    return ApiService._request("/object-store/buckets");
   }
 
   /**
@@ -193,7 +193,7 @@ export default class ApiService {
     if (prefix) qs.set("prefix", prefix);
     if (recursive) qs.set("recursive", "true");
     const query = qs.toString();
-    return ApiService._request(`/storage/buckets/${bucketName}${query ? `?${query}` : ""}`);
+    return ApiService._request(`/object-store/buckets/${bucketName}${query ? `?${query}` : ""}`);
   }
 
   /**
@@ -202,11 +202,11 @@ export default class ApiService {
    * @param {string} objectName
    */
   static async statStorageObject(bucketName, objectName) {
-    return ApiService._request(`/storage/buckets/${bucketName}/stat/${objectName}`);
+    return ApiService._request(`/object-store/buckets/${bucketName}/stat/${objectName}`);
   }
 
   /**
-   * Build a download URL for a storage object.
+   * Build a download URL for an object-store object.
    * @param {string} bucketName
    * @param {string} objectName
    * @param {{ inline?: boolean }} [opts]
@@ -214,16 +214,16 @@ export default class ApiService {
    */
   static buildStorageDownloadUrl(bucketName, objectName, { inline = false } = {}) {
     const qs = inline ? "?inline=true" : "";
-    return `${API_BASE}/storage/buckets/${bucketName}/download/${objectName}${qs}`;
+    return `${API_BASE}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;
   }
 
   /**
-   * Delete a storage object.
+   * Delete an object-store object.
    * @param {string} bucketName
    * @param {string} objectName
    */
   static async deleteStorageObject(bucketName, objectName) {
-    return ApiService._request(`/storage/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
+    return ApiService._request(`/object-store/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
   }
 
   // ── Google Analytics ────────────────────────────────────────

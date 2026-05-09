@@ -44,6 +44,60 @@
   border-left: 3px solid var(--danger);
 }
 
+/* ── Description Cell ── */
+
+.descriptionCell {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* ── Muted Placeholder ── */
+
+.mutedCell {
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: 0.4;
+}
+
+/* ── Repo Link ── */
+
+.repoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid transparent;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+  }
+}
+
+.externalIcon {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+
+  .repoLink:hover & {
+    opacity: 0.6;
+  }
+}
+
 /* ── Actions ── */
 
 .actionRow {

@@ -1,0 +1,196 @@
+/* ══════════════════════════════════════════════════════════════════
+   ContainerDetailPanel — Drawer content for container rows
+   ══════════════════════════════════════════════════════════════════ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: panelSlideIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Sections ─────────────────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin: 0;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px 16px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Metrics Grid ─────────────────────────────────────────────── */
+
+.metricsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metricsEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.emptyIcon {
+  opacity: 0.4;
+}
+
+/* ── Metric Card ──────────────────────────────────────────────── */
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.metricCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metricCardIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.metricCardTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.metricCardValue {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.metricCardDim {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+/* ── Percent Bar ──────────────────────────────────────────────── */
+
+.barTrack {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* ── Sparkline ────────────────────────────────────────────────── */
+
+.sparkline {
+  width: 100%;
+  display: block;
+  border-radius: 2px;
+}
+
+/* ── I/O Stats ────────────────────────────────────────────────── */
+
+.ioStats {
+  display: flex;
+  gap: 16px;
+  padding-top: 2px;
+}
+
+.ioStat {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.ioDir {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.ioValue {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-weight: 500;
+}

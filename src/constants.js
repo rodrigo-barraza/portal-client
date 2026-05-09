@@ -20,7 +20,7 @@ export const NAV_SECTIONS = [
       { id: "containers", label: "Containers", href: "/containers", icon: "Container" },
       { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
       { id: "topology", label: "Topology", href: "/topology", icon: "Waypoints" },
-      { id: "storage", label: "Storage", href: "/storage", icon: "HardDrive" },
+      { id: "object-store", label: "Object Store", href: "/object-store", icon: "Database" },
     ],
   },
   {

@@ -250,7 +250,7 @@ export default function StorageComponent() {
     <div className={styles.storage}>
       <PageHeaderComponent
         sticky={false}
-        title="Storage"
+        title="Object Store"
         subtitle={
           loading
             ? "Loading MinIO buckets…"

@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
-import { getRootDomain } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
@@ -47,21 +46,20 @@ function compareBySortKey(a, b, sortKey, sortDir) {
     case "status":
       // healthy first in asc, down first in desc
       return dir * ((b.healthy ? 1 : 0) - (a.healthy ? 1 : 0));
-    case "visibility":
-      return dir * (a.visibility || "").localeCompare(b.visibility || "");
     case "type":
       return dir * (a.projectType || "").localeCompare(b.projectType || "");
-    case "port":
-      return dir * ((a.port || 0) - (b.port || 0));
-    case "address":
-      return dir * (a.url || "").localeCompare(b.url || "");
-
+    case "tier":
+      return dir * ((a.deployTier ?? 99) - (b.deployTier ?? 99));
     case "domain":
-      return dir * getRootDomain(a.domain).localeCompare(getRootDomain(b.domain));
-    case "response":
-      return dir * ((a.responseTimeMs ?? Infinity) - (b.responseTimeMs ?? Infinity));
-    case "device":
-      return dir * (a.device || "").localeCompare(b.device || "");
+      return dir * (a.domain || "").localeCompare(b.domain || "");
+    case "repo":
+      return dir * (a.repo || "").localeCompare(b.repo || "");
+    case "dependencies":
+      return dir * ((a.dependsOn || []).length - (b.dependsOn || []).length);
+    case "database":
+      return dir * (a.db || "").localeCompare(b.db || "");
+    case "containers":
+      return dir * ((a.dockerProject ? 1 : 0) - (b.dockerProject ? 1 : 0));
     default:
       return 0;
   }

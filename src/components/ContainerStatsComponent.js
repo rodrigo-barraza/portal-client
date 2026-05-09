@@ -19,6 +19,7 @@ import {
   AddressBadgeComponent,
   DeviceBadgeComponent,
   DomainBadgeComponent,
+  DrawerComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
   PortBadgeComponent,
@@ -29,6 +30,7 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, getRootDomain } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
+import ContainerDetailPanel from "./ContainerDetailPanel";
 import styles from "./ContainerStatsComponent.module.css";
 
 const POLL_INTERVAL = 5_000;
@@ -40,6 +42,29 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   const val = bytes / Math.pow(1024, i);
   return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
+}
+
+function formatPercent(pct) {
+  if (pct < 0.01) return "0%";
+  if (pct < 1) return `${pct.toFixed(2)}%`;
+  if (pct < 10) return `${pct.toFixed(1)}%`;
+  return `${Math.round(pct)}%`;
+}
+
+function severityColor(pct, thresholds = [40, 80]) {
+  if (pct > thresholds[1]) return "var(--danger)";
+  if (pct > thresholds[0]) return "var(--warning)";
+  return "var(--success)";
+}
+
+// ── Inline Percent Bar ──────────────────────────────────────────
+function MiniBar({ percent, color }) {
+  const clamped = Math.min(percent, 100);
+  return (
+    <div className={styles.miniBarTrack}>
+      <div className={styles.miniBarFill} style={{ width: `${clamped}%`, background: color }} />
+    </div>
+  );
 }
 
 // ── Action Cell ─────────────────────────────────────────────────
@@ -141,6 +166,40 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortValue: (row) => (row.healthy ? 1 : 0),
     },
     {
+      key: "cpu",
+      label: "CPU",
+      sortable: true,
+      render: (row) => {
+        const cpuPct = row._stats?.cpu?.percent;
+        if (cpuPct == null) return <span className={styles.dimText}>—</span>;
+        const color = severityColor(cpuPct);
+        return (
+          <div className={styles.metricCell}>
+            <span className={styles.metricValue} style={{ color }}>{formatPercent(cpuPct)}</span>
+            <MiniBar percent={cpuPct} color={color} />
+          </div>
+        );
+      },
+      sortValue: (row) => row._stats?.cpu?.percent ?? -1,
+    },
+    {
+      key: "ram",
+      label: "RAM",
+      sortable: true,
+      render: (row) => {
+        const mem = row._stats?.memory;
+        if (!mem) return <span className={styles.dimText}>—</span>;
+        const color = severityColor(mem.percent, [60, 85]);
+        return (
+          <div className={styles.metricCell}>
+            <span className={styles.metricValue} style={{ color }}>{formatBytes(mem.used)}</span>
+            <MiniBar percent={mem.percent} color={color} />
+          </div>
+        );
+      },
+      sortValue: (row) => row._stats?.memory?.used ?? -1,
+    },
+    {
       key: "visibility",
       label: "Visibility",
       sortable: true,
@@ -228,6 +287,7 @@ export default function ContainerStatsComponent() {
   const [loading, setLoading] = useState(true);
   const [systemInfo, setSystemInfo] = useState(null);
   const [containerStats, setContainerStats] = useState({});
+  const [selectedContainer, setSelectedContainer] = useState(null);
   const didFetch = useRef(false);
 
   // Fetch container stats and project registry, then join them
@@ -249,7 +309,13 @@ export default function ContainerStatsComponent() {
         }
       }
 
-      // Merge container data with project metadata
+      // Build lookup: container name → Docker stats
+      const statsByName = {};
+      for (const c of containers) {
+        statsByName[c.name] = c;
+      }
+
+      // Merge container data with project metadata + stats
       const rows = containers.map((c) => {
         const svc = projectByDocker[c.name] || null;
         return {
@@ -266,6 +332,14 @@ export default function ContainerStatsComponent() {
           device: svc?.device || null,
           restartable: svc?.restartable ?? false,
           dockerProject: c.name,
+          // Per-container Docker stats (for table columns)
+          _stats: {
+            cpu: c.cpu,
+            memory: c.memory,
+            network: c.network,
+            blockIO: c.blockIO,
+            pids: c.pids,
+          },
         };
       });
 
@@ -273,6 +347,19 @@ export default function ContainerStatsComponent() {
       rows.sort((a, b) => a.containerName.localeCompare(b.containerName));
 
       setContainerRows(rows);
+
+      // Build stats map for summary cards
+      const statsMap = {};
+      for (const c of containers) {
+        statsMap[c.name] = { cpu: c.cpu, memory: c.memory };
+      }
+      setContainerStats(statsMap);
+
+      // Update selected container if drawer is open
+      setSelectedContainer((prev) => {
+        if (!prev) return null;
+        return rows.find((r) => r.id === prev.id) || null;
+      });
     } catch {
       // Don't break the page on error
     } finally {
@@ -280,29 +367,11 @@ export default function ContainerStatsComponent() {
     }
   }, []);
 
-  // Fetch system info + aggregate container stats for summary cards
+  // Fetch system info for summary cards
   const fetchSystemInfo = useCallback(async () => {
     try {
       const res = await ApiService.getSystemInfo().catch(() => null);
       setSystemInfo(res);
-    } catch {
-      // Supplementary — silently ignore
-    }
-  }, []);
-
-  const fetchContainerStats = useCallback(async () => {
-    try {
-      const currentRes = await ApiService.getContainerStats();
-      const statsMap = {};
-      if (currentRes?.containers) {
-        for (const c of currentRes.containers) {
-          statsMap[c.name] = {
-            cpu: c.cpu,
-            memory: c.memory,
-          };
-        }
-      }
-      setContainerStats(statsMap);
     } catch {
       // Supplementary — silently ignore
     }
@@ -313,17 +382,13 @@ export default function ContainerStatsComponent() {
     didFetch.current = true;
     fetchData();
     fetchSystemInfo();
-    fetchContainerStats();
-  }, [fetchData, fetchSystemInfo, fetchContainerStats]);
+  }, [fetchData, fetchSystemInfo]);
 
   // Poll every 5s
   useEffect(() => {
-    const timer = setInterval(() => {
-      fetchData();
-      fetchContainerStats();
-    }, POLL_INTERVAL);
+    const timer = setInterval(fetchData, POLL_INTERVAL);
     return () => clearInterval(timer);
-  }, [fetchData, fetchContainerStats]);
+  }, [fetchData]);
 
   const handleRestart = async (serviceId) => {
     try {
@@ -365,6 +430,9 @@ export default function ContainerStatsComponent() {
 
   const getRowClassName = (row) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
+
+  // Build full stats object for drawer
+  const selectedStats = selectedContainer?._stats || null;
 
   if (loading) {
     return (
@@ -441,9 +509,25 @@ export default function ContainerStatsComponent() {
           getRowKey={(row) => row.id}
           emptyText="No containers found"
           getRowClassName={getRowClassName}
+          onRowClick={(row) => setSelectedContainer(row)}
+          activeRowKey={selectedContainer?.id}
           storageKey="container-table"
         />
       )}
+
+      <DrawerComponent
+        open={!!selectedContainer}
+        onClose={() => setSelectedContainer(null)}
+        title={selectedContainer?.containerName || "Container Detail"}
+        width={540}
+      >
+        {selectedContainer && (
+          <ContainerDetailPanel
+            container={selectedContainer}
+            stats={selectedStats}
+          />
+        )}
+      </DrawerComponent>
     </div>
   );
 }

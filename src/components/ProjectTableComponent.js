@@ -3,22 +3,18 @@
 import { useState, useCallback } from "react";
 import {
   Globe,
-  Lock,
-  Server,
+  ExternalLink,
+  Database,
+  Container,
+  GitBranch,
+  Link2,
 } from "lucide-react";
 import {
-  AddressBadgeComponent,
   BadgeComponent,
-  DeviceBadgeComponent,
   DomainBadgeComponent,
   DrawerComponent,
-  PortBadgeComponent,
-  ResponseTimeBadgeComponent,
-  StatusBadgeComponent,
   TableComponent,
-  VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatDuration, getRootDomain } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ExpandedProjectPanel from "./ExpandedProjectPanel";
 import styles from "./ProjectTableComponent.module.css";
@@ -51,15 +47,6 @@ function buildColumns() {
         );
       },
       sortValue: (row) => row.name || "",
-    },
-    {
-      key: "status",
-      label: "Status",
-      sortable: true,
-      render: (service) => (
-        <StatusBadgeComponent healthy={service.healthy} />
-      ),
-      sortValue: (row) => (row.healthy ? 1 : 0),
     },
     {
       key: "type",
@@ -107,73 +94,103 @@ function buildColumns() {
       sortValue: (row) => row.deployTier ?? 99,
     },
     {
-      key: "visibility",
-      label: "Visibility",
-      sortable: true,
+      key: "description",
+      label: "Description",
+      sortable: false,
       render: (service) =>
-        service.visibility ? (
-          <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
-        ) : null,
-      sortValue: (row) => row.visibility || "",
+        service.description ? (
+          <span className={styles.descriptionCell}>{service.description}</span>
+        ) : (
+          <span className={styles.mutedCell}>—</span>
+        ),
     },
-    {
-      key: "port",
-      label: "Port",
-      sortable: true,
-      render: (service) =>
-        service.port ? (
-          <PortBadgeComponent port={service.port} />
-        ) : null,
-      sortValue: (row) => row.port || 0,
-    },
-    {
-      key: "address",
-      label: "Address",
-      sortable: true,
-      description: "Internal IP and port (socket address)",
-      render: (service) =>
-        service.url ? (
-          <AddressBadgeComponent address={service.url} link />
-        ) : null,
-      sortValue: (row) => row.url || "",
-    },
-
     {
       key: "domain",
       label: "Domain",
       sortable: true,
-      description: "Registrable root domain",
-      render: (service) => {
-        const root = getRootDomain(service.domain);
-        return root ? (
+      render: (service) =>
+        service.domain ? (
           <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
-        ) : null;
+        ) : (
+          <span className={styles.mutedCell}>—</span>
+        ),
+      sortValue: (row) => row.domain || "",
+    },
+    {
+      key: "repo",
+      label: "Repo",
+      sortable: true,
+      render: (service) => {
+        if (!service.repo) return <span className={styles.mutedCell}>—</span>;
+        // Extract org/repo from GitHub URL
+        const match = service.repo.match(/github\.com\/(.+?)(?:\.git)?$/);
+        const slug = match ? match[1] : service.repo;
+        return (
+          <a
+            href={service.repo}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.repoLink}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GitBranch size={12} strokeWidth={2.2} />
+            <span>{slug.split("/").pop()}</span>
+            <ExternalLink size={10} strokeWidth={2} className={styles.externalIcon} />
+          </a>
+        );
       },
-      sortValue: (row) => getRootDomain(row.domain),
+      sortValue: (row) => row.repo || "",
     },
     {
-      key: "response",
-      label: "Response",
+      key: "dependencies",
+      label: "Deps",
       sortable: true,
-      render: (service) =>
-        service.responseTimeMs != null ? (
-          <ResponseTimeBadgeComponent ms={service.responseTimeMs} formatter={formatDuration} />
-        ) : null,
-      sortValue: (row) => row.responseTimeMs ?? Infinity,
+      description: "Number of upstream dependencies",
+      render: (service) => {
+        const count = (service.dependsOn || []).length;
+        if (count === 0) return <span className={styles.mutedCell}>—</span>;
+        return (
+          <BadgeComponent variant="info">
+            <Link2 size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            {count}
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => (row.dependsOn || []).length,
     },
     {
-      key: "device",
-      label: "Device",
+      key: "database",
+      label: "Database",
       sortable: true,
-      render: (service) =>
-        service.device ? (
-          <DeviceBadgeComponent device={service.device} icons={{ Server }} />
-        ) : null,
-      sortValue: (row) => row.device || "",
+      render: (service) => {
+        if (!service.db) return <span className={styles.mutedCell}>—</span>;
+        return (
+          <BadgeComponent variant="info">
+            <Database size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            {service.db}
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => row.db || "",
+    },
+    {
+      key: "containers",
+      label: "Containers",
+      sortable: true,
+      description: "Number of Docker containers for this project",
+      render: (service) => {
+        if (!service.dockerProject) return <span className={styles.mutedCell}>—</span>;
+        return (
+          <BadgeComponent variant="info">
+            <Container size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            1
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => (row.dockerProject ? 1 : 0),
     },
   ];
 }
-
 
 
 

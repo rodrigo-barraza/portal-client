@@ -2,10 +2,10 @@ import NavigationSidebarComponent from "@/components/NavigationSidebarComponent"
 import StorageComponent from "@/components/StorageComponent";
 
 export const metadata = {
-  title: "Storage — Portal",
+  title: "Object Store — Portal",
 };
 
-export default function StoragePage() {
+export default function ObjectStorePage() {
   return (
     <div className="page-wrapper">
       <NavigationSidebarComponent />
