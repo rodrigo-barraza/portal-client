@@ -142,23 +142,112 @@ function PercentBar({ percent, color }) {
 // ── Tab definitions ───────────────────────────────────────────────
 
 const TABS = [
-  { id: "details", label: "Container Details", icon: Box },
+  { id: "project", label: "Project", icon: Github },
+  { id: "container", label: "Container", icon: Box },
   { id: "topology", label: "Topology", icon: Network },
-  { id: "metrics", label: "Metrics", icon: BarChart3 },
   { id: "web-analytics", label: "Web Analytics", icon: TrendingUp },
 ];
 
-// ── Tab: Container Details ────────────────────────────────────────
+// ── Tab: Project ──────────────────────────────────────────────────
 
-function ContainerDetailsTab({ service, stats }) {
-  const isInfra = service.isInfrastructure;
-
+function ProjectTab({ service }) {
   return (
-    <div className={styles.detailsTab}>
-      {/* ── Left: Info ── */}
-      <div className={styles.detailsInfo}>
+    <div className={styles.projectTab}>
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Identity</h4>
+        <div className={styles.fieldGrid}>
+          {service.serviceType && (() => {
+            const colors = SERVICE_TYPE_COLORS[service.serviceType];
+            return (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Type</span>
+                <BadgeComponent variant="info" style={colors ? {
+                  color: colors.color,
+                  background: colors.subtle,
+                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                } : undefined}>
+                  {service.serviceType}
+                </BadgeComponent>
+              </div>
+            );
+          })()}
+          {service.repo && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Repository</span>
+              <RepositoryBadgeComponent repo={service.repo} icons={{ Github }} />
+            </div>
+          )}
+          {service.domain && (
+            <div className={styles.field}>
+              <span className={styles.fieldLabel}>Domain</span>
+              <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {(service.metadata || service.checkedAt) && (
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Project Details</h4>
+          <h4 className={styles.sectionTitle}>Metadata</h4>
+          <div className={styles.fieldGrid}>
+            {service.metadata?.version && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Version</span>
+                <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.version}</span>
+              </div>
+            )}
+            {service.isInfrastructure && service.metadata?.uptime != null && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Uptime</span>
+                <span className={styles.fieldValue}>{formatElapsedTime(service.metadata.uptime)}</span>
+              </div>
+            )}
+            {service.isInfrastructure && service.metadata?.connections != null && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Connections</span>
+                <span className={styles.fieldValue}>{service.metadata.connections}</span>
+              </div>
+            )}
+            {service.isInfrastructure && service.metadata?.databases != null && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Databases</span>
+                <span className={styles.fieldValue}>{service.metadata.databases}</span>
+              </div>
+            )}
+            {service.isInfrastructure && service.metadata?.buckets != null && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Buckets</span>
+                <span className={styles.fieldValue}>{service.metadata.buckets}</span>
+              </div>
+            )}
+            {service.isInfrastructure && service.metadata?.bucketNames?.length > 0 && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Bucket Names</span>
+                <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.bucketNames.join(", ")}</span>
+              </div>
+            )}
+            {service.checkedAt && (
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Last Checked</span>
+                <DateTimeBadgeComponent date={service.checkedAt} highlightNew />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab: Container ────────────────────────────────────────────────
+
+function ContainerTab({ service, stats }) {
+  return (
+    <div className={styles.containerTab}>
+      {/* ── Left: Container info ── */}
+      <div className={styles.containerInfo}>
+        <div className={styles.section}>
+          <h4 className={styles.sectionTitle}>Status &amp; Environment</h4>
           <div className={styles.fieldGrid}>
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Status</span>
@@ -170,21 +259,6 @@ function ContainerDetailsTab({ service, stats }) {
                 {service.environment || "Unknown"}
               </BadgeComponent>
             </div>
-            {service.serviceType && (() => {
-              const colors = SERVICE_TYPE_COLORS[service.serviceType];
-              return (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Type</span>
-                  <BadgeComponent variant="info" style={colors ? {
-                    color: colors.color,
-                    background: colors.subtle,
-                    borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-                  } : undefined}>
-                    {service.serviceType}
-                  </BadgeComponent>
-                </div>
-              );
-            })()}
             {service.visibility && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Visibility</span>
@@ -221,98 +295,116 @@ function ContainerDetailsTab({ service, stats }) {
                 <AddressBadgeComponent address={service.url} link />
               </div>
             )}
-            {service.domain && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Domain</span>
-                <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Right: Metrics ── */}
+      {stats ? (
+        <div className={styles.containerMetrics}>
+          {/* CPU */}
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <span className={styles.metricCardTitle}>CPU</span>
+              <span className={styles.metricCardValue} style={{ color: severityColor(stats.cpu.percent) }}>
+                {formatPercent(stats.cpu.percent)}
+              </span>
+              <span className={styles.metricCardDim}>
+                · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <PercentBar percent={stats.cpu.percent} color={severityColor(stats.cpu.percent)} />
+            {stats.spark?.cpu?.length >= 2 && (
+              <Sparkline
+                data={stats.spark.cpu}
+                color={severityColor(stats.cpu.percent)}
+                fillColor={stats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : stats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                max={100}
+                height={36}
+              />
+            )}
+          </div>
+
+          {/* Memory */}
+          <div className={styles.metricCard}>
+            <div className={styles.metricCardHeader}>
+              <MemoryStick size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <span className={styles.metricCardTitle}>RAM</span>
+              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+                {formatBytes(stats.memory.used)}
+              </span>
+              <span className={styles.metricCardDim}>/ {formatBytes(stats.memory.limit)}</span>
+              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+                {formatPercent(stats.memory.percent)}
+              </span>
+            </div>
+            <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />
+            {stats.spark?.mem?.length >= 2 && (
+              <Sparkline
+                data={stats.spark.mem}
+                color={severityColor(stats.memory.percent, [60, 85])}
+                fillColor={stats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : stats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                max={stats.memory.limit}
+                height={36}
+              />
+            )}
+          </div>
+
+          {/* Network + Block I/O + PIDs */}
+          <div className={styles.metricRow}>
+            {stats.network && (stats.network.rx > 0 || stats.network.tx > 0) && (
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardHeader}>
+                  <Globe size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                  <span className={styles.metricCardTitle}>Network</span>
+                </div>
+                <div className={styles.ioStats}>
+                  <span className={styles.ioStat}>
+                    <span className={styles.ioDir}>RX</span>
+                    <span className={styles.ioValue}>{formatBytes(stats.network.rx)}</span>
+                  </span>
+                  <span className={styles.ioStat}>
+                    <span className={styles.ioDir}>TX</span>
+                    <span className={styles.ioValue}>{formatBytes(stats.network.tx)}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {stats.blockIO && (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardHeader}>
+                  <Server size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                  <span className={styles.metricCardTitle}>Block I/O</span>
+                </div>
+                <div className={styles.ioStats}>
+                  <span className={styles.ioStat}>
+                    <span className={styles.ioDir}>Read</span>
+                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.read)}</span>
+                  </span>
+                  <span className={styles.ioStat}>
+                    <span className={styles.ioDir}>Write</span>
+                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.write)}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {stats.pids > 0 && (
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardHeader}>
+                  <span className={styles.metricCardTitle}>PIDs</span>
+                  <span className={styles.metricCardDim}>{stats.pids}</span>
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        {(service.metadata || service.repo || service.checkedAt) && (
-          <div className={styles.section}>
-            <h4 className={styles.sectionTitle}>Metadata</h4>
-            <div className={styles.fieldGrid}>
-              {service.metadata?.version && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Version</span>
-                  <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.version}</span>
-                </div>
-              )}
-              {isInfra && service.metadata?.uptime != null && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Uptime</span>
-                  <span className={styles.fieldValue}>{formatElapsedTime(service.metadata.uptime)}</span>
-                </div>
-              )}
-              {isInfra && service.metadata?.connections != null && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Connections</span>
-                  <span className={styles.fieldValue}>{service.metadata.connections}</span>
-                </div>
-              )}
-              {isInfra && service.metadata?.databases != null && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Databases</span>
-                  <span className={styles.fieldValue}>{service.metadata.databases}</span>
-                </div>
-              )}
-              {isInfra && service.metadata?.buckets != null && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Buckets</span>
-                  <span className={styles.fieldValue}>{service.metadata.buckets}</span>
-                </div>
-              )}
-              {isInfra && service.metadata?.bucketNames?.length > 0 && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Bucket Names</span>
-                  <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.bucketNames.join(", ")}</span>
-                </div>
-              )}
-              {service.repo && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Repository</span>
-                  <RepositoryBadgeComponent repo={service.repo} icons={{ Github }} />
-                </div>
-              )}
-              {service.checkedAt && (
-                <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Checked</span>
-                  <DateTimeBadgeComponent date={service.checkedAt} highlightNew />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Right: Quick Metrics Summary ── */}
-      {stats && (
-        <div className={styles.detailsMetricsSummary}>
-          <div className={styles.miniMetric}>
-            <Cpu size={11} strokeWidth={2.2} className={styles.miniMetricIcon} />
-            <span className={styles.miniMetricLabel}>CPU</span>
-            <span className={styles.miniMetricValue} style={{ color: severityColor(stats.cpu.percent) }}>
-              {formatPercent(stats.cpu.percent)}
-            </span>
-          </div>
-          <PercentBar percent={stats.cpu.percent} color={severityColor(stats.cpu.percent)} />
-          <div className={styles.miniMetric}>
-            <MemoryStick size={11} strokeWidth={2.2} className={styles.miniMetricIcon} />
-            <span className={styles.miniMetricLabel}>RAM</span>
-            <span className={styles.miniMetricValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
-              {formatBytes(stats.memory.used)}
-            </span>
-            <span className={styles.miniMetricDim}>/ {formatBytes(stats.memory.limit)}</span>
-          </div>
-          <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />
-          {stats.pids > 0 && (
-            <div className={styles.miniMetric}>
-              <span className={styles.miniMetricLabel}>PIDs</span>
-              <span className={styles.miniMetricDim}>{stats.pids}</span>
-            </div>
-          )}
+      ) : (
+        <div className={styles.containerMetricsEmpty}>
+          <BarChart3 size={18} strokeWidth={1.5} className={styles.emptyTabIcon} />
+          <span>No metrics</span>
         </div>
       )}
     </div>
@@ -387,121 +479,7 @@ function TopologyTab({ service }) {
   );
 }
 
-// ── Tab: Metrics ──────────────────────────────────────────────────
 
-function MetricsTab({ stats }) {
-  if (!stats) {
-    return (
-      <div className={styles.emptyTab}>
-        <BarChart3 size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
-        <span>No container metrics available</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.metricsTab}>
-      {/* CPU */}
-      <div className={styles.metricCard}>
-        <div className={styles.metricCardHeader}>
-          <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-          <span className={styles.metricCardTitle}>CPU</span>
-          <span className={styles.metricCardValue} style={{ color: severityColor(stats.cpu.percent) }}>
-            {formatPercent(stats.cpu.percent)}
-          </span>
-          <span className={styles.metricCardDim}>
-            · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
-          </span>
-        </div>
-        <PercentBar percent={stats.cpu.percent} color={severityColor(stats.cpu.percent)} />
-        {stats.spark?.cpu?.length >= 2 && (
-          <Sparkline
-            data={stats.spark.cpu}
-            color={severityColor(stats.cpu.percent)}
-            fillColor={stats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : stats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
-            max={100}
-            height={36}
-          />
-        )}
-      </div>
-
-      {/* Memory */}
-      <div className={styles.metricCard}>
-        <div className={styles.metricCardHeader}>
-          <MemoryStick size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-          <span className={styles.metricCardTitle}>RAM</span>
-          <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
-            {formatBytes(stats.memory.used)}
-          </span>
-          <span className={styles.metricCardDim}>/ {formatBytes(stats.memory.limit)}</span>
-          <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
-            {formatPercent(stats.memory.percent)}
-          </span>
-        </div>
-        <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />
-        {stats.spark?.mem?.length >= 2 && (
-          <Sparkline
-            data={stats.spark.mem}
-            color={severityColor(stats.memory.percent, [60, 85])}
-            fillColor={stats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : stats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
-            max={stats.memory.limit}
-            height={36}
-          />
-        )}
-      </div>
-
-      {/* Network + Block I/O side by side */}
-      <div className={styles.metricRow}>
-        {stats.network && (stats.network.rx > 0 || stats.network.tx > 0) && (
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
-              <Globe size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-              <span className={styles.metricCardTitle}>Network</span>
-            </div>
-            <div className={styles.ioStats}>
-              <span className={styles.ioStat}>
-                <span className={styles.ioDir}>RX</span>
-                <span className={styles.ioValue}>{formatBytes(stats.network.rx)}</span>
-              </span>
-              <span className={styles.ioStat}>
-                <span className={styles.ioDir}>TX</span>
-                <span className={styles.ioValue}>{formatBytes(stats.network.tx)}</span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {stats.blockIO && (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
-              <Server size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-              <span className={styles.metricCardTitle}>Block I/O</span>
-            </div>
-            <div className={styles.ioStats}>
-              <span className={styles.ioStat}>
-                <span className={styles.ioDir}>Read</span>
-                <span className={styles.ioValue}>{formatBytes(stats.blockIO.read)}</span>
-              </span>
-              <span className={styles.ioStat}>
-                <span className={styles.ioDir}>Write</span>
-                <span className={styles.ioValue}>{formatBytes(stats.blockIO.write)}</span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {stats.pids > 0 && (
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
-              <span className={styles.metricCardTitle}>PIDs</span>
-              <span className={styles.metricCardDim}>{stats.pids}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ── Tab: Web Analytics ────────────────────────────────────────────
 
@@ -610,12 +588,11 @@ function WebAnalyticsTab({ service }) {
 // ── Main Expanded Panel ───────────────────────────────────────────
 
 export default function ExpandedProjectPanel({ service, stats }) {
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState("project");
 
   // Filter tabs: only show web-analytics if property exists
   const visibleTabs = TABS.filter((tab) => {
     if (tab.id === "web-analytics" && !service.analyticsPropertyId) return false;
-    if (tab.id === "metrics" && !stats) return false;
     return true;
   });
 
@@ -640,9 +617,9 @@ export default function ExpandedProjectPanel({ service, stats }) {
 
       {/* ── Tab Content ── */}
       <div className={styles.tabContent}>
-        {activeTab === "details" && <ContainerDetailsTab service={service} stats={stats} />}
+        {activeTab === "project" && <ProjectTab service={service} />}
+        {activeTab === "container" && <ContainerTab service={service} stats={stats} />}
         {activeTab === "topology" && <TopologyTab service={service} />}
-        {activeTab === "metrics" && <MetricsTab stats={stats} />}
         {activeTab === "web-analytics" && <WebAnalyticsTab service={service} />}
       </div>
 

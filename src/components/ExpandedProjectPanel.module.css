@@ -143,73 +143,58 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Tab: Container Details
+   Tab: Project
    ══════════════════════════════════════════════════════════════════ */
 
-.detailsTab {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
-}
-
-@media (max-width: 900px) {
-  .detailsTab {
-    grid-template-columns: 1fr;
-  }
-}
-
-.detailsInfo {
+.projectTab {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* ── Quick Metrics Summary (right side of details) ─────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   Tab: Container
+   ══════════════════════════════════════════════════════════════════ */
 
-.detailsMetricsSummary {
+.containerTab {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .containerTab {
+    grid-template-columns: 1fr;
+  }
+}
+
+.containerInfo {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.containerMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.containerMetricsEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 10px 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
-  min-width: 180px;
-  max-width: 220px;
 }
 
-.miniMetric {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
 
-.miniMetricIcon {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.miniMetricLabel {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-
-.miniMetricValue {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.miniMetricDim {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  font-weight: 400;
-}
 
 /* ══════════════════════════════════════════════════════════════════
    Tab: Topology
@@ -322,14 +307,8 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   Tab: Metrics
+   Container Metrics (inside Container tab)
    ══════════════════════════════════════════════════════════════════ */
-
-.metricsTab {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
 
 .metricCard {
   display: flex;
