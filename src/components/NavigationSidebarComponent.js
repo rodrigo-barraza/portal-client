@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { NavigationSidebarComponent as LibrarySidebar, useTheme } from "@rodrigo-barraza/components-library";
-import { NAV_ITEMS } from "../constants";
+import { NAV_SECTIONS } from "../constants";
 
 export default function NavigationSidebarComponent() {
   const pathname = usePathname();
@@ -16,7 +16,7 @@ export default function NavigationSidebarComponent() {
     <LibrarySidebar
       brandIcon="/brand-icon.png"
       brandLabel="Portal"
-      items={NAV_ITEMS}
+      sections={NAV_SECTIONS}
       activeItem={pathname}
       theme={currentTheme}
       onToggleTheme={toggleTheme}
