@@ -23,8 +23,13 @@ function getIcon(svc) {
   return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
-// ── Tier labels ─────────────────────────────────────────────────
+// ── Tier labels & colors ────────────────────────────────────────
 const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
+const TIER_COLORS = [
+  { stroke: "rgba(168, 85, 247, 0.35)", fill: "rgba(168, 85, 247, 0.04)" }, // Tier 0 — purple (infrastructure)
+  { stroke: "rgba(59, 130, 246, 0.35)",  fill: "rgba(59, 130, 246, 0.04)" },  // Tier 1 — blue (services)
+  { stroke: "rgba(34, 197, 94, 0.35)",   fill: "rgba(34, 197, 94, 0.04)" },   // Tier 2 — green (clients)
+];
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services) {
@@ -56,7 +61,6 @@ function clusterSize(count) {
 function layoutNodes(layers) {
   const LABEL_H = 28; // height reserved for tier label above cluster
   const positions = {};
-  const clusterRects = []; // { x, y, w, h, tier }
 
   // Compute cluster sizes
   const sizes = layers.map((l) => clusterSize(l.length));
@@ -67,15 +71,10 @@ function layoutNodes(layers) {
   let curY = 0;
 
   layers.forEach((layer, li) => {
-    if (!layer.length) {
-      clusterRects.push(null);
-      return;
-    }
+    if (!layer.length) return;
     const { cols, w, h } = sizes[li];
     const clusterX = (maxW - w) / 2; // center-align cluster
     const clusterY = curY + LABEL_H;
-
-    clusterRects.push({ x: clusterX, y: clusterY, w, h, tier: li });
 
     layer.forEach((svc, si) => {
       const col = si % cols;
@@ -89,7 +88,7 @@ function layoutNodes(layers) {
     curY = clusterY + h + TIER_SPACING;
   });
 
-  return { positions, clusterRects };
+  return { positions };
 }
 
 // ── Collect edges ────────────────────────────────────────────────
@@ -168,7 +167,7 @@ export default function TopologyComponent() {
 
   // ── Computed layout ─────────────────────────────────────────
   const layers = useMemo(() => computeLayers(allServices), [allServices]);
-  const { positions: basePositions, clusterRects } = useMemo(() => layoutNodes(layers), [layers]);
+  const { positions: basePositions } = useMemo(() => layoutNodes(layers), [layers]);
   const edges = useMemo(() => collectEdges(allServices), [allServices]);
 
   // Merged positions (base + overrides from dragging)
@@ -179,6 +178,30 @@ export default function TopologyComponent() {
     }
     return merged;
   }, [basePositions, posOverrides]);
+
+  // Dynamic cluster rects — computed from actual node positions (follows dragging)
+  const dynamicClusterRects = useMemo(() => {
+    return layers.map((layer, li) => {
+      if (!layer.length) return null;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const svc of layer) {
+        const pos = positions[svc.id];
+        if (!pos) continue;
+        minX = Math.min(minX, pos.x);
+        minY = Math.min(minY, pos.y);
+        maxX = Math.max(maxX, pos.x + NODE_W);
+        maxY = Math.max(maxY, pos.y + NODE_H);
+      }
+      if (minX === Infinity) return null;
+      return {
+        x: minX - CLUSTER_PAD,
+        y: minY - CLUSTER_PAD,
+        w: maxX - minX + CLUSTER_PAD * 2,
+        h: maxY - minY + CLUSTER_PAD * 2,
+        tier: li,
+      };
+    });
+  }, [layers, positions]);
 
   const healthyCount = allServices.filter((s) => s.healthy).length;
 
@@ -445,8 +468,9 @@ export default function TopologyComponent() {
                 })}
 
                 {/* ── Cluster backgrounds + tier labels ── */}
-                {clusterRects.map((cr, li) => {
+                {dynamicClusterRects.map((cr, li) => {
                   if (!cr) return null;
+                  const tc = TIER_COLORS[li] || TIER_COLORS[0];
                   return (
                     <g key={`cluster-${li}`} className={selectedNode ? styles.tierLabelFaded : undefined}>
                       <rect
@@ -457,6 +481,7 @@ export default function TopologyComponent() {
                         rx={10}
                         ry={10}
                         className={styles.clusterRect}
+                        style={{ stroke: tc.stroke, fill: tc.fill }}
                       />
                       <text
                         x={cr.x + cr.w / 2}
