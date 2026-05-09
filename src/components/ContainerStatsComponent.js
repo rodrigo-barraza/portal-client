@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { Cpu, MemoryStick, Activity, Container } from "lucide-react";
+import { Cpu, MemoryStick, Container } from "lucide-react";
 import ApiService from "../services/ApiService";
 import styles from "./ContainerStatsComponent.module.css";
 
@@ -26,15 +26,23 @@ function formatPercent(pct) {
   return `${Math.round(pct)}%`;
 }
 
+function formatCompact(val, isMemory = false) {
+  if (isMemory) return formatBytes(val);
+  if (val < 0.01) return "0";
+  if (val < 1) return val.toFixed(2);
+  if (val < 10) return val.toFixed(1);
+  return Math.round(val).toString();
+}
+
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
 }
 
-// ── Sparkline (Canvas) ──────────────────────────────────────────
+// ── Enhanced Sparkline (Canvas) — auto-scaled with markers ──────
 
-function Sparkline({ data, color, fillColor, max, height = 24 }) {
+function Sparkline({ data, color, fillColor, max: hardMax, height = 32, isMemory = false }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -51,16 +59,54 @@ function Sparkline({ data, color, fillColor, max, height = 24 }) {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
 
-    const effectiveMax = max || Math.max(...data, 0.01);
-    const padding = 1;
-    const drawH = h - padding * 2;
-    const step = w / (MAX_SPARKLINE_POINTS - 1);
-    const startX = w - (data.length - 1) * step;
+    // ── Compute auto-scaled range ──────────────────────────
+    const dataMin = Math.min(...data);
+    const dataMax = Math.max(...data);
+    const dataRange = dataMax - dataMin;
 
+    // Use auto-scaling: pad the local range by 20% on each side
+    // so fluctuations are always visible. Fall back to hardMax
+    // only when all values are identical (flat line).
+    const MARKER_W = 30; // reserved width for Y-axis labels
+    const chartW = w - MARKER_W;
+    const paddingY = 4;
+    const drawH = h - paddingY * 2;
+
+    let yMin, yMax;
+    if (dataRange < 0.001) {
+      // Flat line — center it
+      yMin = Math.max(0, dataMin - 1);
+      yMax = dataMin + 1;
+    } else {
+      const rangePad = dataRange * 0.2;
+      yMin = Math.max(0, dataMin - rangePad);
+      yMax = dataMax + rangePad;
+      // If there's a hard max and data is close to it, cap there
+      if (hardMax && yMax > hardMax) yMax = hardMax;
+    }
+
+    const yRange = yMax - yMin || 1;
+    const toY = (val) => paddingY + drawH - ((val - yMin) / yRange) * drawH;
+    const step = chartW / (MAX_SPARKLINE_POINTS - 1);
+    const startX = MARKER_W + chartW - (data.length - 1) * step;
+
+    // ── Gridlines (2 horizontal references) ────────────────
+    const gridValues = [yMin + yRange * 0.25, yMin + yRange * 0.75];
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.lineWidth = 1;
+    for (const gv of gridValues) {
+      const gy = Math.round(toY(gv)) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(MARKER_W, gy);
+      ctx.lineTo(w, gy);
+      ctx.stroke();
+    }
+
+    // ── Draw line ──────────────────────────────────────────
     ctx.beginPath();
     for (let i = 0; i < data.length; i++) {
       const x = startX + i * step;
-      const y = padding + drawH - (data[i] / effectiveMax) * drawH;
+      const y = toY(data[i]);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
@@ -71,6 +117,7 @@ function Sparkline({ data, color, fillColor, max, height = 24 }) {
     ctx.lineCap = "round";
     ctx.stroke();
 
+    // ── Fill gradient ──────────────────────────────────────
     if (fillColor) {
       const lastX = startX + (data.length - 1) * step;
       ctx.lineTo(lastX, h);
@@ -82,7 +129,44 @@ function Sparkline({ data, color, fillColor, max, height = 24 }) {
       ctx.fillStyle = grad;
       ctx.fill();
     }
-  }, [data, color, fillColor, max, height]);
+
+    // ── Latest point dot ───────────────────────────────────
+    const lastIdx = data.length - 1;
+    const dotX = startX + lastIdx * step;
+    const dotY = toY(data[lastIdx]);
+
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    // Glow ring
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 4.5, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.35;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // ── Y-axis markers (min/max labels) ────────────────────
+    const computedStyle = getComputedStyle(canvas);
+    const fontFamily = computedStyle.fontFamily || "monospace";
+
+    ctx.font = `500 9px ${fontFamily}`;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+
+    // Max label (top)
+    const maxLabel = isMemory ? formatBytes(dataMax) : formatCompact(dataMax);
+    ctx.fillText(maxLabel, MARKER_W - 4, paddingY - 1);
+
+    // Min label (bottom)
+    ctx.textBaseline = "bottom";
+    const minLabel = isMemory ? formatBytes(dataMin) : formatCompact(dataMin);
+    ctx.fillText(minLabel, MARKER_W - 4, h - paddingY + 1);
+
+  }, [data, color, fillColor, hardMax, height, isMemory]);
 
   return (
     <canvas
@@ -254,10 +338,15 @@ export default function ContainerStatsComponent() {
                 <PercentBar percent={c.cpu.percent} color={cpuColor} />
               </div>
 
-              {/* CPU Sparkline */}
+              {/* CPU Sparkline — auto-scaled, no hardMax */}
               <div className={styles.cellSpark}>
                 {c.spark?.cpu?.length >= 2 ? (
-                  <Sparkline data={c.spark.cpu} color={cpuColor} fillColor={cpuFill} max={100} />
+                  <Sparkline
+                    data={c.spark.cpu}
+                    color={cpuColor}
+                    fillColor={cpuFill}
+                    height={32}
+                  />
                 ) : (
                   <span className={styles.noData}>—</span>
                 )}
@@ -276,14 +365,15 @@ export default function ContainerStatsComponent() {
                 <PercentBar percent={c.memory.percent} color={memColor} />
               </div>
 
-              {/* Memory Sparkline */}
+              {/* Memory Sparkline — auto-scaled with limit reference */}
               <div className={styles.cellSpark}>
                 {c.spark?.mem?.length >= 2 ? (
                   <Sparkline
                     data={c.spark.mem}
                     color={memColor}
                     fillColor={memFill}
-                    max={c.memory.limit}
+                    height={32}
+                    isMemory
                   />
                 ) : (
                   <span className={styles.noData}>—</span>

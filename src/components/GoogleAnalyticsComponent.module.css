@@ -537,3 +537,115 @@
   font-family: var(--font-mono);
   color: var(--danger);
 }
+
+/* ── Delta Badges ────────────────────────────────────────────── */
+
+.statCardValueRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deltaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.deltaUp {
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.deltaDown {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* ── Property Pills ──────────────────────────────────────────── */
+
+.propertyPills {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  padding: 2px;
+}
+
+.propertyPill {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-radius: var(--border-radius-sm);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.propertyPillActive {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ── Heatmap Grid ────────────────────────────────────────────── */
+
+.heatmapContainer {
+  display: grid;
+  grid-template-columns: 48px repeat(24, 1fr);
+  gap: 2px;
+  padding: 16px 18px;
+}
+
+.heatmapCorner {
+  display: block;
+}
+
+.heatmapColLabel {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1;
+  padding-bottom: 4px;
+}
+
+.heatmapRowLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+}
+
+.heatmapCell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  min-height: 16px;
+  transition: opacity var(--transition-fast);
+  cursor: default;
+
+  &:hover {
+    opacity: 0.8;
+    outline: 1px solid var(--border-subtle);
+  }
+}
+
+@media (max-width: 900px) {
+  .heatmapContainer {
+    overflow-x: auto;
+  }
+}

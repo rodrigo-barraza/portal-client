@@ -187,6 +187,12 @@ const LEVEL_CLASS = {
   debug: styles.levelDebug,
 };
 
+const LINE_LEVEL_CLASS = {
+  error: styles.logLineError,
+  warn: styles.logLineWarn,
+  success: styles.logLineSuccess,
+};
+
 /**
  * Parse a raw log line into { timestamp, content, level }.
  */
@@ -465,20 +471,22 @@ export default function LogsComponent() {
                 className={`${styles.terminalDot} ${connected ? styles.connected : ""}`}
               />
               {activeServiceName}
-              {connected && " — live"}
+              {connected && <span style={{ opacity: 0.5, marginLeft: 2 }}>live</span>}
             </div>
 
             <div className={styles.terminalActions}>
               <span className={styles.lineCount}>
-                {filteredLines.length.toLocaleString()} lines
+                {filteredLines.length.toLocaleString()}
               </span>
+
+              <span className={styles.separator} />
 
               {/* Search */}
               {showSearch && (
                 <SearchInputComponent
                   value={search}
                   onChange={setSearch}
-                  placeholder="Filter logs…"
+                  placeholder="Filter…"
                   autoFocus
                   className={styles.searchInput}
                 />
@@ -493,7 +501,7 @@ export default function LogsComponent() {
                 }}
                 title="Search (Ctrl+F)"
               >
-                {showSearch ? <X size={12} strokeWidth={2} /> : <Search size={12} strokeWidth={2} />}
+                {showSearch ? <X size={13} strokeWidth={1.8} /> : <Search size={13} strokeWidth={1.8} />}
               </button>
 
               <button
@@ -502,18 +510,20 @@ export default function LogsComponent() {
                 title={paused ? "Resume" : "Pause"}
               >
                 {paused ? (
-                  <Play size={12} strokeWidth={2} />
+                  <Play size={13} strokeWidth={1.8} />
                 ) : (
-                  <Pause size={12} strokeWidth={2} />
+                  <Pause size={13} strokeWidth={1.8} />
                 )}
               </button>
+
+              <span className={styles.separator} />
 
               <button
                 className={styles.terminalBtn}
                 onClick={scrollToBottom}
                 title="Scroll to bottom"
               >
-                <ArrowDown size={12} strokeWidth={2} />
+                <ArrowDown size={13} strokeWidth={1.8} />
               </button>
 
               <button
@@ -521,14 +531,14 @@ export default function LogsComponent() {
                 onClick={handleClear}
                 title="Clear"
               >
-                <Trash2 size={12} strokeWidth={2} />
+                <Trash2 size={13} strokeWidth={1.8} />
               </button>
             </div>
           </div>
 
           {/* Error banner */}
           {error && (
-            <div className={styles.errorState}>
+            <div className={styles.errorBanner}>
               ✕ {error}
             </div>
           )}
@@ -554,7 +564,7 @@ export default function LogsComponent() {
             )}
 
             {filteredLines.map((line, i) => (
-              <div key={i} className={styles.logLine}>
+              <div key={i} className={`${styles.logLine} ${LINE_LEVEL_CLASS[line.level] || ""}`}>
                 <span className={styles.lineNumber}>{i + 1}</span>
                 {line.timestamp && (
                   <span className={styles.lineTimestamp}>{line.timestamp}</span>
@@ -570,15 +580,15 @@ export default function LogsComponent() {
 
           {/* Paused indicator */}
           {paused && bufferedCount > 0 && (
-            <div className={styles.errorState} style={{ background: "var(--warning-subtle)", borderColor: "rgba(245, 158, 11, 0.15)", color: "var(--warning)" }}>
+            <div className={styles.pausedBanner}>
               ⏸ Paused — {bufferedCount} new lines buffered
             </div>
           )}
         </div>
       ) : (
         <div className={styles.emptyTerminal}>
-          <ScrollText size={48} strokeWidth={1} />
-          <span>Select a service above to start streaming logs</span>
+          <ScrollText size={40} strokeWidth={1} />
+          <span>Select a service to start streaming logs</span>
         </div>
       )}
     </div>

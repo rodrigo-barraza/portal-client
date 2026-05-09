@@ -481,6 +481,7 @@ export default function ServicesComponent() {
           ) : (
             <ServiceTableComponent
               services={filtered}
+              containerStats={containerStats}
               sortKey={sortKey}
               sortDir={sortDir}
               onSort={(key, dir) => {

@@ -296,4 +296,49 @@ export default class ApiService {
   static async getGATimeSeries(propertyId, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/timeseries?period=${period}`);
   }
+
+  /**
+   * Get channel grouping breakdown (Organic Search, Direct, Referral, etc.).
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAChannels(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/channels?period=${period}`);
+  }
+
+  /**
+   * Get landing page performance (entry points).
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGALandingPages(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/landing-pages?period=${period}`);
+  }
+
+  /**
+   * Get hourly traffic heatmap (day × hour matrix).
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAHeatmap(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/heatmap?period=${period}`);
+  }
+
+  /**
+   * Get new vs returning users breakdown.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGANewVsReturning(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/new-vs-returning?period=${period}`);
+  }
+
+  /**
+   * Get top events breakdown.
+   * @param {string} propertyId
+   * @param {string} [period="30d"]
+   */
+  static async getGAEvents(propertyId, period = "30d") {
+    return ApiService._request(`/google-analytics/${propertyId}/events?period=${period}`);
+  }
 }

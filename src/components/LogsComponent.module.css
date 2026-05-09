@@ -8,21 +8,21 @@
 
 .serviceList {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .serviceChip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
+  gap: 8px;
+  padding: 7px 14px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.01em;
   cursor: pointer;
@@ -31,27 +31,30 @@
     border-color var(--transition-fast),
     color var(--transition-fast),
     box-shadow var(--transition-fast);
+  user-select: none;
 }
 
 .serviceChip:hover {
-  background: var(--accent-subtle);
-  border-color: var(--accent-color);
+  background: var(--bg-tertiary);
+  border-color: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
 }
 
 .serviceChip.active {
   background: var(--accent-subtle);
-  border-color: var(--accent-color);
+  border-color: rgba(99, 102, 241, 0.25);
   color: var(--accent-color);
-  box-shadow: 0 0 0 1px var(--accent-glow);
 }
 
 .chipDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--text-muted);
-  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .serviceChip.active .chipDot {
@@ -61,30 +64,34 @@
 
 .chipDevice {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
+  opacity: 0.7;
 }
 
 /* ── Terminal Log Viewer ── */
 
 .terminal {
-  background: #0d0d12;
+  background: #09090e;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 240px);
+  height: calc(100dvh - 220px);
   min-height: 400px;
   animation: fadeIn var(--transition-normal) ease-out;
 }
+
+/* ── Terminal Header ── */
 
 .terminalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 0 14px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.015);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
@@ -93,50 +100,54 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   letter-spacing: 0.02em;
   font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .terminalDot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--text-muted);
-  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .terminalDot.connected {
   background: var(--success);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-  animation: dotPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.35);
+  animation: dotPulse 2.5s ease-in-out infinite;
 }
 
 @keyframes dotPulse {
-  0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.3); }
-  50% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); }
+  0%, 100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.25); }
+  50% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
 }
+
+/* ── Terminal Actions ── */
 
 .terminalActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 
 .terminalBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-color);
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--border-radius-sm);
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  font-family: var(--font-mono);
+  color: var(--text-muted);
   cursor: pointer;
   transition:
     background var(--transition-fast),
@@ -145,22 +156,33 @@
 }
 
 .terminalBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
 }
 
 .terminalBtn.active {
   background: var(--accent-subtle);
-  border-color: var(--accent-color);
+  border-color: rgba(99, 102, 241, 0.2);
   color: var(--accent-color);
 }
 
 .lineCount {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-weight: 400;
+  padding: 0 8px;
+  opacity: 0.7;
+}
+
+/* ── Separator ── */
+
+.separator {
+  width: 1px;
+  height: 14px;
+  background: var(--border-color);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 /* ── Log Body ── */
@@ -169,45 +191,77 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: auto;
-  padding: 12px 0;
+  padding: 6px 0;
   font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: 11.5px;
+  line-height: 1.6;
   scrollbar-width: thin;
 }
 
+/* ── Log Line ── */
+
 .logLine {
   display: flex;
-  padding: 0 16px;
+  padding: 0 14px;
   gap: 0;
   white-space: pre;
-  transition: background 80ms ease;
+  border-left: 2px solid transparent;
+  transition: background 60ms ease;
 }
 
 .logLine:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.018);
 }
+
+/* Level accent borders — subtle left-edge indicators */
+
+.logLineError {
+  border-left-color: rgba(248, 113, 113, 0.5);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.logLineWarn {
+  border-left-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.02);
+}
+
+.logLineSuccess {
+  border-left-color: rgba(52, 211, 153, 0.4);
+}
+
+/* ── Line Number Gutter ── */
 
 .lineNumber {
   flex-shrink: 0;
-  width: 48px;
+  width: 40px;
   text-align: right;
-  padding-right: 16px;
-  color: rgba(255, 255, 255, 0.12);
+  padding-right: 12px;
+  color: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
   user-select: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
-  margin-right: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  margin-right: 12px;
 }
+
+.logLine:hover .lineNumber {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Timestamp ── */
 
 .lineTimestamp {
   flex-shrink: 0;
   color: var(--text-muted);
-  margin-right: 12px;
+  margin-right: 10px;
+  opacity: 0.6;
+  font-size: 10.5px;
 }
+
+/* ── Content ── */
 
 .lineContent {
   flex: 1;
-  color: #d4d4d8;
+  color: #c8c8cd;
   word-break: break-all;
   white-space: pre-wrap;
 }
@@ -241,16 +295,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  height: calc(100dvh - 240px);
+  gap: 16px;
+  height: calc(100dvh - 220px);
   min-height: 400px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
   animation: fadeIn var(--transition-normal) ease-out;
 }
 
 .emptyTerminal svg {
-  opacity: 0.3;
+  opacity: 0.15;
+}
+
+.emptyTerminal span {
+  opacity: 0.6;
 }
 
 .connecting {
@@ -258,54 +316,70 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 24px;
-  color: var(--text-secondary);
-  font-size: 13px;
+  padding: 32px;
+  color: var(--text-tertiary);
+  font-size: 12px;
   font-family: var(--font-mono);
 }
 
 .connectingDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--accent-color);
-  animation: pulse 1.2s ease-in-out infinite;
+  animation: pulse 1.4s ease-in-out infinite;
 }
 
-.errorState {
+/* ── Error / Paused Banners ── */
+
+.errorBanner {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: var(--danger-subtle);
-  border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+  padding: 8px 14px;
+  background: rgba(239, 68, 68, 0.06);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.1);
   color: var(--danger);
-  font-size: 12px;
+  font-size: 11px;
   font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.pausedBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(245, 158, 11, 0.06);
+  border-top: 1px solid rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 
 /* ── Search ── */
 
 .searchInput {
-  height: 28px;
+  height: 26px;
   padding: 0 8px;
   font-size: 11px;
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
-  width: 160px;
+  width: 140px;
   transition:
     width var(--transition-fast),
     border-color var(--transition-fast);
 }
 
 .searchInput:focus {
-  width: 220px;
+  width: 200px;
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-glow);
+  box-shadow: 0 0 0 1px var(--accent-glow);
 }
 
 .highlight {
