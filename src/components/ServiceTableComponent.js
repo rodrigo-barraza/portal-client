@@ -138,7 +138,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
   return [
     {
       key: "name",
-      label: "Service",
+      label: "Project",
       sortable: true,
       render: (service) => {
         const isHealthy = service.healthy;
@@ -358,7 +358,7 @@ function ExpandedDetail({ service, stats }) {
       {/* ── Left Column: Info ── */}
       <div className={styles.expandedInfo}>
         <div className={styles.expandedSection}>
-          <h4 className={styles.expandedSectionTitle}>Service Details</h4>
+          <h4 className={styles.expandedSectionTitle}>Project Details</h4>
           <div className={styles.expandedGrid}>
             <div className={styles.expandedField}>
               <span className={styles.expandedLabel}>Status</span>
