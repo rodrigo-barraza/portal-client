@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  ArrowUp,
   BarChart3,
   Box,
   Cpu,
@@ -28,7 +27,7 @@ import {
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime, formatNumber } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_COLORS } from "../constants";
+import { SERVICE_TYPE_COLORS, SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ExpandedProjectPanel.module.css";
 
@@ -155,7 +154,7 @@ function ProjectTab({ service }) {
     <div className={styles.projectTab}>
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Identity</h4>
-        <div className={styles.fieldGrid}>
+        <div className={`${styles.fieldGrid} ${styles.fieldGridSingle}`}>
           {service.projectType && (() => {
             const colors = SERVICE_TYPE_COLORS[service.projectType];
             return (
@@ -411,14 +410,25 @@ function ContainerTab({ service, stats }) {
   );
 }
 
-// ── Tab: Topology ─────────────────────────────────────────────────
+// ── Mini topology constants ───────────────────────────────────────
+const MINI_NODE_W = 110;
+const MINI_NODE_H = 52;
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
 
-function TopologyTab({ service }) {
+function getIcon(svc) {
+  return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+}
+
+function miniEdgePath(x1, y1, x2, y2) {
+  const dy = Math.abs(y2 - y1);
+  const cp = Math.max(dy * 0.5, 30);
+  return `M ${x1} ${y1} C ${x1} ${y1 + cp}, ${x2} ${y2 - cp}, ${x2} ${y2}`;
+}
+
+function TopologyTab({ service, allServices }) {
   const deps = service.dependsOn || [];
-  const required = deps.filter((d) => d.criticality !== "optional");
-  const optional = deps.filter((d) => d.criticality === "optional");
 
-  if (deps.length === 0) {
+  if (deps.length === 0 && allServices.length === 0) {
     return (
       <div className={styles.emptyTab}>
         <Network size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
@@ -427,54 +437,154 @@ function TopologyTab({ service }) {
     );
   }
 
-  return (
-    <div className={styles.topologyTab}>
-      {/* Visual dependency graph */}
-      <div className={styles.topologyGraph}>
-        <div className={styles.topologyCenter}>
-          <div className={styles.topologyNode + " " + styles.topologyNodeSelf}>
-            {service.name}
-          </div>
-        </div>
-        <div className={styles.topologyArrows}>
-          {required.length > 0 && (
-            <div className={styles.topologyGroup}>
-              <span className={styles.topologyGroupLabel}>
-                <ArrowUp size={10} strokeWidth={2.4} />
-                Required
-              </span>
-              <div className={styles.topologyNodes}>
-                {required.map((dep, i) => (
-                  <div key={`req-${i}`} className={styles.topologyEdge}>
-                    <div className={styles.topologyConnector} />
-                    <div className={styles.topologyNode + " " + styles.topologyNodeRequired}>
-                      {dep.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {optional.length > 0 && (
-            <div className={styles.topologyGroup}>
-              <span className={styles.topologyGroupLabel + " " + styles.topologyGroupLabelOptional}>
-                <ArrowUp size={10} strokeWidth={2.4} />
-                Optional
-              </span>
-              <div className={styles.topologyNodes}>
-                {optional.map((dep, i) => (
-                  <div key={`opt-${i}`} className={styles.topologyEdge}>
-                    <div className={styles.topologyConnector + " " + styles.topologyConnectorOptional} />
-                    <div className={styles.topologyNode + " " + styles.topologyNodeOptional}>
-                      {dep.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+  // Build full edge list from all services
+  const allEdges = [];
+  const idSet = new Set(allServices.map((s) => s.id));
+  for (const svc of allServices) {
+    for (const dep of svc.dependsOn || []) {
+      const depId = typeof dep === "string" ? dep : dep.id;
+      const criticality = typeof dep === "string" ? "required" : dep.criticality || "required";
+      if (idSet.has(depId)) allEdges.push({ source: depId, target: svc.id, criticality });
+    }
+  }
+
+  // Walk upstream (full chain) + downstream (one level)
+  const upstream = new Map();
+  const downstream = new Map();
+  for (const e of allEdges) {
+    if (!upstream.has(e.target)) upstream.set(e.target, []);
+    upstream.get(e.target).push(e.source);
+    if (!downstream.has(e.source)) downstream.set(e.source, []);
+    downstream.get(e.source).push(e.target);
+  }
+
+  const connected = new Set([service.id]);
+  const queue = [service.id];
+  while (queue.length > 0) {
+    const id = queue.shift();
+    for (const dep of upstream.get(id) || []) {
+      if (!connected.has(dep)) { connected.add(dep); queue.push(dep); }
+    }
+  }
+  for (const child of downstream.get(service.id) || []) connected.add(child);
+
+  // Filter services and edges to connected subgraph
+  const graphServices = allServices.filter((s) => connected.has(s.id));
+  const graphEdges = allEdges.filter((e) => connected.has(e.source) && connected.has(e.target));
+
+  if (graphServices.length <= 1) {
+    return (
+      <div className={styles.emptyTab}>
+        <Network size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
+        <span>No connections found</span>
       </div>
+    );
+  }
+
+  // Layout by deployTier
+  const tiers = [[], [], []];
+  for (const svc of graphServices) {
+    const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
+    tiers[tier].push(svc);
+  }
+  for (const tier of tiers) tier.sort((a, b) => a.name.localeCompare(b.name));
+
+  const GAP_X = 20;
+  const GAP_Y = 72;
+  const LABEL_W = 120;
+  const positions = {};
+  const layerWidths = tiers.map((l) => l.length * (MINI_NODE_W + GAP_X) - GAP_X);
+  const maxW = Math.max(...layerWidths, 0);
+
+  let usedTierCount = 0;
+  tiers.forEach((layer, _li) => {
+    if (!layer.length) return;
+    const totalW = layer.length * (MINI_NODE_W + GAP_X) - GAP_X;
+    const offsetX = LABEL_W + (maxW - totalW) / 2;
+    layer.forEach((svc, si) => {
+      positions[svc.id] = {
+        x: offsetX + si * (MINI_NODE_W + GAP_X),
+        y: usedTierCount * (MINI_NODE_H + GAP_Y),
+      };
+    });
+    usedTierCount++;
+  });
+
+  const svgW = LABEL_W + maxW + 20;
+  const svgH = usedTierCount * (MINI_NODE_H + GAP_Y) - GAP_Y + 10;
+
+  // Map tier index to rendered row for label positioning
+  let tierRow = 0;
+  const tierYPositions = tiers.map((layer) => {
+    if (!layer.length) return null;
+    const y = tierRow * (MINI_NODE_H + GAP_Y) + MINI_NODE_H / 2;
+    tierRow++;
+    return y;
+  });
+
+  return (
+    <div className={styles.miniTopology}>
+      <svg viewBox={`0 0 ${svgW} ${svgH}`} className={styles.miniTopologySvg}>
+        <defs>
+          <linearGradient id="mini-prism-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="300">
+            <stop offset="0%" stopColor="#ff0000" />
+            <stop offset="16%" stopColor="#ff8800" />
+            <stop offset="33%" stopColor="#ffff00" />
+            <stop offset="50%" stopColor="#00ff88" />
+            <stop offset="66%" stopColor="#0088ff" />
+            <stop offset="83%" stopColor="#8800ff" />
+            <stop offset="100%" stopColor="#ff0088" />
+            <animateTransform attributeName="gradientTransform" type="rotate" from="0 150 150" to="360 150 150" dur="2s" repeatCount="indefinite" />
+          </linearGradient>
+        </defs>
+
+        {/* Edges */}
+        {graphEdges.map((edge, i) => {
+          const sp = positions[edge.source];
+          const tp = positions[edge.target];
+          if (!sp || !tp) return null;
+          const x1 = sp.x + MINI_NODE_W / 2;
+          const y1 = sp.y + MINI_NODE_H;
+          const x2 = tp.x + MINI_NODE_W / 2;
+          const y2 = tp.y;
+          const isOpt = edge.criticality === "optional";
+          const isSelfEdge = edge.source === service.id || edge.target === service.id;
+          const d = miniEdgePath(x1, y1, x2, y2);
+          return (
+            <g key={`${edge.source}-${edge.target}-${i}`} className={isSelfEdge ? styles.miniEdgeFlowing : ""}>
+              <path d={d} stroke={isSelfEdge ? "url(#mini-prism-gradient)" : "var(--border-color)"} strokeWidth={isSelfEdge ? 2 : 1.2} fill="none" strokeOpacity={isSelfEdge ? 0.9 : isOpt ? 0.25 : 0.4} strokeDasharray={isOpt && !isSelfEdge ? "4 3" : "none"} className={styles.miniEdgeLine} />
+            </g>
+          );
+        })}
+
+        {/* Tier labels */}
+        {tiers.map((layer, li) => {
+          if (!layer.length || tierYPositions[li] == null) return null;
+          return (
+            <text key={`tier-${li}`} x={0} y={tierYPositions[li]} className={styles.miniTierLabel} dominantBaseline="middle">
+              {TIER_LABELS[li] || `Tier ${li}`}
+            </text>
+          );
+        })}
+
+        {/* Nodes */}
+        {graphServices.map((svc) => {
+          const pos = positions[svc.id];
+          if (!pos) return null;
+          const Icon = getIcon(svc);
+          const isSelf = svc.id === service.id;
+          const typeClass = svc.isInfrastructure ? styles.miniNodeInfra : svc.visibility === "external" ? styles.miniNodeExternal : styles.miniNodeInternal;
+          return (
+            <foreignObject key={svc.id} x={pos.x} y={pos.y} width={MINI_NODE_W} height={MINI_NODE_H} style={{ overflow: "visible" }}>
+              <div className={`${styles.miniNodeCard} ${typeClass} ${isSelf ? styles.miniNodeSelf : ""}`}>
+                <div className={`${styles.miniStatusDot} ${svc.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`} />
+                <div className={styles.miniNodeIconWrap}><Icon size={14} strokeWidth={1.5} /></div>
+                <span className={styles.miniNodeName}>{svc.name}</span>
+              </div>
+            </foreignObject>
+          );
+        })}
+      </svg>
     </div>
   );
 }
@@ -587,7 +697,7 @@ function WebAnalyticsTab({ service }) {
 
 // ── Main Expanded Panel ───────────────────────────────────────────
 
-export default function ExpandedProjectPanel({ service, stats }) {
+export default function ExpandedProjectPanel({ service, stats, allServices = [] }) {
   const [activeTab, setActiveTab] = useState("project");
 
   // Filter tabs: only show web-analytics if property exists
@@ -619,7 +729,7 @@ export default function ExpandedProjectPanel({ service, stats }) {
       <div className={styles.tabContent}>
         {activeTab === "project" && <ProjectTab service={service} />}
         {activeTab === "container" && <ContainerTab service={service} stats={stats} />}
-        {activeTab === "topology" && <TopologyTab service={service} />}
+        {activeTab === "topology" && <TopologyTab service={service} allServices={allServices} />}
         {activeTab === "web-analytics" && <WebAnalyticsTab service={service} />}
       </div>
 

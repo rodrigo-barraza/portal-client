@@ -179,8 +179,8 @@ export default function ProjectsComponent() {
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
-      setServices(res.services || []);
-      setInfrastructure(res.infrastructure || []);
+      setServices((res.services || []).map((s) => ({ ...s, isInfrastructure: false })));
+      setInfrastructure((res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true })));
     } catch (err) {
       console.error("Services fetch failed:", err);
     } finally {
@@ -437,6 +437,7 @@ export default function ProjectsComponent() {
           ) : (
             <ProjectTableComponent
               services={filtered}
+              allServices={allItems}
               containerStats={containerStats}
               sortKey={sortKey}
               sortDir={sortDir}

@@ -241,6 +241,7 @@ function ActionCell({ service, onRestart, onStop, onStart }) {
 
 export default function ProjectTableComponent({
   services,
+  allServices = [],
   containerStats = {},
   sortKey,
   sortDir,
@@ -301,7 +302,7 @@ export default function ProjectTableComponent({
         width={640}
       >
         {selectedProject && (
-          <ExpandedProjectPanel service={selectedProject} stats={stats} />
+          <ExpandedProjectPanel service={selectedProject} stats={stats} allServices={allServices} />
         )}
       </DrawerComponent>
     </>

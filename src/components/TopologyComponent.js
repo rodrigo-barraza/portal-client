@@ -12,6 +12,11 @@ import styles from "./TopologyComponent.module.css";
 // ── Dimensions ───────────────────────────────────────────────────
 const NODE_W = 130;
 const NODE_H = 64;
+const MAX_COLS = 5;           // max nodes per row inside a cluster
+const CLUSTER_GAP_X = 32;    // horizontal gap between nodes inside a cluster
+const CLUSTER_GAP_Y = 16;    // vertical gap between rows inside a cluster
+const CLUSTER_PAD = 24;      // padding inside cluster rect
+const TIER_SPACING = 60;     // vertical gap between tier clusters
 
 // ── Icon resolver (by projectType) ──────────────────────────────
 function getIcon(svc) {
@@ -37,29 +42,54 @@ function computeLayers(services) {
   return tiers;
 }
 
-// ── Assign positions from layers ─────────────────────────────────
-function layoutNodes(layers) {
-  const GAP_X = 32;
-  const GAP_Y = 100;
-  const LABEL_INSET = 180; // horizontal space reserved for tier labels
-  const positions = {};
+// ── Compute cluster dimensions for a given layer ────────────────
+function clusterSize(count) {
+  if (count === 0) return { cols: 0, rows: 0, w: 0, h: 0 };
+  const cols = Math.min(count, MAX_COLS);
+  const rows = Math.ceil(count / cols);
+  const w = cols * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
+  const h = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
+  return { cols, rows, w, h };
+}
 
-  // Find widest layer for centering
-  const layerWidths = layers.map((l) => l.length * (NODE_W + GAP_X) - GAP_X);
-  const maxW = Math.max(...layerWidths);
+// ── Assign positions from layers (grid clusters) ─────────────────
+function layoutNodes(layers) {
+  const LABEL_H = 28; // height reserved for tier label above cluster
+  const positions = {};
+  const clusterRects = []; // { x, y, w, h, tier }
+
+  // Compute cluster sizes
+  const sizes = layers.map((l) => clusterSize(l.length));
+
+  // Find widest cluster for centering alignment
+  const maxW = Math.max(...sizes.map((s) => s.w), 0);
+
+  let curY = 0;
 
   layers.forEach((layer, li) => {
-    const totalW = layer.length * (NODE_W + GAP_X) - GAP_X;
-    const offsetX = LABEL_INSET + (maxW - totalW) / 2;
+    if (!layer.length) {
+      clusterRects.push(null);
+      return;
+    }
+    const { cols, w, h } = sizes[li];
+    const clusterX = (maxW - w) / 2; // center-align cluster
+    const clusterY = curY + LABEL_H;
+
+    clusterRects.push({ x: clusterX, y: clusterY, w, h, tier: li });
+
     layer.forEach((svc, si) => {
+      const col = si % cols;
+      const row = Math.floor(si / cols);
       positions[svc.id] = {
-        x: offsetX + si * (NODE_W + GAP_X),
-        y: li * (NODE_H + GAP_Y),
+        x: clusterX + CLUSTER_PAD + col * (NODE_W + CLUSTER_GAP_X),
+        y: clusterY + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
       };
     });
+
+    curY = clusterY + h + TIER_SPACING;
   });
 
-  return positions;
+  return { positions, clusterRects };
 }
 
 // ── Collect edges ────────────────────────────────────────────────
@@ -126,6 +156,8 @@ export default function TopologyComponent() {
     }
   }
 
+  const didCenterRef = useRef(false);
+
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
@@ -136,7 +168,7 @@ export default function TopologyComponent() {
 
   // ── Computed layout ─────────────────────────────────────────
   const layers = useMemo(() => computeLayers(allServices), [allServices]);
-  const basePositions = useMemo(() => layoutNodes(layers), [layers]);
+  const { positions: basePositions, clusterRects } = useMemo(() => layoutNodes(layers), [layers]);
   const edges = useMemo(() => collectEdges(allServices), [allServices]);
 
   // Merged positions (base + overrides from dragging)
@@ -273,7 +305,48 @@ export default function TopologyComponent() {
 
   const zoomIn = () => { const n = Math.min(3, zoom * 1.25); setZoom(n); zoomRef.current = n; };
   const zoomOut = () => { const n = Math.max(0.2, zoom * 0.8); setZoom(n); zoomRef.current = n; };
-  const zoomFit = () => { setPan({ x: 0, y: 0 }); setZoom(1); zoomRef.current = 1; };
+
+  // ── Center topology in viewport ─────────────────────────────
+  const centerOnContent = useCallback(() => {
+    const el = containerRef.current;
+    if (!el || allServices.length === 0) return;
+    const rect = el.getBoundingClientRect();
+    // compute bounding box of all nodes
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const pos of Object.values(basePositions)) {
+      minX = Math.min(minX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxX = Math.max(maxX, pos.x + NODE_W);
+      maxY = Math.max(maxY, pos.y + NODE_H);
+    }
+    if (minX === Infinity) return;
+    const contentW = maxX - minX;
+    const contentH = maxY - minY;
+    const padFraction = 0.08; // 8% padding on each side
+    const scaleX = rect.width * (1 - padFraction * 2) / contentW;
+    const scaleY = rect.height * (1 - padFraction * 2) / contentH;
+    const fitZoom = Math.min(scaleX, scaleY, 1.4); // cap so it doesn't zoom in too much
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    setPan({
+      x: rect.width / 2 - cx * fitZoom,
+      y: rect.height / 2 - cy * fitZoom,
+    });
+    setZoom(fitZoom);
+    zoomRef.current = fitZoom;
+  }, [basePositions, allServices]);
+
+  const zoomFit = () => { centerOnContent(); };
+
+  // Auto-center once data loads
+  useEffect(() => {
+    if (didCenterRef.current || allServices.length === 0) return;
+    // Wait one frame for the container to have dimensions
+    requestAnimationFrame(() => {
+      centerOnContent();
+      didCenterRef.current = true;
+    });
+  }, [allServices, centerOnContent]);
 
   // ── Tooltip ─────────────────────────────────────────────────
   const handleNodeEnter = useCallback((e, svc) => {
@@ -371,20 +444,30 @@ export default function TopologyComponent() {
                   );
                 })}
 
-                {/* ── Tier labels ── */}
-                {layers.map((layer, li) => {
-                  if (!layer.length) return null;
-                  const y = li * (NODE_H + 100) + NODE_H / 2;
+                {/* ── Cluster backgrounds + tier labels ── */}
+                {clusterRects.map((cr, li) => {
+                  if (!cr) return null;
                   return (
-                    <text
-                      key={`tier-label-${li}`}
-                      x={0}
-                      y={y}
-                      className={`${styles.tierLabel}${selectedNode ? ` ${styles.tierLabelFaded}` : ""}`}
-                      dominantBaseline="middle"
-                    >
-                      {TIER_LABELS[li] || `Tier ${li}`}
-                    </text>
+                    <g key={`cluster-${li}`} className={selectedNode ? styles.tierLabelFaded : undefined}>
+                      <rect
+                        x={cr.x}
+                        y={cr.y}
+                        width={cr.w}
+                        height={cr.h}
+                        rx={10}
+                        ry={10}
+                        className={styles.clusterRect}
+                      />
+                      <text
+                        x={cr.x + cr.w / 2}
+                        y={cr.y - 10}
+                        className={styles.tierLabel}
+                        textAnchor="middle"
+                        dominantBaseline="auto"
+                      >
+                        {TIER_LABELS[li] || `Tier ${li}`}
+                      </text>
+                    </g>
                   );
                 })}
 

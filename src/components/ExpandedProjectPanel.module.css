@@ -86,6 +86,10 @@
   gap: 6px 16px;
 }
 
+.fieldGridSingle {
+  grid-template-columns: 1fr;
+}
+
 .field {
   display: flex;
   align-items: center;
@@ -203,113 +207,123 @@
 
 
 /* ══════════════════════════════════════════════════════════════════
-   Tab: Topology
+   Tab: Topology (Mini SVG Graph)
    ══════════════════════════════════════════════════════════════════ */
 
-.topologyTab {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.topologyGraph {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-}
-
-.topologyCenter {
+.miniTopology {
   display: flex;
   justify-content: center;
+  padding: 8px 0;
 }
 
-.topologyNode {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 14px;
-  font-size: 12px;
+.miniTopologySvg {
+  width: 100%;
+  max-height: 380px;
+}
+
+/* ── Tier labels ── */
+
+.miniTierLabel {
+  font-size: 8px;
   font-weight: 600;
-  border-radius: var(--border-radius-sm);
-  white-space: nowrap;
-  transition: transform var(--transition-fast);
-}
-
-.topologyNodeSelf {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
-  border: 1.5px solid var(--text-muted);
-  font-size: 13px;
-  padding: 8px 18px;
-}
-
-.topologyNodeRequired {
-  color: #93c5fd;
-  background: rgba(96, 165, 250, 0.1);
-  border: 1px solid rgba(96, 165, 250, 0.2);
-}
-
-.topologyNodeOptional {
-  color: #fcd34d;
-  background: rgba(251, 191, 36, 0.08);
-  border: 1px solid rgba(251, 191, 36, 0.15);
-}
-
-.topologyArrows {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.topologyGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.topologyGroupLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
+  fill: var(--text-muted);
   letter-spacing: 0.04em;
-  color: #60a5fa;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
-.topologyGroupLabelOptional {
-  color: #fbbf24;
+/* ── Edges ── */
+
+.miniEdgeLine {
+  pointer-events: none;
+  transition: stroke-opacity 0.3s ease;
 }
 
-.topologyNodes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
+@keyframes miniEdgeFlow {
+  to { stroke-dashoffset: -24; }
 }
 
-.topologyEdge {
+.miniEdgeFlowing .miniEdgeLine {
+  stroke-dasharray: 8 6;
+  animation: miniEdgeFlow 0.6s linear infinite;
+}
+
+/* ── Node cards ── */
+
+.miniNodeCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  user-select: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.topologyConnector {
-  width: 1px;
-  height: 12px;
-  background: rgba(96, 165, 250, 0.3);
+.miniNodeInternal .miniNodeIconWrap { color: var(--success); }
+.miniNodeInternal { border-color: rgba(16, 185, 129, 0.1); }
+
+.miniNodeExternal .miniNodeIconWrap { color: #2dd4bf; }
+.miniNodeExternal { border-color: rgba(45, 212, 191, 0.1); }
+
+.miniNodeInfra .miniNodeIconWrap { color: #a855f7; }
+.miniNodeInfra { border-color: rgba(168, 85, 247, 0.1); }
+
+.miniNodeSelf {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
-.topologyConnectorOptional {
-  background: rgba(251, 191, 36, 0.25);
-  border-left: 1px dashed rgba(251, 191, 36, 0.4);
-  width: 0;
+.miniNodeIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniNodeName {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+/* ── Status dot ── */
+
+.miniStatusDot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.miniStatusHealthy {
+  background: var(--success);
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+}
+
+.miniStatusDown {
+  background: var(--danger);
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ══════════════════════════════════════════════════════════════════
