@@ -1,5 +1,5 @@
 import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
-import ServicesComponent from "@/components/ServicesComponent";
+import ProjectsComponent from "@/components/ProjectsComponent";
 
 export const metadata = {
   title: "Projects — Portal",
@@ -10,7 +10,7 @@ export default function ProjectsPage() {
     <div className="page-wrapper">
       <NavigationSidebarComponent />
       <main className="page-content">
-        <ServicesComponent />
+        <ProjectsComponent />
       </main>
     </div>
   );

@@ -6,9 +6,9 @@ import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiS
 import { getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
-import ServiceTableComponent from "./ServiceTableComponent";
+import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
-import styles from "./ServicesComponent.module.css";
+import styles from "./ProjectsComponent.module.css";
 
 // ── Static filter option definitions ─────────────────────────────
 const STATIC_FILTER_OPTIONS = {
@@ -106,7 +106,7 @@ function formatBytes(bytes) {
   return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
 }
 
-export default function ServicesComponent() {
+export default function ProjectsComponent() {
   const [services, setServices] = useState([]);
   const [infrastructure, setInfrastructure] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -283,8 +283,8 @@ export default function ServicesComponent() {
         title="Projects"
         subtitle={
           loading
-            ? "Checking service health…"
-            : `${healthyCount} of ${allItems.length} services healthy`
+            ? "Checking project health…"
+            : `${healthyCount} of ${allItems.length} projects healthy`
         }
       >
         <ButtonComponent
@@ -451,12 +451,12 @@ export default function ServicesComponent() {
       )}
 
       {loading ? (
-        <LoadingIndicatorComponent size="small" label="Polling services…" className="loading-center" />
+        <LoadingIndicatorComponent size="small" label="Polling projects…" className="loading-center" />
       ) : (
         <>
           {hasActiveFilter && (
             <div className={styles.filterSummary}>
-              Showing {filtered.length} of {allItems.length} services
+              Showing {filtered.length} of {allItems.length} projects
             </div>
           )}
 
@@ -474,12 +474,12 @@ export default function ServicesComponent() {
               ))}
               {filtered.length === 0 && (
                 <div className={styles.emptyState}>
-                  No services match the selected filters
+                  No projects match the selected filters
                 </div>
               )}
             </div>
           ) : (
-            <ServiceTableComponent
+            <ProjectTableComponent
               services={filtered}
               containerStats={containerStats}
               sortKey={sortKey}

@@ -30,7 +30,7 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatDuration, formatElapsedTime, getRootDomain, getSubdomain } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
-import styles from "./ServiceTableComponent.module.css";
+import styles from "./ProjectTableComponent.module.css";
 
 
 // ── Formatting helpers ─────────────────────────────────────────────
@@ -673,7 +673,7 @@ function ExpandedDetail({ service, stats }) {
   );
 }
 
-export default function ServiceTableComponent({
+export default function ProjectTableComponent({
   services,
   containerStats = {},
   sortKey,
@@ -704,7 +704,7 @@ export default function ServiceTableComponent({
   if (services.length === 0) {
     return (
       <div className={styles.emptyState}>
-        No services match the selected filters
+        No projects match the selected filters
       </div>
     );
   }
@@ -717,10 +717,10 @@ export default function ServiceTableComponent({
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={(key, dir) => onSort(key, dir)}
-      emptyText="No services match the selected filters"
+      emptyText="No projects match the selected filters"
       getRowClassName={getRowClassName}
       renderExpandedContent={renderExpandedContent}
-      storageKey="service-table"
+      storageKey="project-table"
     />
   );
 }
