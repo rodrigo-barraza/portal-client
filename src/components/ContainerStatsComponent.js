@@ -6,9 +6,9 @@ import {
   Container,
   Cpu,
   Globe,
-  HardDrive,
   Lock,
   MemoryStick,
+  Network,
   Play,
   RotateCcw,
   ScrollText,
@@ -351,7 +351,7 @@ export default function ContainerStatsComponent() {
     }
   }, []);
 
-  // Fetch system info for summary cards
+  // Fetch system info for container count breakdown
   const fetchSystemInfo = useCallback(async () => {
     try {
       const res = await ApiService.getSystemInfo().catch(() => null);
@@ -404,13 +404,17 @@ export default function ContainerStatsComponent() {
   const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart });
   const healthyCount = containerRows.filter((r) => r.healthy).length;
 
-  // ── Infrastructure summary computed values ─────────────────────
+  // ── Container-centric summary computed values ──────────────────
   const allStats = Object.values(containerStats);
+  const avgCpuUsage = allStats.length > 0
+    ? allStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0) / allStats.length
+    : 0;
   const totalCpuUsage = allStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
   const totalMemUsed = allStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
-  const totalMemLimit = systemInfo?.totalMemory || (allStats.length > 0 ? allStats[0]?.memory?.limit || 0 : 0);
+  const totalMemLimit = allStats.reduce((sum, c) => sum + (c.memory?.limit || 0), 0);
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
-  const hostDisk = systemInfo?.hostDisk;
+  const totalNetRx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
+  const totalNetTx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
 
   const getRowClassName = (row) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
@@ -454,9 +458,9 @@ export default function ContainerStatsComponent() {
               <Cpu size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{systemInfo?.cpus || "—"}</span>
-              <span className={styles.statCardLabel}>Total Cores</span>
-              <span className={styles.statCardSub}>{totalCpuUsage.toFixed(1)}% aggregate usage</span>
+              <span className={styles.statCardValue} style={{ color: severityColor(avgCpuUsage) }}>{totalCpuUsage.toFixed(1)}%</span>
+              <span className={styles.statCardLabel}>CPU Usage</span>
+              <span className={styles.statCardSub}>{avgCpuUsage.toFixed(1)}% avg per container</span>
             </div>
           </div>
 
@@ -465,20 +469,20 @@ export default function ContainerStatsComponent() {
               <MemoryStick size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{totalMemLimit ? formatBytes(totalMemLimit) : "—"}</span>
-              <span className={styles.statCardLabel}>Total Memory</span>
-              <span className={styles.statCardSub}>{totalMemLimit ? `${formatBytes(totalMemUsed)} used · ${memPercent.toFixed(1)}%` : "Loading…"}</span>
+              <span className={styles.statCardValue} style={{ color: severityColor(memPercent, [60, 85]) }}>{formatBytes(totalMemUsed)}</span>
+              <span className={styles.statCardLabel}>Memory Used</span>
+              <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} allocated` : "—"}</span>
             </div>
           </div>
 
           <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
-              <HardDrive size={18} strokeWidth={2} />
+              <Network size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{hostDisk ? formatBytes(hostDisk.total) : "—"}</span>
-              <span className={styles.statCardLabel}>Total Storage</span>
-              <span className={styles.statCardSub}>{hostDisk ? `${formatBytes(hostDisk.used)} used · ${hostDisk.percent}%` : "Loading…"}</span>
+              <span className={styles.statCardValue}>{formatBytes(totalNetRx + totalNetTx)}</span>
+              <span className={styles.statCardLabel}>Network I/O</span>
+              <span className={styles.statCardSub}>↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx</span>
             </div>
           </div>
         </div>
