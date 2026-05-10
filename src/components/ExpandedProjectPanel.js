@@ -5,7 +5,7 @@ import {
   BarChart3,
   Box,
   Cpu,
-  Github,
+  GitFork,
   Globe,
   Lock,
   MemoryStick,
@@ -126,7 +126,7 @@ function PercentBar({ percent, color }) {
 // ── Tab definitions ───────────────────────────────────────────────
 
 const TABS = [
-  { id: "project", label: "Project", icon: Github },
+  { id: "project", label: "Project", icon: GitFork },
   { id: "container", label: "Container", icon: Box },
   { id: "topology", label: "Topology", icon: Network },
   { id: "web-analytics", label: "Web Analytics", icon: TrendingUp },
@@ -173,7 +173,7 @@ function ProjectTab({ service }) {
           {service.repo && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Repository</span>
-              <RepositoryBadgeComponent repo={service.repo} icons={{ Github }} />
+              <RepositoryBadgeComponent repo={service.repo} icons={{ Github: GitFork }} />
             </div>
           )}
           {service.domain && (

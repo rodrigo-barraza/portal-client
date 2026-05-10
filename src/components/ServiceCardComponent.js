@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUp, Cpu, Github, Globe, Lock, MemoryStick, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import { ArrowUp, Cpu, GitFork, Globe, Lock, MemoryStick, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
 import {
   AddressBadgeComponent,
   BadgeComponent,
@@ -412,7 +412,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         {service.repo && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Repository</span>
-            <RepositoryBadgeComponent repo={service.repo} icons={{ Github }} />
+            <RepositoryBadgeComponent repo={service.repo} icons={{ Github: GitFork }} />
           </div>
         )}
 
