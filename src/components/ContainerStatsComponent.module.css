@@ -300,6 +300,68 @@
   font-size: 14px;
 }
 
+/* ── Device Filter Pills ── */
+
+.deviceFilter {
+  display: flex;
+  gap: 6px;
+  padding: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  width: fit-content;
+}
+
+.devicePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: calc(var(--border-radius-sm) - 2px);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+  white-space: nowrap;
+  text-transform: capitalize;
+
+  &:hover:not(.devicePillActive) {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+}
+
+.devicePillActive {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  font-weight: 600;
+}
+
+.devicePillCount {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.devicePillActive .devicePillCount {
+  color: var(--text-secondary);
+  background: rgba(99, 102, 241, 0.12);
+}
+
 /* ── Animations ── */
 
 @keyframes spin {

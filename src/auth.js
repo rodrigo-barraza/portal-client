@@ -19,11 +19,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
-/**
- * Auth is enabled only when Google OAuth credentials are present.
- * TEMPORARILY DISABLED — hardcoded to false to bypass SSO.
- * To re-enable, restore: !!(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)
- */
+/** Auth is disabled — set to `!!(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)` to enable. */
 export const AUTH_ENABLED = false;
 
 /**

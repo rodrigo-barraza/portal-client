@@ -109,24 +109,30 @@ export default class ApiService {
 
   /**
    * Get Docker container resource usage (CPU, memory, network, block I/O).
+   * @param {string} [deviceId] - Optional device filter
    */
-  static async getContainerStats() {
-    return ApiService._request("/stats/containers");
+  static async getContainerStats(deviceId) {
+    const qs = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/containers${qs}`);
   }
 
   /**
-   * Get time-series container stats history (last 5 minutes, 5s intervals).
-   * Used for live sparkline charts.
+   * Get time-series container stats history.
+   * Returns per-device history keyed by device ID.
+   * @param {string} [deviceId] - Optional device filter
    */
-  static async getContainerStatsHistory() {
-    return ApiService._request("/stats/containers/history");
+  static async getContainerStatsHistory(deviceId) {
+    const qs = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/containers/history${qs}`);
   }
 
   /**
    * Get Docker system info — disk usage breakdown (images, volumes, build cache).
+   * @param {string} [deviceId] - Optional device filter
    */
-  static async getSystemInfo() {
-    return ApiService._request("/stats/system");
+  static async getSystemInfo(deviceId) {
+    const qs = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/system${qs}`);
   }
 
   /**

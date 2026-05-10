@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -332,6 +332,7 @@ export default function ContainerStatsComponent() {
   const [systemInfo, setSystemInfo] = useState(null);
   const [containerStats, setContainerStats] = useState({});
   const [selectedContainer, setSelectedContainer] = useState(null);
+  const [activeDevice, setActiveDevice] = useState(null); // null = all hosts
   const didFetch = useRef(false);
 
   // Fetch container stats and project registry, then join them
@@ -353,18 +354,12 @@ export default function ContainerStatsComponent() {
         }
       }
 
-      // Build lookup: container name → Docker stats
-      const statsByName = {};
-      for (const c of containers) {
-        statsByName[c.name] = c;
-      }
-
       // Merge container data with project metadata + stats
       const rows = containers.map((c) => {
         const svc = projectByDocker[c.name] || null;
         return {
           // Container identity
-          id: svc?.id || c.name,
+          id: svc?.id || `${c.device || "unknown"}-${c.name}`,
           containerName: c.name,
           // Project registry fields
           healthy: svc?.healthy ?? (c.state === "running"),
@@ -373,7 +368,7 @@ export default function ContainerStatsComponent() {
           url: svc?.url || null,
           domain: svc?.domain || null,
           responseTimeMs: svc?.responseTimeMs ?? null,
-          device: svc?.device || null,
+          device: c.device || svc?.device || null,
           restartable: svc?.restartable ?? false,
           dockerProject: c.name,
           // Per-container Docker stats (for table columns + drawer)
@@ -478,30 +473,60 @@ export default function ContainerStatsComponent() {
     }
   };
 
+  // ── Derive unique device IDs for filter pills ─────────────────
+  const deviceIds = useMemo(() => {
+    const ids = new Set();
+    for (const row of containerRows) {
+      if (row.device) ids.add(row.device);
+    }
+    return [...ids].sort();
+  }, [containerRows]);
+
+  // ── Filter rows by active device ──────────────────────────────
+  const filteredRows = useMemo(() => {
+    if (!activeDevice) return containerRows;
+    return containerRows.filter((r) => r.device === activeDevice);
+  }, [containerRows, activeDevice]);
+
   const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart });
-  const healthyCount = containerRows.filter((r) => r.healthy).length;
+  const healthyCount = filteredRows.filter((r) => r.healthy).length;
 
   // ── Container-centric summary computed values ──────────────────
-  const allStats = Object.values(containerStats);
-  const avgCpuUsage = allStats.length > 0
-    ? allStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0) / allStats.length
+  const filteredStats = useMemo(() => {
+    if (!activeDevice) return Object.values(containerStats);
+    return filteredRows.map((r) => containerStats[r.containerName]).filter(Boolean);
+  }, [containerStats, activeDevice, filteredRows]);
+
+  const avgCpuUsage = filteredStats.length > 0
+    ? filteredStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0) / filteredStats.length
     : 0;
-  const totalCpuUsage = allStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
-  const totalMemUsed = allStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
-  const totalMemLimit = allStats.reduce((sum, c) => sum + (c.memory?.limit || 0), 0);
+  const totalCpuUsage = filteredStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
+  const totalMemUsed = filteredStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
+  const totalMemLimit = filteredStats.reduce((sum, c) => sum + (c.memory?.limit || 0), 0);
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
-  const totalNetRx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
-  const totalNetTx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
-  const totalBlockRead = allStats.reduce((sum, c) => sum + (c.blockIO?.read || 0), 0);
-  const totalBlockWrite = allStats.reduce((sum, c) => sum + (c.blockIO?.write || 0), 0);
-  const totalPids = allStats.reduce((sum, c) => sum + (c.pids || 0), 0);
-  const avgPids = allStats.length > 0 ? Math.round(totalPids / allStats.length) : 0;
+  const totalNetRx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
+  const totalNetTx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
+  const totalBlockRead = filteredStats.reduce((sum, c) => sum + (c.blockIO?.read || 0), 0);
+  const totalBlockWrite = filteredStats.reduce((sum, c) => sum + (c.blockIO?.write || 0), 0);
+  const totalPids = filteredStats.reduce((sum, c) => sum + (c.pids || 0), 0);
+  const avgPids = filteredStats.length > 0 ? Math.round(totalPids / filteredStats.length) : 0;
 
   const getRowClassName = (row) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
 
   // Build full stats object for drawer
   const selectedStats = selectedContainer?._stats || null;
+
+  // Derive per-device container counts for the pill labels
+  const deviceContainerCounts = useMemo(() => {
+    const counts = {};
+    for (const row of containerRows) {
+      if (row.device) {
+        counts[row.device] = (counts[row.device] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [containerRows]);
 
   if (loading) {
     return (
@@ -515,8 +540,31 @@ export default function ContainerStatsComponent() {
     <div className={styles.section}>
       <PageHeaderComponent sticky={false}
         title="Containers"
-        subtitle={`${healthyCount} of ${containerRows.length} containers healthy · polling every 5s`}
+        subtitle={`${healthyCount} of ${filteredRows.length} containers healthy · polling every 5s`}
       />
+
+      {/* ── Device Filter Pills ────────────────────────────────────── */}
+      {deviceIds.length > 1 && (
+        <div className={styles.deviceFilter}>
+          <button
+            className={`${styles.devicePill} ${activeDevice === null ? styles.devicePillActive : ""}`}
+            onClick={() => setActiveDevice(null)}
+          >
+            All Hosts
+            <span className={styles.devicePillCount}>{containerRows.length}</span>
+          </button>
+          {deviceIds.map((deviceId) => (
+            <button
+              key={deviceId}
+              className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
+              onClick={() => setActiveDevice(activeDevice === deviceId ? null : deviceId)}
+            >
+              {deviceId}
+              <span className={styles.devicePillCount}>{deviceContainerCounts[deviceId] || 0}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Infrastructure Summary Cards ──────────────────────────── */}
       {!loading && (
@@ -526,10 +574,15 @@ export default function ContainerStatsComponent() {
               <Server size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{containerRows.length}</span>
+              <span className={styles.statCardValue}>{filteredRows.length}</span>
               <span className={styles.statCardLabel}>Containers</span>
               <span className={styles.statCardSub}>
-                {systemInfo ? `${systemInfo.containersRunning || 0} running · ${systemInfo.containersStopped || 0} stopped` : `${healthyCount} healthy`}
+                {activeDevice
+                  ? `${healthyCount} healthy on ${activeDevice}`
+                  : (systemInfo
+                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersRunning || 0), 0) : (systemInfo.containersRunning || 0)} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersStopped || 0), 0) : (systemInfo.containersStopped || 0)} stopped`
+                    : `${healthyCount} healthy`)
+                  }
               </span>
             </div>
           </div>
@@ -591,12 +644,12 @@ export default function ContainerStatsComponent() {
         </div>
       )}
 
-      {containerRows.length === 0 ? (
-        <div className={styles.emptyState}>No containers found</div>
+      {filteredRows.length === 0 ? (
+        <div className={styles.emptyState}>No containers found{activeDevice ? ` on ${activeDevice}` : ""}</div>
       ) : (
         <TableComponent
           columns={columns}
-          data={containerRows}
+          data={filteredRows}
           getRowKey={(row) => row.id}
           emptyText="No containers found"
           getRowClassName={getRowClassName}
@@ -611,6 +664,16 @@ export default function ContainerStatsComponent() {
         onClose={() => setSelectedContainer(null)}
         title={selectedContainer?.containerName || "Container Detail"}
         width={540}
+        headerActions={
+          selectedContainer?.restartable ? (
+            <ActionCell
+              service={selectedContainer}
+              onRestart={handleRestart}
+              onStop={handleStop}
+              onStart={handleStart}
+            />
+          ) : null
+        }
       >
         {selectedContainer && (
           <ContainerDetailPanel
@@ -622,3 +685,4 @@ export default function ContainerStatsComponent() {
     </div>
   );
 }
+
