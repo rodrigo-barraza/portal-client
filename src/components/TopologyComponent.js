@@ -5,7 +5,7 @@ import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS } from "../constants";
+import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./TopologyComponent.module.css";
 
@@ -502,10 +502,9 @@ export default function TopologyComponent() {
                   const isDragging = dragging?.nodeId === svc.id;
                   const isFaded = selectedNode && !connectedNodes.has(svc.id);
 
-                  const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
-                  const tc = tierColors[tier] || DEPLOY_TIER_COLORS[tier] || DEPLOY_TIER_COLORS[0];
+                  const ptc = SERVICE_TYPE_COLORS[svc.projectType] || SERVICE_TYPE_COLORS.Service;
                   const healthClass = svc.healthy ? styles.nodeHealthy : styles.nodeDown;
-                  const nodeColor = svc.healthy ? tc.color : undefined;
+                  const nodeColor = svc.healthy ? ptc.color : undefined;
 
                   return (
                     <foreignObject
@@ -523,9 +522,9 @@ export default function TopologyComponent() {
                         onMouseEnter={(e) => handleNodeEnter(e, svc)}
                         onMouseMove={handleNodeMove}
                         onMouseLeave={handleNodeLeave}
-                        style={svc.healthy ? { borderColor: `color-mix(in srgb, ${tc.color} 15%, transparent)` } : undefined}
+                        style={svc.healthy ? { borderColor: `color-mix(in srgb, ${ptc.color} 15%, transparent)` } : undefined}
                       >
-                        <div className={styles.nodeGlow} style={nodeColor ? { boxShadow: `0 0 20px ${tc.subtle}` } : undefined} />
+                        <div className={styles.nodeGlow} style={nodeColor ? { boxShadow: `0 0 20px ${ptc.subtle}` } : undefined} />
                         <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />
                         <div className={styles.nodeIconWrap} style={nodeColor ? { color: nodeColor } : undefined}><Icon size={18} strokeWidth={1.5} /></div>
                         <span className={styles.nodeName}>{svc.name}</span>
@@ -544,9 +543,9 @@ export default function TopologyComponent() {
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success-subtle)" }} /><span>Healthy</span></div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--danger)", boxShadow: "0 0 6px var(--danger-subtle)" }} /><span>Down</span></div>
             <div className={styles.legendSep} />
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[0] || DEPLOY_TIER_COLORS[0]).color, boxShadow: `0 0 6px ${(tierColors[0] || DEPLOY_TIER_COLORS[0]).subtle}` }} /><span>Tier 0</span></div>
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[1] || DEPLOY_TIER_COLORS[1]).color, boxShadow: `0 0 6px ${(tierColors[1] || DEPLOY_TIER_COLORS[1]).subtle}` }} /><span>Tier 1</span></div>
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: (tierColors[2] || DEPLOY_TIER_COLORS[2]).color, boxShadow: `0 0 6px ${(tierColors[2] || DEPLOY_TIER_COLORS[2]).subtle}` }} /><span>Tier 2</span></div>
+            {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => (
+              <div key={type} className={styles.legendItem}><div className={styles.legendDot} style={{ background: colors.color, boxShadow: `0 0 6px ${colors.subtle}` }} /><span>{type}</span></div>
+            ))}
             <div className={styles.legendSep} />
             <div className={styles.legendItem}><div className={styles.legendLine} /><span>Required</span></div>
             <div className={styles.legendItem}><div className={styles.legendLine} style={{ borderTopStyle: "dashed", opacity: 0.5 }} /><span>Optional</span></div>
