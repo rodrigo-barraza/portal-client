@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
-  RefreshCw, ZoomIn, ZoomOut, Maximize2,
+  RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -118,6 +118,11 @@ export default function TopologyComponent() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [tooltipData, setTooltipData] = useState(null);
 
+  // Search filter
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef(null);
+
   // Draggable node positions (overrides layout)
   const [posOverrides, setPosOverrides] = useState({});
 
@@ -201,6 +206,33 @@ export default function TopologyComponent() {
   }, [layers, positions]);
 
   const healthyCount = allServices.filter((s) => s.healthy).length;
+
+  // ── Search filtering ────────────────────────────────────────
+  const searchMatches = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return null; // null = no filter active
+    const matched = new Set();
+    for (const svc of allServices) {
+      const haystack = [svc.name, svc.device, svc.projectType, svc.environment, svc.url]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (haystack.includes(q)) matched.add(svc.id);
+    }
+    return matched;
+  }, [searchQuery, allServices]);
+
+  // Which tier clusters have at least one visible node under search
+  const searchVisibleTiers = useMemo(() => {
+    if (!searchMatches) return null;
+    const visible = new Set();
+    layers.forEach((layer, li) => {
+      for (const svc of layer) {
+        if (searchMatches.has(svc.id)) { visible.add(li); break; }
+      }
+    });
+    return visible;
+  }, [searchMatches, layers]);
 
   // ── Upstream dependency chain + immediate downstream from selected node ──
   const connectedNodes = useMemo(() => {
@@ -394,6 +426,29 @@ export default function TopologyComponent() {
             </p>
           </div>
           <div className={styles.headerActions}>
+            <div className={`${styles.searchWrapper}${searchFocused || searchQuery ? ` ${styles.searchExpanded}` : ""}`}>
+              <Search size={14} strokeWidth={2} className={styles.searchIcon} />
+              <input
+                ref={searchRef}
+                type="text"
+                className={styles.searchInput}
+                placeholder="Filter nodes…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); searchRef.current?.blur(); } }}
+              />
+              {searchQuery && (
+                <button
+                  className={styles.searchClear}
+                  onClick={() => { setSearchQuery(""); searchRef.current?.focus(); }}
+                  tabIndex={-1}
+                >
+                  <X size={12} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
             <ButtonComponent
               variant="secondary"
               icon={RefreshCw}
@@ -445,7 +500,9 @@ export default function TopologyComponent() {
                   const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
                   const isActive = isSelected || isHovered;
                   const isOptional = edge.criticality === "optional";
-                  const isFaded = selectedNode && !isSelected;
+                  const isFadedBySelection = selectedNode && !isSelected;
+                  const isFadedBySearch = searchMatches && (!searchMatches.has(edge.source) || !searchMatches.has(edge.target));
+                  const isFaded = isFadedBySelection || isFadedBySearch;
                   const d = edgePath(x1, y1, x2, y2);
 
                   return (
@@ -469,7 +526,7 @@ export default function TopologyComponent() {
                   if (!cr) return null;
                   const tc = tierColors[li] || DEPLOY_TIER_COLORS[li] || DEPLOY_TIER_COLORS[0];
                   return (
-                    <g key={`cluster-${li}`} className={selectedNode ? styles.tierLabelFaded : undefined}>
+                    <g key={`cluster-${li}`} className={(selectedNode ? styles.tierLabelFaded : "") + (searchVisibleTiers && !searchVisibleTiers.has(li) ? ` ${styles.tierLabelFaded}` : "") || undefined}>
                       <rect
                         x={cr.x}
                         y={cr.y}
@@ -500,7 +557,9 @@ export default function TopologyComponent() {
                   const Icon = getIcon(svc);
                   const isHov = hoveredNode === svc.id;
                   const isDragging = dragging?.nodeId === svc.id;
-                  const isFaded = selectedNode && !connectedNodes.has(svc.id);
+                  const isFadedBySelection = selectedNode && !connectedNodes.has(svc.id);
+                  const isFadedBySearch = searchMatches && !searchMatches.has(svc.id);
+                  const isFaded = isFadedBySelection || isFadedBySearch;
 
                   const ptc = SERVICE_TYPE_COLORS[svc.projectType] || SERVICE_TYPE_COLORS.Service;
                   const healthClass = svc.healthy ? styles.nodeHealthy : styles.nodeDown;
