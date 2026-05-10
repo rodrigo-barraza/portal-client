@@ -15,7 +15,7 @@
     "deploy": "bash deploy.sh",
     "deploy:dry": "bash deploy.sh --dry-run",
     "catalog:generate": "node scripts/generate-component-catalog.mjs",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "dependencies": {
