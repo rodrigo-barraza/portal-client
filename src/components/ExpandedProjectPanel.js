@@ -413,7 +413,7 @@ function ContainerTab({ service, stats }) {
 // ── Mini topology constants ───────────────────────────────────────
 const MINI_NODE_W = 110;
 const MINI_NODE_H = 52;
-const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients & Bots"];
 
 function getIcon(svc) {
   return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;

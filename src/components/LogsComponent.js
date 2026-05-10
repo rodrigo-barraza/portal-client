@@ -461,7 +461,7 @@ export default function LogsComponent() {
       {/* ── Service Chips ── */}
       <div className={styles.serviceList}>
         {(() => {
-          const TIER_LABELS = { 0: "Tier 0 — Infrastructure", 1: "Tier 1 — Core Services", 2: "Tier 2 — Applications" };
+          const TIER_LABELS = { 0: "Tier 0 — Foundation", 1: "Tier 1 — Services", 2: "Tier 2 — Clients & Bots" };
           const sorted = [...loggableServices].sort((a, b) => {
             const tierA = a.deployTier ?? 99;
             const tierB = b.deployTier ?? 99;

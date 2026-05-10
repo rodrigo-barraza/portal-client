@@ -24,7 +24,7 @@ function getIcon(svc) {
 }
 
 // ── Tier labels ─────────────────────────────────────────────────
-const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients"];
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients & Bots"];
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services) {
