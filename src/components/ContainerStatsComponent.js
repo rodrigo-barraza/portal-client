@@ -28,15 +28,12 @@ import {
   TableComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatDuration, getRootDomain } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatDuration, formatPercent, getRootDomain } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import ContainerDetailPanel from "./ContainerDetailPanel";
 import styles from "./ContainerStatsComponent.module.css";
 
 const POLL_INTERVAL = 5_000;
-
-// ── Byte Formatting ───────────────────────────────────────────────
-
 
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
