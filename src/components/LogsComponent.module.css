@@ -72,9 +72,26 @@
     box-shadow var(--transition-fast);
 }
 
+.chipDotHealthy {
+  background: #22c55e;
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.35);
+  animation: chipDotPulse 2.5s ease-in-out infinite;
+}
+
+.chipDotUnhealthy {
+  background: #ef4444;
+  box-shadow: 0 0 5px rgba(239, 68, 68, 0.35);
+}
+
 .serviceChip.active .chipDot {
   background: var(--accent-color);
   box-shadow: 0 0 6px var(--accent-glow);
+  animation: none;
+}
+
+@keyframes chipDotPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(34, 197, 94, 0.2); }
+  50% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
 }
 
 .chipDevice {

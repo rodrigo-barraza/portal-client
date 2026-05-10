@@ -208,6 +208,7 @@ function parseLine(raw) {
 
 export default function LogsComponent() {
   const [loggableServices, setLoggableServices] = useState([]);
+  const [healthMap, setHealthMap] = useState({});
   const [activeService, setActiveService] = useState(null);
   const [lines, setLines] = useState([]);
   const [connected, setConnected] = useState(false);
@@ -230,9 +231,20 @@ export default function LogsComponent() {
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
-    ApiService.getLoggableServices()
-      .then((res) => setLoggableServices(res.services || []))
-      .catch((err) => console.error("Failed to fetch loggable services:", err));
+
+    Promise.all([
+      ApiService.getLoggableServices(),
+      ApiService.getServices(),
+    ])
+      .then(([logsRes, svcRes]) => {
+        setLoggableServices(logsRes.services || []);
+        const map = {};
+        for (const s of [...(svcRes.services || []), ...(svcRes.infrastructure || [])]) {
+          map[s.id] = s.healthy;
+        }
+        setHealthMap(map);
+      })
+      .catch((err) => console.error("Failed to fetch services:", err));
   }, []);
 
   // ── Auto-scroll to bottom ────────────────────────────────────
@@ -469,13 +481,19 @@ export default function LogsComponent() {
               );
               lastTier = tier;
             }
+            const isHealthy = healthMap[svc.id];
+            const dotClass = [
+              styles.chipDot,
+              isHealthy === true ? styles.chipDotHealthy : isHealthy === false ? styles.chipDotUnhealthy : "",
+            ].filter(Boolean).join(" ");
+
             groups.push(
               <button
                 key={svc.id}
                 className={`${styles.serviceChip} ${activeService === svc.id ? styles.active : ""}`}
                 onClick={() => connectToService(svc.id)}
               >
-                <span className={styles.chipDot} />
+                <span className={dotClass} />
                 {svc.name}
                 <span className={styles.chipDevice}>{svc.deviceName}</span>
               </button>
