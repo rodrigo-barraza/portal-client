@@ -3,9 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
+  Activity,
+  Clock,
   Container,
   Cpu,
   Globe,
+  HardDrive,
   Lock,
   MemoryStick,
   Network,
@@ -184,6 +187,63 @@ function buildColumns({ onRestart, onStop, onStart }) {
       sortValue: (row) => row._stats?.memory?.used ?? -1,
     },
     {
+      key: "netio",
+      label: "Net I/O",
+      sortable: true,
+      render: (row) => {
+        const net = row._stats?.network;
+        if (!net || (net.rx === 0 && net.tx === 0)) return <span className={styles.dimText}>—</span>;
+        return (
+          <div className={styles.ioCell}>
+            <span className={styles.ioCompact}><span className={styles.ioArrow}>↓</span>{formatBytes(net.rx)}</span>
+            <span className={styles.ioCompact}><span className={styles.ioArrow}>↑</span>{formatBytes(net.tx)}</span>
+          </div>
+        );
+      },
+      sortValue: (row) => (row._stats?.network?.rx || 0) + (row._stats?.network?.tx || 0),
+    },
+    {
+      key: "blockio",
+      label: "Block I/O",
+      sortable: true,
+      render: (row) => {
+        const bio = row._stats?.blockIO;
+        if (!bio || (bio.read === 0 && bio.write === 0)) return <span className={styles.dimText}>—</span>;
+        return (
+          <div className={styles.ioCell}>
+            <span className={styles.ioCompact}><span className={styles.ioArrow}>R</span>{formatBytes(bio.read)}</span>
+            <span className={styles.ioCompact}><span className={styles.ioArrow}>W</span>{formatBytes(bio.write)}</span>
+          </div>
+        );
+      },
+      sortValue: (row) => (row._stats?.blockIO?.read || 0) + (row._stats?.blockIO?.write || 0),
+    },
+    {
+      key: "pids",
+      label: "PIDs",
+      sortable: true,
+      render: (row) => {
+        const pids = row._stats?.pids;
+        if (!pids) return <span className={styles.dimText}>—</span>;
+        return <span className={styles.metricValue}>{pids}</span>;
+      },
+      sortValue: (row) => row._stats?.pids ?? -1,
+    },
+    {
+      key: "uptime",
+      label: "Uptime",
+      sortable: true,
+      render: (row) => {
+        const status = row._stats?.status;
+        if (!status) return <span className={styles.dimText}>—</span>;
+        // Extract uptime from Docker status string like "Up 3 days (healthy)"
+        const uptimeMatch = status.match(/Up\s+(.*?)(?:\s*\(|$)/);
+        const uptime = uptimeMatch ? uptimeMatch[1].trim() : status;
+        return <span className={styles.uptimeText}>{uptime}</span>;
+      },
+      sortValue: (row) => row._stats?.created ?? Infinity,
+    },
+    {
       key: "visibility",
       label: "Visibility",
       sortable: true,
@@ -316,13 +376,24 @@ export default function ContainerStatsComponent() {
           device: svc?.device || null,
           restartable: svc?.restartable ?? false,
           dockerProject: c.name,
-          // Per-container Docker stats (for table columns)
+          // Per-container Docker stats (for table columns + drawer)
           _stats: {
             cpu: c.cpu,
+            cpuThrottling: c.cpuThrottling,
             memory: c.memory,
+            memoryDetail: c.memoryDetail,
             network: c.network,
             blockIO: c.blockIO,
             pids: c.pids,
+            // Container metadata
+            image: c.image,
+            state: c.state,
+            status: c.status,
+            created: c.created,
+            command: c.command,
+            ports: c.ports,
+            mounts: c.mounts,
+            labels: c.labels,
           },
         };
       });
@@ -335,7 +406,13 @@ export default function ContainerStatsComponent() {
       // Build stats map for summary cards
       const statsMap = {};
       for (const c of containers) {
-        statsMap[c.name] = { cpu: c.cpu, memory: c.memory };
+        statsMap[c.name] = {
+          cpu: c.cpu,
+          memory: c.memory,
+          network: c.network,
+          blockIO: c.blockIO,
+          pids: c.pids,
+        };
       }
       setContainerStats(statsMap);
 
@@ -415,6 +492,10 @@ export default function ContainerStatsComponent() {
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
   const totalNetRx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
   const totalNetTx = containerRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
+  const totalBlockRead = allStats.reduce((sum, c) => sum + (c.blockIO?.read || 0), 0);
+  const totalBlockWrite = allStats.reduce((sum, c) => sum + (c.blockIO?.write || 0), 0);
+  const totalPids = allStats.reduce((sum, c) => sum + (c.pids || 0), 0);
+  const avgPids = allStats.length > 0 ? Math.round(totalPids / allStats.length) : 0;
 
   const getRowClassName = (row) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
@@ -483,6 +564,28 @@ export default function ContainerStatsComponent() {
               <span className={styles.statCardValue}>{formatBytes(totalNetRx + totalNetTx)}</span>
               <span className={styles.statCardLabel}>Network I/O</span>
               <span className={styles.statCardSub}>↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#f59e0b", background: "rgba(245,158,11,0.08)" }}>
+              <HardDrive size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{formatBytes(totalBlockRead + totalBlockWrite)}</span>
+              <span className={styles.statCardLabel}>Block I/O</span>
+              <span className={styles.statCardSub}>R {formatBytes(totalBlockRead)} · W {formatBytes(totalBlockWrite)}</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#14b8a6", background: "rgba(20,184,166,0.08)" }}>
+              <Activity size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{totalPids.toLocaleString()}</span>
+              <span className={styles.statCardLabel}>Processes</span>
+              <span className={styles.statCardSub}>{avgPids} avg per container</span>
             </div>
           </div>
         </div>
