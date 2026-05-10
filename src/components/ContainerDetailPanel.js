@@ -18,26 +18,13 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatDuration } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import styles from "./ContainerDetailPanel.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
 
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
-}
 
-function formatPercent(pct) {
-  if (pct < 0.01) return "0%";
-  if (pct < 1) return `${pct.toFixed(2)}%`;
-  if (pct < 10) return `${pct.toFixed(1)}%`;
-  return `${Math.round(pct)}%`;
-}
 
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
@@ -205,7 +192,7 @@ export default function ContainerDetailPanel({ container, stats }) {
               <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
               <span className={styles.metricCardTitle}>CPU</span>
               <span className={styles.metricCardValue} style={{ color: severityColor(stats.cpu.percent) }}>
-                {formatPercent(stats.cpu.percent)}
+                {formatPercent(stats.cpu.percent, "adaptive")}
               </span>
               <span className={styles.metricCardDim}>
                 · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
@@ -232,7 +219,7 @@ export default function ContainerDetailPanel({ container, stats }) {
               </span>
               <span className={styles.metricCardDim}>/ {formatBytes(stats.memory.limit)}</span>
               <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
-                {formatPercent(stats.memory.percent)}
+                {formatPercent(stats.memory.percent, "adaptive")}
               </span>
             </div>
             <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />

@@ -17,7 +17,7 @@ import {
 import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
-import { formatDuration } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
 import styles from "./DevicesComponent.module.css";
 
 /**
@@ -38,26 +38,7 @@ const DEVICE_COLOR_MAP = {
   NAS: "var(--info)",
 };
 
-/**
- * Format bytes into human-readable units.
- */
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
-}
 
-/**
- * Format percentage with appropriate precision.
- */
-function formatPercent(pct) {
-  if (pct < 0.01) return "0%";
-  if (pct < 1) return `${pct.toFixed(2)}%`;
-  if (pct < 10) return `${pct.toFixed(1)}%`;
-  return `${Math.round(pct)}%`;
-}
 
 /**
  * Color by severity threshold for CPU/memory values.
@@ -279,15 +260,15 @@ function ServiceRow({ service, stats }) {
             <span
               className={styles.metricBadge}
               style={{ "--metric-color": severityColor(stats.cpu.percent) }}
-              title={`CPU: ${formatPercent(stats.cpu.percent)} · ${stats.cpu.cores} core${stats.cpu.cores !== 1 ? "s" : ""}`}
+              title={`CPU: ${formatPercent(stats.cpu.percent, "adaptive")} · ${stats.cpu.cores} core${stats.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
-              <span className={styles.metricValue}>{formatPercent(stats.cpu.percent)}</span>
+              <span className={styles.metricValue}>{formatPercent(stats.cpu.percent, "adaptive")}</span>
             </span>
             <span
               className={styles.metricBadge}
               style={{ "--metric-color": severityColor(stats.memory.percent, [60, 85]) }}
-              title={`RAM: ${formatBytes(stats.memory.used)} / ${formatBytes(stats.memory.limit)} (${formatPercent(stats.memory.percent)})`}
+              title={`RAM: ${formatBytes(stats.memory.used)} / ${formatBytes(stats.memory.limit)} (${formatPercent(stats.memory.percent, "adaptive")})`}
             >
               <MemoryStick size={10} strokeWidth={2.4} />
               <span className={styles.metricValue}>{formatBytes(stats.memory.used)}</span>

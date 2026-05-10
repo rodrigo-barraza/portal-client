@@ -6,7 +6,7 @@ import {
   PageHeaderComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatCostAdaptive } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatCostAdaptive } from "@rodrigo-barraza/utilities-library";
 import {
   Cpu,
   MemoryStick,
@@ -21,15 +21,6 @@ import {
 import ApiService from "../services/ApiService";
 import ContainerStatsComponent from "./ContainerStatsComponent";
 import styles from "./AnalyticsComponent.module.css";
-
-// ── Byte Formatting ───────────────────────────────────────────────
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const value = bytes / Math.pow(1024, i);
-  return `${value < 10 ? value.toFixed(2) : value < 100 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
-}
 
 // ── Donut Chart (SVG ring) ────────────────────────────────────────
 function DonutChart({ segments, size = 120, strokeWidth = 14 }) {

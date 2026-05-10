@@ -36,20 +36,7 @@ import styles from "./ContainerStatsComponent.module.css";
 const POLL_INTERVAL = 5_000;
 
 // ── Byte Formatting ───────────────────────────────────────────────
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(2) : val < 100 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
-}
 
-function formatPercent(pct) {
-  if (pct < 0.01) return "0%";
-  if (pct < 1) return `${pct.toFixed(2)}%`;
-  if (pct < 10) return `${pct.toFixed(1)}%`;
-  return `${Math.round(pct)}%`;
-}
 
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
@@ -175,7 +162,7 @@ function buildColumns({ onRestart, onStop, onStart }) {
         const color = severityColor(cpuPct);
         return (
           <div className={styles.metricCell}>
-            <span className={styles.metricValue} style={{ color }}>{formatPercent(cpuPct)}</span>
+            <span className={styles.metricValue} style={{ color }}>{formatPercent(cpuPct, "adaptive")}</span>
             <MiniBar percent={cpuPct} color={color} />
           </div>
         );

@@ -15,29 +15,14 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatDuration, formatElapsedTime } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatDuration, formatElapsedTime, formatPercent } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import styles from "./ServiceCardComponent.module.css";
 
 
+
 const MAX_SPARKLINE_POINTS = 60;
 
-/** Format bytes to human-readable. */
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const val = bytes / Math.pow(1024, i);
-  return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`;
-}
-
-/** Format percentage. */
-function formatPercent(pct) {
-  if (pct < 0.01) return "0%";
-  if (pct < 1) return `${pct.toFixed(2)}%`;
-  if (pct < 10) return `${pct.toFixed(1)}%`;
-  return `${Math.round(pct)}%`;
-}
 
 /** Severity color from percentage. */
 function severityColor(pct, thresholds = [40, 80]) {
@@ -220,7 +205,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                 <span className={styles.metricLabel}>CPU</span>
                 <span className={styles.metricValues}>
                   <span style={{ color: severityColor(containerStats.cpu.percent) }}>
-                    {formatPercent(containerStats.cpu.percent)}
+                    {formatPercent(containerStats.cpu.percent, "adaptive")}
                   </span>
                   <span className={styles.metricDim}>
                     · {containerStats.cpu.cores} core{containerStats.cpu.cores !== 1 ? "s" : ""}
@@ -251,7 +236,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                     / {formatBytes(containerStats.memory.limit)}
                   </span>
                   <span style={{ color: severityColor(containerStats.memory.percent, [60, 85]) }}>
-                    {formatPercent(containerStats.memory.percent)}
+                    {formatPercent(containerStats.memory.percent, "adaptive")}
                   </span>
                 </span>
               </div>
