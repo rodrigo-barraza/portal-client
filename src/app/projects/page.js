@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import ProjectsComponent from "@/components/ProjectsComponent";
 
 export const metadata = {
@@ -7,11 +7,8 @@ export const metadata = {
 
 export default function ProjectsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <ProjectsComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <ProjectsComponent />
+    </PageLayoutComponent>
   );
 }

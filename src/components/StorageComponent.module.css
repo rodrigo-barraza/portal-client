@@ -696,3 +696,28 @@
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-sm);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .bucketGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .breadcrumb {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+
+  .breadcrumb::-webkit-scrollbar {
+    display: none;
+  }
+
+  .objectName {
+    max-width: 180px;
+  }
+}

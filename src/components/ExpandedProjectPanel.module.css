@@ -567,3 +567,33 @@
   color: var(--danger);
   word-break: break-all;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    border-right: none;
+    z-index: 500;
+    animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}

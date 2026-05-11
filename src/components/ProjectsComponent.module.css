@@ -282,3 +282,37 @@
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-subtle);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .sortBar {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .sortGroup {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+  }
+
+  .sortGroupLabel {
+    display: none;
+  }
+
+  .barDivider {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .emptyState {
+    padding: 32px 16px;
+  }
+}
+

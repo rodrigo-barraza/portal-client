@@ -459,3 +459,28 @@
   display: block;
   border-radius: 2px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .actionRow {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .actionButton {
+    min-height: 36px;
+    padding: 6px 14px;
+  }
+
+  .connectionTags {
+    gap: 6px;
+  }
+}

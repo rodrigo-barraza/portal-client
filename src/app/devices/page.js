@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import DevicesComponent from "@/components/DevicesComponent";
 
 export const metadata = {
@@ -7,11 +7,8 @@ export const metadata = {
 
 export default function DevicesPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <DevicesComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <DevicesComponent />
+    </PageLayoutComponent>
   );
 }

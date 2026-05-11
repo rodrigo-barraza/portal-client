@@ -649,3 +649,22 @@
     overflow-x: auto;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive (extended)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .chartContainer {
+    min-height: 200px;
+  }
+
+  .filterBar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dateRange {
+    width: 100%;
+  }
+}

@@ -418,3 +418,72 @@
   background: rgba(251, 191, 36, 0.25);
   border-radius: 1px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .serviceList {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .serviceList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tierLabel {
+    display: none;
+  }
+
+  .serviceChip {
+    flex-shrink: 0;
+  }
+
+  .terminal {
+    height: calc(100dvh - 320px);
+    min-height: 300px;
+  }
+
+  .lineNumber {
+    display: none;
+  }
+
+  .lineTimestamp {
+    display: none;
+  }
+
+  .terminalBody {
+    font-size: 11px;
+  }
+
+  .logLine {
+    padding: 0 10px;
+  }
+
+  .searchInput {
+    width: 100px;
+  }
+
+  .searchInput:focus {
+    width: 140px;
+  }
+
+  .emptyTerminal {
+    height: calc(100dvh - 320px);
+    min-height: 300px;
+  }
+
+  .terminalTitle {
+    font-size: 10px;
+  }
+
+  .lineCount {
+    display: none;
+  }
+}
+

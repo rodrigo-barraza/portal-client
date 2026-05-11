@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import StorageComponent from "@/components/StorageComponent";
 
 export const metadata = {
@@ -7,11 +7,8 @@ export const metadata = {
 
 export default function ObjectStorePage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <StorageComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <StorageComponent />
+    </PageLayoutComponent>
   );
 }

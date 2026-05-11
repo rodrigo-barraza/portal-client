@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import IntegrationsComponent from "@/components/IntegrationsComponent";
 
 export const metadata = {
@@ -7,11 +7,8 @@ export const metadata = {
 
 export default function IntegrationsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <IntegrationsComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <IntegrationsComponent />
+    </PageLayoutComponent>
   );
 }

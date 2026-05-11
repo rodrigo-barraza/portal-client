@@ -445,3 +445,50 @@
   &:last-child { border-bottom: none; }
   &:hover { color: var(--text-primary); background: var(--bg-tertiary); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .detailPanel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100%;
+    max-height: 60vh;
+    border-radius: 12px 12px 0 0;
+    border-right: none;
+    border-bottom: none;
+    z-index: 500;
+    animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .legendItem {
+    font-size: 10px;
+  }
+}

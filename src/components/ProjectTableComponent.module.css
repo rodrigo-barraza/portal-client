@@ -201,3 +201,19 @@
 .spin {
   animation: spin 1s linear infinite;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .descriptionCell {
+    max-width: 160px;
+  }
+
+  .actionBtn {
+    width: 32px;
+    height: 32px;
+  }
+}
+

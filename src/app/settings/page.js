@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import SettingsComponent from "@/components/SettingsComponent";
 
 export const metadata = {
@@ -7,11 +7,8 @@ export const metadata = {
 
 export default function SettingsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <SettingsComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <SettingsComponent />
+    </PageLayoutComponent>
   );
 }

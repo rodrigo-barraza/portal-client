@@ -507,3 +507,29 @@
   border-radius: var(--border-radius-sm);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .previewArea {
+    min-height: 200px;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    max-height: 240px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .layout {
+    flex-direction: column;
+  }
+}

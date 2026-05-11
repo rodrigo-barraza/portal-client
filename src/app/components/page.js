@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import ComponentsComponent from "@/components/ComponentsComponent";
 import catalog from "@/generated/component-catalog.json";
 
@@ -12,11 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default function ComponentsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <ComponentsComponent catalog={catalog} />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <ComponentsComponent catalog={catalog} />
+    </PageLayoutComponent>
   );
 }

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import LogsComponent from "@/components/LogsComponent";
 
 export const metadata = {
@@ -8,13 +8,10 @@ export const metadata = {
 
 export default function LogsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <Suspense>
-          <LogsComponent />
-        </Suspense>
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <Suspense>
+        <LogsComponent />
+      </Suspense>
+    </PageLayoutComponent>
   );
 }

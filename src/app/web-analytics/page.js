@@ -1,4 +1,4 @@
-import NavigationSidebarComponent from "@/components/NavigationSidebarComponent";
+import PageLayoutComponent from "@/components/PageLayoutComponent";
 import GoogleAnalyticsComponent from "@/components/GoogleAnalyticsComponent";
 
 export const metadata = {
@@ -8,11 +8,8 @@ export const metadata = {
 
 export default function WebAnalyticsPage() {
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent />
-      <main className="page-content">
-        <GoogleAnalyticsComponent />
-      </main>
-    </div>
+    <PageLayoutComponent>
+      <GoogleAnalyticsComponent />
+    </PageLayoutComponent>
   );
 }

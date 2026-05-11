@@ -338,3 +338,40 @@ a:hover {
   --portal-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
   --portal-gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive — Global Overrides
+   Breakpoints: 768px (mobile), 1024px (tablet)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .page-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .page-wrapper {
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .page-content {
+    padding: 16px;
+    overflow: visible;
+    flex: 1;
+  }
+
+  .loading-center {
+    min-height: 140px;
+  }
+}
+

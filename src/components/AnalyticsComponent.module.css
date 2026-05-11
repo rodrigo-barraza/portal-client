@@ -385,3 +385,33 @@
   font-family: var(--font-mono);
   color: var(--danger);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile Responsive
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .periodTabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+
+  .periodTabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .periodTab {
+    flex-shrink: 0;
+  }
+
+  .storagePanelBody {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .donut {
+    align-self: center;
+  }
+}
