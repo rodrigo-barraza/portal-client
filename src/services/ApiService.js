@@ -83,6 +83,14 @@ export default class ApiService {
     return ApiService._request(`/services/${serviceId}/start`, { method: "POST" });
   }
 
+  /**
+   * Get GitHub repository sizes for all projects.
+   * @returns {Promise<{ sizes: Record<string, { sizeKB: number, sizeBytes: number }> }>}
+   */
+  static async getProjectSizes() {
+    return ApiService._request("/services/sizes");
+  }
+
   // ── Stats ─────────────────────────────────────────────────────
 
   /**

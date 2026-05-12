@@ -7,6 +7,7 @@ import {
   Database,
   Container,
   GitBranch,
+  HardDrive,
   Link2,
 } from "lucide-react";
 import {
@@ -15,6 +16,7 @@ import {
   DrawerComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
+import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ExpandedProjectPanel from "./ExpandedProjectPanel";
 import styles from "./ProjectTableComponent.module.css";
@@ -26,7 +28,7 @@ import styles from "./ProjectTableComponent.module.css";
  * Column definitions for the centralized TableComponent.
  * Each column maps to a field on the service status object.
  */
-function buildColumns() {
+function buildColumns(projectSizes = {}) {
   return [
     {
       key: "name",
@@ -189,6 +191,23 @@ function buildColumns() {
       },
       sortValue: (row) => (row.dockerProject ? 1 : 0),
     },
+    {
+      key: "size",
+      label: "Size",
+      sortable: true,
+      description: "GitHub repository size",
+      render: (service) => {
+        const sizeData = projectSizes[service.id];
+        if (!sizeData) return <span className={styles.mutedCell}>—</span>;
+        return (
+          <BadgeComponent variant="info">
+            <HardDrive size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            {formatBytes(sizeData.sizeBytes)}
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => projectSizes[row.id]?.sizeBytes ?? 0,
+    },
   ];
 }
 
@@ -198,6 +217,7 @@ function buildColumns() {
 export default function ProjectTableComponent({
   services,
   allServices = [],
+  projectSizes = {},
   containerStats = {},
   sortKey,
   sortDir,
@@ -206,8 +226,8 @@ export default function ProjectTableComponent({
   const [selectedProject, setSelectedProject] = useState(null);
 
   const columns = useCallback(
-    () => buildColumns(),
-    [],
+    () => buildColumns(projectSizes),
+    [projectSizes],
   )();
 
   const getRowClassName = useCallback(

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers } from "lucide-react";
+import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers, HardDrive } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
+import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
@@ -92,6 +93,7 @@ export default function ProjectsComponent() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [projectSizes, setProjectSizes] = useState({});
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
@@ -128,10 +130,20 @@ export default function ProjectsComponent() {
     }
   }
 
+  async function loadSizes() {
+    try {
+      const res = await ApiService.getProjectSizes();
+      setProjectSizes(res.sizes || {});
+    } catch (err) {
+      console.error("Project sizes fetch failed:", err);
+    }
+  }
+
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
     loadServices(true);
+    loadSizes();
   }, []);
 
   const handleRefresh = () => {
@@ -168,6 +180,7 @@ export default function ProjectsComponent() {
   const unhealthyCount = allItems.length - healthyCount;
   const uniqueDevices = [...new Set(allItems.map((s) => s.device).filter(Boolean))];
   const uniqueTypes = [...new Set(allItems.map((s) => s.projectType).filter(Boolean))];
+  const totalSizeBytes = Object.values(projectSizes).reduce((sum, s) => sum + (s.sizeBytes || 0), 0);
 
 
 
@@ -235,6 +248,17 @@ export default function ProjectsComponent() {
               <span className={styles.statCardValue}>{uniqueTypes.length}</span>
               <span className={styles.statCardLabel}>Types</span>
               <span className={styles.statCardSub}>{uniqueTypes.join(" · ") || "No types"}</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={styles.statCardIcon} style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}>
+              <HardDrive size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>{totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}</span>
+              <span className={styles.statCardLabel}>Total Code</span>
+              <span className={styles.statCardSub}>{Object.keys(projectSizes).length} repos measured</span>
             </div>
           </div>
         </div>
@@ -335,6 +359,7 @@ export default function ProjectsComponent() {
             <ProjectTableComponent
               services={filtered}
               allServices={allItems}
+              projectSizes={projectSizes}
               sortKey={sortKey}
               sortDir={sortDir}
               onSort={(key, dir) => {
