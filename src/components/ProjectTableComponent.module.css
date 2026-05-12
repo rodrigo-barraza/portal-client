@@ -34,6 +34,11 @@
   filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.4));
 }
 
+.iconNeutral {
+  color: #06b6d4;
+  filter: none;
+}
+
 /* ── Row health border ── */
 
 .rowHealthy {
@@ -42,6 +47,10 @@
 
 .rowUnhealthy {
   border-left: 3px solid var(--danger);
+}
+
+.rowNeutral {
+  border-left: 3px solid rgba(6, 182, 212, 0.4);
 }
 
 /* ── Description Cell ── */

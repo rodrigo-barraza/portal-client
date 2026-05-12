@@ -3,12 +3,15 @@
  */
 
 import {
+  BookOpen,
   Bot,
   Database,
   Globe,
   HardDrive,
   Monitor,
+  Rocket,
   Server,
+  Wrench,
 } from "lucide-react";
 
 // ── Navigation ──────────────────────────────────────────────────
@@ -69,6 +72,9 @@ export const SERVICE_TYPE_ICONS = {
   Bot: Bot,
   Database: Database,
   Store: HardDrive,
+  Library: BookOpen,
+  Kit: Rocket,
+  Tool: Wrench,
 };
 
 /** Default icon when projectType is unrecognized. */
@@ -81,6 +87,9 @@ export const SERVICE_TYPE_COLORS = {
   Bot:      { color: "#eab308", subtle: "rgba(234, 179, 8, 0.12)" },
   Database: { color: "#a855f7", subtle: "rgba(168, 85, 247, 0.12)" },
   Store:    { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)" },
+  Library:  { color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)" },
+  Kit:      { color: "#f59e0b", subtle: "rgba(245, 158, 11, 0.12)" },
+  Tool:     { color: "#8b5cf6", subtle: "rgba(139, 92, 246, 0.12)" },
 };
 
 // ── Deploy tier → topology colors (mirrors vault-service) ───────

@@ -23,6 +23,7 @@ import styles from "./ProjectTableComponent.module.css";
 
 
 // ── Formatting helpers ─────────────────────────────────────────────
+const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
 /**
  * Column definitions for the centralized TableComponent.
@@ -35,14 +36,16 @@ function buildColumns(projectSizes = {}) {
       label: "Project",
       sortable: true,
       render: (service) => {
-        const isHealthy = service.healthy;
+        const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
+        const isHealthy = isNonDeployed ? true : service.healthy;
         const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+        const iconClass = isNonDeployed ? styles.iconNeutral : (isHealthy ? styles.iconHealthy : styles.iconUnhealthy);
         return (
           <div className={styles.nameCell}>
             <TypeIcon
               size={14}
               strokeWidth={2.6}
-              className={`${styles.typeIcon} ${isHealthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+              className={`${styles.typeIcon} ${iconClass}`}
             />
             <span className={styles.serviceName}>{service.name}</span>
           </div>
@@ -231,7 +234,10 @@ export default function ProjectTableComponent({
   )();
 
   const getRowClassName = useCallback(
-    (row) => row.healthy ? styles.rowHealthy : styles.rowUnhealthy,
+    (row) => {
+      if (NON_DEPLOYED_TYPES.has(row.projectType)) return styles.rowNeutral;
+      return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
+    },
     [],
   );
 

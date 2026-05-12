@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUp, Cpu, GitFork, Globe, Lock, MemoryStick, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import { Cpu, GitFork, Globe, Lock, MemoryStick, Package, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
 import {
   AddressBadgeComponent,
   BadgeComponent,
@@ -101,12 +101,15 @@ function PercentBar({ percent, color }) {
   );
 }
 
+const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
+
 export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
-  const isHealthy = service.healthy;
-  const statusClass = isHealthy ? styles.healthy : styles.unhealthy;
+  const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
+  const isHealthy = isNonDeployed ? true : service.healthy;
+  const statusClass = isNonDeployed ? styles.nonDeployed : (isHealthy ? styles.healthy : styles.unhealthy);
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
@@ -192,8 +195,23 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         {/* ── Status ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Status</span>
-          <StatusBadgeComponent healthy={isHealthy} />
+          {isNonDeployed ? (
+            <BadgeComponent variant="info">Not Deployed</BadgeComponent>
+          ) : (
+            <StatusBadgeComponent healthy={isHealthy} />
+          )}
         </div>
+
+        {/* ── NPM Package (libraries only) ── */}
+        {service.npmPackage && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Package</span>
+            <BadgeComponent variant="info">
+              <Package size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
+              {service.npmPackage}
+            </BadgeComponent>
+          </div>
+        )}
 
         {/* ── Container Resource Metrics (inline sparklines) ── */}
         {containerStats && (
@@ -430,45 +448,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         </div>
       )}
 
-      {/* ── Connections (dependency graph) ── */}
-      {service.dependsOn?.length > 0 && (() => {
-        const required = service.dependsOn.filter((d) => d.criticality !== "optional");
-        const optional = service.dependsOn.filter((d) => d.criticality === "optional");
-        return (
-          <div className={styles.connections}>
-            {required.length > 0 && (
-              <>
-                <span className={styles.connectionLabel}>
-                  <ArrowUp size={10} strokeWidth={2.4} />
-                  Requires
-                </span>
-                <div className={styles.connectionTags}>
-                  {required.map((dep, i) => (
-                    <span key={`req-${i}-${dep.name || dep.id || ''}`} className={styles.connectionTag}>
-                      {dep.name}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
-            {optional.length > 0 && (
-              <>
-                <span className={`${styles.connectionLabel} ${styles.connectionLabelOptional}`}>
-                  <ArrowUp size={10} strokeWidth={2.4} />
-                  Optional
-                </span>
-                <div className={styles.connectionTags}>
-                  {optional.map((dep, i) => (
-                    <span key={`opt-${i}-${dep.name || dep.id || ''}`} className={`${styles.connectionTag} ${styles.connectionTagOptional}`}>
-                      {dep.name}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        );
-      })()}
+
     </div>
   );
 }

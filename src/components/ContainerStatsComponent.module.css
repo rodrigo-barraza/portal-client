@@ -168,7 +168,7 @@
   font-size: 12px;
 }
 
-/* ── I/O Cell (compact inline for Net I/O / Block I/O columns) ── */
+/* ── I/O Cell (compact inline for Net I/O column) ── */
 
 .ioCell {
   display: flex;
@@ -196,16 +196,6 @@
   width: 9px;
   text-align: center;
   flex-shrink: 0;
-}
-
-/* ── Uptime Text ── */
-
-.uptimeText {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 /* ── Actions ── */

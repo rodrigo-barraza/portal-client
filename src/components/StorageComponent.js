@@ -94,9 +94,14 @@ export default function StorageComponent() {
   const [view, setView] = useState("buckets"); // "buckets" | "objects"
   const [objectViewMode, setObjectViewMode] = useState("table"); // "table" | "grid"
   const [buckets, setBuckets] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const didFetch = useRef(false);
+  const streamRef = useRef(null);
+
+  // Progressive loading state
+  const [streaming, setStreaming] = useState(true);
+  const [totalExpected, setTotalExpected] = useState(0);
+  const [skeletonCount, setSkeletonCount] = useState(0);
 
   // Object browser state
   const [activeBucket, setActiveBucket] = useState(null);
@@ -110,24 +115,45 @@ export default function StorageComponent() {
   const [previewObject, setPreviewObject] = useState(null);
   const [previewStat, setPreviewStat] = useState(null);
 
-  // ── Bucket listing ───────────────────────────────────────────
-  const loadBuckets = useCallback(async () => {
-    try {
-      const res = await ApiService.getStorageBuckets();
-      setBuckets(res.buckets || []);
-    } catch (err) {
-      console.error("Bucket listing failed:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  // ── Progressive bucket streaming ────────────────────────────
+  const streamBuckets = useCallback(() => {
+    setStreaming(true);
+    setBuckets([]);
+    setTotalExpected(0);
+    setSkeletonCount(0);
+
+    streamRef.current?.close();
+    streamRef.current = ApiService.streamStorageBuckets((event) => {
+      switch (event.type) {
+        case "init":
+          setTotalExpected(event.totalBuckets);
+          setSkeletonCount(event.totalBuckets);
+          break;
+        case "bucket":
+          setBuckets((prev) => [...prev, event.bucket]);
+          setSkeletonCount((prev) => Math.max(0, prev - 1));
+          break;
+        case "done":
+          setStreaming(false);
+          setRefreshing(false);
+          setSkeletonCount(0);
+          break;
+        case "error":
+          console.error("Bucket stream error:", event.message);
+          setStreaming(false);
+          setRefreshing(false);
+          setSkeletonCount(0);
+          break;
+      }
+    });
   }, []);
 
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
-    loadBuckets();
-  }, [loadBuckets]);
+    streamBuckets();
+    return () => streamRef.current?.close();
+  }, [streamBuckets]);
 
   // ── Object listing ───────────────────────────────────────────
   const loadObjects = useCallback(async (bucket, pfx = "") => {
@@ -162,7 +188,7 @@ export default function StorageComponent() {
   const handleRefresh = () => {
     setRefreshing(true);
     if (view === "buckets") {
-      loadBuckets();
+      streamBuckets();
     } else {
       loadObjects(activeBucket, prefix).finally(() => setRefreshing(false));
     }
@@ -246,18 +272,26 @@ export default function StorageComponent() {
     return buckets.reduce((sum, b) => sum + (b.objectCount || 0), 0);
   }, [buckets]);
 
+  // ── Subtitle helper ──────────────────────────────────────────
+  const subtitle = useMemo(() => {
+    if (view !== "buckets") {
+      return `${activeBucket} — ${objects.length} objects · ${formatBytes(totalSize)}`;
+    }
+    if (streaming && buckets.length === 0) {
+      return "Discovering MinIO buckets…";
+    }
+    if (streaming) {
+      return `${buckets.length}/${totalExpected} buckets loaded · ${totalBucketObjects.toLocaleString()} objects · ${formatBytes(totalBucketSize)}`;
+    }
+    return `${buckets.length} buckets · ${totalBucketObjects.toLocaleString()} objects · ${formatBytes(totalBucketSize)}`;
+  }, [view, streaming, buckets.length, totalExpected, totalBucketObjects, totalBucketSize, activeBucket, objects.length, totalSize]);
+
   return (
     <div className={styles.storage}>
       <PageHeaderComponent
         sticky={false}
         title="Object Store"
-        subtitle={
-          loading
-            ? "Loading MinIO buckets…"
-            : view === "buckets"
-              ? `${buckets.length} buckets · ${totalBucketObjects.toLocaleString()} objects · ${formatBytes(totalBucketSize)}`
-              : `${activeBucket} — ${objects.length} objects · ${formatBytes(totalSize)}`
-        }
+        subtitle={subtitle}
       >
         <ButtonComponent
           variant="secondary"
@@ -323,17 +357,16 @@ export default function StorageComponent() {
         </div>
       )}
 
-      {/* ── Bucket Grid View ── */}
+      {/* ── Bucket Grid View (Progressive) ── */}
       {view === "buckets" && (
-        loading ? (
-          <LoadingIndicatorComponent size="small" label="Discovering buckets…" className="loading-center" />
-        ) : buckets.length === 0 ? (
+        !streaming && buckets.length === 0 ? (
           <div className={styles.emptyState}>
             <HardDrive size={48} />
             <span>No buckets found</span>
           </div>
         ) : (
           <div className={styles.bucketGrid}>
+            {/* ── Populated bucket cards ── */}
             {buckets.map((bucket, idx) => (
               <div
                 key={bucket.name}
@@ -368,6 +401,37 @@ export default function StorageComponent() {
                     Created {new Date(bucket.creationDate).toLocaleDateString()}
                   </div>
                 )}
+              </div>
+            ))}
+
+            {/* ── Skeleton placeholder cards for remaining buckets ── */}
+            {Array.from({ length: skeletonCount }, (_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className={`${styles.bucketCard} ${styles.bucketCardSkeleton}`}
+                style={{ animationDelay: `${(buckets.length + i) * 50}ms` }}
+              >
+                <div className={styles.bucketCardInner}>
+                  <div className={styles.bucketHeader}>
+                    <div className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}>
+                      <HardDrive size={18} strokeWidth={1.8} />
+                    </div>
+                    <div className={styles.skeletonLine} style={{ width: "60%" }} />
+                  </div>
+                  <div className={styles.bucketMeta}>
+                    <div className={styles.bucketStat}>
+                      <span className={styles.bucketStatLabel}>Objects</span>
+                      <div className={styles.skeletonLine} style={{ width: 48 }} />
+                    </div>
+                    <div className={styles.bucketStat}>
+                      <span className={styles.bucketStatLabel}>Size</span>
+                      <div className={styles.skeletonLine} style={{ width: 64 }} />
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.bucketDate}>
+                  <div className={styles.skeletonLine} style={{ width: "40%" }} />
+                </div>
               </div>
             ))}
           </div>

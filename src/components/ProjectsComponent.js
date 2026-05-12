@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers, HardDrive } from "lucide-react";
+import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers, HardDrive, BookOpen } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
@@ -9,6 +9,15 @@ import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
 import styles from "./ProjectsComponent.module.css";
+
+// ── Project type classification ──────────────────────────────────
+// Non-deployed project types — these don't run as Docker containers
+const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
+
+/** Whether a project is a deployed (containerized) service. */
+function isDeployedProject(service) {
+  return !NON_DEPLOYED_TYPES.has(service.projectType);
+}
 
 // ── Static filter option definitions ─────────────────────────────
 const STATIC_FILTER_OPTIONS = {
@@ -117,7 +126,6 @@ export default function ProjectsComponent() {
 
 
 
-
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
@@ -173,12 +181,19 @@ export default function ProjectsComponent() {
     })
     .sort((a, b) => compareBySortKey(a, b, sortKey, sortDir));
 
-  const healthyCount = allItems.filter((s) => s.healthy).length;
+  // ── Split into deployed services vs libraries/toolkits ──────────
+  const deployedItems = filtered.filter(isDeployedProject);
+  const nonDeployedItems = filtered.filter((s) => !isDeployedProject(s));
+
+  // ── Summary stats (based on all unfiltered items) ───────────────
+  const allDeployed = allItems.filter(isDeployedProject);
+  const allNonDeployed = allItems.filter((s) => !isDeployedProject(s));
+  const healthyCount = allDeployed.filter((s) => s.healthy).length;
   const hasActiveFilter = Object.values(filters).some((v) => v.length > 0);
 
   // ── Project summary computed values ─────────────────────────────
-  const unhealthyCount = allItems.length - healthyCount;
-  const uniqueDevices = [...new Set(allItems.map((s) => s.device).filter(Boolean))];
+  const unhealthyCount = allDeployed.length - healthyCount;
+  const uniqueDevices = [...new Set(allDeployed.map((s) => s.device).filter(Boolean))];
   const uniqueTypes = [...new Set(allItems.map((s) => s.projectType).filter(Boolean))];
   const totalSizeBytes = Object.values(projectSizes).reduce((sum, s) => sum + (s.sizeBytes || 0), 0);
 
@@ -191,7 +206,7 @@ export default function ProjectsComponent() {
         subtitle={
           loading
             ? "Checking project health…"
-            : `${healthyCount} of ${allItems.length} projects healthy`
+            : `${healthyCount} of ${allDeployed.length} services healthy · ${allItems.length} total projects`
         }
       >
         <ButtonComponent
@@ -214,7 +229,7 @@ export default function ProjectsComponent() {
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue}>{allItems.length}</span>
               <span className={styles.statCardLabel}>Projects</span>
-              <span className={styles.statCardSub}>{filtered.length !== allItems.length ? `${filtered.length} matching filters` : `${allItems.length} registered`}</span>
+              <span className={styles.statCardSub}>{allDeployed.length} deployed · {allNonDeployed.length} libraries & tools</span>
             </div>
           </div>
 
@@ -274,15 +289,14 @@ export default function ProjectsComponent() {
           </div>
 
           {Object.entries(filterOptions).map(([dimension, config]) => (
-            <div key={dimension} className={styles.sortGroup}>
-              <span className={styles.sortGroupLabel}>{config.label}</span>
               <MultiSelectComponent
+                key={dimension}
+                label={config.label}
                 value={filters[dimension]}
                 options={config.values}
                 onChange={(values) => setFilter(dimension, values)}
                 allLabel="All"
               />
-            </div>
           ))}
 
           {hasActiveFilter && (
@@ -341,32 +355,81 @@ export default function ProjectsComponent() {
             </div>
           )}
 
-          {viewMode === "card" ? (
-            <div className={styles.grid}>
-              {filtered.map((service) => (
-                <ServiceCardComponent
-                  key={service.id}
-                  service={service}
-                />
-              ))}
-              {filtered.length === 0 && (
-                <div className={styles.emptyState}>
-                  No projects match the selected filters
+          {/* ═══ Deployed Services Section ═══════════════════════════ */}
+          {deployedItems.length > 0 && (
+            <>
+              {nonDeployedItems.length > 0 && (
+                <div className={styles.sectionLabel}>
+                  <Server size={13} strokeWidth={2.2} />
+                  <span>Deployed Services</span>
+                  <span className={styles.sectionCount}>{deployedItems.length}</span>
                 </div>
               )}
+
+              {viewMode === "card" ? (
+                <div className={styles.grid}>
+                  {deployedItems.map((service) => (
+                    <ServiceCardComponent
+                      key={service.id}
+                      service={service}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ProjectTableComponent
+                  services={deployedItems}
+                  allServices={allItems}
+                  projectSizes={projectSizes}
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={(key, dir) => {
+                    setSortKey(key);
+                    setSortDir(dir);
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          {/* ═══ Libraries & Toolkits Section ════════════════════════ */}
+          {nonDeployedItems.length > 0 && (
+            <>
+              <div className={styles.sectionLabel}>
+                <BookOpen size={13} strokeWidth={2.2} />
+                <span>Libraries & Toolkits</span>
+                <span className={styles.sectionCount}>{nonDeployedItems.length}</span>
+              </div>
+
+              {viewMode === "card" ? (
+                <div className={styles.grid}>
+                  {nonDeployedItems.map((service) => (
+                    <ServiceCardComponent
+                      key={service.id}
+                      service={service}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ProjectTableComponent
+                  services={nonDeployedItems}
+                  allServices={allItems}
+                  projectSizes={projectSizes}
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSort={(key, dir) => {
+                    setSortKey(key);
+                    setSortDir(dir);
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          {/* ═══ Empty state ════════════════════════════════════════ */}
+          {filtered.length === 0 && (
+            <div className={styles.emptyState}>
+              No projects match the selected filters
             </div>
-          ) : (
-            <ProjectTableComponent
-              services={filtered}
-              allServices={allItems}
-              projectSizes={projectSizes}
-              sortKey={sortKey}
-              sortDir={sortDir}
-              onSort={(key, dir) => {
-                setSortKey(key);
-                setSortDir(dir);
-              }}
-            />
           )}
         </>
       )}

@@ -194,6 +194,56 @@
   font-family: var(--font-mono);
 }
 
+/* ── Skeleton Bucket Cards (Progressive Loading) ── */
+
+@keyframes skeletonShimmer {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.bucketCardSkeleton {
+  pointer-events: none;
+  cursor: default;
+}
+
+.bucketCardSkeleton .bucketCardInner {
+  opacity: 0.7;
+}
+
+.skeletonIcon {
+  opacity: 0.35;
+}
+
+.skeletonLine {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--border-color);
+  position: relative;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.skeletonLine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-color) 12%, transparent) 40%,
+    color-mix(in srgb, var(--accent-color) 20%, transparent) 50%,
+    color-mix(in srgb, var(--accent-color) 12%, transparent) 60%,
+    transparent 100%
+  );
+  transform: translate3d(-100%, 0, 0);
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* ── Object List (Table View) ── */
 
 .objectListContainer {

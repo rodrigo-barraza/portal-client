@@ -51,6 +51,7 @@ import {
   InputComponent,
   LoadingIndicatorComponent,
   LoadingStateComponent,
+  MultiSelectComponent,
   PaginationComponent,
   RadioComponent,
   ResponseTimeBadgeComponent,
@@ -260,7 +261,7 @@ const PREVIEWS = {
   InputComponent: () => (
     <PreviewStack>
       <InputComponent value="" onChange={() => {}} placeholder="Standard input…" />
-      <InputComponent value="Filled value" onChange={() => {}} />
+      <InputComponent value="" onChange={() => {}} placeholder="With label…" label="Email" />
     </PreviewStack>
   ),
 
@@ -366,6 +367,22 @@ const PREVIEWS = {
     <SearchInputComponent value="" onChange={() => {}} placeholder="Search anything…" />
   ),
 
+  MultiSelectComponent: () => (
+    <PreviewStack>
+      <MultiSelectComponent
+        value={[]}
+        onChange={() => {}}
+        options={[
+          { value: "a", label: "Alpha" },
+          { value: "b", label: "Bravo" },
+          { value: "c", label: "Charlie" },
+        ]}
+        allLabel="All"
+        label="Category"
+      />
+    </PreviewStack>
+  ),
+
   SelectComponent: () => (
     <SelectComponent
       value=""
@@ -376,6 +393,7 @@ const PREVIEWS = {
         { value: "opt3", label: "Option Three" },
       ]}
       placeholder="Choose…"
+      label="Sort by"
     />
   ),
 

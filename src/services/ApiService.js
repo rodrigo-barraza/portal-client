@@ -116,7 +116,7 @@ export default class ApiService {
   }
 
   /**
-   * Get Docker container resource usage (CPU, memory, network, block I/O).
+   * Get Docker container resource usage (CPU, memory, network).
    * @param {string} [deviceId] - Optional device filter
    */
   static async getContainerStats(deviceId) {
@@ -195,6 +195,47 @@ export default class ApiService {
    */
   static async getStorageBuckets() {
     return ApiService._request("/object-store/buckets");
+  }
+
+  /**
+   * Stream bucket data via SSE for progressive loading.
+   * Calls onEvent for each server-sent event:
+   *   { type: "init", totalBuckets }
+   *   { type: "bucket", bucket: { name, creationDate, objectCount, totalSize } }
+   *   { type: "done" }
+   *   { type: "error", message }
+   * @param {(event: object) => void} onEvent
+   * @returns {{ close: () => void }} — call close() to abort
+   */
+  static streamStorageBuckets(onEvent) {
+    const es = new EventSource(`${API_BASE}/object-store/buckets/stream`);
+
+    es.addEventListener("init", (e) => {
+      onEvent({ type: "init", ...JSON.parse(e.data) });
+    });
+
+    es.addEventListener("bucket", (e) => {
+      onEvent({ type: "bucket", bucket: JSON.parse(e.data) });
+    });
+
+    es.addEventListener("done", () => {
+      onEvent({ type: "done" });
+      es.close();
+    });
+
+    es.addEventListener("error", (e) => {
+      // EventSource fires a generic error on close — only report if we have data
+      if (e.data) {
+        try {
+          onEvent({ type: "error", ...JSON.parse(e.data) });
+        } catch {
+          onEvent({ type: "error", message: "Stream error" });
+        }
+      }
+      es.close();
+    });
+
+    return { close: () => es.close() };
   }
 
   /**
