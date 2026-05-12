@@ -244,6 +244,63 @@
   will-change: transform;
 }
 
+/* ── Bucket View Toggle Bar ── */
+
+.bucketViewBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* ── Bucket Table Column Header ── */
+
+.bucketColumnHeader {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px 120px;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Bucket Row Icon ── */
+
+.bucketRowIcon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  color: var(--accent-color);
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.folderRow:hover .bucketRowIcon {
+  background: color-mix(in srgb, var(--accent-color) 18%, transparent);
+}
+
+/* ── Bucket Skeleton Row ── */
+
+.bucketSkeletonRow {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Override objectRow grid when used in bucket table to match bucket column header */
+.bucketColumnHeader ~ .objectRow {
+  grid-template-columns: 1fr 100px 100px 120px;
+}
+
 /* ── Object List (Table View) ── */
 
 .objectListContainer {

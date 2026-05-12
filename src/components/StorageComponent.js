@@ -92,6 +92,7 @@ function folderLabel(prefix, currentPrefix) {
 
 export default function StorageComponent() {
   const [view, setView] = useState("buckets"); // "buckets" | "objects"
+  const [bucketViewMode, setBucketViewMode] = useState("cards"); // "cards" | "table"
   const [objectViewMode, setObjectViewMode] = useState("table"); // "table" | "grid"
   const [buckets, setBuckets] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -357,85 +358,115 @@ export default function StorageComponent() {
         </div>
       )}
 
-      {/* ── Bucket Grid View (Progressive) ── */}
+      {/* ── Bucket Views (Progressive) ── */}
       {view === "buckets" && (
-        !streaming && buckets.length === 0 ? (
-          <div className={styles.emptyState}>
-            <HardDrive size={48} />
-            <span>No buckets found</span>
-          </div>
-        ) : (
-          <div className={styles.bucketGrid}>
-            {/* ── Populated bucket cards ── */}
-            {buckets.map((bucket, idx) => (
-              <div
-                key={bucket.name}
-                className={styles.bucketCard}
-                style={{ animationDelay: `${idx * 50}ms` }}
-                onClick={() => openBucket(bucket.name)}
+        <>
+          {/* ── Bucket View Mode Toggle ── */}
+          <div className={styles.bucketViewBar}>
+            <div className={styles.segmentedControl}>
+              <button
+                className={`${styles.segmentBtn} ${bucketViewMode === "cards" ? styles.segmentActive : ""}`}
+                onClick={() => setBucketViewMode("cards")}
+                title="Card view"
               >
-                <div className={styles.bucketCardInner}>
-                  <div className={styles.bucketHeader}>
-                    <div className={styles.bucketIconWrap}>
-                      <HardDrive size={18} strokeWidth={1.8} />
-                    </div>
-                    <span className={styles.bucketName}>{bucket.name}</span>
-                  </div>
-                  <div className={styles.bucketMeta}>
-                    <div className={styles.bucketStat}>
-                      <span className={styles.bucketStatLabel}>Objects</span>
-                      <span className={styles.bucketStatValue}>
-                        {bucket.objectCount.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className={styles.bucketStat}>
-                      <span className={styles.bucketStatLabel}>Size</span>
-                      <span className={styles.bucketStatValue}>
-                        {formatBytes(bucket.totalSize)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {bucket.creationDate && (
-                  <div className={styles.bucketDate}>
-                    Created {new Date(bucket.creationDate).toLocaleDateString()}
-                  </div>
-                )}
-              </div>
-            ))}
+                <LayoutGrid size={13} strokeWidth={2.2} />
+              </button>
+              <button
+                className={`${styles.segmentBtn} ${bucketViewMode === "table" ? styles.segmentActive : ""}`}
+                onClick={() => setBucketViewMode("table")}
+                title="Table view"
+              >
+                <Table2 size={13} strokeWidth={2.2} />
+              </button>
+            </div>
+          </div>
 
-            {/* ── Skeleton placeholder cards for remaining buckets ── */}
-            {Array.from({ length: skeletonCount }, (_, i) => (
-              <div
-                key={`skeleton-${i}`}
-                className={`${styles.bucketCard} ${styles.bucketCardSkeleton}`}
-                style={{ animationDelay: `${(buckets.length + i) * 50}ms` }}
-              >
-                <div className={styles.bucketCardInner}>
-                  <div className={styles.bucketHeader}>
-                    <div className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}>
-                      <HardDrive size={18} strokeWidth={1.8} />
+          {!streaming && buckets.length === 0 ? (
+            <div className={styles.emptyState}>
+              <HardDrive size={48} />
+              <span>No buckets found</span>
+            </div>
+          ) : bucketViewMode === "table" ? (
+            /* ── Bucket Table View ── */
+            <BucketTableView
+              buckets={buckets}
+              skeletonCount={skeletonCount}
+              openBucket={openBucket}
+            />
+          ) : (
+            /* ── Bucket Card Grid View ── */
+            <div className={styles.bucketGrid}>
+              {/* ── Populated bucket cards ── */}
+              {buckets.map((bucket, idx) => (
+                <div
+                  key={bucket.name}
+                  className={styles.bucketCard}
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                  onClick={() => openBucket(bucket.name)}
+                >
+                  <div className={styles.bucketCardInner}>
+                    <div className={styles.bucketHeader}>
+                      <div className={styles.bucketIconWrap}>
+                        <HardDrive size={18} strokeWidth={1.8} />
+                      </div>
+                      <span className={styles.bucketName}>{bucket.name}</span>
                     </div>
-                    <div className={styles.skeletonLine} style={{ width: "60%" }} />
+                    <div className={styles.bucketMeta}>
+                      <div className={styles.bucketStat}>
+                        <span className={styles.bucketStatLabel}>Objects</span>
+                        <span className={styles.bucketStatValue}>
+                          {bucket.objectCount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.bucketStat}>
+                        <span className={styles.bucketStatLabel}>Size</span>
+                        <span className={styles.bucketStatValue}>
+                          {formatBytes(bucket.totalSize)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className={styles.bucketMeta}>
-                    <div className={styles.bucketStat}>
-                      <span className={styles.bucketStatLabel}>Objects</span>
-                      <div className={styles.skeletonLine} style={{ width: 48 }} />
+                  {bucket.creationDate && (
+                    <div className={styles.bucketDate}>
+                      Created {new Date(bucket.creationDate).toLocaleDateString()}
                     </div>
-                    <div className={styles.bucketStat}>
-                      <span className={styles.bucketStatLabel}>Size</span>
-                      <div className={styles.skeletonLine} style={{ width: 64 }} />
+                  )}
+                </div>
+              ))}
+
+              {/* ── Skeleton placeholder cards for remaining buckets ── */}
+              {Array.from({ length: skeletonCount }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className={`${styles.bucketCard} ${styles.bucketCardSkeleton}`}
+                  style={{ animationDelay: `${(buckets.length + i) * 50}ms` }}
+                >
+                  <div className={styles.bucketCardInner}>
+                    <div className={styles.bucketHeader}>
+                      <div className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}>
+                        <HardDrive size={18} strokeWidth={1.8} />
+                      </div>
+                      <div className={styles.skeletonLine} style={{ width: "60%" }} />
                     </div>
+                    <div className={styles.bucketMeta}>
+                      <div className={styles.bucketStat}>
+                        <span className={styles.bucketStatLabel}>Objects</span>
+                        <div className={styles.skeletonLine} style={{ width: 48 }} />
+                      </div>
+                      <div className={styles.bucketStat}>
+                        <span className={styles.bucketStatLabel}>Size</span>
+                        <div className={styles.skeletonLine} style={{ width: 64 }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.bucketDate}>
+                    <div className={styles.skeletonLine} style={{ width: "40%" }} />
                   </div>
                 </div>
-                <div className={styles.bucketDate}>
-                  <div className={styles.skeletonLine} style={{ width: "40%" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Object Views ── */}
@@ -610,6 +641,83 @@ function ObjectTableView({
         <div className={styles.emptyState}>
           <Folder size={36} />
           <span>{search ? "No matches found" : "This folder is empty"}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Bucket Table View ────────────────────────────────────────────
+
+function BucketTableView({ buckets, skeletonCount, openBucket }) {
+  return (
+    <div className={styles.objectListContainer}>
+      {/* ── Column Headers ── */}
+      <div className={styles.bucketColumnHeader}>
+        <span>Bucket</span>
+        <span>Objects</span>
+        <span>Size</span>
+        <span>Created</span>
+      </div>
+
+      {/* ── Bucket Rows ── */}
+      {buckets.map((bucket, idx) => (
+        <div
+          key={bucket.name}
+          className={`${styles.objectRow} ${styles.folderRow}`}
+          style={{ animationDelay: `${idx * 30}ms` }}
+          onClick={() => openBucket(bucket.name)}
+        >
+          <div className={styles.objectName}>
+            <div className={styles.bucketRowIcon}>
+              <HardDrive size={15} strokeWidth={1.8} />
+            </div>
+            <span className={styles.objectNameText}>{bucket.name}</span>
+          </div>
+          <span className={styles.objectSize}>
+            {bucket.objectCount.toLocaleString()}
+          </span>
+          <span className={styles.objectSize}>
+            {formatBytes(bucket.totalSize)}
+          </span>
+          <span className={styles.objectDate}>
+            {bucket.creationDate
+              ? new Date(bucket.creationDate).toLocaleDateString()
+              : "—"}
+          </span>
+        </div>
+      ))}
+
+      {/* ── Skeleton Rows ── */}
+      {Array.from({ length: skeletonCount }, (_, i) => (
+        <div
+          key={`skeleton-row-${i}`}
+          className={`${styles.objectRow} ${styles.bucketSkeletonRow}`}
+          style={{ animationDelay: `${(buckets.length + i) * 30}ms` }}
+        >
+          <div className={styles.objectName}>
+            <div className={`${styles.bucketRowIcon} ${styles.skeletonIcon}`}>
+              <HardDrive size={15} strokeWidth={1.8} />
+            </div>
+            <div className={styles.skeletonLine} style={{ width: "45%" }} />
+          </div>
+          <div className={styles.objectSize}>
+            <div className={styles.skeletonLine} style={{ width: 40 }} />
+          </div>
+          <div className={styles.objectSize}>
+            <div className={styles.skeletonLine} style={{ width: 56 }} />
+          </div>
+          <div className={styles.objectDate}>
+            <div className={styles.skeletonLine} style={{ width: 72 }} />
+          </div>
+        </div>
+      ))}
+
+      {/* ── Empty State ── */}
+      {buckets.length === 0 && skeletonCount === 0 && (
+        <div className={styles.emptyState}>
+          <HardDrive size={36} />
+          <span>No buckets found</span>
         </div>
       )}
     </div>

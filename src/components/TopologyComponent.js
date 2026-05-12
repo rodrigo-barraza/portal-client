@@ -17,6 +17,11 @@ const CLUSTER_GAP_X = 32;    // horizontal gap between nodes inside a cluster
 const CLUSTER_GAP_Y = 16;    // vertical gap between rows inside a cluster
 const CLUSTER_PAD = 24;      // padding inside cluster rect
 const TIER_SPACING = 60;     // vertical gap between tier clusters
+const LIBS_GAP = 80;         // horizontal gap between libs column and tier column
+const LIBS_MAX_COLS = 2;     // max columns in the libraries cluster
+
+// ── Non-tiered project types (rendered independently) ────────
+const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
 // ── Icon resolver (by projectType) ──────────────────────────────
 function getIcon(svc) {
@@ -25,13 +30,18 @@ function getIcon(svc) {
 
 // ── Tier labels ─────────────────────────────────────────────────
 const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients & Bots"];
+const LIBS_LABEL = "Libraries & Toolkits";
+
+// ── Colors for the libraries cluster ────────────────────────────
+const LIBS_CLUSTER_COLOR = { stroke: "rgba(6, 182, 212, 0.35)", fill: "rgba(6, 182, 212, 0.04)" };
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services) {
-  // Group by deployTier, defaulting to tier 2 for unknowns
+  // Group by deployTier, excluding non-tiered project types
   const tiers = [[], [], []];
 
   for (const svc of services) {
+    if (NON_TIERED_TYPES.has(svc.projectType)) continue;
     const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
     tiers[tier].push(svc);
   }
@@ -42,10 +52,17 @@ function computeLayers(services) {
   return tiers;
 }
 
+// ── Extract non-tiered projects (Library, Kit, Tool) ────────────
+function computeLibraries(services) {
+  return services
+    .filter((svc) => NON_TIERED_TYPES.has(svc.projectType))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 // ── Compute cluster dimensions for a given layer ────────────────
-function clusterSize(count) {
+function clusterSize(count, maxCols = MAX_COLS) {
   if (count === 0) return { cols: 0, rows: 0, w: 0, h: 0 };
-  const cols = Math.min(count, MAX_COLS);
+  const cols = Math.min(count, maxCols);
   const rows = Math.ceil(count / cols);
   const w = cols * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
   const h = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
@@ -53,14 +70,29 @@ function clusterSize(count) {
 }
 
 // ── Assign positions from layers (grid clusters) ─────────────────
-function layoutNodes(layers) {
+function layoutNodes(layers, libs) {
   const LABEL_H = 28; // height reserved for tier label above cluster
   const positions = {};
 
-  // Compute cluster sizes
-  const sizes = layers.map((l) => clusterSize(l.length));
+  // ── Libraries column (left side) ──────────────────────────
+  const libSize = clusterSize(libs.length, LIBS_MAX_COLS);
+  let libsColumnW = 0;
 
-  // Find widest cluster for centering alignment
+  if (libs.length > 0) {
+    libsColumnW = libSize.w + LIBS_GAP;
+
+    libs.forEach((svc, si) => {
+      const col = si % LIBS_MAX_COLS;
+      const row = Math.floor(si / LIBS_MAX_COLS);
+      positions[svc.id] = {
+        x: CLUSTER_PAD + col * (NODE_W + CLUSTER_GAP_X),
+        y: LABEL_H + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
+      };
+    });
+  }
+
+  // ── Tier columns (right side, offset by libs width) ───────
+  const sizes = layers.map((l) => clusterSize(l.length));
   const maxW = Math.max(...sizes.map((s) => s.w), 0);
 
   let curY = 0;
@@ -68,7 +100,7 @@ function layoutNodes(layers) {
   layers.forEach((layer, li) => {
     if (!layer.length) return;
     const { cols, w, h } = sizes[li];
-    const clusterX = (maxW - w) / 2; // center-align cluster
+    const clusterX = libsColumnW + (maxW - w) / 2;
     const clusterY = curY + LABEL_H;
 
     layer.forEach((svc, si) => {
@@ -83,7 +115,7 @@ function layoutNodes(layers) {
     curY = clusterY + h + TIER_SPACING;
   });
 
-  return { positions };
+  return { positions, libsColumnW };
 }
 
 // ── Collect edges ────────────────────────────────────────────────
@@ -169,7 +201,8 @@ export default function TopologyComponent() {
 
   // ── Computed layout ─────────────────────────────────────────
   const layers = useMemo(() => computeLayers(allServices), [allServices]);
-  const { positions: basePositions } = useMemo(() => layoutNodes(layers), [layers]);
+  const libs = useMemo(() => computeLibraries(allServices), [allServices]);
+  const { positions: basePositions } = useMemo(() => layoutNodes(layers, libs), [layers, libs]);
   const edges = useMemo(() => collectEdges(allServices), [allServices]);
 
   // Merged positions (base + overrides from dragging)
@@ -204,6 +237,27 @@ export default function TopologyComponent() {
       };
     });
   }, [layers, positions]);
+
+  // Dynamic rect for the libraries cluster
+  const libsClusterRect = useMemo(() => {
+    if (!libs.length) return null;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const svc of libs) {
+      const pos = positions[svc.id];
+      if (!pos) continue;
+      minX = Math.min(minX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxX = Math.max(maxX, pos.x + NODE_W);
+      maxY = Math.max(maxY, pos.y + NODE_H);
+    }
+    if (minX === Infinity) return null;
+    return {
+      x: minX - CLUSTER_PAD,
+      y: minY - CLUSTER_PAD,
+      w: maxX - minX + CLUSTER_PAD * 2,
+      h: maxY - minY + CLUSTER_PAD * 2,
+    };
+  }, [libs, positions]);
 
   const healthyCount = allServices.filter((s) => s.healthy).length;
 
@@ -520,6 +574,31 @@ export default function TopologyComponent() {
                     </g>
                   );
                 })}
+
+                {/* ── Libraries cluster background + label ── */}
+                {libsClusterRect && (
+                  <g className={(selectedNode ? styles.tierLabelFaded : "") + (searchVisibleTiers && !libs.some((s) => searchMatches?.has(s.id)) ? ` ${styles.tierLabelFaded}` : "") || undefined}>
+                    <rect
+                      x={libsClusterRect.x}
+                      y={libsClusterRect.y}
+                      width={libsClusterRect.w}
+                      height={libsClusterRect.h}
+                      rx={10}
+                      ry={10}
+                      className={styles.clusterRect}
+                      style={{ stroke: LIBS_CLUSTER_COLOR.stroke, fill: LIBS_CLUSTER_COLOR.fill }}
+                    />
+                    <text
+                      x={libsClusterRect.x + libsClusterRect.w / 2}
+                      y={libsClusterRect.y - 10}
+                      className={styles.tierLabel}
+                      textAnchor="middle"
+                      dominantBaseline="auto"
+                    >
+                      {LIBS_LABEL}
+                    </text>
+                  </g>
+                )}
 
                 {/* ── Cluster backgrounds + tier labels ── */}
                 {dynamicClusterRects.map((cr, li) => {
