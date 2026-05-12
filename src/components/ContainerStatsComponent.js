@@ -31,7 +31,7 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatBytes, formatDuration, formatPercent, getRootDomain } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
-import ContainerDetailPanel from "./ContainerDetailPanel";
+import ContainerDetailPanel from "./ContainerDetailPanelComponent";
 import styles from "./ContainerStatsComponent.module.css";
 
 const POLL_INTERVAL = 5_000;

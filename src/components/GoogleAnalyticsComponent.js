@@ -6,6 +6,7 @@ import {
   PageHeaderComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
+import PropertyListingComponent from "./PropertyListingComponent";
 import {
   Activity,
   Users,
@@ -15,6 +16,7 @@ import {
   Globe,
   Monitor,
   Link2,
+  ArrowLeft,
   BarChart3,
   TrendingUp,
   MapPin,
@@ -28,7 +30,7 @@ import {
 } from "lucide-react";
 
 import ApiService from "../services/ApiService";
-import { formatElapsedTime, formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatElapsedTime, formatNumber, formatPercent as _formatPercent } from "@rodrigo-barraza/utilities-library";
 import styles from "./GoogleAnalyticsComponent.module.css";
 
 // ── Palette ───────────────────────────────────────────────────
@@ -53,10 +55,11 @@ const formatDuration = (seconds) => {
   return formatElapsedTime(seconds);
 };
 
-function formatPercent(value) {
+/** GA returns ratios 0–1 — convert to 0–100 for the library's formatPercent */
+const formatPercent = (value) => {
   if (value == null) return "0%";
-  return `${(value * 100).toFixed(1)}%`;
-}
+  return _formatPercent(value * 100);
+};
 
 // ── Stat Card ─────────────────────────────────────────────────
 
@@ -236,7 +239,8 @@ export default function GoogleAnalyticsComponent() {
         const res = await ApiService.getGAProperties();
         const props = res.properties || [];
         setProperties(props);
-        if (props.length > 0) {
+        // Auto-select only if exactly one property
+        if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
       } catch (err) {
@@ -460,34 +464,45 @@ export default function GoogleAnalyticsComponent() {
   return (
     <div className={styles.dashboard}>
       <PageHeaderComponent sticky={false} title="Web Analytics" subtitle="Google Analytics (GA4) reports">
-        <div className={styles.headerControls}>
-          {properties.length > 1 && (
-            <div className={styles.propertyPills}>
-              {properties.map((p) => (
+        {selectedProperty && (
+          <div className={styles.headerControls}>
+            <div className={styles.periodTabs}>
+              {["7d", "30d", "90d"].map((p) => (
                 <button
-                  key={p.id}
-                  className={`${styles.propertyPill} ${selectedProperty?.id === p.id ? styles.propertyPillActive : ""}`}
-                  onClick={() => setSelectedProperty(p)}
+                  key={p}
+                  className={`${styles.periodTab} ${period === p ? styles.activeTab : ""}`}
+                  onClick={() => setPeriod(p)}
                 >
-                  {p.label}
+                  {p}
                 </button>
               ))}
             </div>
-          )}
-          <div className={styles.periodTabs}>
-            {["7d", "30d", "90d"].map((p) => (
-              <button
-                key={p}
-                className={`${styles.periodTab} ${period === p ? styles.activeTab : ""}`}
-                onClick={() => setPeriod(p)}
-              >
-                {p}
-              </button>
-            ))}
           </div>
-        </div>
+        )}
       </PageHeaderComponent>
 
+      {/* ── Property Listing (no property selected) ────────────── */}
+      {!selectedProperty && (
+        <PropertyListingComponent
+          properties={properties}
+          onSelect={(prop) => setSelectedProperty(prop)}
+        />
+      )}
+
+      {/* ── Back bar + selected property header ────────────────── */}
+      {selectedProperty && properties.length > 1 && (
+        <div className={styles.backBar}>
+          <button className={styles.backBtn} onClick={() => setSelectedProperty(null)}>
+            <ArrowLeft size={12} strokeWidth={2.2} />
+            All Properties
+          </button>
+          <span className={styles.selectedLabel}>{selectedProperty.label}</span>
+          <span className={styles.selectedMeta}>{selectedProperty.measurementId}</span>
+        </div>
+      )}
+
+      {selectedProperty && (
+      <>
       {/* ── Realtime Banner ────────────────────────────────────── */}
       <div className={styles.realtimeBanner}>
         <div className={styles.realtimePulse}>
@@ -788,6 +803,8 @@ export default function GoogleAnalyticsComponent() {
             </div>
           )}
         </>
+      )}
+      </>
       )}
     </div>
   );

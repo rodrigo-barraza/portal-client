@@ -29,7 +29,7 @@ import {
 import { formatBytes, formatDuration, formatElapsedTime, formatNumber, formatPercent } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ApiService from "../services/ApiService";
-import styles from "./ExpandedProjectPanel.module.css";
+import styles from "./ExpandedProjectPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
 

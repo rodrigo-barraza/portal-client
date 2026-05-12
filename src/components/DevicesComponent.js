@@ -13,6 +13,7 @@ import {
   Lock,
   Cpu,
   MemoryStick,
+  Rocket,
 } from "lucide-react";
 import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
@@ -251,6 +252,12 @@ function ServiceRow({ service, stats }) {
         </BadgeComponent>
         {service.visibility && (
           <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
+        )}
+        {service.dockerProject && service.deployTier != null && (
+          <BadgeComponent variant="accent" title={`Deploy tier ${service.deployTier} — included in deploy-kit orchestration`}>
+            <Rocket size={10} strokeWidth={2.2} style={{ marginRight: 2 }} />
+            Deployable
+          </BadgeComponent>
         )}
       </div>
       <div className={styles.serviceRight}>

@@ -27,13 +27,10 @@ import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatFileSize } from "@rodrigo-barraza/utilities-library";
+import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./StorageComponent.module.css";
-
-/** Format bytes with human-readable units. */
-const formatBytes = (bytes) => formatFileSize(bytes) ?? "0 B";
 
 // ── File type helpers ────────────────────────────────────────────
 

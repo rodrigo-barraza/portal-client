@@ -75,7 +75,7 @@ import {
   NavigationDrawerComponent,
 } from "@rodrigo-barraza/components-library";
 
-import styles from "./ComponentPreviewRegistry.module.css";
+import styles from "./ComponentPreviewRegistryComponent.module.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
 function PreviewRow({ children, gap = 8 }) {

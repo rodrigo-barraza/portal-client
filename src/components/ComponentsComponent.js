@@ -16,7 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
-import { getPreview } from "./ComponentPreviewRegistry";
+import { getPreview } from "./ComponentPreviewRegistryComponent";
 import styles from "./ComponentsComponent.module.css";
 
 // ── Error boundary for individual preview isolation ─────────────

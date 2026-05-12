@@ -26,7 +26,7 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
-import styles from "./ContainerDetailPanel.module.css";
+import styles from "./ContainerDetailPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
 
