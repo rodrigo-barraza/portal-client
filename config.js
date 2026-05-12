@@ -43,8 +43,16 @@ const PUBLIC_PORTAL_SERVICE_URL =
 // ── Portal API URL ─────────────────────────────────────────────
 function resolvePortalServiceUrl() {
   if (!IS_BROWSER) return RAW_PORTAL_SERVICE_URL;
+
   const isProduction = window.location.hostname.endsWith(".dev");
+
   if (isProduction && PUBLIC_PORTAL_SERVICE_URL) return PUBLIC_PORTAL_SERVICE_URL;
+  if (RAW_PORTAL_SERVICE_URL) return RAW_PORTAL_SERVICE_URL;
+
+  // Defensive fallback — infer API URL from current hostname when
+  // env vars were not inlined at build time (vault unreachable during build).
+  if (isProduction) return `https://api.${window.location.hostname}`;
+
   return RAW_PORTAL_SERVICE_URL;
 }
 
