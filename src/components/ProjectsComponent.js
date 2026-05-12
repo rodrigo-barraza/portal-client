@@ -414,6 +414,7 @@ export default function ProjectsComponent() {
                   services={nonDeployedItems}
                   allServices={allItems}
                   projectSizes={projectSizes}
+                  excludeColumns={["tier", "domain", "database", "containers"]}
                   sortKey={sortKey}
                   sortDir={sortDir}
                   onSort={(key, dir) => {

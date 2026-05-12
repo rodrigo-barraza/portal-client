@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Globe,
   ExternalLink,
@@ -28,8 +28,10 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 /**
  * Column definitions for the centralized TableComponent.
  * Each column maps to a field on the service status object.
+ * @param {object} projectSizes
+ * @param {Set<string>} [excludeColumns] — column keys to omit
  */
-function buildColumns(projectSizes = {}) {
+function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
   return [
     {
       key: "name",
@@ -211,7 +213,7 @@ function buildColumns(projectSizes = {}) {
       },
       sortValue: (row) => projectSizes[row.id]?.sizeBytes ?? 0,
     },
-  ];
+  ].filter((col) => !excludeColumns.has(col.key));
 }
 
 
@@ -222,15 +224,21 @@ export default function ProjectTableComponent({
   allServices = [],
   projectSizes = {},
   containerStats = {},
+  excludeColumns,
   sortKey,
   sortDir,
   onSort,
 }) {
   const [selectedProject, setSelectedProject] = useState(null);
 
+  const excludeSet = useMemo(
+    () => (excludeColumns ? new Set(excludeColumns) : new Set()),
+    [excludeColumns],
+  );
+
   const columns = useCallback(
-    () => buildColumns(projectSizes),
-    [projectSizes],
+    () => buildColumns(projectSizes, excludeSet),
+    [projectSizes, excludeSet],
   )();
 
   const getRowClassName = useCallback(
