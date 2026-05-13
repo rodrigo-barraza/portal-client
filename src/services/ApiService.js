@@ -84,6 +84,23 @@ export default class ApiService {
   }
 
   /**
+   * Rollback a containerized service to its previous image.
+   * @param {string} serviceId
+   */
+  static async rollbackService(serviceId) {
+    return ApiService._request(`/services/${serviceId}/rollback`, { method: "POST" });
+  }
+
+  /**
+   * Check if a rollback is available for a containerized service.
+   * @param {string} serviceId
+   * @returns {Promise<{ available: boolean, previousImage?: object }>}
+   */
+  static async getRollbackStatus(serviceId) {
+    return ApiService._request(`/services/${serviceId}/rollback-status`);
+  }
+
+  /**
    * Get GitHub repository sizes for all projects.
    * @returns {Promise<{ sizes: Record<string, { sizeKB: number, sizeBytes: number }> }>}
    */

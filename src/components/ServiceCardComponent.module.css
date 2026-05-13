@@ -311,6 +311,19 @@
   }
 }
 
+/* Rollback — violet */
+.rollbackButton {
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(139, 92, 246, 0.08);
+  color: #a78bfa;
+
+  &:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #c4b5fd;
+  }
+}
+
 @keyframes iconPulse {
   0%, 100% { filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5)); }
   50%      { filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8)); }

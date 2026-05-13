@@ -14,6 +14,7 @@ import {
   ScrollText,
   Server,
   Square,
+  Undo2,
 } from "lucide-react";
 import {
   AddressBadgeComponent,
@@ -54,10 +55,11 @@ function MiniBar({ percent, color }) {
 
 // ── Action Cell ─────────────────────────────────────────────────
 
-function ActionCell({ service, onRestart, onStop, onStart }) {
+function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackAvailable }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
 
   const isHealthy = service.healthy;
 
@@ -68,7 +70,7 @@ function ActionCell({ service, onRestart, onStop, onStart }) {
       {isHealthy ? (
         <button
           className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
-          disabled={stopping || restarting}
+          disabled={stopping || restarting || rollingBack}
           onClick={async (e) => {
             e.stopPropagation();
             setStopping(true);
@@ -82,7 +84,7 @@ function ActionCell({ service, onRestart, onStop, onStart }) {
       ) : (
         <button
           className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
-          disabled={starting || restarting}
+          disabled={starting || restarting || rollingBack}
           onClick={async (e) => {
             e.stopPropagation();
             setStarting(true);
@@ -104,9 +106,25 @@ function ActionCell({ service, onRestart, onStop, onStart }) {
         <ScrollText size={9} strokeWidth={2.6} />
       </Link>
 
+      {rollbackAvailable && (
+        <button
+          className={`${styles.actionBtn} ${styles.rollbackBtn} ${rollingBack ? styles.actionBtnLoading : ""}`}
+          disabled={rollingBack || restarting || stopping || starting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setRollingBack(true);
+            try { await onRollback?.(service.id); }
+            finally { setTimeout(() => setRollingBack(false), 8000); }
+          }}
+          title="Rollback to previous build"
+        >
+          <Undo2 size={9} strokeWidth={2.6} />
+        </button>
+      )}
+
       <button
         className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
-        disabled={restarting || stopping || starting}
+        disabled={restarting || stopping || starting || rollingBack}
         onClick={async (e) => {
           e.stopPropagation();
           setRestarting(true);
@@ -123,7 +141,7 @@ function ActionCell({ service, onRestart, onStop, onStart }) {
 
 // ── Column Definitions ──────────────────────────────────────────
 
-function buildColumns({ onRestart, onStop, onStart }) {
+function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap }) {
   return [
     {
       key: "name",
@@ -287,6 +305,8 @@ function buildColumns({ onRestart, onStop, onStart }) {
           onRestart={onRestart}
           onStop={onStop}
           onStart={onStart}
+          onRollback={onRollback}
+          rollbackAvailable={!!rollbackMap[row.id]}
         />
       ),
     },
@@ -302,6 +322,7 @@ export default function ContainerStatsComponent() {
   const [containerStats, setContainerStats] = useState({});
   const [selectedContainer, setSelectedContainer] = useState(null);
   const [activeDevice, setActiveDevice] = useState(null); // null = all hosts
+  const [rollbackMap, setRollbackMap] = useState({}); // serviceId → boolean
   const didFetch = useRef(false);
 
   // Fetch container stats and project registry, then join them
@@ -442,6 +463,41 @@ export default function ContainerStatsComponent() {
     }
   };
 
+  const handleRollback = async (serviceId) => {
+    try {
+      await ApiService.rollbackService(serviceId);
+      setTimeout(fetchData, 5000);
+      // Refresh rollback availability
+      setTimeout(() => checkRollbackAvailability(containerRows), 6000);
+    } catch (err) {
+      console.error("Rollback failed:", err);
+    }
+  };
+
+  // Check rollback availability for all restartable containers
+  const checkRollbackAvailability = useCallback(async (rows) => {
+    const restartableIds = rows
+      .filter((r) => r.restartable)
+      .map((r) => r.id);
+
+    if (restartableIds.length === 0) return;
+
+    const results = await Promise.allSettled(
+      restartableIds.map(async (id) => {
+        const res = await ApiService.getRollbackStatus(id);
+        return { id, available: res.available === true };
+      }),
+    );
+
+    const map = {};
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        map[result.value.id] = result.value.available;
+      }
+    }
+    setRollbackMap(map);
+  }, []);
+
   // ── Derive unique device IDs for filter pills ─────────────────
   const deviceIds = useMemo(() => {
     const ids = new Set();
@@ -457,8 +513,15 @@ export default function ContainerStatsComponent() {
     return containerRows.filter((r) => r.device === activeDevice);
   }, [containerRows, activeDevice]);
 
-  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart });
+  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart, onRollback: handleRollback, rollbackMap });
   const healthyCount = filteredRows.filter((r) => r.healthy).length;
+
+  // Check rollback availability once data loads
+  useEffect(() => {
+    if (containerRows.length > 0) {
+      checkRollbackAvailability(containerRows);
+    }
+  }, [containerRows, checkRollbackAvailability]);
 
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
@@ -617,6 +680,8 @@ export default function ContainerStatsComponent() {
               onRestart={handleRestart}
               onStop={handleStop}
               onStart={handleStart}
+              onRollback={handleRollback}
+              rollbackAvailable={!!rollbackMap[selectedContainer.id]}
             />
           ) : null
         }

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Cpu, GitFork, Globe, Lock, MemoryStick, Package, Play, RotateCcw, ScrollText, Server, Square } from "lucide-react";
+import { Cpu, GitFork, Globe, Lock, MemoryStick, Package, Play, RotateCcw, ScrollText, Server, Square, Undo2 } from "lucide-react";
 import {
   AddressBadgeComponent,
   BadgeComponent,
@@ -17,6 +17,7 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatBytes, formatDuration, formatElapsedTime, formatPercent } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import ApiService from "../services/ApiService";
 import styles from "./ServiceCardComponent.module.css";
 
 
@@ -103,10 +104,12 @@ function PercentBar({ percent, color }) {
 
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
-export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart }) {
+export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart, onRollback }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
+  const [rollbackAvailable, setRollbackAvailable] = useState(false);
   const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
   const isHealthy = isNonDeployed ? true : service.healthy;
   const statusClass = isNonDeployed ? styles.nonDeployed : (isHealthy ? styles.healthy : styles.unhealthy);
@@ -114,6 +117,14 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
   const isInfra = service.isInfrastructure;
 
   const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+
+  // Lazily check rollback availability for restartable services
+  useEffect(() => {
+    if (!service.restartable) return;
+    ApiService.getRollbackStatus(service.id)
+      .then((res) => setRollbackAvailable(res.available === true))
+      .catch(() => setRollbackAvailable(false));
+  }, [service.id, service.restartable]);
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
@@ -135,7 +146,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             {isHealthy ? (
               <button
                 className={`${styles.actionButton} ${styles.stopButton} ${stopping ? styles.actionButtonLoading : ""}`}
-                disabled={stopping || restarting}
+                disabled={stopping || restarting || rollingBack}
                 onClick={async () => {
                   setStopping(true);
                   try {
@@ -151,7 +162,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             ) : (
               <button
                 className={`${styles.actionButton} ${styles.startButton} ${starting ? styles.actionButtonLoading : ""}`}
-                disabled={starting || restarting}
+                disabled={starting || restarting || rollingBack}
                 onClick={async () => {
                   setStarting(true);
                   try {
@@ -174,9 +185,27 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
               Logs
             </Link>
 
+            {rollbackAvailable && (
+              <button
+                className={`${styles.actionButton} ${styles.rollbackButton} ${rollingBack ? styles.actionButtonLoading : ""}`}
+                disabled={rollingBack || restarting || stopping || starting}
+                onClick={async () => {
+                  setRollingBack(true);
+                  try {
+                    await onRollback?.(service.id);
+                  } finally {
+                    setTimeout(() => setRollingBack(false), 8000);
+                  }
+                }}
+              >
+                <Undo2 size={10} strokeWidth={2.6} className={rollingBack ? styles.pulse : ""} />
+                {rollingBack ? "Rolling back…" : "Rollback"}
+              </button>
+            )}
+
             <button
               className={`${styles.actionButton} ${styles.restartButton} ${restarting ? styles.actionButtonLoading : ""}`}
-              disabled={restarting || stopping || starting}
+              disabled={restarting || stopping || starting || rollingBack}
               onClick={async () => {
                 setRestarting(true);
                 try {
