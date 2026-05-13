@@ -36,6 +36,10 @@
   background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(6, 13, 24, 0.85) 60%, transparent 100%);
 }
 
+[data-theme="muted"] .header {
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(221, 222, 227, 0.85) 60%, transparent 100%);
+}
+
 .headerInner {
   display: flex;
   align-items: flex-start;
