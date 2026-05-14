@@ -51,13 +51,13 @@
 .headerText { display: flex; flex-direction: column; gap: 4px; }
 
 .title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
-.subtitle { font-size: 14px; color: var(--text-secondary); }
+.subtitle { font-size: var(--font-size-base); color: var(--text-secondary); }
 
 .headerActions { display: flex; align-items: center; gap: 8px; }
 
@@ -73,7 +73,8 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
   cursor: text;
 }
 
@@ -99,7 +100,7 @@
   width: 100%;
   height: 100%;
   padding: 0 30px 0 30px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
   color: var(--text-primary);
   background: transparent;
@@ -138,7 +139,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-card);
@@ -177,7 +178,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .tierLabel {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   fill: var(--text-muted);
   letter-spacing: 0.04em;
@@ -271,12 +272,12 @@
 .nodeInternal.nodeHealthy:hover { border-color: rgba(16, 185, 129, 0.3); }
 .nodeInternal.nodeHealthy .nodeGlow { box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
 
-.nodeExternal .nodeIconWrap { color: #2dd4bf; }
+.nodeExternal .nodeIconWrap { color: var(--node-external); }
 .nodeExternal.nodeHealthy { border-color: rgba(45, 212, 191, 0.1); }
 .nodeExternal.nodeHealthy:hover { border-color: rgba(45, 212, 191, 0.3); }
 .nodeExternal.nodeHealthy .nodeGlow { box-shadow: 0 0 20px rgba(45, 212, 191, 0.1); }
 
-.nodeInfra .nodeIconWrap { color: #a855f7; }
+.nodeInfra .nodeIconWrap { color: var(--node-infra); }
 .nodeInfra.nodeHealthy { border-color: rgba(168, 85, 247, 0.1); }
 .nodeInfra.nodeHealthy:hover { border-color: rgba(168, 85, 247, 0.3); }
 .nodeInfra.nodeHealthy .nodeGlow { box-shadow: 0 0 20px rgba(168, 85, 247, 0.1); }
@@ -329,7 +330,7 @@
 }
 
 .nodeName {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
@@ -338,7 +339,7 @@
 }
 
 .nodeHost {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-muted);
   text-align: center;
 }
@@ -382,8 +383,8 @@
   animation: fadeIn var(--transition-normal) ease-out;
 }
 
-.legendTitle { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 2px; }
-.legendItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.legendTitle { font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 2px; }
+.legendItem { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); color: var(--text-secondary); }
 .legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .legendLine { width: 20px; height: 0; border-top: 2px solid var(--text-muted); flex-shrink: 0; }
 .legendSep { width: 100%; height: 0; border-top: 1px solid var(--border-color); margin: 2px 0; }
@@ -404,20 +405,20 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-.tooltipName { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.tooltipName { font-size: var(--font-size-base); font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
 .tooltipRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 0; }
-.tooltipLabel { font-size: 11px; color: var(--text-tertiary); }
-.tooltipValue { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.tooltipLabel { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.tooltipValue { font-size: var(--font-size-sm); font-weight: 500; color: var(--text-secondary); }
 .tooltipHealthy { color: var(--success); }
 .tooltipUnhealthy { color: var(--danger); }
 
 .tooltipDeps { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 3px; }
-.tooltipDepLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #60a5fa; }
-.tooltipDepList { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
-.tooltipDepLabelOptional { color: #fbbf24; }
+.tooltipDepLabel { font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--log-info); }
+.tooltipDepList { font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.5; }
+.tooltipDepLabelOptional { color: var(--status-paused); }
 .tooltipDepListOptional { color: var(--text-tertiary); }
 
-.loadingState { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); font-size: 14px; }
+.loadingState { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); font-size: var(--font-size-base); }
 .loadingDot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-color); animation: pulse 1.5s ease-in-out infinite; }
 
 .zoomControls {
@@ -441,7 +442,7 @@
   justify-content: center;
   background: var(--bg-card);
   color: var(--text-secondary);
-  font-size: 16px;
+  font-size: var(--font-size-md);
   font-weight: 500;
   border-bottom: 1px solid var(--border-color);
   transition: color var(--transition-fast), background var(--transition-fast);
@@ -493,6 +494,6 @@
   }
 
   .legendItem {
-    font-size: 10px;
+    font-size: 0.625rem;
   }
 }

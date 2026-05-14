@@ -15,7 +15,7 @@
 
 .tierLabel {
   width: 100%;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -37,7 +37,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   letter-spacing: -0.01em;
   cursor: pointer;
@@ -73,13 +73,13 @@
 }
 
 .chipDotHealthy {
-  background: #22c55e;
+  background: var(--success);
   box-shadow: 0 0 5px rgba(34, 197, 94, 0.35);
   animation: chipDotPulse 2.5s ease-in-out infinite;
 }
 
 .chipDotUnhealthy {
-  background: #ef4444;
+  background: var(--danger);
   box-shadow: 0 0 5px rgba(239, 68, 68, 0.35);
 }
 
@@ -96,7 +96,7 @@
 
 .chipDevice {
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 400;
   opacity: 0.7;
 }
@@ -104,7 +104,7 @@
 /* ── Terminal Log Viewer ── */
 
 .terminal {
-  background: #09090e;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -132,7 +132,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-tertiary);
   letter-spacing: 0.02em;
@@ -199,7 +199,7 @@
 }
 
 .lineCount {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-weight: 400;
@@ -225,7 +225,7 @@
   overflow-x: auto;
   padding: 6px 0;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   line-height: 1.6;
   scrollbar-width: thin;
 }
@@ -269,7 +269,7 @@
   text-align: right;
   padding-right: 12px;
   color: rgba(255, 255, 255, 0.08);
-  font-size: 10px;
+  font-size: 0.625rem;
   user-select: none;
   border-right: 1px solid rgba(255, 255, 255, 0.03);
   margin-right: 12px;
@@ -286,14 +286,14 @@
   color: var(--text-muted);
   margin-right: 10px;
   opacity: 0.6;
-  font-size: 10.5px;
+  font-size: 0.65625rem;
 }
 
 /* ── Content ── */
 
 .lineContent {
   flex: 1;
-  color: #c8c8cd;
+  color: var(--log-default);
   word-break: break-all;
   white-space: pre-wrap;
 }
@@ -301,23 +301,23 @@
 /* ── Log level coloring ── */
 
 .levelError {
-  color: #f87171;
+  color: var(--status-stopped);
 }
 
 .levelWarn {
-  color: #fbbf24;
+  color: var(--status-paused);
 }
 
 .levelInfo {
-  color: #60a5fa;
+  color: var(--log-info);
 }
 
 .levelSuccess {
-  color: #34d399;
+  color: var(--status-running);
 }
 
 .levelDebug {
-  color: #a78bfa;
+  color: var(--status-building);
 }
 
 /* ── Empty / Loading States ── */
@@ -331,7 +331,7 @@
   height: calc(100dvh - 220px);
   min-height: 400px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   animation: fadeIn var(--transition-normal) ease-out;
 }
 
@@ -350,7 +350,7 @@
   gap: 10px;
   padding: 32px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-family: var(--font-mono);
 }
 
@@ -372,7 +372,7 @@
   background: rgba(239, 68, 68, 0.06);
   border-bottom: 1px solid rgba(239, 68, 68, 0.1);
   color: var(--danger);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   font-weight: 500;
 }
@@ -385,7 +385,7 @@
   background: rgba(245, 158, 11, 0.06);
   border-top: 1px solid rgba(245, 158, 11, 0.1);
   color: var(--warning);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   font-weight: 500;
 }
@@ -395,7 +395,7 @@
 .searchInput {
   height: 26px;
   padding: 0 8px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
@@ -458,7 +458,7 @@
   }
 
   .terminalBody {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
   }
 
   .logLine {
@@ -479,7 +479,7 @@
   }
 
   .terminalTitle {
-    font-size: 10px;
+    font-size: 0.625rem;
   }
 
   .lineCount {

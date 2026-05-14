@@ -29,7 +29,7 @@
 }
 
 .sectionTitle {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -55,7 +55,7 @@
 }
 
 .fieldLabel {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
@@ -63,7 +63,7 @@
 
 .fieldValueMono {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   font-weight: 500;
   white-space: nowrap;
@@ -77,7 +77,7 @@
 
 .stateBadge {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -116,7 +116,7 @@
 
 .commandText {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -144,7 +144,7 @@
   justify-content: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   padding: 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -179,7 +179,7 @@
 }
 
 .metricCardTitle {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -189,13 +189,13 @@
 .metricCardValue {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .metricCardDim {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   font-weight: 400;
@@ -221,8 +221,8 @@
 .barFill {
   height: 100%;
   border-radius: 2px;
-  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width;
+  transform-origin: left;
+  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Sparkline ────────────────────────────────────────────────── */
@@ -256,7 +256,7 @@
 }
 
 .ioDir {
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -265,14 +265,14 @@
 }
 
 .ioValue {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .ioValueDanger {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--danger);
   font-weight: 600;
@@ -295,7 +295,7 @@
 }
 
 .detailLabel {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-muted);
   font-weight: 500;
   text-transform: uppercase;
@@ -303,7 +303,7 @@
 }
 
 .detailValue {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
   font-weight: 500;
@@ -328,7 +328,7 @@
 
 .interfaceName {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   color: var(--text-tertiary);
   background: var(--bg-tertiary);
@@ -338,7 +338,7 @@
 
 .ioCompactDetail {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -358,7 +358,7 @@
 
 .portMapping {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -382,7 +382,7 @@
 
 .mountType {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -395,7 +395,7 @@
 
 .mountPath {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -406,7 +406,7 @@
 
 .mountMode {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-muted);
   flex-shrink: 0;
@@ -433,7 +433,7 @@
 
 .labelKey {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-muted);
   font-weight: 600;
   white-space: nowrap;
@@ -445,7 +445,7 @@
 
 .labelValue {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-secondary);
   font-weight: 500;
   white-space: nowrap;

@@ -18,7 +18,7 @@
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-secondary);
@@ -64,7 +64,7 @@
   width: 220px;
   height: 32px;
   padding: 0 10px 0 30px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
@@ -102,7 +102,7 @@
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-tertiary);
   background: transparent;
@@ -129,12 +129,12 @@
 }
 
 .pillEmoji {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1;
 }
 
 .pillCount {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   color: var(--text-muted);
   opacity: 0.7;
@@ -198,19 +198,19 @@
 }
 
 .categoryEmoji {
-  font-size: 28px;
+  font-size: 1.75rem;
   line-height: 1;
 }
 
 .categoryTitle {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
 .categoryDesc {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   margin: 2px 0 0;
 }
@@ -218,7 +218,7 @@
 /* ── Results Count ────────────────────────────────────────────── */
 
 .resultsCount {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   margin-bottom: 12px;
   animation: fadeIn var(--transition-fast) ease-out;
@@ -294,10 +294,10 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #a855f7;
+  color: var(--node-infra);
   background: rgba(168, 85, 247, 0.12);
   border-radius: var(--border-radius-sm);
 }
@@ -314,7 +314,7 @@
 }
 
 .cardName {
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 6px;
@@ -322,7 +322,7 @@
 }
 
 .cardDesc {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   line-height: 1.5;
   margin: 0 0 auto;
@@ -341,7 +341,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
@@ -349,7 +349,7 @@
 
 .cardCategory {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: var(--border-radius-sm);
@@ -357,13 +357,13 @@
   letter-spacing: 0.02em;
 }
 
-.cat_actions        { color: #f59e0b; background: rgba(245, 158, 11, 0.10); }
-.cat_communication  { color: #3b82f6; background: rgba(59, 130, 246, 0.10); }
-.cat_containment    { color: #a855f7; background: rgba(168, 85, 247, 0.10); }
-.cat_inputs         { color: #10b981; background: rgba(16, 185, 129, 0.10); }
-.cat_navigation     { color: #ec4899; background: rgba(236, 72, 153, 0.10); }
-.cat_indicators     { color: #06b6d4; background: rgba(6, 182, 212, 0.10); }
-.cat_layout         { color: #8b5cf6; background: rgba(139, 92, 246, 0.10); }
+.cat_actions        { color: var(--cat-actions); background: rgba(245, 158, 11, 0.1); }
+.cat_communication  { color: var(--cat-communication); background: rgba(59, 130, 246, 0.1); }
+.cat_containment    { color: var(--node-infra); background: rgba(168, 85, 247, 0.1); }
+.cat_inputs         { color: var(--cat-inputs); background: rgba(16, 185, 129, 0.1); }
+.cat_navigation     { color: var(--cat-navigation); background: rgba(236, 72, 153, 0.1); }
+.cat_indicators     { color: var(--node-service); background: rgba(6, 182, 212, 0.1); }
+.cat_layout         { color: var(--cat-layout); background: rgba(139, 92, 246, 0.1); }
 
 /* ── List View ────────────────────────────────────────────────── */
 
@@ -414,13 +414,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .listDesc {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   margin-top: 2px;
   white-space: nowrap;
@@ -455,7 +455,7 @@
   gap: 12px;
   padding: 64px 24px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   animation: fadeIn var(--transition-normal) ease-out;
 }
 
@@ -500,7 +500,7 @@
   justify-content: center;
   gap: 6px;
   padding: 12px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--warning, #f59e0b);
   background: rgba(245, 158, 11, 0.06);
   border: 1px dashed rgba(245, 158, 11, 0.2);

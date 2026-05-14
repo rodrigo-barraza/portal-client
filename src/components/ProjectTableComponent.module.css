@@ -13,7 +13,7 @@
 .serviceName {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .typeIcon {
@@ -35,7 +35,7 @@
 }
 
 .iconNeutral {
-  color: #06b6d4;
+  color: var(--node-service);
   filter: none;
 }
 
@@ -57,7 +57,7 @@
 
 .descriptionCell {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.4;
   max-width: 280px;
   overflow: hidden;
@@ -70,7 +70,7 @@
 
 .mutedCell {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   opacity: 0.4;
 }
 
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 5px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   text-decoration: none;
   padding: 3px 8px;
   border-radius: var(--border-radius-sm);
@@ -144,49 +144,49 @@
 .stopBtn {
   border: 1px solid rgba(239, 68, 68, 0.2);
   background: rgba(239, 68, 68, 0.06);
-  color: #f87171;
+  color: var(--status-stopped);
 
   &:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.14);
     border-color: rgba(239, 68, 68, 0.35);
-    color: #fca5a5;
+    color: var(--status-stopped-hover);
   }
 }
 
 .startBtn {
   border: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.06);
-  color: #34d399;
+  color: var(--status-running);
 
   &:hover:not(:disabled) {
     background: rgba(16, 185, 129, 0.14);
     border-color: rgba(16, 185, 129, 0.35);
-    color: #6ee7b7;
+    color: var(--status-running-hover);
   }
 }
 
 .logsBtn {
   border: 1px solid rgba(148, 163, 184, 0.15);
   background: rgba(148, 163, 184, 0.04);
-  color: #94a3b8;
+  color: var(--status-unknown);
   text-decoration: none;
 
   &:hover {
     background: rgba(148, 163, 184, 0.12);
     border-color: rgba(148, 163, 184, 0.3);
-    color: #cbd5e1;
+    color: var(--status-unknown-hover);
   }
 }
 
 .restartBtn {
   border: 1px solid rgba(251, 191, 36, 0.2);
   background: rgba(251, 191, 36, 0.06);
-  color: #fbbf24;
+  color: var(--status-paused);
 
   &:hover:not(:disabled) {
     background: rgba(251, 191, 36, 0.14);
     border-color: rgba(251, 191, 36, 0.35);
-    color: #fcd34d;
+    color: var(--status-paused-hover);
   }
 }
 
@@ -196,7 +196,7 @@
   text-align: center;
   padding: 48px 24px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 /* ── Animations ── */

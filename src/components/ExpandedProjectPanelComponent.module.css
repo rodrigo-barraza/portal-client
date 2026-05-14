@@ -33,7 +33,7 @@
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 550;
   color: var(--text-tertiary);
   border-radius: var(--border-radius-sm);
@@ -70,7 +70,7 @@
 }
 
 .sectionTitle {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -100,14 +100,14 @@
 }
 
 .fieldLabel {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .fieldValue {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   font-weight: 450;
   overflow: hidden;
@@ -118,7 +118,7 @@
 
 .mono {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
 }
 
 /* ── Empty Tab ─────────────────────────────────────────────────── */
@@ -131,7 +131,7 @@
   gap: 8px;
   min-height: 120px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .emptyTabIcon {
@@ -139,7 +139,7 @@
 }
 
 .emptyTabHint {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
   opacity: 0.7;
 }
@@ -149,7 +149,7 @@
   padding: 1px 4px;
   background: var(--bg-tertiary);
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -197,7 +197,7 @@
   justify-content: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   padding: 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -224,7 +224,7 @@
 /* ── Tier labels ── */
 
 .miniTierLabel {
-  font-size: 8px;
+  font-size: 0.5rem;
   font-weight: 600;
   fill: var(--text-muted);
   letter-spacing: 0.04em;
@@ -273,10 +273,10 @@
 .miniNodeInternal .miniNodeIconWrap { color: var(--success); }
 .miniNodeInternal { border-color: rgba(16, 185, 129, 0.1); }
 
-.miniNodeExternal .miniNodeIconWrap { color: #2dd4bf; }
+.miniNodeExternal .miniNodeIconWrap { color: var(--node-external); }
 .miniNodeExternal { border-color: rgba(45, 212, 191, 0.1); }
 
-.miniNodeInfra .miniNodeIconWrap { color: #a855f7; }
+.miniNodeInfra .miniNodeIconWrap { color: var(--node-infra); }
 .miniNodeInfra { border-color: rgba(168, 85, 247, 0.1); }
 
 .miniNodeSelf {
@@ -291,7 +291,7 @@
 }
 
 .miniNodeName {
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
@@ -352,7 +352,7 @@
 }
 
 .metricCardTitle {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -362,13 +362,13 @@
 .metricCardValue {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .metricCardDim {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   font-weight: 400;
@@ -394,8 +394,8 @@
 .barFill {
   height: 100%;
   border-radius: 2px;
-  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width;
+  transform-origin: left;
+  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Sparkline ─────────────────────────────────────────────────── */
@@ -421,7 +421,7 @@
 }
 
 .ioDir {
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -430,7 +430,7 @@
 }
 
 .ioValue {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
   font-weight: 500;
@@ -471,14 +471,14 @@
 }
 
 .realtimeValue {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--text-primary);
 }
 
 .realtimeLabel {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
 
@@ -499,7 +499,7 @@
 }
 
 .gaCardValue {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -507,7 +507,7 @@
 }
 
 .gaCardLabel {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -540,7 +540,7 @@
 }
 
 .gaPagePath {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -549,7 +549,7 @@
 }
 
 .gaPageViews {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
   font-weight: 600;
@@ -562,7 +562,7 @@
   padding: 8px 10px;
   background: var(--danger-subtle);
   border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-family: var(--font-mono);
   color: var(--danger);
   word-break: break-all;

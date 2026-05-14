@@ -23,6 +23,40 @@
   /* Portal-specific gradient */
   --portal-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
   --portal-gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+
+  /* ── Status Colors ────────────────────────────────────── */
+  --status-running: #34d399;
+  --status-running-hover: #6ee7b7;
+  --status-stopped: #f87171;
+  --status-stopped-hover: #fca5a5;
+  --status-paused: #fbbf24;
+  --status-paused-hover: #fcd34d;
+  --status-unknown: #94a3b8;
+  --status-unknown-hover: #cbd5e1;
+  --status-building: #a78bfa;
+  --status-building-hover: #c4b5fd;
+
+  /* ── Node Type Colors ─────────────────────────────────── */
+  --node-infra: #a855f7;
+  --node-external: #2dd4bf;
+  --node-service: #06b6d4;
+
+  /* ── Log Level Colors ─────────────────────────────────── */
+  --log-error: #f87171;
+  --log-warn: #fbbf24;
+  --log-info: #60a5fa;
+  --log-debug: #34d399;
+  --log-verbose: #a78bfa;
+  --log-default: #c8c8cd;
+
+  /* ── Category Colors ──────────────────────────────────── */
+  --cat-actions: #f59e0b;
+  --cat-communication: #3b82f6;
+  --cat-containment: #a855f7;
+  --cat-inputs: #10b981;
+  --cat-navigation: #ec4899;
+  --cat-indicators: #06b6d4;
+  --cat-layout: #8b5cf6;
 }
 
 /* ── Dark Mode ─────────────────────────────────────────────── */

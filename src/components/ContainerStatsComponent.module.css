@@ -61,7 +61,7 @@
 }
 
 .statCardValue {
-  font-size: 20px;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -70,7 +70,7 @@
 }
 
 .statCardLabel {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -78,7 +78,7 @@
 }
 
 .statCardSub {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
   margin-top: 2px;
   line-height: 1.3;
@@ -95,7 +95,7 @@
 .containerName {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-family: var(--font-mono);
   white-space: nowrap;
   overflow: hidden;
@@ -142,7 +142,7 @@
 
 .metricValue {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   white-space: nowrap;
   line-height: 1;
@@ -159,13 +159,13 @@
 .miniBarFill {
   height: 100%;
   border-radius: 2px;
-  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: width;
+  transform-origin: left;
+  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dimText {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
 }
 
 /* ── I/O Cell (compact inline for Net I/O column) ── */
@@ -182,7 +182,7 @@
   align-items: baseline;
   gap: 3px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
   font-weight: 500;
   white-space: nowrap;
@@ -190,7 +190,7 @@
 }
 
 .ioArrow {
-  font-size: 9px;
+  font-size: 0.5625rem;
   font-weight: 700;
   color: var(--text-muted);
   width: 9px;
@@ -235,61 +235,61 @@
 .stopBtn {
   border: 1px solid rgba(239, 68, 68, 0.2);
   background: rgba(239, 68, 68, 0.06);
-  color: #f87171;
+  color: var(--status-stopped);
 
   &:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.14);
     border-color: rgba(239, 68, 68, 0.35);
-    color: #fca5a5;
+    color: var(--status-stopped-hover);
   }
 }
 
 .startBtn {
   border: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.06);
-  color: #34d399;
+  color: var(--status-running);
 
   &:hover:not(:disabled) {
     background: rgba(16, 185, 129, 0.14);
     border-color: rgba(16, 185, 129, 0.35);
-    color: #6ee7b7;
+    color: var(--status-running-hover);
   }
 }
 
 .logsBtn {
   border: 1px solid rgba(148, 163, 184, 0.15);
   background: rgba(148, 163, 184, 0.04);
-  color: #94a3b8;
+  color: var(--status-unknown);
   text-decoration: none;
 
   &:hover {
     background: rgba(148, 163, 184, 0.12);
     border-color: rgba(148, 163, 184, 0.3);
-    color: #cbd5e1;
+    color: var(--status-unknown-hover);
   }
 }
 
 .restartBtn {
   border: 1px solid rgba(251, 191, 36, 0.2);
   background: rgba(251, 191, 36, 0.06);
-  color: #fbbf24;
+  color: var(--status-paused);
 
   &:hover:not(:disabled) {
     background: rgba(251, 191, 36, 0.14);
     border-color: rgba(251, 191, 36, 0.35);
-    color: #fcd34d;
+    color: var(--status-paused-hover);
   }
 }
 
 .rollbackBtn {
   border: 1px solid rgba(139, 92, 246, 0.2);
   background: rgba(139, 92, 246, 0.06);
-  color: #a78bfa;
+  color: var(--status-building);
 
   &:hover:not(:disabled) {
     background: rgba(139, 92, 246, 0.14);
     border-color: rgba(139, 92, 246, 0.35);
-    color: #c4b5fd;
+    color: var(--status-building-hover);
   }
 }
 
@@ -299,7 +299,7 @@
   text-align: center;
   padding: 48px 24px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 /* ── Device Filter Pills ── */
@@ -319,7 +319,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
   background: transparent;
@@ -347,7 +347,7 @@
 }
 
 .devicePillCount {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-muted);
