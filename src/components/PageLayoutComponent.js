@@ -1,50 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useMediaQuery, MobileHeaderComponent } from "@rodrigo-barraza/components-library";
-import NavigationSidebarComponent from "./NavigationSidebarComponent";
-import styles from "./PageLayoutComponent.module.css";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { PageLayoutComponent as LibraryPageLayout, useTheme } from "@rodrigo-barraza/components-library";
+import { NAV_SECTIONS } from "../constants";
 
 /**
- * PageLayoutComponent — Unified page wrapper for all portal pages.
- *
- * Encapsulates the repeated pattern of NavigationSidebarComponent +
- * main content area, and manages the mobile drawer open/close state.
- * On mobile viewports, renders a MobileHeaderComponent with hamburger
- * button instead of the fixed sidebar.
- *
- * @param {React.ReactNode} children — Page content
- * @param {object}  [mainStyle]     — Optional inline style for the <main> element
- * @param {string}  [mainClassName] — Optional additional class for the <main> element
+ * PageLayoutComponent — Thin wrapper around the library PageLayoutComponent,
+ * pre-configured for Portal with brand identity, nav sections, and theming.
  */
 export default function PageLayoutComponent({ children, mainStyle, mainClassName }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const pathname = usePathname();
+  const { theme, themes, setTheme, mounted } = useTheme();
+  const currentTheme = !mounted ? "dark" : theme;
 
   return (
-    <div className="page-wrapper">
-      <NavigationSidebarComponent
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-      />
-
-      <div className={styles.mainArea}>
-        {/* Mobile-only top header bar */}
-        {isMobile && (
-          <MobileHeaderComponent
-            brandIcon="/brand-icon.png"
-            brandLabel="Portal"
-            onMenuClick={() => setMobileOpen(true)}
-          />
-        )}
-
-        <main
-          className={`page-content ${mainClassName || ""}`}
-          style={mainStyle}
-        >
-          {children}
-        </main>
-      </div>
-    </div>
+    <LibraryPageLayout
+      brandIcon="/brand-icon.png"
+      brandLabel="Portal"
+      sections={NAV_SECTIONS}
+      activeItem={pathname}
+      theme={currentTheme}
+      themes={themes}
+      setTheme={setTheme}
+      LinkComponent={Link}
+      storageKey="portal-nav-collapsed"
+      mainStyle={mainStyle}
+      mainClassName={mainClassName}
+    >
+      {children}
+    </LibraryPageLayout>
   );
 }
