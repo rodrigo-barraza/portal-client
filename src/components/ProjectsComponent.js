@@ -60,6 +60,8 @@ function compareBySortKey(a, b, sortKey, sortDir) {
       return dir * (a.projectType || "").localeCompare(b.projectType || "");
     case "tier":
       return dir * ((a.deployTier ?? 99) - (b.deployTier ?? 99));
+    case "essential":
+      return dir * ((b.essential ? 1 : 0) - (a.essential ? 1 : 0));
     case "domain":
       return dir * (a.domain || "").localeCompare(b.domain || "");
     case "repo":

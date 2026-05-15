@@ -9,6 +9,7 @@ import {
   GitBranch,
   HardDrive,
   Link2,
+  ShieldCheck,
 } from "lucide-react";
 import {
   BadgeComponent,
@@ -76,6 +77,29 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
         );
       },
       sortValue: (row) => row.projectType || "",
+    },
+    {
+      key: "essential",
+      label: "Essential",
+      sortable: true,
+      description: "Core scaffolding required to build & deploy new projects",
+      render: (service) => {
+        if (!service.essential) return <span className={styles.mutedCell}>—</span>;
+        return (
+          <BadgeComponent
+            variant="info"
+            style={{
+              color: "#f59e0b",
+              background: "rgba(245, 158, 11, 0.10)",
+              borderColor: "rgba(245, 158, 11, 0.25)",
+            }}
+          >
+            <ShieldCheck size={11} strokeWidth={2.4} style={{ marginRight: 4 }} />
+            Core
+          </BadgeComponent>
+        );
+      },
+      sortValue: (row) => (row.essential ? 0 : 1),
     },
     {
       key: "tier",
