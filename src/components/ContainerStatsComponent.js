@@ -534,7 +534,18 @@ export default function ContainerStatsComponent() {
     : 0;
   const totalCpuUsage = filteredStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0);
   const totalMemUsed = filteredStats.reduce((sum, c) => sum + (c.memory?.used || 0), 0);
-  const totalMemLimit = filteredStats.reduce((sum, c) => sum + (c.memory?.limit || 0), 0);
+
+  // Use actual host RAM from systemInfo instead of summing per-container cgroup limits
+  const totalMemLimit = useMemo(() => {
+    if (!systemInfo) return 0;
+    const devices = Array.isArray(systemInfo) ? systemInfo : [systemInfo];
+    if (activeDevice) {
+      const match = devices.find((d) => d.deviceId === activeDevice);
+      return match?.totalMemory || 0;
+    }
+    return devices.reduce((sum, d) => sum + (d.totalMemory || 0), 0);
+  }, [systemInfo, activeDevice]);
+
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
   const totalNetRx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
   const totalNetTx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
@@ -634,7 +645,7 @@ export default function ContainerStatsComponent() {
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue} style={{ color: severityColor(memPercent, [60, 85]) }}>{formatBytes(totalMemUsed)}</span>
               <span className={styles.statCardLabel}>Memory Used</span>
-              <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} allocated` : "—"}</span>
+              <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total` : "—"}</span>
             </div>
           </div>
 
