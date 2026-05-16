@@ -179,21 +179,23 @@ export default class ApiService {
   // ── Logs ────────────────────────────────────────────────────
 
   /**
-   * Get the list of services that support log streaming.
+   * Get the list of all Docker containers available for log streaming.
    */
-  static async getLoggableServices() {
+  static async getLoggableContainers() {
     return ApiService._request("/logs");
   }
 
   /**
    * Build the SSE URL for streaming container logs.
    * The caller should use `new EventSource(url)` to connect.
-   * @param {string} serviceId
-   * @param {{ tail?: number, follow?: boolean }} [opts]
+   * @param {string} containerName - Docker container name
+   * @param {{ tail?: number, follow?: boolean, device?: string }} [opts]
    * @returns {string}
    */
-  static buildLogStreamUrl(serviceId, { tail = 200, follow = true } = {}) {
-    return `${API_BASE}/logs/${serviceId}?tail=${tail}&follow=${follow ? "1" : "0"}`;
+  static buildLogStreamUrl(containerName, { tail = 200, follow = true, device } = {}) {
+    let url = `${API_BASE}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
+    if (device) url += `&device=${encodeURIComponent(device)}`;
+    return url;
   }
 
   // ── Devices ──────────────────────────────────────────────────

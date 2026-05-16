@@ -207,9 +207,8 @@ function parseLine(raw) {
 }
 
 export default function LogsComponent() {
-  const [loggableServices, setLoggableServices] = useState([]);
-  const [healthMap, setHealthMap] = useState({});
-  const [activeService, setActiveService] = useState(null);
+  const [containers, setContainers] = useState([]);
+  const [activeContainer, setActiveContainer] = useState(null);
   const [lines, setLines] = useState([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState(null);
@@ -227,24 +226,16 @@ export default function LogsComponent() {
   const didAutoConnect = useRef(false);
   const searchParams = useSearchParams();
 
-  // ── Fetch loggable services on mount ─────────────────────────
+  // ── Fetch containers on mount ────────────────────────────────
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
 
-    Promise.all([
-      ApiService.getLoggableServices(),
-      ApiService.getServices(),
-    ])
-      .then(([logsRes, svcRes]) => {
-        setLoggableServices(logsRes.services || []);
-        const map = {};
-        for (const s of [...(svcRes.services || []), ...(svcRes.infrastructure || [])]) {
-          map[s.id] = s.healthy;
-        }
-        setHealthMap(map);
+    ApiService.getLoggableContainers()
+      .then((res) => {
+        setContainers(res.containers || []);
       })
-      .catch((err) => console.error("Failed to fetch services:", err));
+      .catch((err) => console.error("Failed to fetch containers:", err));
   }, []);
 
   // ── Auto-scroll to bottom ────────────────────────────────────
@@ -263,15 +254,15 @@ export default function LogsComponent() {
   }, []);
 
   // ── Connect to SSE stream ────────────────────────────────────
-  const connectToService = useCallback(
-    (serviceId) => {
+  const connectToContainer = useCallback(
+    (containerName, device) => {
       // Disconnect existing stream
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
 
-      setActiveService(serviceId);
+      setActiveContainer(containerName);
       setLines([]);
       setConnected(false);
       setError(null);
@@ -279,9 +270,10 @@ export default function LogsComponent() {
       setPaused(false);
       pauseBufferRef.current = [];
 
-      const url = ApiService.buildLogStreamUrl(serviceId, {
+      const url = ApiService.buildLogStreamUrl(containerName, {
         tail: 200,
         follow: true,
+        device,
       });
 
       const es = new EventSource(url);
@@ -344,18 +336,18 @@ export default function LogsComponent() {
     [paused],
   );
 
-  // ── Auto-connect when ?service= is in the URL ───────────────
+  // ── Auto-connect when ?container= is in the URL ─────────────
   useEffect(() => {
     if (didAutoConnect.current) return;
-    const serviceParam = searchParams.get("service");
-    if (!serviceParam || loggableServices.length === 0) return;
+    const containerParam = searchParams.get("container") || searchParams.get("service");
+    if (!containerParam || containers.length === 0) return;
 
-    const match = loggableServices.find((s) => s.id === serviceParam);
+    const match = containers.find((c) => c.name === containerParam);
     if (match) {
       didAutoConnect.current = true;
-      queueMicrotask(() => connectToService(match.id));
+      queueMicrotask(() => connectToContainer(match.name, match.device));
     }
-  }, [searchParams, loggableServices, connectToService]);
+  }, [searchParams, containers, connectToContainer]);
 
   // ── Cleanup on unmount ───────────────────────────────────────
   useEffect(() => {
@@ -444,58 +436,63 @@ export default function LogsComponent() {
     return () => window.removeEventListener("keydown", handler);
   }, [showSearch]);
 
-  const activeServiceName =
-    loggableServices.find((s) => s.id === activeService)?.name || activeService;
+  const activeContainerName = activeContainer || "";
 
   return (
     <div className={styles.logs}>
       <PageHeaderComponent sticky={false}
         title="Logs"
         subtitle={
-          activeService
-            ? `Streaming ${activeServiceName} logs`
-            : "Select a service to view live container logs"
+          activeContainer
+            ? `Streaming ${activeContainerName} logs`
+            : "Select a container to view live Docker logs"
         }
       />
 
-      {/* ── Service Chips ── */}
+      {/* ── Container Chips ── */}
       <div className={styles.serviceList}>
         {(() => {
-          const TIER_LABELS = { 0: "Tier 0 — Foundation", 1: "Tier 1 — Services", 2: "Tier 2 — Clients & Bots" };
-          const sorted = [...loggableServices].sort((a, b) => {
-            const tierA = a.deployTier ?? 99;
-            const tierB = b.deployTier ?? 99;
-            if (tierA !== tierB) return tierA - tierB;
+          // Group by device, running containers first
+          const sorted = [...containers].sort((a, b) => {
+            if (a.device !== b.device) return a.device.localeCompare(b.device);
+            // Running containers first within each device
+            if (a.state === "running" && b.state !== "running") return -1;
+            if (a.state !== "running" && b.state === "running") return 1;
             return a.name.localeCompare(b.name);
           });
 
           const groups = [];
-          let lastTier = null;
-          for (const svc of sorted) {
-            const tier = svc.deployTier ?? 99;
-            if (tier !== lastTier) {
+          let lastDevice = null;
+          for (const container of sorted) {
+            if (container.device !== lastDevice) {
               groups.push(
-                <span key={`tier-${tier}`} className={styles.tierLabel}>
-                  {TIER_LABELS[tier] || `Tier ${tier}`}
+                <span key={`device-${container.device}`} className={styles.deviceLabel}>
+                  {container.deviceName || container.device}
                 </span>
               );
-              lastTier = tier;
+              lastDevice = container.device;
             }
-            const isHealthy = healthMap[svc.id];
+            const isRunning = container.state === "running";
             const dotClass = [
               styles.chipDot,
-              isHealthy === true ? styles.chipDotHealthy : isHealthy === false ? styles.chipDotUnhealthy : "",
+              isRunning ? styles.chipDotHealthy : styles.chipDotUnhealthy,
+            ].filter(Boolean).join(" ");
+
+            const chipClass = [
+              styles.serviceChip,
+              activeContainer === container.name ? styles.active : "",
+              !isRunning ? styles.chipStateStopped : "",
             ].filter(Boolean).join(" ");
 
             groups.push(
               <button
-                key={svc.id}
-                className={`${styles.serviceChip} ${activeService === svc.id ? styles.active : ""}`}
-                onClick={() => connectToService(svc.id)}
+                key={`${container.device}-${container.name}`}
+                className={chipClass}
+                onClick={() => connectToContainer(container.name, container.device)}
               >
                 <span className={dotClass} />
-                {svc.name}
-                <span className={styles.chipDevice}>{svc.deviceName}</span>
+                {container.name}
+                <span className={styles.chipDevice}>{container.deviceName}</span>
               </button>
             );
           }
@@ -504,7 +501,7 @@ export default function LogsComponent() {
       </div>
 
       {/* ── Terminal Viewer ── */}
-      {activeService ? (
+      {activeContainer ? (
         <div className={styles.terminal}>
           {/* Header */}
           <div className={styles.terminalHeader}>
@@ -512,7 +509,7 @@ export default function LogsComponent() {
               <span
                 className={`${styles.terminalDot} ${connected ? styles.connected : ""}`}
               />
-              {activeServiceName}
+              {activeContainerName}
               {connected && <span style={{ opacity: 0.5, marginLeft: 2 }}>live</span>}
             </div>
 
@@ -630,7 +627,7 @@ export default function LogsComponent() {
       ) : (
         <div className={styles.emptyTerminal}>
           <ScrollText size={40} strokeWidth={1} />
-          <span>Select a service to start streaming logs</span>
+          <span>Select a container to start streaming logs</span>
         </div>
       )}
     </div>

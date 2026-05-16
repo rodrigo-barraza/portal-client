@@ -98,7 +98,7 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
       )}
 
       <Link
-        href={`/logs?service=${service.id}`}
+        href={`/logs?container=${service.dockerProject || service.id}`}
         className={`${styles.actionBtn} ${styles.logsBtn}`}
         title="Logs"
         onClick={(e) => e.stopPropagation()}

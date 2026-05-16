@@ -178,7 +178,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             )}
 
             <Link
-              href={`/logs?service=${service.id}`}
+              href={`/logs?container=${service.dockerProject || service.id}`}
               className={`${styles.actionButton} ${styles.logsButton}`}
             >
               <ScrollText size={10} strokeWidth={2.6} />
