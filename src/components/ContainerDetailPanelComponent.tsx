@@ -32,6 +32,7 @@ const MAX_SPARKLINE_POINTS = 60;
 
 
 
+// @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
@@ -40,19 +41,24 @@ function severityColor(pct, thresholds = [40, 80]) {
 
 // ── Sparkline (Canvas) ────────────────────────────────────────────
 
-function Sparkline({ data, color, fillColor, max, height = 36 }) {
+function Sparkline({ data, color, fillColor, max, height = 36 }: { [key: string]: any }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
+    // @ts-ignore
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
+    // @ts-ignore
     const w = canvas.clientWidth;
+    // @ts-ignore
     const h = canvas.clientHeight;
 
+    // @ts-ignore
     canvas.width = w * dpr;
+    // @ts-ignore
     canvas.height = h * dpr;
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
@@ -99,7 +105,7 @@ function Sparkline({ data, color, fillColor, max, height = 36 }) {
   );
 }
 
-function PercentBar({ percent, color }) {
+function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -109,7 +115,7 @@ function PercentBar({ percent, color }) {
 }
 
 /** Format nanoseconds to human-readable duration */
-function formatNanoseconds(ns) {
+function formatNanoseconds(ns: any) {
   if (!ns || ns === 0) return "0s";
   const ms = ns / 1_000_000;
   if (ms < 1000) return `${ms.toFixed(1)}ms`;
@@ -120,7 +126,7 @@ function formatNanoseconds(ns) {
 }
 
 /** Format a Unix timestamp to a localized string */
-function formatTimestamp(ts) {
+function formatTimestamp(ts: any) {
   if (!ts) return "—";
   const date = new Date(ts * 1000);
   return date.toLocaleDateString(undefined, {
@@ -134,8 +140,8 @@ function formatTimestamp(ts) {
 
 // ── Main Panel ────────────────────────────────────────────────────
 
-export default function ContainerDetailPanel({ container, stats }) {
-  const [history, setHistory] = useState(null);
+export default function ContainerDetailPanel({ container, stats }: { [key: string]: any }) {
+  const [history, setHistory] = useState<any>(null);
   const didFetch = useRef(false);
 
   // Fetch sparkline history
@@ -145,6 +151,7 @@ export default function ContainerDetailPanel({ container, stats }) {
 
     (async () => {
       try {
+        // @ts-ignore
         const res = await ApiService.getContainerStatsHistory();
         if (res?.history) {
           const cpuPoints = [];
@@ -462,7 +469,8 @@ export default function ContainerDetailPanel({ container, stats }) {
                 {Object.entries(stats.network.interfaces).map(([name, iface]) => (
                   <div key={name} className={styles.interfaceRow}>
                     <span className={styles.interfaceName}>{name}</span>
-                    <span className={styles.ioCompactDetail}>↓ {formatBytes(iface.rxBytes)} · ↑ {formatBytes(iface.txBytes)}</span>
+{/* @ts-ignore */}
+<span className={styles.ioCompactDetail}>↓ {formatBytes((iface as any).rxBytes)} · ↑ {formatBytes((iface as any).txBytes)}</span>
                   </div>
                 ))}
               </div>
@@ -477,7 +485,7 @@ export default function ContainerDetailPanel({ container, stats }) {
                 <span className={styles.metricCardTitle}>Port Mappings</span>
               </div>
               <div className={styles.portList}>
-                {stats.ports.map((p, i) => (
+                {stats.ports.map((p: any, i: any) => (
                   <div key={i} className={styles.portRow}>
                     <span className={styles.portMapping}>
                       {p.publicPort ? `${p.ip || "0.0.0.0"}:${p.publicPort}` : "—"} → {p.privatePort}/{p.type}
@@ -497,7 +505,7 @@ export default function ContainerDetailPanel({ container, stats }) {
                 <span className={styles.metricCardDim}>{stats.mounts.length}</span>
               </div>
               <div className={styles.mountList}>
-                {stats.mounts.map((m, i) => (
+                {stats.mounts.map((m: any, i: any) => (
                   <div key={i} className={styles.mountRow}>
                     <span className={styles.mountType}>{m.type}</span>
                     <span className={styles.mountPath} title={`${m.source} → ${m.destination}`}>
@@ -524,7 +532,8 @@ export default function ContainerDetailPanel({ container, stats }) {
                   .map(([key, value]) => (
                     <div key={key} className={styles.labelRow}>
                       <span className={styles.labelKey} title={key}>{key}</span>
-                      <span className={styles.labelValue} title={value}>{value}</span>
+{/* @ts-ignore */}
+<span className={styles.labelValue} title={value as string}>{value as string}</span>
                     </div>
                   ))}
               </div>

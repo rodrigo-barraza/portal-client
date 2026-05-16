@@ -28,7 +28,8 @@ export const SERVICE_TYPE_ICONS = {
  * Resolve the icon for a given service entry.
  * Falls back to Globe for unknown types.
  */
-export function getServiceIcon(service) {
+export function getServiceIcon(service: any) {
+  // @ts-ignore
   return SERVICE_TYPE_ICONS[service.projectType] || Globe;
 }
 

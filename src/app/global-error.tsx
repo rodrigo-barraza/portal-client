@@ -6,7 +6,7 @@ import { useEffect } from "react";
  * Root-level error boundary — catches errors in the root layout itself.
  * Must include its own <html> and <body> since the root layout has failed.
  */
-export default function GlobalError({ error, reset }) {
+export default function GlobalError({ error, reset }: { [key: string]: any }) {
   useEffect(() => {
     console.error("[Portal] Root layout error:", error);
   }, [error]);

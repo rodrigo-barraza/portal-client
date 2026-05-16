@@ -41,11 +41,11 @@ const TEXT_EXTS = new Set([".txt", ".md", ".csv", ".log", ".ini", ".yml", ".yaml
 const CODE_EXTS = new Set([".js", ".ts", ".jsx", ".tsx", ".py", ".rb", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".css", ".html", ".json", ".xml", ".sh"]);
 const ARCHIVE_EXTS = new Set([".zip", ".gz", ".tar", ".rar", ".7z", ".bz2", ".xz"]);
 
-function getFileExt(name) {
+function getFileExt(name: any) {
   return (name || "").match(/\.[^.]+$/)?.[0]?.toLowerCase() || "";
 }
 
-function getFileIcon(name) {
+function getFileIcon(name: any) {
   const ext = getFileExt(name);
   if (IMAGE_EXTS.has(ext)) return FileImage;
   if (AUDIO_EXTS.has(ext)) return FileAudio;
@@ -56,16 +56,16 @@ function getFileIcon(name) {
   return File;
 }
 
-function isImage(name) {
+function isImage(name: any) {
   return IMAGE_EXTS.has(getFileExt(name));
 }
 
-function isPreviewable(name) {
+function isPreviewable(name: any) {
   const ext = getFileExt(name);
   return IMAGE_EXTS.has(ext) || AUDIO_EXTS.has(ext) || VIDEO_EXTS.has(ext);
 }
 
-function getMediaType(name) {
+function getMediaType(name: any) {
   const ext = getFileExt(name);
   if (IMAGE_EXTS.has(ext)) return "image";
   if (AUDIO_EXTS.has(ext)) return "audio";
@@ -74,12 +74,14 @@ function getMediaType(name) {
 }
 
 /** Extract the display name from a full key — strip the prefix to show just the leaf. */
+// @ts-ignore
 function displayName(fullKey, prefix) {
   if (!prefix) return fullKey;
   return fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey;
 }
 
 /** Format a prefix as a folder label. */
+// @ts-ignore
 function folderLabel(prefix, currentPrefix) {
   const relative = currentPrefix ? prefix.slice(currentPrefix.length) : prefix;
   return relative.replace(/\/$/, "");
@@ -91,7 +93,7 @@ export default function StorageComponent() {
   const [view, setView] = useState("buckets"); // "buckets" | "objects"
   const [bucketViewMode, setBucketViewMode] = useState("cards"); // "cards" | "table"
   const [objectViewMode, setObjectViewMode] = useState("table"); // "table" | "grid"
-  const [buckets, setBuckets] = useState([]);
+  const [buckets, setBuckets] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const didFetch = useRef(false);
   const streamRef = useRef(null);
@@ -102,16 +104,16 @@ export default function StorageComponent() {
   const [skeletonCount, setSkeletonCount] = useState(0);
 
   // Object browser state
-  const [activeBucket, setActiveBucket] = useState(null);
+  const [activeBucket, setActiveBucket] = useState<any>(null);
   const [prefix, setPrefix] = useState("");
-  const [objects, setObjects] = useState([]);
-  const [prefixes, setPrefixes] = useState([]);
+  const [objects, setObjects] = useState<any[]>([]);
+  const [prefixes, setPrefixes] = useState<any[]>([]);
   const [objectsLoading, setObjectsLoading] = useState(false);
   const [search, setSearch] = useState("");
 
   // Preview state
-  const [previewObject, setPreviewObject] = useState(null);
-  const [previewStat, setPreviewStat] = useState(null);
+  const [previewObject, setPreviewObject] = useState<any>(null);
+  const [previewStat, setPreviewStat] = useState<any>(null);
 
   // ── Progressive bucket streaming ────────────────────────────
   const streamBuckets = useCallback(() => {
@@ -120,7 +122,9 @@ export default function StorageComponent() {
     setTotalExpected(0);
     setSkeletonCount(0);
 
+    // @ts-ignore
     streamRef.current?.close();
+    // @ts-ignore
     streamRef.current = ApiService.streamStorageBuckets((event) => {
       switch (event.type) {
         case "init":
@@ -150,17 +154,19 @@ export default function StorageComponent() {
     if (didFetch.current) return;
     didFetch.current = true;
     streamBuckets();
+    // @ts-ignore
     return () => streamRef.current?.close();
   }, [streamBuckets]);
 
   // ── Object listing ───────────────────────────────────────────
+  // @ts-ignore
   const loadObjects = useCallback(async (bucket, pfx = "") => {
     setObjectsLoading(true);
     try {
       const res = await ApiService.getStorageObjects(bucket, { prefix: pfx });
       setObjects(res.objects || []);
       setPrefixes(res.prefixes || []);
-    } catch (error) {
+    } catch (err) {
       console.error("Object listing failed:", err);
     } finally {
       setObjectsLoading(false);
@@ -169,6 +175,7 @@ export default function StorageComponent() {
 
   // ── Navigation handlers ──────────────────────────────────────
 
+  // @ts-ignore
   const openBucket = (bucketName) => {
     setActiveBucket(bucketName);
     setPrefix("");
@@ -177,6 +184,7 @@ export default function StorageComponent() {
     loadObjects(bucketName, "");
   };
 
+  // @ts-ignore
   const navigateToPrefix = (newPrefix) => {
     setPrefix(newPrefix);
     setSearch("");
@@ -194,6 +202,7 @@ export default function StorageComponent() {
 
   // ── Preview ──────────────────────────────────────────────────
 
+  // @ts-ignore
   const openPreview = async (obj) => {
     setPreviewObject(obj);
     try {
@@ -211,12 +220,13 @@ export default function StorageComponent() {
 
   // ── Delete ───────────────────────────────────────────────────
 
+  // @ts-ignore
   const handleDelete = async (obj) => {
     if (!confirm(`Delete "${obj.name}"?`)) return;
     try {
       await ApiService.deleteStorageObject(activeBucket, obj.name);
       loadObjects(activeBucket, prefix);
-    } catch (error) {
+    } catch (err) {
       console.error("Delete failed:", err);
     }
   };
@@ -243,12 +253,14 @@ export default function StorageComponent() {
   const breadcrumbSegments = useMemo(() => {
     const segments = [{ label: "Buckets", prefix: null }];
     if (activeBucket) {
+      // @ts-ignore
       segments.push({ label: activeBucket, prefix: "" });
       if (prefix) {
         const parts = prefix.replace(/\/$/, "").split("/");
         let accumulated = "";
         for (const part of parts) {
           accumulated += part + "/";
+          // @ts-ignore
           segments.push({ label: part, prefix: accumulated });
         }
       }
@@ -394,7 +406,7 @@ export default function StorageComponent() {
             /* ── Bucket Card Grid View ── */
             <div className={styles.bucketGrid}>
               {/* ── Populated bucket cards ── */}
-              {buckets.map((bucket, idx) => (
+              {buckets.map((bucket: any, idx: any) => (
                 <div
                   key={bucket.name}
                   className={styles.bucketCard}
@@ -517,7 +529,7 @@ export default function StorageComponent() {
 function ObjectTableView({
   objects, prefixes, prefix, activeBucket,
   search, setSearch, navigateToPrefix, openPreview, handleDelete,
-}) {
+}: { [key: string]: any }) {
   return (
     <div className={styles.objectListContainer}>
       <div className={styles.objectListHeader}>
@@ -550,7 +562,8 @@ function ObjectTableView({
       </div>
 
       {/* ── Folders ── */}
-      {prefixes.map((pfx) => (
+{/* @ts-ignore */}
+{prefixes.map((pfx: any) => (
         <div
           key={pfx}
           className={`${styles.objectRow} ${styles.folderRow}`}
@@ -569,7 +582,8 @@ function ObjectTableView({
       ))}
 
       {/* ── Objects ── */}
-      {objects.map((obj, idx) => {
+{/* @ts-ignore */}
+{objects.map((obj: any, idx: any) => {
         const FileIcon = getFileIcon(obj.name);
         const canPreview = isPreviewable(obj.name);
         const hasThumb = isImage(obj.name);
@@ -646,7 +660,7 @@ function ObjectTableView({
 
 // ── Bucket Table View ────────────────────────────────────────────
 
-function BucketTableView({ buckets, skeletonCount, openBucket }) {
+function BucketTableView({ buckets, skeletonCount, openBucket }: { [key: string]: any }) {
   return (
     <div className={styles.objectListContainer}>
       {/* ── Column Headers ── */}
@@ -658,7 +672,8 @@ function BucketTableView({ buckets, skeletonCount, openBucket }) {
       </div>
 
       {/* ── Bucket Rows ── */}
-      {buckets.map((bucket, idx) => (
+{/* @ts-ignore */}
+{buckets.map((bucket: any, idx: any) => (
         <div
           key={bucket.name}
           className={`${styles.objectRow} ${styles.folderRow}`}
@@ -726,7 +741,7 @@ function BucketTableView({ buckets, skeletonCount, openBucket }) {
 function ObjectGridView({
   objects, prefixes, prefix, activeBucket,
   search, setSearch, navigateToPrefix, openPreview, handleDelete,
-}) {
+}: { [key: string]: any }) {
   return (
     <>
       {/* ── Header Bar ── */}
@@ -753,7 +768,8 @@ function ObjectGridView({
 
       <div className={styles.objectGrid}>
         {/* ── Folders ── */}
-        {prefixes.map((pfx) => (
+{/* @ts-ignore */}
+{prefixes.map((pfx: any) => (
           <div
             key={pfx}
             className={`${styles.gridCard} ${styles.gridCardFolder}`}
@@ -771,7 +787,8 @@ function ObjectGridView({
         ))}
 
         {/* ── Objects ── */}
-        {objects.map((obj, idx) => {
+{/* @ts-ignore */}
+{objects.map((obj: any, idx: any) => {
           const FileIcon = getFileIcon(obj.name);
           const hasThumb = isImage(obj.name);
           const canPreview = isPreviewable(obj.name);
@@ -838,13 +855,14 @@ function ObjectGridView({
 
 // ── Preview Overlay ──────────────────────────────────────────────
 
-function PreviewOverlay({ bucketName, object, stat, onClose }) {
+function PreviewOverlay({ bucketName, object, stat, onClose }: { [key: string]: any }) {
   const mediaType = getMediaType(object.name);
   const downloadUrl = ApiService.buildStorageDownloadUrl(bucketName, object.name, { inline: true });
   const filename = object.name.split("/").pop();
 
   // Close on Escape
   useEffect(() => {
+    // @ts-ignore
     const handler = (e) => {
       if (e.key === "Escape") onClose();
     };

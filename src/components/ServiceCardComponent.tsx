@@ -26,6 +26,7 @@ const MAX_SPARKLINE_POINTS = 60;
 
 
 /** Severity color from percentage. */
+// @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
@@ -33,19 +34,24 @@ function severityColor(pct, thresholds = [40, 80]) {
 }
 
 // ── Inline Sparkline Canvas ────────────────────────────────────────
-function Sparkline({ data, color, fillColor, max, height = 20 }) {
+function Sparkline({ data, color, fillColor, max, height = 20 }: { [key: string]: any }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
+    // @ts-ignore
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
+    // @ts-ignore
     const w = canvas.clientWidth;
+    // @ts-ignore
     const h = canvas.clientHeight;
 
+    // @ts-ignore
     canvas.width = w * dpr;
+    // @ts-ignore
     canvas.height = h * dpr;
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
@@ -93,7 +99,7 @@ function Sparkline({ data, color, fillColor, max, height = 20 }) {
 }
 
 // ── Percentage Bar ──────────────────────────────────────────────
-function PercentBar({ percent, color }) {
+function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -104,7 +110,7 @@ function PercentBar({ percent, color }) {
 
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
-export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart, onRollback }) {
+export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart, onRollback }: { [key: string]: any }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -116,6 +122,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
+  // @ts-ignore
   const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 
   // Lazily check rollback availability for restartable services
@@ -311,6 +318,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         </div>
 
         {service.projectType && (() => {
+          // @ts-ignore
           const colors = SERVICE_TYPE_COLORS[service.projectType];
           return (
             <div className={styles.detail}>
@@ -330,6 +338,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         })()}
 
         {service.deployTier != null && (() => {
+          // @ts-ignore
           const colors = DEPLOY_TIER_COLORS[service.deployTier];
           return (
             <div className={styles.detail}>

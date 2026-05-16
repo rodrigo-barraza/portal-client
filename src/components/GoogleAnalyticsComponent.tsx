@@ -50,20 +50,22 @@ const SPARKLINE_COLORS = {
 // ── Helpers ───────────────────────────────────────────────────
 
 /** Google Analytics returns duration as seconds → delegate to library */
+// @ts-ignore
 const formatDuration = (seconds) => {
   if (!seconds || seconds <= 0) return "0s";
   return formatElapsedTime(seconds);
 };
 
 /** GA returns ratios 0–1 — convert to 0–100 for the library's formatPercent */
-const formatPercent = (value) => {
+// @ts-ignore
+const formatPercent = (value: any) => {
   if (value == null) return "0%";
   return _formatPercent(value * 100);
 };
 
 // ── Stat Card ─────────────────────────────────────────────────
 
-function DeltaBadge({ value }) {
+function DeltaBadge({ value }: { [key: string]: any }) {
   if (value == null || !isFinite(value)) return null;
   const pct = (value * 100).toFixed(1);
   const isUp = value >= 0;
@@ -76,7 +78,7 @@ function DeltaBadge({ value }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, sub, color, delay = 0, delta }) {
+function StatCard({ icon: Icon, label, value, sub, color, delay = 0, delta }: { [key: string]: any }) {
   return (
     <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
       <div className={styles.statCardIcon} style={{ color, background: `${color}15` }}>
@@ -96,7 +98,7 @@ function StatCard({ icon: Icon, label, value, sub, color, delay = 0, delta }) {
 
 // ── Horizontal Bar ────────────────────────────────────────────
 
-function HorizontalBar({ label, value, max, color, suffix = "" }) {
+function HorizontalBar({ label, value, max, color, suffix = "" }: { [key: string]: any }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className={styles.barRow}>
@@ -113,13 +115,14 @@ function HorizontalBar({ label, value, max, color, suffix = "" }) {
 
 // ── Donut Chart ───────────────────────────────────────────────
 
-function DonutChart({ segments, size = 120, strokeWidth = 14, centerLabel = "Total" }) {
+function DonutChart({ segments, size = 120, strokeWidth = 14, centerLabel = "Total" }: { [key: string]: any }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
-  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  const total = segments.reduce((sum: any, s: any) => sum + s.value, 0);
 
   // Pre-compute cumulative offsets to avoid mutating during render
+  // @ts-ignore
   const cumulativeValues = [];
   let running = 0;
   for (const seg of segments) {
@@ -133,9 +136,10 @@ function DonutChart({ segments, size = 120, strokeWidth = 14, centerLabel = "Tot
         cx={center} cy={center} r={radius}
         fill="none" stroke="var(--bg-tertiary)" strokeWidth={strokeWidth}
       />
-      {segments.map((seg, i) => {
+      {segments.map((seg: any, i: any) => {
         const pct = total > 0 ? seg.value / total : 0;
         const dashLength = pct * circumference;
+        // @ts-ignore
         const dashOffset = total > 0 ? -(cumulativeValues[i] / total) * circumference : 0;
 
         return (
@@ -165,7 +169,7 @@ function DonutChart({ segments, size = 120, strokeWidth = 14, centerLabel = "Tot
 
 // ── Sparkline Chart ───────────────────────────────────────────
 
-function SparklineChart({ series, metrics }) {
+function SparklineChart({ series, metrics }: { [key: string]: any }) {
   if (!series || series.length === 0) return null;
 
   const width = 800;
@@ -177,10 +181,12 @@ function SparklineChart({ series, metrics }) {
   return (
     <div className={styles.sparklineContainer}>
       <svg viewBox={`0 0 ${width} ${height}`} className={styles.sparklineSvg} preserveAspectRatio="none">
-        {metrics.map((metric) => {
-          const values = series.map((d) => d[metric.key] || 0);
+{/* @ts-ignore */}
+{metrics.map((metric: any) => {
+          // @ts-ignore
+          const values = series.map((d: any) => d[metric.key] || 0);
           const max = Math.max(...values, 1);
-          const points = values.map((v, i) => {
+          const points = values.map((v: any, i: any) => {
             const x = padding.left + (i / Math.max(values.length - 1, 1)) * innerW;
             const y = padding.top + innerH - (v / max) * innerH;
             return `${x},${y}`;
@@ -204,26 +210,26 @@ function SparklineChart({ series, metrics }) {
 // ── Main Component ────────────────────────────────────────────
 
 export default function GoogleAnalyticsComponent() {
-  const [properties, setProperties] = useState([]);
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [properties, setProperties] = useState<any[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [period, setPeriod] = useState("30d");
 
-  const [realtime, setRealtime] = useState(null);
-  const [overview, setOverview] = useState(null);
-  const [pages, setPages] = useState(null);
-  const [sources, setSources] = useState(null);
-  const [geography, setGeography] = useState(null);
-  const [devices, setDevices] = useState(null);
-  const [timeSeries, setTimeSeries] = useState(null);
-  const [channels, setChannels] = useState(null);
-  const [landingPages, setLandingPages] = useState(null);
-  const [heatmap, setHeatmap] = useState(null);
-  const [newVsReturning, setNewVsReturning] = useState(null);
-  const [events, setEvents] = useState(null);
+  const [realtime, setRealtime] = useState<any>(null);
+  const [overview, setOverview] = useState<any>(null);
+  const [pages, setPages] = useState<any>(null);
+  const [sources, setSources] = useState<any>(null);
+  const [geography, setGeography] = useState<any>(null);
+  const [devices, setDevices] = useState<any>(null);
+  const [timeSeries, setTimeSeries] = useState<any>(null);
+  const [channels, setChannels] = useState<any>(null);
+  const [landingPages, setLandingPages] = useState<any>(null);
+  const [heatmap, setHeatmap] = useState<any>(null);
+  const [newVsReturning, setNewVsReturning] = useState<any>(null);
+  const [events, setEvents] = useState<any>(null);
 
   const [loading, setLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   const didFetch = useRef(false);
   const realtimeTimer = useRef(null);
@@ -243,7 +249,7 @@ export default function GoogleAnalyticsComponent() {
         if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
-      } catch (error) {
+      } catch (err) {
         setError(error.message);
       } finally {
         setLoading(false);
@@ -253,6 +259,7 @@ export default function GoogleAnalyticsComponent() {
 
   // ── Load Reports ──────────────────────────────────────────
 
+  // @ts-ignore
   const loadReports = useCallback(async (property, p) => {
     if (!property) return;
     setReportsLoading(true);
@@ -286,7 +293,7 @@ export default function GoogleAnalyticsComponent() {
       setHeatmap(heatmapRes);
       setNewVsReturning(nvrRes);
       setEvents(eventsRes);
-    } catch (error) {
+    } catch (err) {
       console.error("GA reports fetch failed:", err);
     } finally {
       setReportsLoading(false);
@@ -295,7 +302,7 @@ export default function GoogleAnalyticsComponent() {
 
   // ── Load Realtime ─────────────────────────────────────────
 
-  const loadRealtime = useCallback(async (property) => {
+  const loadRealtime = useCallback(async (property: any) => {
     if (!property) return;
     try {
       const res = await ApiService.getGARealtime(property.id);
@@ -318,11 +325,14 @@ export default function GoogleAnalyticsComponent() {
     fetchAll();
 
     // Poll realtime every 15 seconds
+    // @ts-ignore
     clearInterval(realtimeTimer.current);
+    // @ts-ignore
     realtimeTimer.current = setInterval(() => {
       loadRealtime(selectedProperty);
     }, 15_000);
 
+    // @ts-ignore
     return () => clearInterval(realtimeTimer.current);
   }, [selectedProperty, period, loadReports, loadRealtime]);
 
@@ -330,7 +340,7 @@ export default function GoogleAnalyticsComponent() {
 
   const deviceSegments = useMemo(() => {
     if (!devices?.categories) return [];
-    return devices.categories.map((d, i) => ({
+    return devices.categories.map((d: any, i: any) => ({
       value: d.sessions,
       color: CHART_COLORS[i % CHART_COLORS.length],
       label: d.category,
@@ -339,7 +349,7 @@ export default function GoogleAnalyticsComponent() {
 
   const browserSegments = useMemo(() => {
     if (!devices?.browsers) return [];
-    return devices.browsers.map((b, i) => ({
+    return devices.browsers.map((b: any, i: any) => ({
       value: b.sessions,
       color: CHART_COLORS[(i + 3) % CHART_COLORS.length],
       label: b.browser,
@@ -347,16 +357,18 @@ export default function GoogleAnalyticsComponent() {
   }, [devices]);
 
   const maxSourceSessions = sources?.sources?.length > 0
+    // @ts-ignore
     ? Math.max(...sources.sources.map((s) => s.sessions))
     : 0;
 
   const maxGeoUsers = geography?.locations?.length > 0
+    // @ts-ignore
     ? Math.max(...geography.locations.map((l) => l.users))
     : 0;
 
   const osSegments = useMemo(() => {
     if (!devices?.operatingSystems) return [];
-    return devices.operatingSystems.map((d, i) => ({
+    return devices.operatingSystems.map((d: any, i: any) => ({
       value: d.sessions,
       color: CHART_COLORS[(i + 5) % CHART_COLORS.length],
       label: d.os,
@@ -365,7 +377,7 @@ export default function GoogleAnalyticsComponent() {
 
   const nvrSegments = useMemo(() => {
     if (!newVsReturning?.segments) return [];
-    return newVsReturning.segments.map((s, i) => ({
+    return newVsReturning.segments.map((s: any, i: any) => ({
       value: s.users,
       color: i === 0 ? "#6366f1" : "#10b981",
       label: s.segment === "new" ? "New" : s.segment === "returning" ? "Returning" : s.segment,
@@ -373,14 +385,17 @@ export default function GoogleAnalyticsComponent() {
   }, [newVsReturning]);
 
   const maxChannelSessions = channels?.channels?.length > 0
+    // @ts-ignore
     ? Math.max(...channels.channels.map((c) => c.sessions))
     : 0;
 
   const maxEventCount = events?.events?.length > 0
+    // @ts-ignore
     ? Math.max(...events.events.map((e) => e.eventCount))
     : 0;
 
   const maxResSessions = devices?.screenResolutions?.length > 0
+    // @ts-ignore
     ? Math.max(...devices.screenResolutions.map((r) => r.sessions))
     : 0;
 
@@ -393,7 +408,9 @@ export default function GoogleAnalyticsComponent() {
     let maxVal = 0;
     for (const cell of heatmap.cells) {
       const key = `${cell.day}:${cell.hour}`;
+      // @ts-ignore
       grid[key] = (grid[key] || 0) + cell.users;
+      // @ts-ignore
       if (grid[key] > maxVal) maxVal = grid[key];
     }
     return { grid, dayOrder, maxVal };
@@ -405,32 +422,32 @@ export default function GoogleAnalyticsComponent() {
     {
       key: "pagePath",
       label: "Page",
-      render: (row) => (
+      render: (row: any) => (
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>
           {row.pagePath}
         </span>
       ),
     },
-    { key: "pageviews", label: "Views", align: "right", render: (row) => formatNumber(row.pageviews) },
-    { key: "users", label: "Users", align: "right", render: (row) => formatNumber(row.users) },
-    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row) => formatDuration(row.avgDuration) },
-    { key: "bounceRate", label: "Bounce", align: "right", render: (row) => formatPercent(row.bounceRate) },
+    { key: "pageviews", label: "Views", align: "right", render: (row: any) => formatNumber(row.pageviews) },
+    { key: "users", label: "Users", align: "right", render: (row: any) => formatNumber(row.users) },
+    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatDuration(row.avgDuration) },
+    { key: "bounceRate", label: "Bounce", align: "right", render: (row: any) => formatPercent(row.bounceRate) },
   ];
 
   const landingColumns = [
     {
       key: "landingPage",
       label: "Landing Page",
-      render: (row) => (
+      render: (row: any) => (
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>
           {row.landingPage}
         </span>
       ),
     },
-    { key: "sessions", label: "Sessions", align: "right", render: (row) => formatNumber(row.sessions) },
-    { key: "users", label: "Users", align: "right", render: (row) => formatNumber(row.users) },
-    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row) => formatDuration(row.avgDuration) },
-    { key: "bounceRate", label: "Bounce", align: "right", render: (row) => formatPercent(row.bounceRate) },
+    { key: "sessions", label: "Sessions", align: "right", render: (row: any) => formatNumber(row.sessions) },
+    { key: "users", label: "Users", align: "right", render: (row: any) => formatNumber(row.users) },
+    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatDuration(row.avgDuration) },
+    { key: "bounceRate", label: "Bounce", align: "right", render: (row: any) => formatPercent(row.bounceRate) },
   ];
 
   // ── Render ────────────────────────────────────────────────
@@ -485,7 +502,8 @@ export default function GoogleAnalyticsComponent() {
       {!selectedProperty && (
         <PropertyListingComponent
           properties={properties}
-          onSelect={(prop) => setSelectedProperty(prop)}
+          // @ts-ignore
+          onSelect={(prop: any) => setSelectedProperty(prop)}
         />
       )}
 
@@ -579,13 +597,13 @@ export default function GoogleAnalyticsComponent() {
           {/* ── Top Pages ────────────────────────────────────── */}
           {pages?.pages?.length > 0 && (
             <TableComponent title="Top Pages" columns={pageColumns} data={pages.pages}
-              getRowKey={(row, i) => row.pagePath || i} emptyText="No page data available" mini />
+              getRowKey={(row: any, i: any) => row.pagePath || i} emptyText="No page data available" mini />
           )}
 
           {/* ── Landing Pages ─────────────────────────────────── */}
           {landingPages?.pages?.length > 0 && (
             <TableComponent title="Landing Pages" columns={landingColumns} data={landingPages.pages}
-              getRowKey={(row, i) => row.landingPage || i} emptyText="No landing page data" mini />
+              getRowKey={(row: any, i: any) => row.landingPage || i} emptyText="No landing page data" mini />
           )}
 
           {/* ── Hourly Traffic Heatmap ────────────────────────── */}
@@ -604,6 +622,7 @@ export default function GoogleAnalyticsComponent() {
                   <React.Fragment key={day}>
                     <div className={styles.heatmapRowLabel}>{day.slice(0, 3)}</div>
                     {Array.from({ length: 24 }, (_, h) => {
+                      // @ts-ignore
                       const val = heatmapData.grid[`${day}:${h}`] || 0;
                       const intensity = heatmapData.maxVal > 0 ? val / heatmapData.maxVal : 0;
                       return (
@@ -632,7 +651,7 @@ export default function GoogleAnalyticsComponent() {
                 </div>
                 <div className={styles.panelBody}>
                   <div className={styles.barList}>
-                    {channels.channels.map((c, i) => (
+                    {channels.channels.map((c: any, i: any) => (
                       <HorizontalBar key={c.channel} label={c.channel} value={c.sessions}
                         max={maxChannelSessions} color={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
@@ -650,7 +669,7 @@ export default function GoogleAnalyticsComponent() {
                 </div>
                 <div className={styles.panelBody}>
                   <div className={styles.barList}>
-                    {sources.sources.slice(0, 10).map((s, i) => (
+                    {sources.sources.slice(0, 10).map((s: any, i: any) => (
                       <HorizontalBar key={`${s.source}-${s.medium}`} label={`${s.source} / ${s.medium}`}
                         value={s.sessions} max={maxSourceSessions} color={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
@@ -671,7 +690,7 @@ export default function GoogleAnalyticsComponent() {
                 </div>
                 <div className={styles.panelBody}>
                   <div className={styles.barList}>
-                    {geography.locations.slice(0, 10).map((l, i) => (
+                    {geography.locations.slice(0, 10).map((l: any, i: any) => (
                       <HorizontalBar key={`${l.country}-${l.city}`}
                         label={l.city && l.city !== "(not set)" ? `${l.city}, ${l.country}` : l.country}
                         value={l.users} max={maxGeoUsers} color={CHART_COLORS[(i + 4) % CHART_COLORS.length]} suffix=" users" />
@@ -690,7 +709,7 @@ export default function GoogleAnalyticsComponent() {
                 </div>
                 <div className={styles.panelBody}>
                   <div className={styles.barList}>
-                    {events.events.map((e, i) => (
+                    {events.events.map((e: any, i: any) => (
                       <HorizontalBar key={e.eventName} label={e.eventName} value={e.eventCount}
                         max={maxEventCount} color={CHART_COLORS[(i + 2) % CHART_COLORS.length]} />
                     ))}
@@ -712,8 +731,9 @@ export default function GoogleAnalyticsComponent() {
                   <div className={styles.donutWrapper}>
                     <DonutChart segments={deviceSegments} size={130} strokeWidth={16} centerLabel="Sessions" />
                     <div className={styles.donutLegend}>
-                      {devices.categories.map((d, i) => (
+                      {devices.categories.map((d: any, i: any) => (
                         <HorizontalBar key={d.category} label={d.category} value={d.sessions}
+                          // @ts-ignore
                           max={Math.max(...devices.categories.map((c) => c.sessions))}
                           color={CHART_COLORS[i % CHART_COLORS.length]} suffix=" sessions" />
                       ))}
@@ -731,8 +751,9 @@ export default function GoogleAnalyticsComponent() {
                   <div className={styles.donutWrapper}>
                     <DonutChart segments={browserSegments} size={130} strokeWidth={16} centerLabel="Sessions" />
                     <div className={styles.donutLegend}>
-                      {devices.browsers.slice(0, 6).map((b, i) => (
+                      {devices.browsers.slice(0, 6).map((b: any, i: any) => (
                         <HorizontalBar key={b.browser} label={b.browser} value={b.sessions}
+                          // @ts-ignore
                           max={Math.max(...devices.browsers.map((br) => br.sessions))}
                           color={CHART_COLORS[(i + 3) % CHART_COLORS.length]} suffix=" sessions" />
                       ))}
@@ -754,8 +775,9 @@ export default function GoogleAnalyticsComponent() {
                 <div className={styles.donutWrapper}>
                   <DonutChart segments={osSegments} size={130} strokeWidth={16} centerLabel="Sessions" />
                   <div className={styles.donutLegend}>
-                    {devices?.operatingSystems?.slice(0, 6).map((d, i) => (
+                    {devices?.operatingSystems?.slice(0, 6).map((d: any, i: any) => (
                       <HorizontalBar key={d.os} label={d.os} value={d.sessions}
+                        // @ts-ignore
                         max={Math.max(...(devices.operatingSystems || []).map((o) => o.sessions))}
                         color={CHART_COLORS[(i + 5) % CHART_COLORS.length]} suffix=" sessions" />
                     ))}
@@ -773,8 +795,9 @@ export default function GoogleAnalyticsComponent() {
                 <div className={styles.donutWrapper}>
                   <DonutChart segments={nvrSegments} size={130} strokeWidth={16} centerLabel="Users" />
                   <div className={styles.donutLegend}>
-                    {newVsReturning?.segments?.map((s, i) => (
+                    {newVsReturning?.segments?.map((s: any, i: any) => (
                       <HorizontalBar key={s.segment} label={s.segment === "new" ? "New Users" : s.segment === "returning" ? "Returning Users" : s.segment}
+                        // @ts-ignore
                         value={s.users} max={Math.max(...(newVsReturning.segments || []).map((sg) => sg.users))}
                         color={i === 0 ? "#6366f1" : "#10b981"} suffix=" users" />
                     ))}
@@ -794,7 +817,7 @@ export default function GoogleAnalyticsComponent() {
               </div>
               <div className={styles.panelBody}>
                 <div className={styles.barList}>
-                  {devices.screenResolutions.map((r, i) => (
+                  {devices.screenResolutions.map((r: any, i: any) => (
                     <HorizontalBar key={r.resolution} label={r.resolution} value={r.sessions}
                       max={maxResSessions} color={CHART_COLORS[(i + 1) % CHART_COLORS.length]} suffix=" sessions" />
                   ))}

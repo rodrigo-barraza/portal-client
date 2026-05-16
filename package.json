@@ -16,7 +16,8 @@
     "deploy:dry": "bash deploy.sh --dry-run",
     "catalog:generate": "node scripts/generate-component-catalog.mjs",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@rodrigo-barraza/components-library": "git+https://github.com/rodrigo-barraza/components-library.git",
@@ -32,12 +33,17 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.5"
   }
 }

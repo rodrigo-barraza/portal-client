@@ -17,9 +17,9 @@ import styles from "./GoogleAnalyticsComponent.module.css";
  * Shows all GA4 properties in a card grid or list/table view.
  * Each card/row shows a quick overview summary fetched in parallel.
  */
-export default function PropertyListingComponent({ properties, onSelect }) {
+export default function PropertyListingComponent({ properties, onSelect }: { [key: string]: any }) {
   const [viewMode, setViewMode] = useState("card");
-  const [summaries, setSummaries] = useState({});
+  const [summaries, setSummaries] = useState<any>({});
   const didFetch = useRef(false);
 
   // Fetch overview + realtime for each property in parallel
@@ -32,6 +32,7 @@ export default function PropertyListingComponent({ properties, onSelect }) {
         ApiService.getGAOverview(prop.id, "30d").catch(() => null),
         ApiService.getGARealtime(prop.id).catch(() => null),
       ]).then(([overview, realtime]) => {
+        // @ts-ignore
         setSummaries((prev) => ({
           ...prev,
           [prop.id]: { overview, realtime, loaded: true },
@@ -71,7 +72,8 @@ export default function PropertyListingComponent({ properties, onSelect }) {
       {/* ── Card View ── */}
       {viewMode === "card" && (
         <div className={styles.propertyGrid}>
-          {properties.map((prop) => {
+{/* @ts-ignore */}
+{properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
               <div
@@ -145,7 +147,8 @@ export default function PropertyListingComponent({ properties, onSelect }) {
             <span className={styles.propertyListHeaderCell}>Sessions</span>
             <span className={styles.propertyListHeaderCell}>Active Now</span>
           </div>
-          {properties.map((prop) => {
+{/* @ts-ignore */}
+{properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
               <div

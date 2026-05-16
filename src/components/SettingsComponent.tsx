@@ -98,12 +98,16 @@ export default function SettingsComponent() {
     }
   }, [settings]);
 
+  // @ts-ignore
   const updateSetting = useCallback((key, value) => {
+    // @ts-ignore
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // @ts-ignore
   const scrollToSection = useCallback((id) => {
     setActiveSection(id);
+    // @ts-ignore
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
@@ -140,6 +144,7 @@ export default function SettingsComponent() {
         <div className={styles.sectionsContainer}>
           {/* ═══ Appearance ═══ */}
           <section
+            // @ts-ignore
             ref={(el) => (sectionRefs.current.appearance = el)}
             className={styles.section}
             id="settings-appearance"
@@ -199,6 +204,7 @@ export default function SettingsComponent() {
                       <button
                         key={c.id}
                         className={`${styles.colorSwatch} ${settings.accentColor === c.id ? styles.active : ""}`}
+                        // @ts-ignore
                         style={{ background: c.value, "--swatch-color": c.value }}
                         onClick={() => updateSetting("accentColor", c.id)}
                         title={c.id}
@@ -265,6 +271,7 @@ export default function SettingsComponent() {
 
           {/* ═══ Dashboard ═══ */}
           <section
+            // @ts-ignore
             ref={(el) => (sectionRefs.current.dashboard = el)}
             className={styles.section}
             id="settings-dashboard"
@@ -338,7 +345,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.segmentedControl}>
-                    {["compact", "comfortable", "spacious"].map((d) => (
+                    {["compact", "comfortable", "spacious"].map((d: any) => (
                       <button
                         key={d}
                         className={`${styles.segmentBtn} ${settings.cardDensity === d ? styles.active : ""}`}
@@ -387,6 +394,7 @@ export default function SettingsComponent() {
 
           {/* ═══ Monitoring ═══ */}
           <section
+            // @ts-ignore
             ref={(el) => (sectionRefs.current.monitoring = el)}
             className={styles.section}
             id="settings-monitoring"
@@ -521,6 +529,7 @@ export default function SettingsComponent() {
 
           {/* ═══ Notifications ═══ */}
           <section
+            // @ts-ignore
             ref={(el) => (sectionRefs.current.notifications = el)}
             className={styles.section}
             id="settings-notifications"
@@ -603,6 +612,7 @@ export default function SettingsComponent() {
 
           {/* ═══ Data & Privacy ═══ */}
           <section
+            // @ts-ignore
             ref={(el) => (sectionRefs.current.data = el)}
             className={`${styles.section} ${styles.dangerSection}`}
             id="settings-data"

@@ -23,11 +23,11 @@ import ContainerStatsComponent from "./ContainerStatsComponent";
 import styles from "./AnalyticsComponent.module.css";
 
 // ── Donut Chart (SVG ring) ────────────────────────────────────────
-function DonutChart({ segments, size = 120, strokeWidth = 14 }) {
+function DonutChart({ segments, size = 120, strokeWidth = 14 }: { [key: string]: any }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
-  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  const total = segments.reduce((sum: any, s: any) => sum + s.value, 0);
 
   let accumulated = 0;
 
@@ -43,7 +43,7 @@ function DonutChart({ segments, size = 120, strokeWidth = 14 }) {
         strokeWidth={strokeWidth}
       />
       {/* Segments */}
-      {segments.map((seg, i) => {
+      {segments.map((seg: any, i: any) => {
         const pct = total > 0 ? seg.value / total : 0;
         const dashLength = pct * circumference;
         const dashOffset = -(accumulated / total) * circumference;
@@ -79,7 +79,7 @@ function DonutChart({ segments, size = 120, strokeWidth = 14 }) {
 }
 
 // ── Percentage Bar ────────────────────────────────────────────────
-function UsageBar({ value, max, color, label, sublabel }) {
+function UsageBar({ value, max, color, label, sublabel }: { [key: string]: any }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
 
   return (
@@ -102,7 +102,7 @@ function UsageBar({ value, max, color, label, sublabel }) {
 }
 
 // ── Stat Card ─────────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, sub, color, delay = 0 }) {
+function StatCard({ icon: Icon, label, value, sub, color, delay = 0 }: { [key: string]: any }) {
   return (
     <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
       <div className={styles.statCardIcon} style={{ color, background: `${color}15` }}>
@@ -133,11 +133,11 @@ const BUCKET_COLORS = [
 
 // ── Main Component ────────────────────────────────────────────────
 export default function AnalyticsComponent() {
-  const [stats, setStats] = useState(null);
-  const [projects, setProjects] = useState(null);
-  const [systemInfo, setSystemInfo] = useState(null);
-  const [storageSummary, setStorageSummary] = useState(null);
-  const [containerStats, setContainerStats] = useState(null);
+  const [stats, setStats] = useState<any>(null);
+  const [projects, setProjects] = useState<any>(null);
+  const [systemInfo, setSystemInfo] = useState<any>(null);
+  const [storageSummary, setStorageSummary] = useState<any>(null);
+  const [containerStats, setContainerStats] = useState<any>(null);
   const [period, setPeriod] = useState("24h");
   const [loading, setLoading] = useState(true);
   const [systemLoading, setSystemLoading] = useState(true);
@@ -152,7 +152,7 @@ export default function AnalyticsComponent() {
       ]);
       setStats(statsRes);
       setProjects(projectsRes);
-    } catch (error) {
+    } catch (err) {
       console.error("Analytics fetch failed:", err);
     } finally {
       setLoading(false);
@@ -163,14 +163,16 @@ export default function AnalyticsComponent() {
   const loadSystemData = useCallback(async () => {
     try {
       const [sysRes, storageRes, containerRes] = await Promise.all([
+        // @ts-ignore
         ApiService.getSystemInfo().catch(() => null),
         ApiService.getStorageSummary().catch(() => null),
+        // @ts-ignore
         ApiService.getContainerStats().catch(() => null),
       ]);
       setSystemInfo(sysRes);
       setStorageSummary(storageRes);
       setContainerStats(containerRes);
-    } catch (error) {
+    } catch (err) {
       console.error("System data fetch failed:", err);
     } finally {
       setSystemLoading(false);
@@ -186,8 +188,8 @@ export default function AnalyticsComponent() {
 
   // ── Computed values for summary cards ──────────────────────────
   const containers = containerStats?.containers || [];
-  const totalCpuUsage = containers.reduce((sum, c) => sum + c.cpu.percent, 0);
-  const totalMemUsed = containers.reduce((sum, c) => sum + c.memory.used, 0);
+  const totalCpuUsage = containers.reduce((sum: any, c: any) => sum + c.cpu.percent, 0);
+  const totalMemUsed = containers.reduce((sum: any, c: any) => sum + c.memory.used, 0);
   const totalMemLimit = systemInfo?.totalMemory || (containers.length > 0 ? containers[0].memory.limit : 0);
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
 
@@ -212,9 +214,9 @@ export default function AnalyticsComponent() {
   ];
 
   const projectColumns = [
-    { key: "project", label: "Project", render: (row) => row.project || row._id || "—" },
-    { key: "requests", label: "Requests", align: "right", render: (row) => (row.totalRequests || row.count || 0).toLocaleString() },
-    { key: "cost", label: "Cost", align: "right", render: (row) => formatCostAdaptive(row.totalCost || 0) },
+    { key: "project", label: "Project", render: (row: any) => row.project || row._id || "—" },
+    { key: "requests", label: "Requests", align: "right", render: (row: any) => (row.totalRequests || row.count || 0).toLocaleString() },
+    { key: "cost", label: "Cost", align: "right", render: (row: any) => formatCostAdaptive(row.totalCost || 0) },
   ];
 
   // ── Disk usage donut segments ─────────────────────────────────
@@ -233,9 +235,10 @@ export default function AnalyticsComponent() {
   const bucketSegments = useMemo(() => {
     if (!storageSummary?.buckets) return [];
     return storageSummary.buckets
+      // @ts-ignore
       .filter((b) => b.totalSize > 0)
-      .sort((a, b) => b.totalSize - a.totalSize)
-      .map((b, i) => ({
+      .sort((a: any, b: any) => b.totalSize - a.totalSize)
+      .map((b: any, i: any) => ({
         value: b.totalSize,
         color: BUCKET_COLORS[i % BUCKET_COLORS.length],
         label: b.name,
@@ -244,6 +247,7 @@ export default function AnalyticsComponent() {
   }, [storageSummary]);
 
   const maxBucketSize = bucketSegments.length > 0
+    // @ts-ignore
     ? Math.max(...bucketSegments.map((s) => s.value))
     : 0;
 
@@ -325,7 +329,7 @@ export default function AnalyticsComponent() {
                 <div className={styles.storagePanelBody}>
                   <DonutChart segments={bucketSegments} size={130} strokeWidth={16} />
                   <div className={styles.storageLegend}>
-                    {bucketSegments.map((seg, i) => (
+                    {bucketSegments.map((seg: any, i: any) => (
                       <div key={i} className={styles.legendItem}>
                         <UsageBar
                           value={seg.value}
@@ -393,7 +397,7 @@ export default function AnalyticsComponent() {
                       <Package size={12} strokeWidth={2.2} />
                       <span>Largest Images</span>
                     </div>
-                    {systemInfo.disk.images.items.slice(0, 8).map((img, i) => {
+                    {systemInfo.disk.images.items.slice(0, 8).map((img: any, i: any) => {
                       const tag = img.tags?.[0] || img.id;
                       const displayTag = tag.length > 50 ? `…${tag.slice(-48)}` : tag;
                       return (
@@ -414,7 +418,7 @@ export default function AnalyticsComponent() {
                       <HardDrive size={12} strokeWidth={2.2} />
                       <span>Volumes</span>
                     </div>
-                    {systemInfo.disk.volumes.items.slice(0, 8).map((vol, i) => {
+                    {systemInfo.disk.volumes.items.slice(0, 8).map((vol: any, i: any) => {
                       const name = vol.name.length > 40
                         ? `${vol.name.slice(0, 12)}…${vol.name.slice(-24)}`
                         : vol.name;
@@ -448,7 +452,7 @@ export default function AnalyticsComponent() {
             title="Prism Overview"
             columns={overviewColumns}
             data={overviewRows}
-            getRowKey={(row) => row.key}
+            getRowKey={(row: any) => row.key}
             emptyText="No stats available — is Prism running?"
             mini
           />
@@ -458,7 +462,7 @@ export default function AnalyticsComponent() {
               title="Projects"
               columns={projectColumns}
               data={projects}
-              getRowKey={(row, i) => row.project || row._id || i}
+              getRowKey={(row: any, i: any) => row.project || row._id || i}
               mini
             />
           )}

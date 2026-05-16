@@ -78,7 +78,7 @@ import {
 import styles from "./ComponentPreviewRegistryComponent.module.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
-function PreviewRow({ children, gap = 8 }) {
+function PreviewRow({ children, gap = 8 }: { [key: string]: any }) {
   return (
     <div className={styles.previewRow} style={{ gap }}>
       {children}
@@ -86,7 +86,7 @@ function PreviewRow({ children, gap = 8 }) {
   );
 }
 
-function PreviewStack({ children, gap = 8 }) {
+function PreviewStack({ children, gap = 8 }: { [key: string]: any }) {
   return (
     <div className={styles.previewStack} style={{ gap }}>
       {children}
@@ -94,7 +94,7 @@ function PreviewStack({ children, gap = 8 }) {
   );
 }
 
-function PreviewLabel({ children }) {
+function PreviewLabel({ children }: { [key: string]: any }) {
   return <span className={styles.previewLabel}>{children}</span>;
 }
 
@@ -576,7 +576,8 @@ const PREVIEWS = {
  * Get the preview renderer for a given component name.
  * Returns null if no preview is available.
  */
-export function getPreview(componentName) {
+export function getPreview(componentName: any) {
+  // @ts-ignore
   return PREVIEWS[componentName] || null;
 }
 

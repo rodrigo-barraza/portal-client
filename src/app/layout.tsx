@@ -21,7 +21,7 @@ const themeInitScript = `
 (function(){
   try {
     var raw = localStorage.getItem('portal:theme');
-    if (raw) {
+    if (raw: any) {
       var theme = JSON.parse(raw);
       if (theme === 'light' || theme === 'dark' || theme === 'tropical' || theme === 'oceanic') {
         document.documentElement.setAttribute('data-theme', theme);
@@ -31,7 +31,7 @@ const themeInitScript = `
 })();
 `;
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { [key: string]: any }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

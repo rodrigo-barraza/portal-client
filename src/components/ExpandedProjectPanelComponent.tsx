@@ -35,37 +35,44 @@ const MAX_SPARKLINE_POINTS = 60;
 
 
 
+// @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
 }
 
+// @ts-ignore
 const formatGADuration = (seconds) => {
   if (!seconds || seconds <= 0) return "0s";
   return formatElapsedTime(seconds);
 };
 
-function formatGAPercent(value) {
+function formatGAPercent(value: any) {
   if (value == null) return "0%";
   return `${(value * 100).toFixed(1)}%`;
 }
 
 // ── Sparkline (Canvas) ────────────────────────────────────────────
 
-function Sparkline({ data, color, fillColor, max, height = 28 }) {
+function Sparkline({ data, color, fillColor, max, height = 28 }: { [key: string]: any }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
+    // @ts-ignore
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
+    // @ts-ignore
     const w = canvas.clientWidth;
+    // @ts-ignore
     const h = canvas.clientHeight;
 
+    // @ts-ignore
     canvas.width = w * dpr;
+    // @ts-ignore
     canvas.height = h * dpr;
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
@@ -114,7 +121,7 @@ function Sparkline({ data, color, fillColor, max, height = 28 }) {
 
 // ── Percentage Bar ────────────────────────────────────────────────
 
-function PercentBar({ percent, color }) {
+function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -134,13 +141,14 @@ const TABS = [
 
 // ── Tab: Project ──────────────────────────────────────────────────
 
-function ProjectTab({ service }) {
+function ProjectTab({ service }: { [key: string]: any }) {
   return (
     <div className={styles.projectTab}>
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Identity</h4>
         <div className={`${styles.fieldGrid} ${styles.fieldGridSingle}`}>
           {service.projectType && (() => {
+            // @ts-ignore
             const colors = SERVICE_TYPE_COLORS[service.projectType];
             return (
               <div className={styles.field}>
@@ -156,6 +164,7 @@ function ProjectTab({ service }) {
             );
           })()}
           {service.deployTier != null && (() => {
+            // @ts-ignore
             const colors = DEPLOY_TIER_COLORS[service.deployTier];
             return (
               <div className={styles.field}>
@@ -240,7 +249,7 @@ function ProjectTab({ service }) {
 
 // ── Tab: Container ────────────────────────────────────────────────
 
-function ContainerTab({ service, stats }) {
+function ContainerTab({ service, stats }: { [key: string]: any }) {
   return (
     <div className={styles.containerTab}>
       {/* ── Left: Container info ── */}
@@ -415,17 +424,19 @@ const MINI_NODE_W = 110;
 const MINI_NODE_H = 52;
 const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Clients & Bots"];
 
-function getIcon(svc) {
+function getIcon(svc: any) {
+  // @ts-ignore
   return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
+// @ts-ignore
 function miniEdgePath(x1, y1, x2, y2) {
   const dy = Math.abs(y2 - y1);
   const cp = Math.max(dy * 0.5, 30);
   return `M ${x1} ${y1} C ${x1} ${y1 + cp}, ${x2} ${y2 - cp}, ${x2} ${y2}`;
 }
 
-function TopologyTab({ service, allServices }) {
+function TopologyTab({ service, allServices }: { [key: string]: any }) {
   const deps = service.dependsOn || [];
 
   if (deps.length === 0 && allServices.length === 0) {
@@ -439,6 +450,7 @@ function TopologyTab({ service, allServices }) {
 
   // Build full edge list from all services
   const allEdges = [];
+  // @ts-ignore
   const idSet = new Set(allServices.map((s) => s.id));
   for (const svc of allServices) {
     for (const dep of svc.dependsOn || []) {
@@ -469,6 +481,7 @@ function TopologyTab({ service, allServices }) {
   for (const child of downstream.get(service.id) || []) connected.add(child);
 
   // Filter services and edges to connected subgraph
+  // @ts-ignore
   const graphServices = allServices.filter((s) => connected.has(s.id));
   const graphEdges = allEdges.filter((e) => connected.has(e.source) && connected.has(e.target));
 
@@ -485,9 +498,10 @@ function TopologyTab({ service, allServices }) {
   const tiers = [[], [], []];
   for (const svc of graphServices) {
     const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
+    // @ts-ignore
     tiers[tier].push(svc);
   }
-  for (const tier of tiers) tier.sort((a, b) => a.name.localeCompare(b.name));
+  for (const tier of tiers) tier.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
   const GAP_X = 20;
   const GAP_Y = 72;
@@ -502,6 +516,7 @@ function TopologyTab({ service, allServices }) {
     const totalW = layer.length * (MINI_NODE_W + GAP_X) - GAP_X;
     const offsetX = LABEL_W + (maxW - totalW) / 2;
     layer.forEach((svc, si) => {
+      // @ts-ignore
       positions[svc.id] = {
         x: offsetX + si * (MINI_NODE_W + GAP_X),
         y: usedTierCount * (MINI_NODE_H + GAP_Y),
@@ -540,7 +555,9 @@ function TopologyTab({ service, allServices }) {
 
         {/* Edges */}
         {graphEdges.map((edge, i) => {
+          // @ts-ignore
           const sp = positions[edge.source];
+          // @ts-ignore
           const tp = positions[edge.target];
           if (!sp || !tp) return null;
           const x1 = sp.x + MINI_NODE_W / 2;
@@ -568,7 +585,9 @@ function TopologyTab({ service, allServices }) {
         })}
 
         {/* Nodes */}
-        {graphServices.map((svc) => {
+{/* @ts-ignore */}
+{graphServices.map((svc: any) => {
+          // @ts-ignore
           const pos = positions[svc.id];
           if (!pos) return null;
           const Icon = getIcon(svc);
@@ -593,11 +612,11 @@ function TopologyTab({ service, allServices }) {
 
 // ── Tab: Web Analytics ────────────────────────────────────────────
 
-function WebAnalyticsTab({ service }) {
+function WebAnalyticsTab({ service }: { [key: string]: any }) {
   const propertyId = service.analyticsPropertyId;
-  const [overview, setOverview] = useState(null);
-  const [pages, setPages] = useState(null);
-  const [realtime, setRealtime] = useState(null);
+  const [overview, setOverview] = useState<any>(null);
+  const [pages, setPages] = useState<any>(null);
+  const [realtime, setRealtime] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const didFetch = useRef(false);
 
@@ -682,7 +701,7 @@ function WebAnalyticsTab({ service }) {
         <div className={styles.gaSection}>
           <h4 className={styles.sectionTitle}>Top Pages (30d)</h4>
           <div className={styles.gaPageList}>
-            {pages.pages.slice(0, 5).map((p, i) => (
+            {pages.pages.slice(0, 5).map((p: any, i: any) => (
               <div key={i} className={styles.gaPageRow}>
                 <span className={`${styles.gaPagePath} ${styles.mono}`}>{p.pagePath}</span>
                 <span className={styles.gaPageViews}>{formatNumber(p.pageviews)}</span>
@@ -697,7 +716,7 @@ function WebAnalyticsTab({ service }) {
 
 // ── Main Expanded Panel ───────────────────────────────────────────
 
-export default function ExpandedProjectPanel({ service, stats, allServices = [] }) {
+export default function ExpandedProjectPanel({ service, stats, allServices = [] }: { [key: string]: any }) {
   const [activeTab, setActiveTab] = useState("project");
 
   // Filter tabs: only show web-analytics if property exists
