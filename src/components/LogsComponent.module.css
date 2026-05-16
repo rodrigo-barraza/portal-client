@@ -13,7 +13,7 @@
   margin-bottom: 20px;
 }
 
-.tierLabel {
+.deviceLabel {
   width: 100%;
   font-size: 0.625rem;
   font-weight: 500;
@@ -24,7 +24,7 @@
   opacity: 0.7;
 }
 
-.tierLabel:first-child {
+.deviceLabel:first-child {
   padding-top: 0;
 }
 
@@ -59,6 +59,14 @@
   background: var(--accent-subtle);
   border-color: rgba(99, 102, 241, 0.25);
   color: var(--accent-color);
+}
+
+.chipStateStopped {
+  opacity: 0.45;
+}
+
+.chipStateStopped:hover {
+  opacity: 0.7;
 }
 
 .chipDot {
@@ -442,7 +450,7 @@
     display: none;
   }
 
-  .tierLabel {
+  .deviceLabel {
     display: none;
   }
 
