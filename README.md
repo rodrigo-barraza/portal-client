@@ -34,7 +34,7 @@ Infrastructure monitoring dashboard for the **Sun** ecosystem — displays real-
 npm install
 
 # 2. Copy and configure environment
-cp .env.example .env
+# Secrets are resolved from vault-service automatically.
 
 # 3. Start development server
 npm run dev
