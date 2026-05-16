@@ -112,7 +112,7 @@
 /* ── Terminal Log Viewer ── */
 
 .terminal {
-  background: #0d0d12;
+  background: var(--bg-primary);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -204,7 +204,7 @@
 .terminalBtn.active {
   background: rgba(99, 102, 241, 0.12);
   border-color: rgba(99, 102, 241, 0.2);
-  color: #818cf8;
+  color: var(--accent-color);
 }
 
 .lineCount {
@@ -300,7 +300,7 @@
 
 .lineContent {
   flex: 1;
-  color: #c8c8cd;
+  color: var(--log-default);
   word-break: break-all;
   white-space: pre-wrap;
 }
@@ -308,23 +308,23 @@
 /* ── Log level coloring ── */
 
 .levelError {
-  color: #f87171;
+  color: var(--log-error);
 }
 
 .levelWarn {
-  color: #fbbf24;
+  color: var(--log-warn);
 }
 
 .levelInfo {
-  color: #60a5fa;
+  color: var(--log-info);
 }
 
 .levelSuccess {
-  color: #34d399;
+  color: var(--log-debug);
 }
 
 .levelDebug {
-  color: #a78bfa;
+  color: var(--log-verbose);
 }
 
 /* ── Empty / Loading States ── */
@@ -340,7 +340,7 @@
   color: rgba(255, 255, 255, 0.3);
   font-size: 0.8125rem;
   animation: fadeIn var(--transition-normal) ease-out;
-  background: #0d0d12;
+  background: var(--bg-primary);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--border-radius-sm);
 }
@@ -368,7 +368,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #818cf8;
+  background: var(--accent-color);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -381,7 +381,7 @@
   padding: 8px 14px;
   background: rgba(239, 68, 68, 0.08);
   border-bottom: 1px solid rgba(239, 68, 68, 0.12);
-  color: #f87171;
+  color: var(--log-error);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   font-weight: 500;
@@ -394,7 +394,7 @@
   padding: 8px 14px;
   background: rgba(245, 158, 11, 0.08);
   border-top: 1px solid rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
+  color: var(--log-warn);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   font-weight: 500;
@@ -424,7 +424,7 @@
 .searchInput:focus {
   width: 200px;
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
 }
 

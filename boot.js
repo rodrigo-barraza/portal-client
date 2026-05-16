@@ -43,14 +43,14 @@ async function fetchVaultSecrets(attempt = 1) {
 
     console.log(`🔐 Vault → injected ${injected} secrets (${Object.keys(secrets).length} total)`);
     return true;
-  } catch (err) {
+  } catch (error) {
     if (attempt < MAX_RETRIES) {
       const delay = RETRY_DELAY_MS * attempt;
-      console.warn(`⚠️  Vault attempt ${attempt}/${MAX_RETRIES} failed (${err.message}) — retrying in ${delay}ms…`);
+      console.warn(`⚠️  Vault attempt ${attempt}/${MAX_RETRIES} failed (${error.message}) — retrying in ${delay}ms…`);
       await new Promise((r) => setTimeout(r, delay));
       return fetchVaultSecrets(attempt + 1);
     }
-    console.error(`❌ Vault unreachable after ${MAX_RETRIES} attempts (${err.message}) — continuing with env vars only`);
+    console.error(`❌ Vault unreachable after ${MAX_RETRIES} attempts (${error.message}) — continuing with env vars only`);
     return false;
   }
 }

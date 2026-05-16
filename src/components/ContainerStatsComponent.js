@@ -458,7 +458,7 @@ export default function ContainerStatsComponent() {
     try {
       await ApiService.restartService(serviceId);
       setTimeout(fetchData, 5000);
-    } catch (err) {
+    } catch (error) {
       console.error("Restart failed:", err);
     }
   };
@@ -467,7 +467,7 @@ export default function ContainerStatsComponent() {
     try {
       await ApiService.stopService(serviceId);
       setTimeout(fetchData, 5000);
-    } catch (err) {
+    } catch (error) {
       console.error("Stop failed:", err);
     }
   };
@@ -476,7 +476,7 @@ export default function ContainerStatsComponent() {
     try {
       await ApiService.startService(serviceId);
       setTimeout(fetchData, 5000);
-    } catch (err) {
+    } catch (error) {
       console.error("Start failed:", err);
     }
   };
@@ -487,7 +487,7 @@ export default function ContainerStatsComponent() {
       setTimeout(fetchData, 5000);
       // Refresh rollback availability
       setTimeout(() => checkRollbackAvailability(containerRows), 6000);
-    } catch (err) {
+    } catch (error) {
       console.error("Rollback failed:", err);
     }
   };

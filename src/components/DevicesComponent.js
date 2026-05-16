@@ -56,7 +56,7 @@ export default function DevicesComponent() {
     try {
       const res = await ApiService.getDevices();
       setDevices(res.devices || []);
-    } catch (err) {
+    } catch (error) {
       console.error("Devices fetch failed:", err);
     } finally {
       setLoading(false);

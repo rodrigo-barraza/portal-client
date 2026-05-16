@@ -26,7 +26,7 @@ export default class ApiService {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `API error: ${res.status}`);
+      throw new Error(error.message || `API error: ${res.status}`);
     }
 
     return res.json();

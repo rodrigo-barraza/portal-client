@@ -152,7 +152,7 @@ export default function AnalyticsComponent() {
       ]);
       setStats(statsRes);
       setProjects(projectsRes);
-    } catch (err) {
+    } catch (error) {
       console.error("Analytics fetch failed:", err);
     } finally {
       setLoading(false);
@@ -170,7 +170,7 @@ export default function AnalyticsComponent() {
       setSystemInfo(sysRes);
       setStorageSummary(storageRes);
       setContainerStats(containerRes);
-    } catch (err) {
+    } catch (error) {
       console.error("System data fetch failed:", err);
     } finally {
       setSystemLoading(false);

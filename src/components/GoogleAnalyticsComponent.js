@@ -243,8 +243,8 @@ export default function GoogleAnalyticsComponent() {
         if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
-      } catch (err) {
-        setError(err.message);
+      } catch (error) {
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -286,7 +286,7 @@ export default function GoogleAnalyticsComponent() {
       setHeatmap(heatmapRes);
       setNewVsReturning(nvrRes);
       setEvents(eventsRes);
-    } catch (err) {
+    } catch (error) {
       console.error("GA reports fetch failed:", err);
     } finally {
       setReportsLoading(false);

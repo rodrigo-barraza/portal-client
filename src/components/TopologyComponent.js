@@ -184,7 +184,7 @@ export default function TopologyComponent() {
       const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
       setAllServices([...svcs, ...infra]);
       if (res.deployTierColors) setTierColors(res.deployTierColors);
-    } catch (err) {
+    } catch (error) {
       console.error("Topology fetch failed:", err);
     } finally {
       setLoading(false);

@@ -27,7 +27,7 @@ const themeInitScript = `
         document.documentElement.setAttribute('data-theme', theme);
       }
     }
-  } catch(e) { console.warn('Theme initialization failed:', e.message); }
+  } catch (error) { console.warn('Theme initialization failed:', e.message); }
 })();
 `;
 

@@ -160,7 +160,7 @@ export default function StorageComponent() {
       const res = await ApiService.getStorageObjects(bucket, { prefix: pfx });
       setObjects(res.objects || []);
       setPrefixes(res.prefixes || []);
-    } catch (err) {
+    } catch (error) {
       console.error("Object listing failed:", err);
     } finally {
       setObjectsLoading(false);
@@ -216,7 +216,7 @@ export default function StorageComponent() {
     try {
       await ApiService.deleteStorageObject(activeBucket, obj.name);
       loadObjects(activeBucket, prefix);
-    } catch (err) {
+    } catch (error) {
       console.error("Delete failed:", err);
     }
   };
