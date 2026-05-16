@@ -6,16 +6,11 @@ import {
   Monitor,
   HardDrive,
   CircuitBoard,
-  Activity,
-  AlertCircle,
-  Database,
-  Globe,
-  Lock,
   Cpu,
   MemoryStick,
   Container,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
+import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
@@ -230,19 +225,6 @@ function DeviceCard({ device, delay, containers }) {
         </div>
       )}
 
-      {/* ── Infrastructure Table ── */}
-      {device.infrastructure?.length > 0 && (
-        <div className={styles.servicesSection}>
-          <div className={`${styles.servicesHeader} ${styles.infraHeader}`}>
-            <span>Infrastructure</span>
-          </div>
-          <div className={styles.servicesTable}>
-            {device.infrastructure.map((infra) => (
-              <InfraRow key={infra.id} infra={infra} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -297,59 +279,4 @@ function ContainerRow({ container }) {
   );
 }
 
-// ── Infrastructure Row ────────────────────────────────────────────
 
-const INFRA_ICON_MAP = {
-  database: Database,
-  "object-store": HardDrive,
-};
-
-function InfraRow({ infra }) {
-  const isHealthy = infra.healthy;
-  const InfraIcon = INFRA_ICON_MAP[infra.type] || Database;
-
-  // Build metadata chips
-  const chips = [];
-  if (infra.metadata?.version) chips.push(`v${infra.metadata.version}`);
-  if (infra.metadata?.databases != null) chips.push(`${infra.metadata.databases} dbs`);
-  if (infra.metadata?.connections != null) chips.push(`${infra.metadata.connections} conn`);
-  if (infra.metadata?.buckets != null) chips.push(`${infra.metadata.buckets} buckets`);
-
-  return (
-    <div className={`${styles.serviceRow} ${styles.infraRow} ${isHealthy ? styles.healthy : styles.unhealthy}`}>
-      <div className={styles.serviceLeft}>
-        <div
-          className={`${styles.svcDot} ${isHealthy ? styles.healthy : styles.unhealthy}`}
-        />
-        <InfraIcon size={13} strokeWidth={1.8} className={styles.infraRowIcon} />
-        <span className={styles.svcName}>{infra.name}</span>
-        <BadgeComponent variant="info">
-          {infra.type === "database" ? "Database" : "Object Store"}
-        </BadgeComponent>
-        {infra.visibility && (
-          <VisibilityBadgeComponent visibility={infra.visibility} icons={{ Globe, Lock }} />
-        )}
-      </div>
-      <div className={styles.serviceRight}>
-        {infra.port && (
-          <code className={styles.svcPort}>:{infra.port}</code>
-        )}
-        {chips.map((chip) => (
-          <span key={chip} className={styles.infraChip}>{chip}</span>
-        ))}
-        {infra.responseTimeMs != null && (
-          <span className={styles.svcLatency}>
-            <Activity size={11} strokeWidth={2} />
-            {infra.responseTimeMs}ms
-          </span>
-        )}
-        {!isHealthy && infra.error && (
-          <span className={styles.svcError}>
-            <AlertCircle size={11} strokeWidth={2} />
-            {infra.error}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}

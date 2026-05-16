@@ -201,6 +201,39 @@
     opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Draggable cluster rects ── */
+
+.clusterDraggable {
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.clusterDraggable:active {
+  cursor: grabbing;
+}
+
+.clusterDragHandle {
+  pointer-events: auto;
+  cursor: grab;
+  overflow: visible;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.clusterDragHandle:active {
+  cursor: grabbing;
+}
+
+/* Show drag handle when hovering the cluster group */
+g:hover > .clusterDragHandle {
+  opacity: 0.5;
+}
+
+g:hover > .clusterDragHandle:hover {
+  opacity: 0.9;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    EDGES — Rainbow flowing gradient (from Prism Client workflows)
    ═══════════════════════════════════════════════════════════════ */

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
-  RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X,
+  RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -169,6 +169,9 @@ export default function TopologyComponent() {
   const svgRef = useRef(null);
   const zoomRef = useRef(zoom);
   const didFetch = useRef(false);
+
+  // Cluster (group) dragging
+  const clusterDragging = useRef(null);
 
   // Keep zoomRef in sync
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
@@ -345,17 +348,44 @@ export default function TopologyComponent() {
     });
   }, [positions, screenToSvg]);
 
+  // ── Cluster (group) drag ────────────────────────────────────
+  const handleClusterMouseDown = useCallback((e, clusterType, clusterIndex) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    setSelectedNode(null);
+
+    const svgPos = screenToSvg(e.clientX, e.clientY);
+    const memberIds = clusterType === "libs"
+      ? libs.map((s) => s.id)
+      : (layers[clusterIndex] || []).map((s) => s.id);
+
+    // Snapshot current positions of all cluster members
+    const origPositions = {};
+    for (const id of memberIds) {
+      const pos = positions[id];
+      if (pos) origPositions[id] = { x: pos.x, y: pos.y };
+    }
+
+    clusterDragging.current = {
+      startX: svgPos.x,
+      startY: svgPos.y,
+      memberIds,
+      origPositions,
+    };
+  }, [screenToSvg, libs, layers, positions]);
+
   // ── Canvas pan ──────────────────────────────────────────────
   const handleCanvasMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
     const el = e.target;
-    if (el.closest("[data-topo-node]")) return;
+    if (el.closest("[data-topo-node]") || el.closest("[data-topo-cluster]")) return;
     setSelectedNode(null); // deselect on background click
     setIsPanning(true);
     panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
   }, [pan]);
 
   const handleMouseMove = useCallback((e) => {
+    // Single node drag
     if (dragging) {
       const svgPos = screenToSvg(e.clientX, e.clientY);
       setPosOverrides((prev) => ({
@@ -367,6 +397,22 @@ export default function TopologyComponent() {
       }));
       return;
     }
+    // Cluster (group) drag
+    if (clusterDragging.current) {
+      const svgPos = screenToSvg(e.clientX, e.clientY);
+      const { startX, startY, origPositions } = clusterDragging.current;
+      const dx = svgPos.x - startX;
+      const dy = svgPos.y - startY;
+      setPosOverrides((prev) => {
+        const next = { ...prev };
+        for (const [id, orig] of Object.entries(origPositions)) {
+          next[id] = { x: orig.x + dx, y: orig.y + dy };
+        }
+        return next;
+      });
+      return;
+    }
+    // Canvas pan
     if (isPanning) {
       setPan({
         x: panStart.current.panX + (e.clientX - panStart.current.x),
@@ -377,6 +423,7 @@ export default function TopologyComponent() {
 
   const handleMouseUp = useCallback(() => {
     if (dragging) setDragging(null);
+    if (clusterDragging.current) clusterDragging.current = null;
     if (isPanning) setIsPanning(false);
   }, [dragging, isPanning]);
 
@@ -585,9 +632,23 @@ export default function TopologyComponent() {
                       height={libsClusterRect.h}
                       rx={10}
                       ry={10}
-                      className={styles.clusterRect}
+                      className={`${styles.clusterRect} ${styles.clusterDraggable}`}
                       style={{ stroke: LIBS_CLUSTER_COLOR.stroke, fill: LIBS_CLUSTER_COLOR.fill }}
+                      data-topo-cluster
+                      onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
                     />
+                    {/* Drag handle icon */}
+                    <foreignObject
+                      x={libsClusterRect.x + 8}
+                      y={libsClusterRect.y + 6}
+                      width={16}
+                      height={16}
+                      className={styles.clusterDragHandle}
+                      data-topo-cluster
+                      onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
+                    >
+                      <Move size={12} strokeWidth={1.5} />
+                    </foreignObject>
                     <text
                       x={libsClusterRect.x + libsClusterRect.w / 2}
                       y={libsClusterRect.y - 10}
@@ -613,9 +674,23 @@ export default function TopologyComponent() {
                         height={cr.h}
                         rx={10}
                         ry={10}
-                        className={styles.clusterRect}
+                        className={`${styles.clusterRect} ${styles.clusterDraggable}`}
                         style={{ stroke: tc.stroke, fill: tc.fill }}
+                        data-topo-cluster
+                        onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
                       />
+                      {/* Drag handle icon */}
+                      <foreignObject
+                        x={cr.x + 8}
+                        y={cr.y + 6}
+                        width={16}
+                        height={16}
+                        className={styles.clusterDragHandle}
+                        data-topo-cluster
+                        onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
+                      >
+                        <Move size={12} strokeWidth={1.5} />
+                      </foreignObject>
                       <text
                         x={cr.x + cr.w / 2}
                         y={cr.y - 10}
