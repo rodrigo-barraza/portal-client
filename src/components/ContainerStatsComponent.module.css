@@ -9,19 +9,13 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 8px;
   animation: fadeIn var(--transition-normal) ease-out;
 }
 
-@media (max-width: 1400px) {
-  .summaryGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .summaryGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -152,6 +146,12 @@
   font-weight: 600;
   white-space: nowrap;
   line-height: 1;
+}
+
+.metricLimit {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
 }
 
 .miniBarTrack {

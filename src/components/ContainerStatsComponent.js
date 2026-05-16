@@ -6,7 +6,6 @@ import {
   Container,
   Cpu,
   Globe,
-  HardDriveDownload,
   Lock,
   MemoryStick,
   Network,
@@ -142,7 +141,16 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
 
 // ── Column Definitions ──────────────────────────────────────────
 
-function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap }) {
+function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, systemInfo }) {
+  // Build per-device host RAM lookup for detecting uncapped containers
+  const sysDevices = systemInfo
+    ? (Array.isArray(systemInfo) ? systemInfo : [systemInfo])
+    : [];
+  const hostRamByDevice = {};
+  for (const d of sysDevices) {
+    hostRamByDevice[d.deviceId] = d.totalMemory || 0;
+  }
+
   return [
     {
       key: "name",
@@ -193,11 +201,17 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap }) {
       render: (row) => {
         const mem = row._stats?.memory;
         if (!mem) return <span className={styles.dimText}>—</span>;
-        const color = severityColor(mem.percent, [60, 85]);
+        const hostRam = hostRamByDevice[row.device] || 0;
+        const isCapped = mem.limit > 0 && hostRam > 0 && mem.limit < hostRam * 0.99;
+        const pct = isCapped ? (mem.used / mem.limit) * 100 : mem.percent;
+        const color = severityColor(pct, [60, 85]);
         return (
           <div className={styles.metricCell}>
-            <span className={styles.metricValue} style={{ color }}>{formatBytes(mem.used)}</span>
-            <MiniBar percent={mem.percent} color={color} />
+            <span className={styles.metricValue} style={{ color }}>
+              {formatBytes(mem.used)}
+              <span className={styles.metricLimit}> / {isCapped ? formatBytes(mem.limit) : "∞"}</span>
+            </span>
+            <MiniBar percent={pct} color={color} />
           </div>
         );
       },
@@ -517,7 +531,7 @@ export default function ContainerStatsComponent() {
     return containerRows.filter((r) => r.device === activeDevice);
   }, [containerRows, activeDevice]);
 
-  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart, onRollback: handleRollback, rollbackMap });
+  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart, onRollback: handleRollback, rollbackMap, systemInfo });
   const healthyCount = filteredRows.filter((r) => r.healthy).length;
 
   // Check rollback availability once data loads
@@ -559,43 +573,6 @@ export default function ContainerStatsComponent() {
     }
     return Object.values(perDevice).reduce((sum, v) => sum + v, 0);
   }, [systemInfo, activeDevice, filteredRows]);
-
-  // ── RAM Allocated: sum of explicit cgroup memory limits ─────────
-  // Containers without --memory report the host's total RAM as their limit.
-  // We detect those by comparing against per-device host RAM from systemInfo.
-  const allocatedMemory = useMemo(() => {
-    const sysDevices = systemInfo
-      ? (Array.isArray(systemInfo) ? systemInfo : [systemInfo])
-      : [];
-    const hostRamByDevice = {};
-    for (const d of sysDevices) {
-      hostRamByDevice[d.deviceId] = d.totalMemory || 0;
-    }
-
-    let totalAllocated = 0;
-    let limitedCount = 0;
-    let unlimitedCount = 0;
-
-    for (const row of filteredRows) {
-      const limit = row._stats?.memory?.limit || 0;
-      const hostRam = hostRamByDevice[row.device] || 0;
-
-      // A container is "limited" if its cgroup limit is set below host RAM.
-      // Tolerance: within 1% of host RAM means uncapped.
-      const isLimited = limit > 0 && hostRam > 0 && limit < hostRam * 0.99;
-
-      if (isLimited) {
-        totalAllocated += limit;
-        limitedCount++;
-      } else {
-        unlimitedCount++;
-      }
-    }
-
-    const allocatedPercent = totalMemLimit > 0 ? (totalAllocated / totalMemLimit) * 100 : 0;
-
-    return { totalAllocated, limitedCount, unlimitedCount, allocatedPercent };
-  }, [filteredRows, systemInfo, totalMemLimit]);
 
   const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
   const totalNetRx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
@@ -701,23 +678,6 @@ export default function ContainerStatsComponent() {
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#f59e0b", background: "rgba(245,158,11,0.08)" }}>
-              <HardDriveDownload size={18} strokeWidth={2} />
-            </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue} style={{ color: severityColor(allocatedMemory.allocatedPercent, [60, 85]) }}>
-                {allocatedMemory.totalAllocated > 0 ? formatBytes(allocatedMemory.totalAllocated) : "—"}
-              </span>
-              <span className={styles.statCardLabel}>RAM Allocated</span>
-              <span className={styles.statCardSub}>
-                {allocatedMemory.limitedCount > 0
-                  ? `${allocatedMemory.limitedCount} limited · ${allocatedMemory.unlimitedCount} unlimited`
-                  : `${allocatedMemory.unlimitedCount} container${allocatedMemory.unlimitedCount !== 1 ? "s" : ""} · no explicit limits`}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
             <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
               <Network size={18} strokeWidth={2} />
             </div>
@@ -727,7 +687,6 @@ export default function ContainerStatsComponent() {
               <span className={styles.statCardSub}>↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx</span>
             </div>
           </div>
-
 
         </div>
       )}
