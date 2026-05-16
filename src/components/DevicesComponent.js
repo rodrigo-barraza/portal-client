@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   RefreshCw,
   Monitor,
@@ -13,12 +13,12 @@ import {
   Lock,
   Cpu,
   MemoryStick,
-  Rocket,
+  Container,
 } from "lucide-react";
 import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, VisibilityBadgeComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
-import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
 import styles from "./DevicesComponent.module.css";
 
 /**
@@ -54,7 +54,7 @@ export default function DevicesComponent() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [containerStats, setContainerStats] = useState({});
+  const [containers, setContainers] = useState([]);
   const didFetch = useRef(false);
 
   async function loadDevices() {
@@ -69,22 +69,10 @@ export default function DevicesComponent() {
     }
   }
 
-  const fetchContainerStats = useCallback(async () => {
+  const fetchContainers = useCallback(async () => {
     try {
-      const currentRes = await ApiService.getContainerStats();
-      const statsMap = {};
-      if (currentRes?.containers) {
-        for (const c of currentRes.containers) {
-          statsMap[c.name] = {
-            cpu: c.cpu,
-            memory: c.memory,
-            network: c.network,
-            blockIO: c.blockIO,
-            pids: c.pids,
-          };
-        }
-      }
-      setContainerStats(statsMap);
+      const res = await ApiService.getContainerStats();
+      setContainers(res?.containers || []);
     } catch {
       // Container stats are supplementary — silently ignore
     }
@@ -94,24 +82,44 @@ export default function DevicesComponent() {
     if (didFetch.current) return;
     didFetch.current = true;
     loadDevices();
-    fetchContainerStats();
-  }, [fetchContainerStats]);
+    fetchContainers();
+  }, [fetchContainers]);
 
   // Poll container stats every 5 seconds
   useEffect(() => {
-    const timer = setInterval(fetchContainerStats, 5_000);
+    const timer = setInterval(fetchContainers, 5_000);
     return () => clearInterval(timer);
-  }, [fetchContainerStats]);
+  }, [fetchContainers]);
 
   const handleRefresh = () => {
     setRefreshing(true);
     loadDevices();
-    fetchContainerStats();
+    fetchContainers();
   };
 
-  const sortedDevices = [...devices].sort((a, b) => b.serviceCount - a.serviceCount);
-  const totalServices = devices.reduce((sum, d) => sum + d.serviceCount, 0);
-  const totalHealthy = devices.reduce((sum, d) => sum + d.healthyCount, 0);
+  // Group containers by device name
+  const containersByDevice = useMemo(() => {
+    const map = {};
+    for (const c of containers) {
+      const deviceId = c.device || "unknown";
+      if (!map[deviceId]) map[deviceId] = [];
+      map[deviceId].push(c);
+    }
+    // Sort containers within each device by name
+    for (const key of Object.keys(map)) {
+      map[key].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return map;
+  }, [containers]);
+
+  const sortedDevices = [...devices].sort((a, b) => {
+    const aCount = containersByDevice[a.id]?.length || 0;
+    const bCount = containersByDevice[b.id]?.length || 0;
+    return bCount - aCount;
+  });
+
+  const totalContainers = containers.length;
+  const runningContainers = containers.filter((c) => c.state === "running").length;
 
   return (
     <div className={styles.devices}>
@@ -120,7 +128,7 @@ export default function DevicesComponent() {
         subtitle={
           loading
             ? "Loading device topology…"
-            : `${devices.length} devices · ${totalHealthy}/${totalServices} projects healthy`
+            : `${devices.length} devices · ${runningContainers}/${totalContainers} containers running`
         }
       >
         <ButtonComponent
@@ -138,7 +146,12 @@ export default function DevicesComponent() {
       ) : (
         <div className={styles.deviceList}>
           {sortedDevices.map((device, idx) => (
-            <DeviceCard key={device.id} device={device} delay={idx * 60} containerStats={containerStats} />
+            <DeviceCard
+              key={device.id}
+              device={device}
+              delay={idx * 60}
+              containers={containersByDevice[device.id] || []}
+            />
           ))}
         </div>
       )}
@@ -148,10 +161,11 @@ export default function DevicesComponent() {
 
 // ── Device Card ───────────────────────────────────────────────────
 
-function DeviceCard({ device, delay, containerStats }) {
+function DeviceCard({ device, delay, containers }) {
   const DeviceIcon = DEVICE_ICON_MAP[device.type] || Monitor;
   const accentColor = DEVICE_COLOR_MAP[device.type] || "var(--accent-color)";
-  const allHealthy = device.healthyCount === device.serviceCount;
+  const runningCount = containers.filter((c) => c.state === "running").length;
+  const allRunning = runningCount === containers.length && containers.length > 0;
 
   return (
     <div
@@ -178,10 +192,10 @@ function DeviceCard({ device, delay, containerStats }) {
         </div>
         <div className={styles.deviceStatus}>
           <div
-            className={`${styles.statusDot} ${allHealthy ? styles.healthy : styles.unhealthy}`}
+            className={`${styles.statusDot} ${allRunning ? styles.healthy : styles.unhealthy}`}
           />
           <span className={styles.statusLabel}>
-            {device.healthyCount}/{device.serviceCount}
+            {runningCount}/{containers.length}
           </span>
         </div>
       </div>
@@ -199,18 +213,17 @@ function DeviceCard({ device, delay, containerStats }) {
         <p className={styles.deviceNotes}>{device.notes}</p>
       )}
 
-      {/* ── Projects Table ── */}
-      {device.services.length > 0 && (
+      {/* ── Containers Table ── */}
+      {containers.length > 0 && (
         <div className={styles.servicesSection}>
           <div className={styles.servicesHeader}>
-            <span>Projects</span>
+            <span>Containers</span>
           </div>
           <div className={styles.servicesTable}>
-            {device.services.map((svc) => (
-              <ServiceRow
-                key={svc.id}
-                service={svc}
-                stats={svc.dockerProject ? containerStats[svc.dockerProject] : null}
+            {containers.map((container) => (
+              <ContainerRow
+                key={container.name}
+                container={container}
               />
             ))}
           </div>
@@ -234,70 +247,50 @@ function DeviceCard({ device, delay, containerStats }) {
   );
 }
 
-// ── Service Row ───────────────────────────────────────────────────
+// ── Container Row ─────────────────────────────────────────────────
 
-function ServiceRow({ service, stats }) {
-  const isHealthy = service.healthy;
-  const displayUrl = service.url?.replace(/^https?:\/\//, "") || "—";
+function ContainerRow({ container }) {
+  const isRunning = container.state === "running";
 
   return (
-    <div className={`${styles.serviceRow} ${isHealthy ? styles.healthy : styles.unhealthy}`}>
+    <div className={`${styles.serviceRow} ${isRunning ? styles.healthy : styles.unhealthy}`}>
       <div className={styles.serviceLeft}>
         <div
-          className={`${styles.svcDot} ${isHealthy ? styles.healthy : styles.unhealthy}`}
+          className={`${styles.svcDot} ${isRunning ? styles.healthy : styles.unhealthy}`}
         />
-        <span className={styles.svcName}>{service.name}</span>
-        <BadgeComponent variant={service.environment === "Production" ? "success" : "info"}>
-          {service.environment}
+        <Container size={13} strokeWidth={1.8} className={styles.containerIcon} />
+        <span className={styles.svcName}>{container.name}</span>
+        <BadgeComponent variant={isRunning ? "success" : "danger"}>
+          {container.state || "unknown"}
         </BadgeComponent>
-        {service.visibility && (
-          <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
-        )}
-        {service.dockerProject && service.deployTier != null && (
-          <BadgeComponent variant="accent" title={`Deploy tier ${service.deployTier} — included in deploy-kit orchestration`}>
-            <Rocket size={10} strokeWidth={2.2} style={{ marginRight: 2 }} />
-            Deployable
-          </BadgeComponent>
-        )}
       </div>
       <div className={styles.serviceRight}>
         {/* ── Docker Metrics ── */}
-        {stats && (
+        {container.cpu && (
           <div className={styles.metricBadges}>
             <span
               className={styles.metricBadge}
-              style={{ "--metric-color": severityColor(stats.cpu.percent) }}
-              title={`CPU: ${formatPercent(stats.cpu.percent, "adaptive")} · ${stats.cpu.cores} core${stats.cpu.cores !== 1 ? "s" : ""}`}
+              style={{ "--metric-color": severityColor(container.cpu.percent) }}
+              title={`CPU: ${formatPercent(container.cpu.percent, "adaptive")} · ${container.cpu.cores} core${container.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
-              <span className={styles.metricValue}>{formatPercent(stats.cpu.percent, "adaptive")}</span>
+              <span className={styles.metricValue}>{formatPercent(container.cpu.percent, "adaptive")}</span>
             </span>
-            <span
-              className={styles.metricBadge}
-              style={{ "--metric-color": severityColor(stats.memory.percent, [60, 85]) }}
-              title={`RAM: ${formatBytes(stats.memory.used)} / ${formatBytes(stats.memory.limit)} (${formatPercent(stats.memory.percent, "adaptive")})`}
-            >
-              <MemoryStick size={10} strokeWidth={2.4} />
-              <span className={styles.metricValue}>{formatBytes(stats.memory.used)}</span>
-            </span>
+            {container.memory && (
+              <span
+                className={styles.metricBadge}
+                style={{ "--metric-color": severityColor(container.memory.percent, [60, 85]) }}
+                title={`RAM: ${formatBytes(container.memory.used)} / ${formatBytes(container.memory.limit)} (${formatPercent(container.memory.percent, "adaptive")})`}
+              >
+                <MemoryStick size={10} strokeWidth={2.4} />
+                <span className={styles.metricValue}>{formatBytes(container.memory.used)}</span>
+              </span>
+            )}
           </div>
         )}
 
-        {service.port && (
-          <code className={styles.svcPort}>:{service.port}</code>
-        )}
-        <span className={styles.svcUrl}>{displayUrl}</span>
-        {service.responseTimeMs != null && (
-          <span className={styles.svcLatency}>
-            <Activity size={11} strokeWidth={2} />
-            {formatDuration(service.responseTimeMs)}
-          </span>
-        )}
-        {!isHealthy && service.error && (
-          <span className={styles.svcError}>
-            <AlertCircle size={11} strokeWidth={2} />
-            {service.error}
-          </span>
+        {container.status && (
+          <span className={styles.containerStatus}>{container.status}</span>
         )}
       </div>
     </div>
@@ -347,7 +340,7 @@ function InfraRow({ infra }) {
         {infra.responseTimeMs != null && (
           <span className={styles.svcLatency}>
             <Activity size={11} strokeWidth={2} />
-            {formatDuration(infra.responseTimeMs)}
+            {infra.responseTimeMs}ms
           </span>
         )}
         {!isHealthy && infra.error && (

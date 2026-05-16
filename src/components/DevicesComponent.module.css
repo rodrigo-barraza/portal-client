@@ -290,6 +290,20 @@
   white-space: nowrap;
 }
 
+/* ── Container Icon ── */
+
+.containerIcon {
+  color: var(--device-accent);
+  flex-shrink: 0;
+}
+
+.containerStatus {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
 /* ── Metric Badges ── */
 
 .metricBadges {
