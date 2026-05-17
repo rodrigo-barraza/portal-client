@@ -94,8 +94,8 @@ portal-client/
 │   ├── constants/              # Service type definitions
 │   └── services/               # API service layer
 ├── boot.js                     # Vault bootstrap
-├── config.js                   # Runtime configuration
-├── secrets.js                  # Secret resolution (gitignored)
+├── config.ts                   # Runtime configuration
+├── secrets.ts                  # Secret resolution (gitignored)
 ├── next.config.mjs             # Next.js + Vault bootstrap
 └── deploy.sh                   # Synology NAS deploy script
 ```
