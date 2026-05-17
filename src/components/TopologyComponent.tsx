@@ -30,7 +30,7 @@ function getIcon(svc: any) {
 }
 
 // ── Tier labels ─────────────────────────────────────────────────
-const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Bots"];
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services & Clients", "Tier 2 — Bots"];
 const LIBS_LABEL = "Libraries & Toolkits";
 
 // ── Colors for the libraries cluster ────────────────────────────

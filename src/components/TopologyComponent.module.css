@@ -379,21 +379,22 @@ g:hover > .clusterDragHandle:hover {
 
 .statusDot {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 5px;
-  height: 5px;
+  top: 4px;
+  right: 4px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
 .statusHealthy {
   background: var(--success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .statusDown {
   background: var(--danger);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 

@@ -169,12 +169,59 @@
 }
 
 .servicesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   padding: 10px 24px;
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: var(--text-secondary);
+    background: var(--accent-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+  }
+}
+
+/* ── Chevron Rotation ── */
+
+.chevron {
+  transition: transform var(--transition-fast);
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+  will-change: transform;
+}
+
+.chevronExpanded {
+  transform: rotate(0deg);
+}
+
+/* ── Collapsible Wrapper ── */
+
+.servicesCollapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-normal) ease;
+}
+
+.servicesCollapsible > * {
+  overflow: hidden;
+}
+
+.servicesExpanded {
+  grid-template-rows: 1fr;
 }
 
 .servicesTable {

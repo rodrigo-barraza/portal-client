@@ -422,7 +422,7 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
 // ── Mini topology constants ───────────────────────────────────────
 const MINI_NODE_W = 110;
 const MINI_NODE_H = 52;
-const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services", "Tier 2 — Bots"];
+const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services & Clients", "Tier 2 — Bots"];
 
 function getIcon(svc: any) {
   // @ts-ignore

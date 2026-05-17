@@ -84,6 +84,37 @@ export default class ApiService {
     return ApiService._request(`/services/${serviceId}/rollback-status`);
   }
 
+  // ── Container-Direct Actions ─────────────────────────────────
+  // These operate by Docker container name + device ID, bypassing the
+  // project registry — enabling control of any Docker container.
+
+  /**
+   * Restart a Docker container by name on a specific device.
+   * @param {string} containerName - Docker container name
+   * @param {string} device - Device ID (e.g. "synology")
+   */
+  static async restartContainer(containerName: string, device: string) {
+    return ApiService._request(`/containers/${containerName}/restart?device=${encodeURIComponent(device)}`, { method: "POST" });
+  }
+
+  /**
+   * Stop a Docker container by name on a specific device.
+   * @param {string} containerName - Docker container name
+   * @param {string} device - Device ID (e.g. "synology")
+   */
+  static async stopContainer(containerName: string, device: string) {
+    return ApiService._request(`/containers/${containerName}/stop?device=${encodeURIComponent(device)}`, { method: "POST" });
+  }
+
+  /**
+   * Start a Docker container by name on a specific device.
+   * @param {string} containerName - Docker container name
+   * @param {string} device - Device ID (e.g. "synology")
+   */
+  static async startContainer(containerName: string, device: string) {
+    return ApiService._request(`/containers/${containerName}/start?device=${encodeURIComponent(device)}`, { method: "POST" });
+  }
+
   /**
    * Get GitHub repository sizes for all projects.
    * @returns {Promise<{ sizes: Record<string, { sizeKB: number, sizeBytes: number }> }>}

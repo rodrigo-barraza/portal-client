@@ -371,23 +371,24 @@ export default function ProjectsComponent() {
           {/* ═══ Deployed Services Section ═══════════════════════════ */}
           {deployedItems.length > 0 && (
             <>
-              {nonDeployedItems.length > 0 && (
-                <div className={styles.sectionLabel}>
-                  <Server size={13} strokeWidth={2.2} />
-                  <span>Deployed Services</span>
-                  <span className={styles.sectionCount}>{deployedItems.length}</span>
-                </div>
-              )}
-
               {viewMode === "card" ? (
-                <div className={styles.grid}>
-                  {deployedItems.map((service: any) => (
-                    <ServiceCardComponent
-                      key={service.id}
-                      service={service}
-                    />
-                  ))}
-                </div>
+                <>
+                  {nonDeployedItems.length > 0 && (
+                    <div className={styles.sectionLabel}>
+                      <Server size={13} strokeWidth={2.2} />
+                      <span>Deployed Services</span>
+                      <span className={styles.sectionCount}>{deployedItems.length}</span>
+                    </div>
+                  )}
+                  <div className={styles.grid}>
+                    {deployedItems.map((service: any) => (
+                      <ServiceCardComponent
+                        key={service.id}
+                        service={service}
+                      />
+                    ))}
+                  </div>
+                </>
               ) : (
                 <ProjectTableComponent
                   services={deployedItems}
@@ -396,6 +397,8 @@ export default function ProjectsComponent() {
                   projectSizes={projectSizes}
                   sortKey={sortKey}
                   sortDir={sortDir}
+                  title={nonDeployedItems.length > 0 ? "Deployed Services" : undefined}
+                  subtitle={nonDeployedItems.length > 0 ? `${deployedItems.length} projects` : undefined}
                   // @ts-ignore
                   onSort={(key, dir) => {
                     setSortKey(key);
@@ -409,21 +412,22 @@ export default function ProjectsComponent() {
           {/* ═══ Libraries & Toolkits Section ════════════════════════ */}
           {nonDeployedItems.length > 0 && (
             <>
-              <div className={styles.sectionLabel}>
-                <BookOpen size={13} strokeWidth={2.2} />
-                <span>Libraries & Toolkits</span>
-                <span className={styles.sectionCount}>{nonDeployedItems.length}</span>
-              </div>
-
               {viewMode === "card" ? (
-                <div className={styles.grid}>
-                  {nonDeployedItems.map((service: any) => (
-                    <ServiceCardComponent
-                      key={service.id}
-                      service={service}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className={styles.sectionLabel}>
+                    <BookOpen size={13} strokeWidth={2.2} />
+                    <span>Libraries & Toolkits</span>
+                    <span className={styles.sectionCount}>{nonDeployedItems.length}</span>
+                  </div>
+                  <div className={styles.grid}>
+                    {nonDeployedItems.map((service: any) => (
+                      <ServiceCardComponent
+                        key={service.id}
+                        service={service}
+                      />
+                    ))}
+                  </div>
+                </>
               ) : (
                 <ProjectTableComponent
                   services={nonDeployedItems}
@@ -433,6 +437,8 @@ export default function ProjectsComponent() {
                   excludeColumns={["tier", "domain", "database", "containers"]}
                   sortKey={sortKey}
                   sortDir={sortDir}
+                  title="Libraries & Toolkits"
+                  subtitle={`${nonDeployedItems.length} projects`}
                   // @ts-ignore
                   onSort={(key, dir) => {
                     setSortKey(key);

@@ -262,6 +262,10 @@ export default function ProjectTableComponent({
   sortDir,
   // @ts-ignore
   onSort,
+  // @ts-ignore
+  title,
+  // @ts-ignore
+  subtitle,
 }) {
   const [selectedProject, setSelectedProject] = useState<any>(null);
 
@@ -305,6 +309,8 @@ export default function ProjectTableComponent({
   return (
     <>
       <TableComponent
+        title={title}
+        subtitle={subtitle}
         columns={columns}
         data={services}
         getRowKey={(row: any) => row.id}

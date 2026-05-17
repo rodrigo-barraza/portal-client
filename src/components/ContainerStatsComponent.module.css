@@ -84,6 +84,43 @@
   line-height: 1.3;
 }
 
+/* ── Stat Card with Sparkline Chart ── */
+
+.statCardWithChart {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+
+/* ── Sparkline Canvas ── */
+
+.sparklineContainer {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+}
+
+.sparklineCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* GPU compositing for smooth repaints */
+  will-change: contents;
+}
+
 /* ── Name Cell ── */
 
 .nameCell {

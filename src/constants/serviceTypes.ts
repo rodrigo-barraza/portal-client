@@ -50,7 +50,7 @@ export const DEFAULT_SERVICE_TYPE_COLORS = {
 
 /**
  * Default deploy tier colors — mirrors vault-service deployTierColors.
- * Orange (Tier 0 Foundation), Blue (Tier 1 Services), Green (Tier 2 Bots).
+ * Orange (Tier 0 Foundation), Blue (Tier 1 Services & Clients), Green (Tier 2 Bots).
  */
 export const DEFAULT_DEPLOY_TIER_COLORS = {
   0: { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)", stroke: "rgba(249, 115, 22, 0.35)", fill: "rgba(249, 115, 22, 0.04)" },

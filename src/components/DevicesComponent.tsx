@@ -9,8 +9,9 @@ import {
   Cpu,
   MemoryStick,
   Container,
+  ChevronDown,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, StatusDotComponent } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
@@ -165,6 +166,7 @@ export default function DevicesComponent() {
 // ── Device Card ───────────────────────────────────────────────────
 
 function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
+  const [containersExpanded, setContainersExpanded] = useState(false);
   // @ts-ignore
   const DeviceIcon = DEVICE_ICON_MAP[device.type] || Monitor;
   // @ts-ignore
@@ -198,8 +200,10 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
           </div>
         </div>
         <div className={styles.deviceStatus}>
-          <div
-            className={`${styles.statusDot} ${allRunning ? styles.healthy : styles.unhealthy}`}
+          <StatusDotComponent
+            variant={allRunning ? "healthy" : "unhealthy"}
+            size="md"
+            pulse={allRunning}
           />
           <span className={styles.statusLabel}>
             {runningCount}/{containers.length}
@@ -223,16 +227,27 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
       {/* ── Containers Table ── */}
       {containers.length > 0 && (
         <div className={styles.servicesSection}>
-          <div className={styles.servicesHeader}>
-            <span>Containers</span>
-          </div>
-          <div className={styles.servicesTable}>
-            {containers.map((container: any) => (
-              <ContainerRow
-                key={container.name}
-                container={container}
-              />
-            ))}
+          <button
+            className={styles.servicesHeader}
+            onClick={() => setContainersExpanded((prev) => !prev)}
+            aria-expanded={containersExpanded}
+          >
+            <span>Containers ({containers.length})</span>
+            <ChevronDown
+              size={14}
+              strokeWidth={2}
+              className={`${styles.chevron} ${containersExpanded ? styles.chevronExpanded : ""}`}
+            />
+          </button>
+          <div className={`${styles.servicesCollapsible} ${containersExpanded ? styles.servicesExpanded : ""}`}>
+            <div className={styles.servicesTable}>
+              {containers.map((container: any) => (
+                <ContainerRow
+                  key={container.name}
+                  container={container}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -249,8 +264,10 @@ function ContainerRow({ container }: { [key: string]: any }) {
   return (
     <div className={`${styles.serviceRow} ${isRunning ? styles.healthy : styles.unhealthy}`}>
       <div className={styles.serviceLeft}>
-        <div
-          className={`${styles.svcDot} ${isRunning ? styles.healthy : styles.unhealthy}`}
+        <StatusDotComponent
+          variant={isRunning ? "healthy" : "unhealthy"}
+          size="sm"
+          pulse={isRunning}
         />
         <Container size={13} strokeWidth={1.8} className={styles.containerIcon} />
         <span className={styles.svcName}>{container.name}</span>

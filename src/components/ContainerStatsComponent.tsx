@@ -36,12 +36,147 @@ import ContainerDetailPanel from "./ContainerDetailPanelComponent";
 import styles from "./ContainerStatsComponent.module.css";
 
 const POLL_INTERVAL = 5_000;
+const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
 
 // @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
+}
+
+// ── Sparkline Area Chart (Canvas) ───────────────────────────────
+
+function SparklineChart({
+  data,
+  color,
+  maxValue = 100,
+  height = 48,
+  className,
+}: {
+  data: number[];
+  color: string;
+  maxValue?: number;
+  height?: number;
+  className?: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = rect.width;
+    const h = height;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    if (data.length < 2) return;
+
+    // Resolve CSS color variable to actual value
+    const resolvedColor = color.startsWith("var(")
+      ? getComputedStyle(document.documentElement).getPropertyValue(color.slice(4, -1)).trim() || "#10b981"
+      : color;
+
+    // Parse hex/rgb to get components for alpha variations
+    const parseColor = (c: string): [number, number, number] => {
+      if (c.startsWith("#")) {
+        const hex = c.slice(1);
+        return [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16),
+        ];
+      }
+      const m = c.match(/(\d+)/);
+      return m ? [+m[1], +m[1], +m[1]] : [16, 185, 129];
+    };
+    const [r, g, b] = parseColor(resolvedColor);
+
+    const padding = { top: 2, bottom: 2, left: 0, right: 0 };
+    const chartW = w - padding.left - padding.right;
+    const chartH = h - padding.top - padding.bottom;
+    const clampedMax = Math.max(maxValue, 1);
+
+    // Map data points to coordinates — always draw across full width
+    const points = data.map((val, i) => ({
+      x: padding.left + (i / (HISTORY_MAX - 1)) * chartW,
+      y: padding.top + chartH - (Math.min(val, clampedMax) / clampedMax) * chartH,
+    }));
+
+    // Build smooth path using monotone cubic interpolation
+    const buildPath = () => {
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[Math.max(0, i - 1)];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[Math.min(points.length - 1, i + 2)];
+        const tension = 0.3;
+        const cp1x = p1.x + (p2.x - p0.x) * tension;
+        const cp1y = p1.y + (p2.y - p0.y) * tension;
+        const cp2x = p2.x - (p3.x - p1.x) * tension;
+        const cp2y = p2.y - (p3.y - p1.y) * tension;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+      }
+    };
+
+    // ── Gradient fill ──
+    ctx.beginPath();
+    buildPath();
+    ctx.lineTo(points[points.length - 1].x, h);
+    ctx.lineTo(points[0].x, h);
+    ctx.closePath();
+
+    const gradient = ctx.createLinearGradient(0, padding.top, 0, h);
+    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.25)`);
+    gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, 0.08)`);
+    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.01)`);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // ── Line stroke with glow ──
+    ctx.beginPath();
+    buildPath();
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.4)`;
+    ctx.shadowBlur = 4;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ── Current value dot ──
+    if (points.length > 0) {
+      const last = points[points.length - 1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }, [data, color, maxValue, height]);
+
+  return (
+    <div ref={containerRef} className={`${styles.sparklineContainer} ${className || ""}`}>
+      <canvas ref={canvasRef} className={styles.sparklineCanvas} />
+    </div>
+  );
 }
 
 // ── Inline Percent Bar ──────────────────────────────────────────
@@ -64,8 +199,6 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
 
   const isHealthy = service.healthy;
 
-  if (!service.restartable) return null;
-
   return (
     <div className={styles.actionRow}>
       {isHealthy ? (
@@ -75,7 +208,7 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setStopping(true);
-            try { await onStop?.(service.id); }
+            try { await onStop?.(service.id, service); }
             finally { setTimeout(() => setStopping(false), 5000); }
           }}
           title="Stop"
@@ -89,7 +222,7 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setStarting(true);
-            try { await onStart?.(service.id); }
+            try { await onStart?.(service.id, service); }
             finally { setTimeout(() => setStarting(false), 5000); }
           }}
           title="Start"
@@ -114,7 +247,7 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setRollingBack(true);
-            try { await onRollback?.(service.id); }
+            try { await onRollback?.(service.id, service); }
             finally { setTimeout(() => setRollingBack(false), 8000); }
           }}
           title="Rollback to previous build"
@@ -129,7 +262,7 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
         onClick={async (e) => {
           e.stopPropagation();
           setRestarting(true);
-          try { await onRestart?.(service.id); }
+          try { await onRestart?.(service.id, service); }
           finally { setTimeout(() => setRestarting(false), 5000); }
         }}
         title="Restart"
@@ -324,7 +457,7 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
           onStop={onStop}
           onStart={onStart}
           onRollback={onRollback}
-          rollbackAvailable={!!rollbackMap[row.id]}
+          rollbackAvailable={row.restartable && !!rollbackMap[row.id]}
         />
       ),
     },
@@ -338,6 +471,8 @@ export default function ContainerStatsComponent() {
   const [loading, setLoading] = useState(true);
   const [systemInfo, setSystemInfo] = useState<any>(null);
   const [containerStats, setContainerStats] = useState<any>({});
+  const [cpuHistory, setCpuHistory] = useState<number[]>([]);
+  const [memHistory, setMemHistory] = useState<number[]>([]);
   const [selectedContainer, setSelectedContainer] = useState<any>(null);
   const [activeDevice, setActiveDevice] = useState<any>(null); // null = all hosts
   const [rollbackMap, setRollbackMap] = useState<any>({}); // serviceId → boolean
@@ -375,6 +510,7 @@ export default function ContainerStatsComponent() {
           containerName: c.name,
           // Project registry fields
           healthy: svc?.healthy ?? (c.state === "running"),
+          registered: !!svc,
           visibility: svc?.visibility || null,
           port: svc?.port || null,
           url: svc?.url || null,
@@ -382,6 +518,7 @@ export default function ContainerStatsComponent() {
           responseTimeMs: svc?.responseTimeMs ?? null,
           device: c.device || svc?.device || null,
           restartable: svc?.restartable ?? false,
+          controllable: true,
           dockerProject: c.name,
           // Per-container Docker stats (for table columns + drawer)
           _stats: {
@@ -423,6 +560,12 @@ export default function ContainerStatsComponent() {
         };
       }
       setContainerStats(statsMap);
+
+      // Accumulate sparkline history for CPU and memory
+      const totalCpu = containers.reduce((sum: number, c: any) => sum + (c.cpu?.percent || 0), 0);
+      const totalMem = containers.reduce((sum: number, c: any) => sum + (c.memory?.used || 0), 0);
+      setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
+      setMemHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalMem]);
 
       // Update selected container if drawer is open
       // @ts-ignore
@@ -466,9 +609,13 @@ export default function ContainerStatsComponent() {
   }, [fetchData, fetchSystemInfo, systemInfo]);
 
   // @ts-ignore
-  const handleRestart = async (serviceId) => {
+  const handleRestart = async (serviceId, row) => {
     try {
-      await ApiService.restartService(serviceId);
+      if (row?.registered && row?.restartable) {
+        await ApiService.restartService(serviceId);
+      } else {
+        await ApiService.restartContainer(row.containerName, row.device);
+      }
       setTimeout(fetchData, 5000);
     } catch (error) {
       console.error("Restart failed:", error);
@@ -476,9 +623,13 @@ export default function ContainerStatsComponent() {
   };
 
   // @ts-ignore
-  const handleStop = async (serviceId) => {
+  const handleStop = async (serviceId, row) => {
     try {
-      await ApiService.stopService(serviceId);
+      if (row?.registered && row?.restartable) {
+        await ApiService.stopService(serviceId);
+      } else {
+        await ApiService.stopContainer(row.containerName, row.device);
+      }
       setTimeout(fetchData, 5000);
     } catch (error) {
       console.error("Stop failed:", error);
@@ -486,9 +637,13 @@ export default function ContainerStatsComponent() {
   };
 
   // @ts-ignore
-  const handleStart = async (serviceId) => {
+  const handleStart = async (serviceId, row) => {
     try {
-      await ApiService.startService(serviceId);
+      if (row?.registered && row?.restartable) {
+        await ApiService.startService(serviceId);
+      } else {
+        await ApiService.startContainer(row.containerName, row.device);
+      }
       setTimeout(fetchData, 5000);
     } catch (error) {
       console.error("Start failed:", error);
@@ -681,26 +836,32 @@ export default function ContainerStatsComponent() {
             </div>
           </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
-              <Cpu size={18} strokeWidth={2} />
+          <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
+            <div className={styles.statCardHeader}>
+              <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
+                <Cpu size={18} strokeWidth={2} />
+              </div>
+              <div className={styles.statCardContent}>
+                <span className={styles.statCardValue} style={{ color: severityColor(avgCpuUsage) }}>{totalCpuUsage.toFixed(1)}%</span>
+                <span className={styles.statCardLabel}>CPU Usage</span>
+                <span className={styles.statCardSub}>{avgCpuUsage.toFixed(1)}% avg per container</span>
+              </div>
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue} style={{ color: severityColor(avgCpuUsage) }}>{totalCpuUsage.toFixed(1)}%</span>
-              <span className={styles.statCardLabel}>CPU Usage</span>
-              <span className={styles.statCardSub}>{avgCpuUsage.toFixed(1)}% avg per container</span>
-            </div>
+            <SparklineChart data={cpuHistory} color="#10b981" maxValue={100} height={48} />
           </div>
 
-          <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
-              <MemoryStick size={18} strokeWidth={2} />
+          <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
+            <div className={styles.statCardHeader}>
+              <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
+                <MemoryStick size={18} strokeWidth={2} />
+              </div>
+              <div className={styles.statCardContent}>
+                <span className={styles.statCardValue} style={{ color: severityColor(memPercent, [60, 85]) }}>{formatBytes(totalMemUsed)}</span>
+                <span className={styles.statCardLabel}>Memory Used</span>
+                <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total` : "—"}</span>
+              </div>
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue} style={{ color: severityColor(memPercent, [60, 85]) }}>{formatBytes(totalMemUsed)}</span>
-              <span className={styles.statCardLabel}>Memory Used</span>
-              <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total` : "—"}</span>
-            </div>
+            <SparklineChart data={memHistory} color="#3b82f6" maxValue={totalMemLimit || 1} height={48} />
           </div>
 
           <div className={styles.statCard}>
@@ -737,18 +898,16 @@ export default function ContainerStatsComponent() {
         onClose={() => setSelectedContainer(null)}
         title={selectedContainer?.containerName || "Container Detail"}
         width={540}
-        headerActions={
-          selectedContainer?.restartable ? (
-            <ActionCell
-              service={selectedContainer}
-              onRestart={handleRestart}
-              onStop={handleStop}
-              onStart={handleStart}
-              onRollback={handleRollback}
-              rollbackAvailable={!!rollbackMap[selectedContainer.id]}
-            />
-          ) : null
-        }
+        headerActions={selectedContainer ? (
+          <ActionCell
+            service={selectedContainer}
+            onRestart={handleRestart}
+            onStop={handleStop}
+            onStart={handleStart}
+            onRollback={handleRollback}
+            rollbackAvailable={selectedContainer?.restartable && !!rollbackMap[selectedContainer.id]}
+          />
+        ) : null}
       >
         {selectedContainer && (
           <ContainerDetailPanel
