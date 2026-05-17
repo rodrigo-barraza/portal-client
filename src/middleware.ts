@@ -8,6 +8,7 @@
 import { createAuthMiddleware } from "@rodrigo-barraza/utilities-library/nextjs";
 import { auth, AUTH_ENABLED } from "@/auth";
 
+// @ts-expect-error -- NextAuth's overloaded `auth` type doesn't match the simplified middleware signature
 export const middleware = createAuthMiddleware({ auth, authEnabled: AUTH_ENABLED });
 
 export const config = {

@@ -14,9 +14,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
 
-const require = createRequire(import.meta.url);
+
 
 // ── Category map (components only) ──────────────────────────────
 const CATEGORY_MAP = {
@@ -130,7 +129,7 @@ function scanComponents(componentsDir) {
   const catalog = [];
 
   for (const entry of entries) {
-    const name = entry.name.replace(/\.js$/, "");
+    const name = entry.name.replace(/\.(js|ts|tsx)$/, "");
 
     // Skip providers — they get their own section
     if (PROVIDER_NAMES.has(name)) continue;
@@ -139,8 +138,8 @@ function scanComponents(componentsDir) {
       const dirPath = path.join(componentsDir, entry.name);
       const files = fs.readdirSync(dirPath);
       const testFiles = files.filter((f) => f.includes(".test.") || f.includes(".spec."));
-      const mainJsFile = files.find((f) => f.endsWith(".js") && !f.includes(".test.") && !f.includes(".spec."));
-      const mainPath = mainJsFile ? path.join(dirPath, mainJsFile) : null;
+      const mainFile = files.find((f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts"));
+      const mainPath = mainFile ? path.join(dirPath, mainFile) : null;
 
       catalog.push({
         name: entry.name,
@@ -166,11 +165,11 @@ function scanHooks(hooksDir) {
   const catalog = [];
 
   const hookFiles = files.filter(
-    (f) => f.endsWith(".js") && !f.includes(".test.") && !f.includes(".spec.")
+    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
   );
 
   for (const file of hookFiles) {
-    const name = file.replace(/\.js$/, "");
+    const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(hooksDir, file);
     const testExists = files.some(
       (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
@@ -199,11 +198,11 @@ function scanServices(servicesDir) {
   const catalog = [];
 
   const serviceFiles = files.filter(
-    (f) => f.endsWith(".js") && !f.includes(".test.") && !f.includes(".spec.")
+    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
   );
 
   for (const file of serviceFiles) {
-    const name = file.replace(/\.js$/, "");
+    const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(servicesDir, file);
     const testExists = files.some(
       (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
@@ -232,11 +231,11 @@ function scanUtilities(utilsDir) {
   const catalog = [];
 
   const utilFiles = files.filter(
-    (f) => f.endsWith(".js") && !f.includes(".test.") && !f.includes(".spec.")
+    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
   );
 
   for (const file of utilFiles) {
-    const name = file.replace(/\.js$/, "");
+    const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(utilsDir, file);
     const testExists = files.some(
       (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
@@ -265,14 +264,14 @@ function scanProviders(componentsDir) {
   const catalog = [];
 
   for (const entry of entries) {
-    const name = entry.name.replace(/\.js$/, "");
+    const name = entry.name.replace(/\.(js|ts|tsx)$/, "");
     if (!PROVIDER_NAMES.has(name)) continue;
 
     if (entry.isDirectory()) {
       const dirPath = path.join(componentsDir, entry.name);
       const files = fs.readdirSync(dirPath);
       const testFiles = files.filter((f) => f.includes(".test.") || f.includes(".spec."));
-      const mainJsFile = files.find((f) => f.endsWith(".js") && !f.includes(".test.") && !f.includes(".spec."));
+      const mainFile = files.find((f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts"));
 
       catalog.push({
         name,
@@ -282,9 +281,9 @@ function scanProviders(componentsDir) {
         hasTests: testFiles.length > 0,
         files: files.length,
         sizeKb: +(totalSize(dirPath) / 1024).toFixed(1),
-        description: mainJsFile ? extractDescription(path.join(dirPath, mainJsFile)) : "",
+        description: mainFile ? extractDescription(path.join(dirPath, mainFile)) : "",
       });
-    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+    } else if (entry.isFile() && /\.(js|ts|tsx)$/.test(entry.name) && !entry.name.endsWith(".d.ts")) {
       const filePath = path.join(componentsDir, entry.name);
       catalog.push({
         name,
@@ -304,8 +303,10 @@ function scanProviders(componentsDir) {
 
 // ── Main ─────────────────────────────────────────────────────────
 function main() {
-  const indexPath = require.resolve("@rodrigo-barraza/components-library");
-  const srcDir = path.dirname(indexPath);
+  // Resolve directly to src/ — the library uses source-first architecture
+  // so require.resolve() fails on the strict exports map.
+  const libRoot = path.resolve(process.cwd(), "node_modules/@rodrigo-barraza/components-library");
+  const srcDir = path.join(libRoot, "src");
   const componentsDir = path.resolve(srcDir, "components");
   const hooksDir = path.resolve(srcDir, "hooks");
   const servicesDir = path.resolve(srcDir, "services");

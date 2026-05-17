@@ -3,7 +3,7 @@
  * Follows the same static-method pattern as Prism Client's PrismService.
  */
 
-import { PORTAL_SERVICE_URL } from "../../config.js";
+import { PORTAL_SERVICE_URL } from "../../config";
 
 const API_BASE = PORTAL_SERVICE_URL;
 
