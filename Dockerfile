@@ -51,7 +51,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Vault bootstrap — fetches secrets at runtime before starting Next.js
-COPY --from=builder --chown=nextjs:nodejs /app/boot.js ./boot.js
+COPY --from=builder --chown=nextjs:nodejs /app/boot.ts ./boot.ts
 
 USER nextjs
 
@@ -60,4 +60,4 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:4000/ || exit 1
 
-CMD ["node", "boot.js"]
+CMD ["node", "boot.ts"]
