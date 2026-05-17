@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
-  Eye, EyeOff,
+  Eye, EyeOff, Layers, Grid3X3,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -20,6 +20,16 @@ const CLUSTER_PAD = 24;      // padding inside cluster rect
 const TIER_SPACING = 60;     // vertical gap between tier clusters
 const LIBS_GAP = 80;         // horizontal gap between libs column and tier column
 const LIBS_MAX_COLS = 2;     // max columns in the libraries cluster
+const TYPE_MAX_COLS = 4;     // max columns per type-group cluster
+const TYPE_COLS = 2;         // number of columns in the type-group grid
+const TYPE_GROUP_GAP_X = 80; // horizontal gap between type-group clusters
+const TYPE_GROUP_GAP_Y = 60; // vertical gap between type-group rows
+
+// ── View mode ───────────────────────────────────────────────────
+type ViewMode = "tier" | "type";
+
+// ── Canonical projectType ordering for the "by type" layout ─────
+const TYPE_ORDER = ["Service", "Client", "Bot", "Library", "Kit", "Tool", "Database", "Store"];
 
 // ── Non-tiered project types (rendered independently) ────────
 const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
@@ -55,6 +65,67 @@ const LIBS_LABEL = "Libraries & Toolkits";
 
 // ── Colors for the libraries cluster ────────────────────────────
 const LIBS_CLUSTER_COLOR = { stroke: "rgba(6, 182, 212, 0.35)", fill: "rgba(6, 182, 212, 0.04)" };
+
+// ── Group services by projectType ───────────────────────────────
+function computeTypeGroups(services: any[]): { type: string; members: any[] }[] {
+  const groupMap = new Map<string, any[]>();
+  for (const svc of services) {
+    const projectType = svc.projectType || "Other";
+    if (!groupMap.has(projectType)) groupMap.set(projectType, []);
+    groupMap.get(projectType)!.push(svc);
+  }
+  // Sort each group alphabetically
+  for (const members of groupMap.values()) members.sort((a: any, b: any) => a.name.localeCompare(b.name));
+  // Return in canonical order, then any extras
+  const result: { type: string; members: any[] }[] = [];
+  for (const typeName of TYPE_ORDER) {
+    if (groupMap.has(typeName)) { result.push({ type: typeName, members: groupMap.get(typeName)! }); groupMap.delete(typeName); }
+  }
+  for (const [typeName, members] of groupMap) result.push({ type: typeName, members });
+  return result;
+}
+
+// ── Layout for type-grouped view (2-column grid of clusters) ────
+function layoutTypeNodes(groups: { type: string; members: any[] }[]) {
+  const LABEL_H = 28;
+  const positions: Record<string, { x: number; y: number }> = {};
+
+  // Pre-compute cluster sizes
+  const sizes = groups.map((g) => clusterSize(g.members.length, TYPE_MAX_COLS));
+
+  // Arrange into a 2-column grid, tracking max height per row
+  const colWidths = [0, 0];
+  for (let i = 0; i < groups.length; i++) {
+    const col = i % TYPE_COLS;
+    colWidths[col] = Math.max(colWidths[col], sizes[i].w);
+  }
+
+  let rowY = 0;
+  for (let i = 0; i < groups.length; i += TYPE_COLS) {
+    let rowMaxH = 0;
+    for (let c = 0; c < TYPE_COLS && i + c < groups.length; c++) {
+      const gi = i + c;
+      const { cols, h } = sizes[gi];
+      const colX = c === 0 ? 0 : colWidths[0] + TYPE_GROUP_GAP_X;
+      const clusterX = colX + (colWidths[c] - sizes[gi].w) / 2;
+      const clusterY = rowY + LABEL_H;
+
+      groups[gi].members.forEach((svc: any, si: number) => {
+        const col2 = si % cols;
+        const row2 = Math.floor(si / cols);
+        positions[svc.id] = {
+          x: clusterX + CLUSTER_PAD + col2 * (NODE_W + CLUSTER_GAP_X),
+          y: clusterY + CLUSTER_PAD + row2 * (NODE_H + CLUSTER_GAP_Y),
+        };
+      });
+
+      rowMaxH = Math.max(rowMaxH, LABEL_H + h);
+    }
+    rowY += rowMaxH + TYPE_GROUP_GAP_Y;
+  }
+
+  return positions;
+}
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
 function computeLayers(services: any) {
@@ -190,6 +261,9 @@ export default function TopologyComponent() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [tooltipData, setTooltipData] = useState<any>(null);
 
+  // View mode toggle
+  const [viewMode, setViewMode] = useState<ViewMode>("tier");
+
   // Search filter
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -257,7 +331,13 @@ export default function TopologyComponent() {
   // ── Computed layout ─────────────────────────────────────────
   const layers = useMemo(() => computeLayers(allServices), [allServices]);
   const libs = useMemo(() => computeLibraries(allServices), [allServices]);
-  const { positions: basePositions } = useMemo(() => layoutNodes(layers, libs), [layers, libs]);
+  const { positions: tierBasePositions } = useMemo(() => layoutNodes(layers, libs), [layers, libs]);
+  const typeGroups = useMemo(() => computeTypeGroups(allServices), [allServices]);
+  const typeBasePositions = useMemo(() => layoutTypeNodes(typeGroups), [typeGroups]);
+
+  // Switch base positions based on view mode
+  const basePositions = viewMode === "tier" ? tierBasePositions : typeBasePositions;
+
   const allEdges = useMemo(() => collectEdges(allServices), [allServices]);
   const edges = useMemo(() => allEdges.filter((e: any) => edgeVisibility[e.type as EdgeType]), [allEdges, edgeVisibility]);
 
@@ -277,6 +357,14 @@ export default function TopologyComponent() {
     }
     return merged;
   }, [basePositions, posOverrides]);
+
+  // Switch view mode and reset transient state
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode);
+    setPosOverrides({});
+    setSelectedNode(null);
+    didCenterRef.current = false;
+  }, []);
 
   // Dynamic cluster rects — computed from actual node positions (follows dragging)
   const dynamicClusterRects = useMemo(() => {
@@ -355,6 +443,44 @@ export default function TopologyComponent() {
     return visible;
   }, [searchMatches, layers]);
 
+  // Dynamic cluster rects for type-group view
+  const typeClusterRects = useMemo(() => {
+    if (viewMode !== "type") return [];
+    return typeGroups.map((group) => {
+      if (!group.members.length) return null;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const svc of group.members) {
+        // @ts-ignore
+        const pos = positions[svc.id];
+        if (!pos) continue;
+        minX = Math.min(minX, pos.x);
+        minY = Math.min(minY, pos.y);
+        maxX = Math.max(maxX, pos.x + NODE_W);
+        maxY = Math.max(maxY, pos.y + NODE_H);
+      }
+      if (minX === Infinity) return null;
+      return {
+        x: minX - CLUSTER_PAD,
+        y: minY - CLUSTER_PAD,
+        w: maxX - minX + CLUSTER_PAD * 2,
+        h: maxY - minY + CLUSTER_PAD * 2,
+        type: group.type,
+      };
+    });
+  }, [viewMode, typeGroups, positions]);
+
+  // Which type clusters have at least one visible node under search
+  const searchVisibleTypes = useMemo(() => {
+    if (!searchMatches || viewMode !== "type") return null;
+    const visible = new Set<string>();
+    for (const group of typeGroups) {
+      for (const svc of group.members) {
+        if (searchMatches.has(svc.id)) { visible.add(group.type); break; }
+      }
+    }
+    return visible;
+  }, [searchMatches, typeGroups, viewMode]);
+
   // ── Upstream dependency chain + immediate downstream from selected node ──
   const connectedNodes = useMemo(() => {
     if (!selectedNode) return new Set();
@@ -424,11 +550,16 @@ export default function TopologyComponent() {
     setSelectedNode(null);
 
     const svgPos = screenToSvg(e.clientX, e.clientY);
-    const memberIds = clusterType === "libs"
+    let memberIds: string[];
+    if (clusterType === "libs") {
       // @ts-ignore
-      ? libs.map((s) => s.id)
+      memberIds = libs.map((s) => s.id);
+    } else if (clusterType === "type") {
+      memberIds = (typeGroups[clusterIndex]?.members || []).map((s: any) => s.id);
+    } else {
       // @ts-ignore
-      : (layers[clusterIndex] || []).map((s) => s.id);
+      memberIds = (layers[clusterIndex] || []).map((s) => s.id);
+    }
 
     // Snapshot current positions of all cluster members
     const origPositions = {};
@@ -446,7 +577,7 @@ export default function TopologyComponent() {
       memberIds,
       origPositions,
     };
-  }, [screenToSvg, libs, layers, positions]);
+  }, [screenToSvg, libs, layers, typeGroups, positions]);
 
   // ── Canvas pan ──────────────────────────────────────────────
   // @ts-ignore
@@ -617,6 +748,25 @@ export default function TopologyComponent() {
             </p>
           </div>
           <div className={styles.headerActions}>
+            {/* View mode segmented toggle */}
+            <div className={styles.viewToggle}>
+              <button
+                className={`${styles.viewToggleBtn}${viewMode === "tier" ? ` ${styles.viewToggleActive}` : ""}`}
+                onClick={() => handleViewModeChange("tier")}
+                title="Group by deploy tier"
+              >
+                <Layers size={14} strokeWidth={1.8} />
+                <span>By Tier</span>
+              </button>
+              <button
+                className={`${styles.viewToggleBtn}${viewMode === "type" ? ` ${styles.viewToggleActive}` : ""}`}
+                onClick={() => handleViewModeChange("type")}
+                title="Group by project type"
+              >
+                <Grid3X3 size={14} strokeWidth={1.8} />
+                <span>By Type</span>
+              </button>
+            </div>
             <div className={`${styles.searchWrapper}${searchFocused || searchQuery ? ` ${styles.searchExpanded}` : ""}`}>
               <Search size={14} strokeWidth={2} className={styles.searchIcon} />
               <input
@@ -723,52 +873,103 @@ export default function TopologyComponent() {
                   );
                 })}
 
-                {/* ── Libraries cluster background + label ── */}
-                {libsClusterRect && (
+                {/* ── Tier-view clusters (libs + tiers) ── */}
+                {viewMode === "tier" && (
+                  <>
+                    {/* Libraries cluster background + label */}
+                    {libsClusterRect && (
 <g className={(selectedNode ? styles.tierLabelFaded : "") + (searchVisibleTiers && !libs.some((s: any) => searchMatches?.has(s.id)) ? ` ${styles.tierLabelFaded}` : "") || undefined}>
-                    <rect
-                      x={libsClusterRect.x}
-                      y={libsClusterRect.y}
-                      width={libsClusterRect.w}
-                      height={libsClusterRect.h}
-                      rx={10}
-                      ry={10}
-                      className={`${styles.clusterRect} ${styles.clusterDraggable}`}
-                      style={{ stroke: LIBS_CLUSTER_COLOR.stroke, fill: LIBS_CLUSTER_COLOR.fill }}
-                      data-topo-cluster
-                      onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
-                    />
-                    {/* Drag handle icon */}
-                    <foreignObject
-                      x={libsClusterRect.x + 8}
-                      y={libsClusterRect.y + 6}
-                      width={16}
-                      height={16}
-                      className={styles.clusterDragHandle}
-                      data-topo-cluster
-                      onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
-                    >
-                      <Move size={12} strokeWidth={1.5} />
-                    </foreignObject>
-                    <text
-                      x={libsClusterRect.x + libsClusterRect.w / 2}
-                      y={libsClusterRect.y - 10}
-                      className={styles.tierLabel}
-                      textAnchor="middle"
-                      dominantBaseline="auto"
-                    >
-                      {LIBS_LABEL}
-                    </text>
-                  </g>
+                        <rect
+                          x={libsClusterRect.x}
+                          y={libsClusterRect.y}
+                          width={libsClusterRect.w}
+                          height={libsClusterRect.h}
+                          rx={10}
+                          ry={10}
+                          className={`${styles.clusterRect} ${styles.clusterDraggable}`}
+                          style={{ stroke: LIBS_CLUSTER_COLOR.stroke, fill: LIBS_CLUSTER_COLOR.fill }}
+                          data-topo-cluster
+                          onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
+                        />
+                        {/* Drag handle icon */}
+                        <foreignObject
+                          x={libsClusterRect.x + 8}
+                          y={libsClusterRect.y + 6}
+                          width={16}
+                          height={16}
+                          className={styles.clusterDragHandle}
+                          data-topo-cluster
+                          onMouseDown={(e) => handleClusterMouseDown(e, "libs", -1)}
+                        >
+                          <Move size={12} strokeWidth={1.5} />
+                        </foreignObject>
+                        <text
+                          x={libsClusterRect.x + libsClusterRect.w / 2}
+                          y={libsClusterRect.y - 10}
+                          className={styles.tierLabel}
+                          textAnchor="middle"
+                          dominantBaseline="auto"
+                        >
+                          {LIBS_LABEL}
+                        </text>
+                      </g>
+                    )}
+
+                    {/* Tier cluster backgrounds + labels */}
+                    {dynamicClusterRects.map((cr, li) => {
+                      if (!cr) return null;
+                      // @ts-ignore
+                      const tc = tierColors[li] || DEPLOY_TIER_COLORS[li] || DEPLOY_TIER_COLORS[0];
+                      return (
+                        <g key={`cluster-${li}`} className={(selectedNode ? styles.tierLabelFaded : "") + (searchVisibleTiers && !searchVisibleTiers.has(li) ? ` ${styles.tierLabelFaded}` : "") || undefined}>
+                          <rect
+                            x={cr.x}
+                            y={cr.y}
+                            width={cr.w}
+                            height={cr.h}
+                            rx={10}
+                            ry={10}
+                            className={`${styles.clusterRect} ${styles.clusterDraggable}`}
+                            style={{ stroke: tc.stroke, fill: tc.fill }}
+                            data-topo-cluster
+                            onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
+                          />
+                          {/* Drag handle icon */}
+                          <foreignObject
+                            x={cr.x + 8}
+                            y={cr.y + 6}
+                            width={16}
+                            height={16}
+                            className={styles.clusterDragHandle}
+                            data-topo-cluster
+                            onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
+                          >
+                            <Move size={12} strokeWidth={1.5} />
+                          </foreignObject>
+                          <text
+                            x={cr.x + cr.w / 2}
+                            y={cr.y - 10}
+                            className={styles.tierLabel}
+                            textAnchor="middle"
+                            dominantBaseline="auto"
+                          >
+                            {TIER_LABELS[li] || `Tier ${li}`}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </>
                 )}
 
-                {/* ── Cluster backgrounds + tier labels ── */}
-                {dynamicClusterRects.map((cr, li) => {
+                {/* ── Type-view clusters ── */}
+                {viewMode === "type" && typeClusterRects.map((cr, gi) => {
                   if (!cr) return null;
+                  const group = typeGroups[gi];
                   // @ts-ignore
-                  const tc = tierColors[li] || DEPLOY_TIER_COLORS[li] || DEPLOY_TIER_COLORS[0];
+                  const tc = SERVICE_TYPE_COLORS[group.type] || SERVICE_TYPE_COLORS.Service;
+                  const isFadedBySearch = searchVisibleTypes && !searchVisibleTypes.has(group.type);
                   return (
-                    <g key={`cluster-${li}`} className={(selectedNode ? styles.tierLabelFaded : "") + (searchVisibleTiers && !searchVisibleTiers.has(li) ? ` ${styles.tierLabelFaded}` : "") || undefined}>
+                    <g key={`type-cluster-${group.type}`} className={(selectedNode ? styles.tierLabelFaded : "") + (isFadedBySearch ? ` ${styles.tierLabelFaded}` : "") || undefined}>
                       <rect
                         x={cr.x}
                         y={cr.y}
@@ -777,11 +978,10 @@ export default function TopologyComponent() {
                         rx={10}
                         ry={10}
                         className={`${styles.clusterRect} ${styles.clusterDraggable}`}
-                        style={{ stroke: tc.stroke, fill: tc.fill }}
+                        style={{ stroke: `color-mix(in srgb, ${tc.color} 35%, transparent)`, fill: `color-mix(in srgb, ${tc.color} 4%, transparent)` }}
                         data-topo-cluster
-                        onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
+                        onMouseDown={(e) => handleClusterMouseDown(e, "type", gi)}
                       />
-                      {/* Drag handle icon */}
                       <foreignObject
                         x={cr.x + 8}
                         y={cr.y + 6}
@@ -789,7 +989,7 @@ export default function TopologyComponent() {
                         height={16}
                         className={styles.clusterDragHandle}
                         data-topo-cluster
-                        onMouseDown={(e) => handleClusterMouseDown(e, "tier", li)}
+                        onMouseDown={(e) => handleClusterMouseDown(e, "type", gi)}
                       >
                         <Move size={12} strokeWidth={1.5} />
                       </foreignObject>
@@ -799,8 +999,9 @@ export default function TopologyComponent() {
                         className={styles.tierLabel}
                         textAnchor="middle"
                         dominantBaseline="auto"
+                        style={{ fill: tc.color }}
                       >
-                        {TIER_LABELS[li] || `Tier ${li}`}
+                        {group.type === "Kit" ? "Toolkits" : group.type === "Store" ? "Stores" : `${group.type}s`}
                       </text>
                     </g>
                   );
@@ -842,7 +1043,7 @@ export default function TopologyComponent() {
                         style={svc.healthy ? { borderColor: `color-mix(in srgb, ${ptc.color} 15%, transparent)` } : undefined}
                       >
                         <div className={styles.nodeGlow} style={nodeColor ? { boxShadow: `0 0 20px ${ptc.subtle}` } : undefined} />
-                        <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />
+                        {!NON_TIERED_TYPES.has(svc.projectType) && <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />}
                         <div className={styles.nodeIconWrap} style={nodeColor ? { color: nodeColor } : undefined}><Icon size={18} strokeWidth={1.5} /></div>
                         <span className={styles.nodeName}>{svc.name}</span>
                         {svc.device && <span className={styles.nodeHost}>{svc.device}</span>}

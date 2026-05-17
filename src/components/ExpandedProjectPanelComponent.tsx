@@ -34,7 +34,6 @@ import styles from "./ExpandedProjectPanelComponent.module.css";
 const MAX_SPARKLINE_POINTS = 60;
 
 
-
 // @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
@@ -607,7 +606,6 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
     </div>
   );
 }
-
 
 
 // ── Tab: Web Analytics ────────────────────────────────────────────

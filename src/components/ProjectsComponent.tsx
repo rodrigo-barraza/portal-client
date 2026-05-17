@@ -45,8 +45,6 @@ const STATIC_FILTER_OPTIONS = {
 };
 
 
-
-
 /** Compare two services by the chosen sort key. */
 // @ts-ignore
 function compareBySortKey(a, b, sortKey, sortDir) {
@@ -102,7 +100,6 @@ function buildFilterOptions(items: any) {
 }
 
 
-
 export default function ProjectsComponent() {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,15 +117,12 @@ export default function ProjectsComponent() {
   });
 
 
-
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
 
   // ── View mode state ────────────────────────────────────────────
   const [viewMode, setViewMode] = useState("table");
-
-
 
 
   async function loadServices(refresh = false) {
@@ -207,7 +201,6 @@ export default function ProjectsComponent() {
   const uniqueDevices = [...new Set(allDeployed.map((s) => s.device).filter(Boolean))];
   const uniqueTypes = [...new Set(allItems.map((s) => s.projectType).filter(Boolean))];
   const totalSizeBytes = Object.values(projectSizes).reduce((sum: any, s: any) => sum + (s.sizeBytes || 0), 0);
-
 
 
   return (
@@ -322,7 +315,6 @@ export default function ProjectsComponent() {
               Clear
             </button>
           )}
-
 
 
           {/* ── Divider ── */}

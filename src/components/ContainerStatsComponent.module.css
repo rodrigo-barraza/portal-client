@@ -121,6 +121,13 @@
   will-change: contents;
 }
 
+/* ── Inline Sparkline (table cell trend charts) ── */
+
+.inlineSparkline {
+  width: 100px;
+  height: 24px;
+}
+
 /* ── Name Cell ── */
 
 .nameCell {

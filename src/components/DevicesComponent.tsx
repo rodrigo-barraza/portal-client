@@ -36,7 +36,6 @@ const DEVICE_COLOR_MAP = {
 };
 
 
-
 /**
  * Color by severity threshold for CPU/memory values.
  */
@@ -216,7 +215,6 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
         <span className={styles.hostnameLabel}>Hostname</span>
         <code className={styles.hostname}>{device.hostname}</code>
       </div>
-
 
 
       {/* ── Notes ── */}

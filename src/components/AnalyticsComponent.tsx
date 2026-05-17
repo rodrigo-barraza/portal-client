@@ -222,12 +222,12 @@ export default function AnalyticsComponent() {
   // ── Disk usage donut segments ─────────────────────────────────
   const diskSegments = useMemo(() => {
     if (!systemInfo?.disk) return [];
-    const d = systemInfo.disk;
+    const diskUsage = systemInfo.disk;
     return [
-      { value: d.images.totalSize, color: DISK_COLORS.images, label: "Images" },
-      { value: d.volumes.totalSize, color: DISK_COLORS.volumes, label: "Volumes" },
-      { value: d.buildCache.totalSize, color: DISK_COLORS.buildCache, label: "Build Cache" },
-      { value: d.containers.totalWritableSize, color: DISK_COLORS.containers, label: "Containers" },
+      { value: diskUsage.images.totalSize, color: DISK_COLORS.images, label: "Images" },
+      { value: diskUsage.volumes.totalSize, color: DISK_COLORS.volumes, label: "Volumes" },
+      { value: diskUsage.buildCache.totalSize, color: DISK_COLORS.buildCache, label: "Build Cache" },
+      { value: diskUsage.containers.totalWritableSize, color: DISK_COLORS.containers, label: "Containers" },
     ].filter((s) => s.value > 0);
   }, [systemInfo]);
 

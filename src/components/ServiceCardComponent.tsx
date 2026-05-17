@@ -15,11 +15,10 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatElapsedTime, formatPercent } from "@rodrigo-barraza/utilities-library";
+import { formatBytes, formatDuration, formatElapsedTime, formatPercent, ACTION_COOLDOWN_MS, ACTION_COOLDOWN_LONG_MS } from "@rodrigo-barraza/utilities-library";
 import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ServiceCardComponent.module.css";
-
 
 
 const MAX_SPARKLINE_POINTS = 60;
@@ -159,7 +158,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   try {
                     await onStop?.(service.id);
                   } finally {
-                    setTimeout(() => setStopping(false), 5000);
+                    setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
                   }
                 }}
               >
@@ -175,7 +174,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   try {
                     await onStart?.(service.id);
                   } finally {
-                    setTimeout(() => setStarting(false), 5000);
+                    setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
                   }
                 }}
               >
@@ -201,7 +200,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   try {
                     await onRollback?.(service.id);
                   } finally {
-                    setTimeout(() => setRollingBack(false), 8000);
+                    setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
                   }
                 }}
               >
@@ -218,7 +217,7 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                 try {
                   await onRestart?.(service.id);
                 } finally {
-                  setTimeout(() => setRestarting(false), 5000);
+                  setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
                 }
               }}
             >
@@ -363,7 +362,6 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
           </div>
         )}
-
 
 
         {service.responseTimeMs != null && (

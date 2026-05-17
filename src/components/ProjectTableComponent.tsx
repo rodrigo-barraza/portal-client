@@ -29,7 +29,7 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 /**
  * Column definitions for the centralized TableComponent.
  * Each column maps to a field on the service status object.
- * @param {object} projectSizes
+
  * @param {Set<string>} [excludeColumns] — column keys to omit
  */
 function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
@@ -244,8 +244,6 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
     },
   ].filter((col) => !excludeColumns.has(col.key));
 }
-
-
 
 
 export default function ProjectTableComponent({

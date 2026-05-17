@@ -29,7 +29,7 @@ export default class ApiService {
 
   /**
    * Get service health status for all services.
-   * @param {boolean} [refresh=false] - Force fresh health check
+
    */
   static async getServices(refresh = false) {
     const qs = refresh ? "?refresh=true" : "";
@@ -45,7 +45,7 @@ export default class ApiService {
 
   /**
    * Restart a containerized service via SSH + Docker Compose.
-   * @param {string} serviceId - Service ID (e.g. "lights", "vault")
+
    */
   static async restartService(serviceId: string) {
     return ApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
@@ -53,7 +53,7 @@ export default class ApiService {
 
   /**
    * Stop a containerized service via SSH + Docker Compose.
-   * @param {string} serviceId
+
    */
   static async stopService(serviceId: string) {
     return ApiService._request(`/services/${serviceId}/stop`, { method: "POST" });
@@ -61,7 +61,7 @@ export default class ApiService {
 
   /**
    * Start a containerized service via SSH + Docker Compose.
-   * @param {string} serviceId
+
    */
   static async startService(serviceId: string) {
     return ApiService._request(`/services/${serviceId}/start`, { method: "POST" });
@@ -69,7 +69,7 @@ export default class ApiService {
 
   /**
    * Rollback a containerized service to its previous image.
-   * @param {string} serviceId
+
    */
   static async rollbackService(serviceId: string) {
     return ApiService._request(`/services/${serviceId}/rollback`, { method: "POST" });
@@ -77,7 +77,7 @@ export default class ApiService {
 
   /**
    * Check if a rollback is available for a containerized service.
-   * @param {string} serviceId
+
    * @returns {Promise<{ available: boolean, previousImage?: object }>}
    */
   static async getRollbackStatus(serviceId: string) {
@@ -90,8 +90,8 @@ export default class ApiService {
 
   /**
    * Restart a Docker container by name on a specific device.
-   * @param {string} containerName - Docker container name
-   * @param {string} device - Device ID (e.g. "synology")
+
+
    */
   static async restartContainer(containerName: string, device: string) {
     return ApiService._request(`/containers/${containerName}/restart?device=${encodeURIComponent(device)}`, { method: "POST" });
@@ -99,8 +99,8 @@ export default class ApiService {
 
   /**
    * Stop a Docker container by name on a specific device.
-   * @param {string} containerName - Docker container name
-   * @param {string} device - Device ID (e.g. "synology")
+
+
    */
   static async stopContainer(containerName: string, device: string) {
     return ApiService._request(`/containers/${containerName}/stop?device=${encodeURIComponent(device)}`, { method: "POST" });
@@ -108,8 +108,8 @@ export default class ApiService {
 
   /**
    * Start a Docker container by name on a specific device.
-   * @param {string} containerName - Docker container name
-   * @param {string} device - Device ID (e.g. "synology")
+
+
    */
   static async startContainer(containerName: string, device: string) {
     return ApiService._request(`/containers/${containerName}/start?device=${encodeURIComponent(device)}`, { method: "POST" });
@@ -134,7 +134,7 @@ export default class ApiService {
 
   /**
    * Get request breakdown stats.
-   * @param {string} [period="24h"]
+
    */
   static async getStatsBreakdown(period = "24h") {
     return ApiService._request(`/stats/breakdown?period=${period}`);
@@ -149,7 +149,7 @@ export default class ApiService {
 
   /**
    * Get Docker container resource usage (CPU, memory, network).
-   * @param {string} [deviceId] - Optional device filter
+
    */
   static async getContainerStats(deviceId: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
@@ -159,7 +159,7 @@ export default class ApiService {
   /**
    * Get time-series container stats history.
    * Returns per-device history keyed by device ID.
-   * @param {string} [deviceId] - Optional device filter
+
    */
   static async getContainerStatsHistory(deviceId: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
@@ -168,7 +168,7 @@ export default class ApiService {
 
   /**
    * Get Docker system info — disk usage breakdown (images, volumes, build cache).
-   * @param {string} [deviceId] - Optional device filter
+
    */
   static async getSystemInfo(deviceId: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
@@ -203,9 +203,9 @@ export default class ApiService {
   /**
    * Build the SSE URL for streaming container logs.
    * The caller should use `new EventSource(url)` to connect.
-   * @param {string} containerName - Docker container name
+
    * @param {{ tail?: number, follow?: boolean, device?: string }} [opts]
-   * @returns {string}
+
    */
   static buildLogStreamUrl(containerName: string, { tail = 200, follow = true, device }: any = {}) {
     let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
@@ -238,7 +238,7 @@ export default class ApiService {
    *   { type: "bucket", bucket: { name, creationDate, objectCount, totalSize } }
    *   { type: "done" }
    *   { type: "error", message }
-   * @param {(event: object) => void} onEvent
+
    * @returns {{ close: () => void }} — call close() to abort
    */
   static streamStorageBuckets(onEvent: any) {
@@ -274,7 +274,7 @@ export default class ApiService {
 
   /**
    * List objects in a bucket.
-   * @param {string} bucketName
+
    * @param {{ prefix?: string, recursive?: boolean }} [opts]
    */
   static async getStorageObjects(bucketName: string, { prefix = "", recursive = false }: any = {}) {
@@ -287,8 +287,8 @@ export default class ApiService {
 
   /**
    * Get metadata for a single object.
-   * @param {string} bucketName
-   * @param {string} objectName
+
+
    */
   static async statStorageObject(bucketName: string, objectName: string) {
     return ApiService._request(`/object-store/buckets/${bucketName}/stat/${objectName}`);
@@ -296,10 +296,10 @@ export default class ApiService {
 
   /**
    * Build a download URL for an object-store object.
-   * @param {string} bucketName
-   * @param {string} objectName
+
+
    * @param {{ inline?: boolean }} [opts]
-   * @returns {string}
+
    */
   static buildStorageDownloadUrl(bucketName: string, objectName: string, { inline = false }: any = {}) {
     const qs = inline ? "?inline=true" : "";
@@ -308,8 +308,8 @@ export default class ApiService {
 
   /**
    * Delete an object-store object.
-   * @param {string} bucketName
-   * @param {string} objectName
+
+
    */
   static async deleteStorageObject(bucketName: string, objectName: string) {
     return ApiService._request(`/object-store/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
@@ -326,7 +326,7 @@ export default class ApiService {
 
   /**
    * Get realtime active users for a GA4 property.
-   * @param {string} propertyId
+
    */
   static async getGARealtime(propertyId: string) {
     return ApiService._request(`/google-analytics/${propertyId}/realtime`);
@@ -334,8 +334,8 @@ export default class ApiService {
 
   /**
    * Get overview metrics for a GA4 property.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAOverview(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/overview?period=${period}`);
@@ -343,8 +343,8 @@ export default class ApiService {
 
   /**
    * Get top pages for a GA4 property.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAPages(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/pages?period=${period}`);
@@ -352,8 +352,8 @@ export default class ApiService {
 
   /**
    * Get traffic source breakdown for a GA4 property.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGASources(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/sources?period=${period}`);
@@ -361,8 +361,8 @@ export default class ApiService {
 
   /**
    * Get geographic breakdown for a GA4 property.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAGeography(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/geography?period=${period}`);
@@ -370,8 +370,8 @@ export default class ApiService {
 
   /**
    * Get device and browser breakdown for a GA4 property.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGADevices(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/devices?period=${period}`);
@@ -379,8 +379,8 @@ export default class ApiService {
 
   /**
    * Get daily time-series data (pageviews, users, sessions).
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGATimeSeries(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/timeseries?period=${period}`);
@@ -388,8 +388,8 @@ export default class ApiService {
 
   /**
    * Get channel grouping breakdown (Organic Search, Direct, Referral, etc.).
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAChannels(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/channels?period=${period}`);
@@ -397,8 +397,8 @@ export default class ApiService {
 
   /**
    * Get landing page performance (entry points).
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGALandingPages(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/landing-pages?period=${period}`);
@@ -406,8 +406,8 @@ export default class ApiService {
 
   /**
    * Get hourly traffic heatmap (day × hour matrix).
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAHeatmap(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/heatmap?period=${period}`);
@@ -415,8 +415,8 @@ export default class ApiService {
 
   /**
    * Get new vs returning users breakdown.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGANewVsReturning(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/new-vs-returning?period=${period}`);
@@ -424,8 +424,8 @@ export default class ApiService {
 
   /**
    * Get top events breakdown.
-   * @param {string} propertyId
-   * @param {string} [period="30d"]
+
+
    */
   static async getGAEvents(propertyId: string, period = "30d") {
     return ApiService._request(`/google-analytics/${propertyId}/events?period=${period}`);

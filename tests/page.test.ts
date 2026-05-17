@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { describe, it, expect, vi } from "vitest";
 
 // next/navigation's redirect throws a NEXT_REDIRECT error to stop rendering,

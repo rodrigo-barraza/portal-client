@@ -50,7 +50,6 @@ const SPARKLINE_COLORS = {
 // ── Helpers ───────────────────────────────────────────────────
 
 
-
 /** GA returns ratios 0–1 — convert to 0–100 for the library's formatPercent */
 // @ts-ignore
 const formatPercent = (value: any) => {
