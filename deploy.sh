@@ -1,10 +1,11 @@
 #!/bin/bash
 # ============================================================
-# Portal — Build & Deploy to Synology NAS
+# Portal Client — Build & Deploy to Synology NAS
 #
 # Thin wrapper — all logic lives in ../deploy-kit/lib.sh
 # Hook: injects VAULT_SERVICE_URL as build arg and VAULT_SERVICE_TOKEN
 #       as a BuildKit secret for Next.js secret resolution at build time.
+# Extra: --network=host for build, 30 tail lines
 #
 # Usage:
 #   npm run deploy              # full deploy
@@ -16,6 +17,8 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 IMAGE_NAME="portal-client"
 DISPLAY_NAME="🖥️ Portal Client"
+BUILD_EXTRA_FLAGS="--network=host"
+BUILD_TAIL_LINES=30
 
 # ── Inject Vault credentials for Docker build ─────────────────
 PRE_BUILD() {
