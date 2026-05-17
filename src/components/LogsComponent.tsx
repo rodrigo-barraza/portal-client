@@ -52,10 +52,10 @@ function ansi256ToHex(n: any) {
   if (n < 8) return ANSI_COLORS[n];
   if (n < 16) return ANSI_BRIGHT_COLORS[n - 8];
   if (n < 232) {
-    const idx = n - 16;
-    const r = Math.floor(idx / 36) * 51;
-    const g = (Math.floor(idx / 6) % 6) * 51;
-    const b = (idx % 6) * 51;
+    const index = n - 16;
+    const r = Math.floor(index / 36) * 51;
+    const g = (Math.floor(index / 6) % 6) * 51;
+    const b = (index % 6) * 51;
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }
   // Grayscale 232-255
@@ -249,7 +249,7 @@ export default function LogsComponent() {
       .then((res) => {
         setContainers(res.containers || []);
       })
-      .catch((err) => console.error("Failed to fetch containers:", err));
+      .catch((error) => console.error("Failed to fetch containers:", error));
   }, []);
 
   // ── Auto-scroll to bottom ────────────────────────────────────

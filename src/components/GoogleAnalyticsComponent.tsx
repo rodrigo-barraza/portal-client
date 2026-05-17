@@ -244,8 +244,8 @@ export default function GoogleAnalyticsComponent() {
         if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (error: any) {
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -288,8 +288,8 @@ export default function GoogleAnalyticsComponent() {
       setHeatmap(heatmapRes);
       setNewVsReturning(nvrRes);
       setEvents(eventsRes);
-    } catch (err) {
-      console.error("GA reports fetch failed:", err);
+    } catch (error) {
+      console.error("GA reports fetch failed:", error);
     } finally {
       setReportsLoading(false);
     }
@@ -618,14 +618,14 @@ export default function GoogleAnalyticsComponent() {
                     <div className={styles.heatmapRowLabel}>{day.slice(0, 3)}</div>
                     {Array.from({ length: 24 }, (_, h) => {
                       // @ts-ignore
-                      const val = heatmapData.grid[`${day}:${h}`] || 0;
-                      const intensity = heatmapData.maxVal > 0 ? val / heatmapData.maxVal : 0;
+                      const value = heatmapData.grid[`${day}:${h}`] || 0;
+                      const intensity = heatmapData.maxVal > 0 ? value / heatmapData.maxVal : 0;
                       return (
                         <div
                           key={h}
                           className={styles.heatmapCell}
                           style={{ background: `rgba(99, 102, 241, ${0.06 + intensity * 0.84})` }}
-                          title={`${day} ${h}:00 — ${val} users`}
+                          title={`${day} ${h}:00 — ${value} users`}
                         />
                       );
                     })}

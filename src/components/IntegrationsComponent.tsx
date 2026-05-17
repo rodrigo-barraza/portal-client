@@ -19,8 +19,8 @@ export default function IntegrationsComponent() {
     try {
       const res = await ApiService.getIntegrations();
       setData(res);
-    } catch (err) {
-      console.error("Integrations fetch failed:", err);
+    } catch (error) {
+      console.error("Integrations fetch failed:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);

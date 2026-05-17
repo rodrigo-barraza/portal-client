@@ -152,8 +152,8 @@ export default function AnalyticsComponent() {
       ]);
       setStats(statsRes);
       setProjects(projectsRes);
-    } catch (err) {
-      console.error("Analytics fetch failed:", err);
+    } catch (error) {
+      console.error("Analytics fetch failed:", error);
     } finally {
       setLoading(false);
     }
@@ -172,8 +172,8 @@ export default function AnalyticsComponent() {
       setSystemInfo(sysRes);
       setStorageSummary(storageRes);
       setContainerStats(containerRes);
-    } catch (err) {
-      console.error("System data fetch failed:", err);
+    } catch (error) {
+      console.error("System data fetch failed:", error);
     } finally {
       setSystemLoading(false);
     }
@@ -397,14 +397,14 @@ export default function AnalyticsComponent() {
                       <Package size={12} strokeWidth={2.2} />
                       <span>Largest Images</span>
                     </div>
-                    {systemInfo.disk.images.items.slice(0, 8).map((img: any, i: any) => {
-                      const tag = img.tags?.[0] || img.id;
+                    {systemInfo.disk.images.items.slice(0, 8).map((image: any, i: any) => {
+                      const tag = image.tags?.[0] || image.id;
                       const displayTag = tag.length > 50 ? `…${tag.slice(-48)}` : tag;
                       return (
                         <div key={i} className={styles.imageRow}>
                           <Box size={12} strokeWidth={1.8} className={styles.imageIcon} />
                           <span className={styles.imageName} title={tag}>{displayTag}</span>
-                          <span className={styles.imageSize}>{formatBytes(img.size)}</span>
+                          <span className={styles.imageSize}>{formatBytes(image.size)}</span>
                         </div>
                       );
                     })}

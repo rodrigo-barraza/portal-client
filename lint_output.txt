@@ -1,0 +1,46 @@
+
+> portal-client@0.1.0 lint
+> eslint .
+
+
+/home/rodrigo/development/portal-client/src/components/AnalyticsComponent.tsx
+  50:9  error  Error: Cannot reassign variable after render completes
+
+Reassigning `accumulated` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+/home/rodrigo/development/portal-client/src/components/AnalyticsComponent.tsx:50:9
+  48 |         const dashLength = pct * circumference;
+  49 |         const dashOffset = -(accumulated / total) * circumference;
+> 50 |         accumulated += seg.value;
+     |         ^^^^^^^^^^^ Cannot reassign `accumulated` after render completes
+  51 |
+  52 |         return (
+  53 |           <circle  react-hooks/immutability
+
+/home/rodrigo/development/portal-client/src/components/ContainerDetailPanelComponent.tsx
+   6:3  error  'Clock' is defined but never used. Allowed unused vars must match /^_/u                      no-unused-vars
+  15:3  error  'Terminal' is defined but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+  21:3  error  'LoadingIndicatorComponent' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/home/rodrigo/development/portal-client/src/components/StorageComponent.tsx
+  598:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  804:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  885:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/rodrigo/development/portal-client/src/types/types.ts
+  201:16  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  208:16  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  215:16  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  222:16  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  223:18  error  'event' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  230:16  error  'pageNumber' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  242:17  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  243:17  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  244:15  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  245:22  error  'value' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  253:16  error  'guest' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+  259:19  error  'id' is defined but never used. Allowed unused args must match /^_/u          no-unused-vars
+  260:17  error  'guest' is defined but never used. Allowed unused args must match /^_/u       no-unused-vars
+
+✖ 20 problems (17 errors, 3 warnings)
+

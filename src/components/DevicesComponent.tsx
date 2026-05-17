@@ -57,8 +57,8 @@ export default function DevicesComponent() {
     try {
       const res = await ApiService.getDevices();
       setDevices(res.devices || []);
-    } catch (err) {
-      console.error("Devices fetch failed:", err);
+    } catch (error) {
+      console.error("Devices fetch failed:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -147,11 +147,11 @@ export default function DevicesComponent() {
         <LoadingIndicatorComponent size="small" label="Discovering devices…" className="loading-center" />
       ) : (
         <div className={styles.deviceList}>
-          {sortedDevices.map((device, idx) => (
+          {sortedDevices.map((device, index) => (
             <DeviceCard
               key={device.id}
               device={device}
-              delay={idx * 60}
+              delay={index * 60}
               // @ts-ignore
               containers={containersByDevice[device.id] || []}
             />

@@ -49,7 +49,7 @@ function Sparkline({ data, color, fillColor, max, height = 36 }: { [key: string]
     if (!canvas || !data || data.length < 2) return;
 
     // @ts-ignore
-    const ctx = canvas.getContext("2d");
+    const context = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
     // @ts-ignore
     const w = canvas.clientWidth;
@@ -60,8 +60,8 @@ function Sparkline({ data, color, fillColor, max, height = 36 }: { [key: string]
     canvas.width = w * dpr;
     // @ts-ignore
     canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, w, h);
+    context.scale(dpr, dpr);
+    context.clearRect(0, 0, w, h);
 
     const effectiveMax = max || Math.max(...data, 0.01);
     const padding = 1;
@@ -69,30 +69,30 @@ function Sparkline({ data, color, fillColor, max, height = 36 }: { [key: string]
     const step = w / (MAX_SPARKLINE_POINTS - 1);
     const startX = w - (data.length - 1) * step;
 
-    ctx.beginPath();
+    context.beginPath();
     for (let i = 0; i < data.length; i++) {
       const x = startX + i * step;
       const y = padding + drawH - (data[i] / effectiveMax) * drawH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      if (i === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
     }
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
+    context.strokeStyle = color;
+    context.lineWidth = 1.5;
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.stroke();
 
     if (fillColor) {
       const lastX = startX + (data.length - 1) * step;
-      ctx.lineTo(lastX, h);
-      ctx.lineTo(startX, h);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      context.lineTo(lastX, h);
+      context.lineTo(startX, h);
+      context.closePath();
+      const grad = context.createLinearGradient(0, 0, 0, h);
       grad.addColorStop(0, fillColor);
       grad.addColorStop(1, "transparent");
-      ctx.fillStyle = grad;
-      ctx.fill();
+      context.fillStyle = grad;
+      context.fill();
     }
   }, [data, color, fillColor, max, height]);
 

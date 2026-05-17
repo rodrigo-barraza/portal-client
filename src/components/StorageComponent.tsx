@@ -166,8 +166,8 @@ export default function StorageComponent() {
       const res = await ApiService.getStorageObjects(bucket, { prefix: pfx });
       setObjects(res.objects || []);
       setPrefixes(res.prefixes || []);
-    } catch (err) {
-      console.error("Object listing failed:", err);
+    } catch (error) {
+      console.error("Object listing failed:", error);
     } finally {
       setObjectsLoading(false);
     }
@@ -203,10 +203,10 @@ export default function StorageComponent() {
   // ── Preview ──────────────────────────────────────────────────
 
   // @ts-ignore
-  const openPreview = async (obj) => {
-    setPreviewObject(obj);
+  const openPreview = async (object) => {
+    setPreviewObject(object);
     try {
-      const stat = await ApiService.statStorageObject(activeBucket, obj.name);
+      const stat = await ApiService.statStorageObject(activeBucket, object.name);
       setPreviewStat(stat);
     } catch {
       setPreviewStat(null);
@@ -221,13 +221,13 @@ export default function StorageComponent() {
   // ── Delete ───────────────────────────────────────────────────
 
   // @ts-ignore
-  const handleDelete = async (obj) => {
-    if (!confirm(`Delete "${obj.name}"?`)) return;
+  const handleDelete = async (object) => {
+    if (!confirm(`Delete "${object.name}"?`)) return;
     try {
-      await ApiService.deleteStorageObject(activeBucket, obj.name);
+      await ApiService.deleteStorageObject(activeBucket, object.name);
       loadObjects(activeBucket, prefix);
-    } catch (err) {
-      console.error("Delete failed:", err);
+    } catch (error) {
+      console.error("Delete failed:", error);
     }
   };
 
@@ -236,8 +236,8 @@ export default function StorageComponent() {
   const filteredObjects = useMemo(() => {
     if (!search) return objects;
     const q = search.toLowerCase();
-    return objects.filter((obj) => {
-      const name = displayName(obj.name, prefix).toLowerCase();
+    return objects.filter((object) => {
+      const name = displayName(object.name, prefix).toLowerCase();
       return name.includes(q);
     });
   }, [objects, search, prefix]);
@@ -271,7 +271,7 @@ export default function StorageComponent() {
   // ── Total size of current listing ────────────────────────────
 
   const totalSize = useMemo(() => {
-    return objects.reduce((sum, obj) => sum + (obj.size || 0), 0);
+    return objects.reduce((sum, object) => sum + (object.size || 0), 0);
   }, [objects]);
 
   const totalBucketSize = useMemo(() => {
@@ -317,11 +317,11 @@ export default function StorageComponent() {
       {view === "objects" && (
         <div className={styles.breadcrumb}>
           <div className={styles.breadcrumbPath}>
-            {breadcrumbSegments.map((seg, idx) => {
-              const isLast = idx === breadcrumbSegments.length - 1;
+            {breadcrumbSegments.map((seg, index) => {
+              const isLast = index === breadcrumbSegments.length - 1;
               return (
-                <span key={idx} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {idx > 0 && (
+                <span key={index} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {index > 0 && (
                     <ChevronRight size={12} className={styles.breadcrumbSep} />
                   )}
                   <button
@@ -335,9 +335,9 @@ export default function StorageComponent() {
                       }
                     }}
                   >
-                    {idx === 0 && <Database size={13} />}
-                    {idx === 1 && <HardDrive size={13} />}
-                    {idx > 1 && <Folder size={13} />}
+                    {index === 0 && <Database size={13} />}
+                    {index === 1 && <HardDrive size={13} />}
+                    {index > 1 && <Folder size={13} />}
                     {seg.label}
                   </button>
                 </span>
@@ -406,11 +406,11 @@ export default function StorageComponent() {
             /* ── Bucket Card Grid View ── */
             <div className={styles.bucketGrid}>
               {/* ── Populated bucket cards ── */}
-              {buckets.map((bucket: any, idx: any) => (
+              {buckets.map((bucket: any, index: any) => (
                 <div
                   key={bucket.name}
                   className={styles.bucketCard}
-                  style={{ animationDelay: `${idx * 50}ms` }}
+                  style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => openBucket(bucket.name)}
                 >
                   <div className={styles.bucketCardInner}>
@@ -583,21 +583,21 @@ function ObjectTableView({
 
       {/* ── Objects ── */}
 {/* @ts-ignore */}
-{objects.map((obj: any, idx: any) => {
-        const FileIcon = getFileIcon(obj.name);
-        const canPreview = isPreviewable(obj.name);
-        const hasThumb = isImage(obj.name);
+{objects.map((object: any, index: any) => {
+        const FileIcon = getFileIcon(object.name);
+        const canPreview = isPreviewable(object.name);
+        const hasThumb = isImage(object.name);
         return (
           <div
-            key={obj.name}
+            key={object.name}
             className={styles.objectRow}
-            style={{ animationDelay: `${idx * 20}ms` }}
+            style={{ animationDelay: `${index * 20}ms` }}
           >
             <div className={styles.objectName}>
               {hasThumb ? (
                 <img
                   className={styles.tableThumb}
-                  src={ApiService.buildStorageDownloadUrl(activeBucket, obj.name, { inline: true })}
+                  src={ApiService.buildStorageDownloadUrl(activeBucket, object.name, { inline: true })}
                   alt=""
                   loading="lazy"
                 />
@@ -605,15 +605,15 @@ function ObjectTableView({
                 <FileIcon size={16} className={styles.objectIcon} />
               )}
               <span className={styles.objectNameText}>
-                {displayName(obj.name, prefix)}
+                {displayName(object.name, prefix)}
               </span>
             </div>
             <span className={styles.objectSize}>
-              {formatBytes(obj.size)}
+              {formatBytes(object.size)}
             </span>
             <span className={styles.objectDate}>
-              {obj.lastModified
-                ? new Date(obj.lastModified).toLocaleString()
+              {object.lastModified
+                ? new Date(object.lastModified).toLocaleString()
                 : "—"}
             </span>
             <div className={styles.objectActions}>
@@ -621,7 +621,7 @@ function ObjectTableView({
                 <button
                   className={styles.actionBtn}
                   title="Preview"
-                  onClick={() => openPreview(obj)}
+                  onClick={() => openPreview(object)}
                 >
                   <Eye size={15} />
                 </button>
@@ -629,7 +629,7 @@ function ObjectTableView({
               <a
                 className={styles.actionBtn}
                 title="Download"
-                href={ApiService.buildStorageDownloadUrl(activeBucket, obj.name)}
+                href={ApiService.buildStorageDownloadUrl(activeBucket, object.name)}
                 download
                 onClick={(e) => e.stopPropagation()}
               >
@@ -638,7 +638,7 @@ function ObjectTableView({
               <button
                 className={`${styles.actionBtn} ${styles.danger}`}
                 title="Delete"
-                onClick={() => handleDelete(obj)}
+                onClick={() => handleDelete(object)}
               >
                 <Trash2 size={15} />
               </button>
@@ -673,11 +673,11 @@ function BucketTableView({ buckets, skeletonCount, openBucket }: { [key: string]
 
       {/* ── Bucket Rows ── */}
 {/* @ts-ignore */}
-{buckets.map((bucket: any, idx: any) => (
+{buckets.map((bucket: any, index: any) => (
         <div
           key={bucket.name}
           className={`${styles.objectRow} ${styles.folderRow}`}
-          style={{ animationDelay: `${idx * 30}ms` }}
+          style={{ animationDelay: `${index * 30}ms` }}
           onClick={() => openBucket(bucket.name)}
         >
           <div className={styles.objectName}>
@@ -788,22 +788,22 @@ function ObjectGridView({
 
         {/* ── Objects ── */}
 {/* @ts-ignore */}
-{objects.map((obj: any, idx: any) => {
-          const FileIcon = getFileIcon(obj.name);
-          const hasThumb = isImage(obj.name);
-          const canPreview = isPreviewable(obj.name);
+{objects.map((object: any, index: any) => {
+          const FileIcon = getFileIcon(object.name);
+          const hasThumb = isImage(object.name);
+          const canPreview = isPreviewable(object.name);
           return (
             <div
-              key={obj.name}
+              key={object.name}
               className={styles.gridCard}
-              style={{ animationDelay: `${idx * 30}ms` }}
-              onClick={() => canPreview ? openPreview(obj) : undefined}
+              style={{ animationDelay: `${index * 30}ms` }}
+              onClick={() => canPreview ? openPreview(object) : undefined}
             >
               <div className={styles.gridCardThumb}>
                 {hasThumb ? (
                   <img
                     className={styles.gridThumbImg}
-                    src={ApiService.buildStorageDownloadUrl(activeBucket, obj.name, { inline: true })}
+                    src={ApiService.buildStorageDownloadUrl(activeBucket, object.name, { inline: true })}
                     alt=""
                     loading="lazy"
                   />
@@ -812,18 +812,18 @@ function ObjectGridView({
                 )}
               </div>
               <div className={styles.gridCardInfo}>
-                <span className={styles.gridCardName} title={displayName(obj.name, prefix)}>
-                  {displayName(obj.name, prefix)}
+                <span className={styles.gridCardName} title={displayName(object.name, prefix)}>
+                  {displayName(object.name, prefix)}
                 </span>
                 <span className={styles.gridCardMeta}>
-                  {formatBytes(obj.size)}
+                  {formatBytes(object.size)}
                 </span>
               </div>
               <div className={styles.gridCardActions}>
                 <a
                   className={styles.actionBtn}
                   title="Download"
-                  href={ApiService.buildStorageDownloadUrl(activeBucket, obj.name)}
+                  href={ApiService.buildStorageDownloadUrl(activeBucket, object.name)}
                   download
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -832,7 +832,7 @@ function ObjectGridView({
                 <button
                   className={`${styles.actionBtn} ${styles.danger}`}
                   title="Delete"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(obj); }}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(object); }}
                 >
                   <Trash2 size={14} />
                 </button>

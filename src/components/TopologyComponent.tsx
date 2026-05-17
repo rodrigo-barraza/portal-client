@@ -200,8 +200,8 @@ export default function TopologyComponent() {
       const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
       setAllServices([...svcs, ...infra]);
       if (res.deployTierColors) setTierColors(res.deployTierColors);
-    } catch (err) {
-      console.error("Topology fetch failed:", err);
+    } catch (error) {
+      console.error("Topology fetch failed:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -408,8 +408,8 @@ export default function TopologyComponent() {
   // @ts-ignore
   const handleCanvasMouseDown = useCallback((e) => {
     if (e.button !== 0) return;
-    const el = e.target;
-    if (el.closest("[data-topo-node]") || el.closest("[data-topo-cluster]")) return;
+    const element = e.target;
+    if (element.closest("[data-topo-node]") || element.closest("[data-topo-cluster]")) return;
     setSelectedNode(null); // deselect on background click
     setIsPanning(true);
     panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
@@ -484,14 +484,14 @@ export default function TopologyComponent() {
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-    const el = containerRef.current;
+    const element = containerRef.current;
     // @ts-ignore
-    el?.addEventListener("wheel", handleWheel, { passive: false });
+    element?.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
       // @ts-ignore
-      el?.removeEventListener("wheel", handleWheel);
+      element?.removeEventListener("wheel", handleWheel);
     };
   }, [handleMouseMove, handleMouseUp, handleWheel]);
 
@@ -500,10 +500,10 @@ export default function TopologyComponent() {
 
   // ── Center topology in viewport ─────────────────────────────
   const centerOnContent = useCallback(() => {
-    const el = containerRef.current;
-    if (!el || allServices.length === 0) return;
+    const element = containerRef.current;
+    if (!element || allServices.length === 0) return;
     // @ts-ignore
-    const rect = el.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
     // compute bounding box of all nodes
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const pos of Object.values(basePositions)) {

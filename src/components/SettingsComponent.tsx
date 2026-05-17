@@ -145,7 +145,7 @@ export default function SettingsComponent() {
           {/* ═══ Appearance ═══ */}
           <section
             // @ts-ignore
-            ref={(el) => (sectionRefs.current.appearance = el)}
+            ref={(element) => (sectionRefs.current.appearance = element)}
             className={styles.section}
             id="settings-appearance"
           >
@@ -177,8 +177,8 @@ export default function SettingsComponent() {
                         const themes = ["dark", "light", "tropical", "oceanic"];
                         while (current !== target) {
                           toggleTheme();
-                          const idx = themes.indexOf(current);
-                          current = themes[(idx + 1) % themes.length];
+                          const index = themes.indexOf(current);
+                          current = themes[(index + 1) % themes.length];
                         }
                       }}
                     >
@@ -272,7 +272,7 @@ export default function SettingsComponent() {
           {/* ═══ Dashboard ═══ */}
           <section
             // @ts-ignore
-            ref={(el) => (sectionRefs.current.dashboard = el)}
+            ref={(element) => (sectionRefs.current.dashboard = element)}
             className={styles.section}
             id="settings-dashboard"
           >
@@ -395,7 +395,7 @@ export default function SettingsComponent() {
           {/* ═══ Monitoring ═══ */}
           <section
             // @ts-ignore
-            ref={(el) => (sectionRefs.current.monitoring = el)}
+            ref={(element) => (sectionRefs.current.monitoring = element)}
             className={styles.section}
             id="settings-monitoring"
           >
@@ -530,7 +530,7 @@ export default function SettingsComponent() {
           {/* ═══ Notifications ═══ */}
           <section
             // @ts-ignore
-            ref={(el) => (sectionRefs.current.notifications = el)}
+            ref={(element) => (sectionRefs.current.notifications = element)}
             className={styles.section}
             id="settings-notifications"
           >
@@ -613,7 +613,7 @@ export default function SettingsComponent() {
           {/* ═══ Data & Privacy ═══ */}
           <section
             // @ts-ignore
-            ref={(el) => (sectionRefs.current.data = el)}
+            ref={(element) => (sectionRefs.current.data = element)}
             className={`${styles.section} ${styles.dangerSection}`}
             id="settings-data"
           >

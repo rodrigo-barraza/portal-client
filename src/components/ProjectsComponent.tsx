@@ -136,8 +136,8 @@ export default function ProjectsComponent() {
       const res = await ApiService.getServices(refresh);
       // @ts-ignore
       setServices((res.services || []).filter((s) => s.projectType !== "Infrastructure"));
-    } catch (err) {
-      console.error("Services fetch failed:", err);
+    } catch (error) {
+      console.error("Services fetch failed:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -148,8 +148,8 @@ export default function ProjectsComponent() {
     try {
       const res = await ApiService.getProjectSizes();
       setProjectSizes(res.sizes || {});
-    } catch (err) {
-      console.error("Project sizes fetch failed:", err);
+    } catch (error) {
+      console.error("Project sizes fetch failed:", error);
     }
   }
 
