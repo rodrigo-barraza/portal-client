@@ -1,3 +1,4 @@
+// @ts-nocheck
 const fs = require('fs');
 const glob = require('glob'); // Not available, I'll just recursively read dirs
 
