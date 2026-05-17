@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
+  Eye, EyeOff,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -22,6 +23,25 @@ const LIBS_MAX_COLS = 2;     // max columns in the libraries cluster
 
 // ── Non-tiered project types (rendered independently) ────────
 const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
+
+// ── Edge type taxonomy ──────────────────────────────────────────
+type EdgeType = "api" | "import" | "tooling" | "infra";
+
+// Maps projectType (from the registry) → edge relationship type
+const PROJECT_TYPE_TO_EDGE: Record<string, EdgeType> = {
+  Library:  "import",
+  Kit:      "tooling",
+  Tool:     "tooling",
+  Database: "infra",
+  Store:    "infra",
+};
+
+const EDGE_TYPE_CONFIG: Record<EdgeType, { label: string; color: string; subtle: string; dash: string; width: number; opacity: number; defaultVisible: boolean }> = {
+  api:     { label: "API Calls",      color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)",  dash: "none",  width: 1.5, opacity: 0.45, defaultVisible: true },
+  infra:   { label: "Infrastructure", color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)",  dash: "none",  width: 2,   opacity: 0.5,  defaultVisible: true },
+  import:  { label: "Library Imports", color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)",   dash: "3 5",   width: 1,   opacity: 0.25, defaultVisible: true },
+  tooling: { label: "Deploy Tooling", color: "#a855f7", subtle: "rgba(168, 85, 247, 0.12)",  dash: "6 4",   width: 1,   opacity: 0.15, defaultVisible: false },
+};
 
 // ── Icon resolver (by projectType) ──────────────────────────────
 function getIcon(svc: any) {
@@ -130,16 +150,22 @@ function layoutNodes(layers, libs) {
   return { positions, libsColumnW };
 }
 
-// ── Collect edges ────────────────────────────────────────────────
+// ── Collect edges (with type derived from target's projectType) ──
 function collectEdges(services: any) {
   // @ts-ignore
   const idSet = new Set(services.map((s) => s.id));
+  // Build projectType lookup so edge type comes from the canonical registry classification
+  const typeMap = new Map();
+  for (const svc of services) typeMap.set(svc.id, svc.projectType);
+
   const edges = [];
   for (const svc of services) {
     for (const dep of svc.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
       const criticality = typeof dep === "string" ? "required" : dep.criticality || "required";
-      if (idSet.has(depId)) edges.push({ source: depId, target: svc.id, criticality });
+      const targetType = typeMap.get(depId) || "";
+      const type: EdgeType = PROJECT_TYPE_TO_EDGE[targetType] || "api";
+      if (idSet.has(depId)) edges.push({ source: depId, target: svc.id, criticality, type });
     }
   }
   return edges;
@@ -168,6 +194,16 @@ export default function TopologyComponent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef(null);
+
+  // Edge type visibility toggles
+  const [edgeVisibility, setEdgeVisibility] = useState<Record<EdgeType, boolean>>(() => {
+    const init: any = {};
+    for (const [key, cfg] of Object.entries(EDGE_TYPE_CONFIG)) init[key] = cfg.defaultVisible;
+    return init;
+  });
+  const toggleEdgeType = useCallback((type: EdgeType) => {
+    setEdgeVisibility((prev) => ({ ...prev, [type]: !prev[type] }));
+  }, []);
 
   // Draggable node positions (overrides layout)
   const [posOverrides, setPosOverrides] = useState<any>({});
@@ -222,7 +258,15 @@ export default function TopologyComponent() {
   const layers = useMemo(() => computeLayers(allServices), [allServices]);
   const libs = useMemo(() => computeLibraries(allServices), [allServices]);
   const { positions: basePositions } = useMemo(() => layoutNodes(layers, libs), [layers, libs]);
-  const edges = useMemo(() => collectEdges(allServices), [allServices]);
+  const allEdges = useMemo(() => collectEdges(allServices), [allServices]);
+  const edges = useMemo(() => allEdges.filter((e: any) => edgeVisibility[e.type as EdgeType]), [allEdges, edgeVisibility]);
+
+  // Edge type counts for legend badges
+  const edgeTypeCounts = useMemo(() => {
+    const counts: Record<string, number> = { api: 0, import: 0, tooling: 0, infra: 0 };
+    for (const e of allEdges) counts[e.type] = (counts[e.type] || 0) + 1;
+    return counts;
+  }, [allEdges]);
 
   // Merged positions (base + overrides from dragging)
   const positions = useMemo(() => {
@@ -656,16 +700,23 @@ export default function TopologyComponent() {
                   const isFaded = isFadedBySelection || isFadedBySearch;
                   const d = edgePath(x1, y1, x2, y2);
 
+                  // Edge type styling
+                  const etc = EDGE_TYPE_CONFIG[edge.type as EdgeType] || EDGE_TYPE_CONFIG.api;
+                  const baseColor = etc.color;
+                  const baseDash = etc.dash;
+                  const baseWidth = etc.width;
+                  const baseOpacity = etc.opacity;
+
                   return (
                     <g key={`${edge.source}-${edge.target}-${i}`} className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}${isFaded ? ` ${styles.edgeFaded}` : ""}`}>
                       <path d={d} stroke="transparent" strokeWidth={12} fill="none" />
                       <path
                         d={d}
-                        stroke={isSelected ? "url(#prism-gradient)" : "var(--border-color)"}
-                        strokeWidth={isActive ? 2.5 : isOptional ? 1 : 1.5}
+                        stroke={isSelected ? "url(#prism-gradient)" : baseColor}
+                        strokeWidth={isActive ? 2.5 : isOptional ? Math.max(baseWidth - 0.5, 0.75) : baseWidth}
                         fill="none"
-                        strokeOpacity={isActive ? 0.9 : isOptional ? 0.2 : 0.35}
-                        strokeDasharray={isOptional && !isSelected ? "6 4" : "none"}
+                        strokeOpacity={isActive ? 0.9 : isOptional ? baseOpacity * 0.5 : baseOpacity}
+                        strokeDasharray={isOptional && !isSelected ? "6 4" : baseDash}
                         className={styles.connectionLine}
                       />
                     </g>
@@ -805,13 +856,43 @@ export default function TopologyComponent() {
 
           {/* Legend */}
           <div className={styles.legend}>
-            <div className={styles.legendTitle}>Legend</div>
+            <div className={styles.legendTitle}>Nodes</div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success-subtle)" }} /><span>Healthy</span></div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{ background: "var(--danger)", boxShadow: "0 0 6px var(--danger-subtle)" }} /><span>Down</span></div>
             <div className={styles.legendSep} />
             {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => (
               <div key={type} className={styles.legendItem}><div className={styles.legendDot} style={{ background: colors.color, boxShadow: `0 0 6px ${colors.subtle}` }} /><span>{type}</span></div>
             ))}
+            <div className={styles.legendSep} />
+            <div className={styles.legendTitle}>Connections</div>
+            {(Object.entries(EDGE_TYPE_CONFIG) as [EdgeType, typeof EDGE_TYPE_CONFIG[EdgeType]][]).map(([type, cfg]) => {
+              const visible = edgeVisibility[type];
+              const count = edgeTypeCounts[type] || 0;
+              return (
+                <div
+                  key={type}
+                  className={`${styles.legendItem} ${styles.legendToggle}${!visible ? ` ${styles.legendToggleOff}` : ""}`}
+                  onClick={() => toggleEdgeType(type)}
+                  title={`${visible ? "Hide" : "Show"} ${cfg.label} (${count})`}
+                >
+                  <div
+                    className={styles.legendEdgeLine}
+                    style={{
+                      borderTopColor: cfg.color,
+                      borderTopStyle: cfg.dash === "none" ? "solid" : "dashed",
+                      borderTopWidth: `${Math.max(cfg.width, 1.5)}px`,
+                      opacity: visible ? 1 : 0.3,
+                    }}
+                  />
+                  <span>{cfg.label}</span>
+                  <span className={styles.legendCount}>{count}</span>
+                  {visible
+                    ? <Eye size={11} strokeWidth={1.5} className={styles.legendEyeIcon} />
+                    : <EyeOff size={11} strokeWidth={1.5} className={styles.legendEyeIcon} />
+                  }
+                </div>
+              );
+            })}
             <div className={styles.legendSep} />
             <div className={styles.legendItem}><div className={styles.legendLine} /><span>Required</span></div>
             <div className={styles.legendItem}><div className={styles.legendLine} style={{ borderTopStyle: "dashed", opacity: 0.5 }} /><span>Optional</span></div>
