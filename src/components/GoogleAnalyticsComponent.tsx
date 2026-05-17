@@ -49,12 +49,7 @@ const SPARKLINE_COLORS = {
 
 // ── Helpers ───────────────────────────────────────────────────
 
-/** Google Analytics returns duration as seconds → delegate to library */
-// @ts-ignore
-const formatDuration = (seconds) => {
-  if (!seconds || seconds <= 0) return "0s";
-  return formatElapsedTime(seconds);
-};
+
 
 /** GA returns ratios 0–1 — convert to 0–100 for the library's formatPercent */
 // @ts-ignore
@@ -249,8 +244,8 @@ export default function GoogleAnalyticsComponent() {
         if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
-      } catch (err) {
-        setError(error.message);
+      } catch (err: any) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -430,7 +425,7 @@ export default function GoogleAnalyticsComponent() {
     },
     { key: "pageviews", label: "Views", align: "right", render: (row: any) => formatNumber(row.pageviews) },
     { key: "users", label: "Users", align: "right", render: (row: any) => formatNumber(row.users) },
-    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatDuration(row.avgDuration) },
+    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatElapsedTime(row.avgDuration) },
     { key: "bounceRate", label: "Bounce", align: "right", render: (row: any) => formatPercent(row.bounceRate) },
   ];
 
@@ -446,7 +441,7 @@ export default function GoogleAnalyticsComponent() {
     },
     { key: "sessions", label: "Sessions", align: "right", render: (row: any) => formatNumber(row.sessions) },
     { key: "users", label: "Users", align: "right", render: (row: any) => formatNumber(row.users) },
-    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatDuration(row.avgDuration) },
+    { key: "avgDuration", label: "Avg Duration", align: "right", render: (row: any) => formatElapsedTime(row.avgDuration) },
     { key: "bounceRate", label: "Bounce", align: "right", render: (row: any) => formatPercent(row.bounceRate) },
   ];
 
@@ -553,7 +548,7 @@ export default function GoogleAnalyticsComponent() {
                 color="#8b5cf6" delay={50} delta={overview.deltas?.pageviews} />
               <StatCard icon={Activity} label="Sessions" value={formatNumber(overview.sessions)}
                 sub={`${formatNumber(overview.engagedSessions)} engaged`} color="#10b981" delay={100} delta={overview.deltas?.sessions} />
-              <StatCard icon={Clock} label="Avg Duration" value={formatDuration(overview.avgSessionDuration)}
+              <StatCard icon={Clock} label="Avg Duration" value={formatElapsedTime(overview.avgSessionDuration)}
                 color="#3b82f6" delay={150} delta={overview.deltas?.avgSessionDuration} />
               <StatCard icon={MousePointerClick} label="Engagement" value={formatPercent(overview.engagementRate)}
                 sub={`${formatPercent(overview.bounceRate)} bounce`} color="#f59e0b" delay={200} delta={overview.deltas?.engagementRate} />

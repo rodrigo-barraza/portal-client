@@ -4,32 +4,16 @@
  */
 
 import { PORTAL_SERVICE_URL } from "../../config";
+import { createApiClient } from "@rodrigo-barraza/components-library";
 
-const API_BASE = PORTAL_SERVICE_URL;
+const request = createApiClient(PORTAL_SERVICE_URL, { noCache: true });
 
 export default class ApiService {
   /**
-   * Shared fetch helper — centralises request / error handling.
-   * @param {string} endpoint
-   * @param {object} [options]
-   * @param {string} [options.method="GET"]
-   * @param {object} [options.body]
-   * @returns {Promise<any>}
+   * Shared fetch helper — delegates to components-library.
    */
   static async _request(endpoint: string, { method = "GET", body }: any = {}) {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-      ...(body && { body: JSON.stringify(body) }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `API error: ${res.status}`);
-    }
-
-    return res.json();
+    return request(method as any, endpoint, body);
   }
 
   // ── Root ──────────────────────────────────────────────────────
@@ -193,7 +177,7 @@ export default class ApiService {
    * @returns {string}
    */
   static buildLogStreamUrl(containerName: string, { tail = 200, follow = true, device }: any = {}) {
-    let url = `${API_BASE}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
+    let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
     if (device) url += `&device=${encodeURIComponent(device)}`;
     return url;
   }
@@ -227,7 +211,7 @@ export default class ApiService {
    * @returns {{ close: () => void }} — call close() to abort
    */
   static streamStorageBuckets(onEvent: any) {
-    const es = new EventSource(`${API_BASE}/object-store/buckets/stream`);
+    const es = new EventSource(`${PORTAL_SERVICE_URL}/object-store/buckets/stream`);
 
     es.addEventListener("init", (e) => {
       onEvent({ type: "init", ...JSON.parse(e.data) });
@@ -288,7 +272,7 @@ export default class ApiService {
    */
   static buildStorageDownloadUrl(bucketName: string, objectName: string, { inline = false }: any = {}) {
     const qs = inline ? "?inline=true" : "";
-    return `${API_BASE}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;
+    return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;
   }
 
   /**
