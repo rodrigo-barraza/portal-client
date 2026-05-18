@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { LayoutGrid, Table2, TrendingUp, ArrowRight } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
@@ -14,9 +15,8 @@ import styles from "./GoogleAnalyticsComponent.module.css";
  */
 export default function PropertyListingComponent({
   properties,
-  onSelect,
 }: {
-  [key: string]: any;
+  properties: any[];
 }) {
   const [viewMode, setViewMode] = useState("card");
   const [summaries, setSummaries] = useState<any>({});
@@ -77,10 +77,10 @@ export default function PropertyListingComponent({
           {properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
-              <div
+              <Link
                 key={prop.id}
+                href={`/web-analytics/${prop.id}`}
                 className={styles.propertyCard}
-                onClick={() => onSelect(prop)}
               >
                 <div className={styles.propertyCardHeader}>
                   <div className={styles.propertyCardIcon}>
@@ -144,7 +144,7 @@ export default function PropertyListingComponent({
                 ) : (
                   <LoadingIndicatorComponent size="small" label="Loading…" />
                 )}
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -164,10 +164,10 @@ export default function PropertyListingComponent({
           {properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
-              <div
+              <Link
                 key={prop.id}
+                href={`/web-analytics/${prop.id}`}
                 className={styles.propertyListRow}
-                onClick={() => onSelect(prop)}
               >
                 <div className={styles.propertyListName}>
                   <span className={styles.propertyListLabel}>{prop.label}</span>
@@ -196,7 +196,7 @@ export default function PropertyListingComponent({
                     "—"
                   )}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

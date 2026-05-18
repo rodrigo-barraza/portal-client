@@ -601,6 +601,58 @@ export default function ContainerStatsComponent() {
     didFetch.current = true;
     fetchData();
     fetchSystemInfo();
+
+    // Seed sparklines from persistent MongoDB metrics so trends are
+    // immediately visible instead of building from zero on each visit.
+    (async () => {
+      try {
+        const res = await ApiService.getContainerMetrics({ range: "1h", limit: HISTORY_MAX });
+        if (!res?.containers) return;
+
+        // Build per-container history from persistent data
+        const seededHistory: Record<string, { cpu: number[]; mem: number[] }> = {};
+        let totalCpuPoints: number[] = [];
+        let totalMemPoints: number[] = [];
+
+        // Find the longest series length across all containers
+        let maxLen = 0;
+        for (const [name, data] of Object.entries(res.containers) as [string, any][]) {
+          if (data.points?.length > maxLen) maxLen = data.points.length;
+        }
+
+        // Initialize totalCpu/Mem arrays with zeroes
+        totalCpuPoints = new Array(maxLen).fill(0);
+        totalMemPoints = new Array(maxLen).fill(0);
+
+        for (const [name, data] of Object.entries(res.containers) as [string, any][]) {
+          if (!data.points || data.points.length === 0) continue;
+
+          const cpuArr = data.points.map((p: any) => p.cpu);
+          const memArr = data.points.map((p: any) => p.mem);
+          seededHistory[name] = { cpu: cpuArr, mem: memArr };
+
+          // Accumulate totals — right-align shorter series
+          const offset = maxLen - data.points.length;
+          for (let i = 0; i < data.points.length; i++) {
+            totalCpuPoints[offset + i] += data.points[i].cpu || 0;
+            totalMemPoints[offset + i] += data.points[i].mem || 0;
+          }
+        }
+
+        // Only seed if we got meaningful data
+        if (Object.keys(seededHistory).length > 0) {
+          setContainerHistory((prev) => {
+            // Don't overwrite if live polling has already populated data
+            if (Object.keys(prev).length > 0) return prev;
+            return seededHistory;
+          });
+          setCpuHistory((prev) => (prev.length > 2 ? prev : totalCpuPoints));
+          setMemHistory((prev) => (prev.length > 2 ? prev : totalMemPoints));
+        }
+      } catch {
+        // Non-critical — sparklines will just build from live data
+      }
+    })();
   }, [fetchData, fetchSystemInfo]);
 
   // Poll every 5s (includes systemInfo retry if initial call was slow)

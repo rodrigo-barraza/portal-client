@@ -162,35 +162,61 @@ export default function ContainerDetailPanel({
   const [history, setHistory] = useState<any>(null);
   const didFetch = useRef(false);
 
-  // Fetch sparkline history
+  // Fetch sparkline history — prefer persistent metrics, fall back to ring buffer
   useEffect(() => {
     if (didFetch.current || !container) return;
     didFetch.current = true;
 
     (async () => {
       try {
+        // Try persistent MongoDB metrics first (1 hour of 30s samples)
+        const metricsRes = await ApiService.getContainerMetrics({
+          container: container.containerName,
+          range: "1h",
+          limit: MAX_SPARKLINE_POINTS,
+        });
+
+        const containerData = metricsRes?.containers?.[container.containerName];
+        if (containerData?.points?.length >= 2) {
+          setHistory({
+            cpu: containerData.points.map((p: any) => p.cpu ?? 0),
+            mem: containerData.points.map((p: any) => p.mem ?? 0),
+            netRx: containerData.points.map((p: any) => p.netRx ?? 0),
+            netTx: containerData.points.map((p: any) => p.netTx ?? 0),
+          });
+          return;
+        }
+
+        // Fall back to in-memory ring buffer
         // @ts-ignore
         const res = await ApiService.getContainerStatsHistory();
         if (res?.history) {
-          const cpuPoints = [];
-          const memPoints = [];
-          const netRxPoints = [];
-          const netTxPoints = [];
-          for (const snap of res.history) {
-            const c = snap.containers?.[container.containerName];
-            if (c) {
-              cpuPoints.push(c.cpu ?? 0);
-              memPoints.push(c.memoryUsed ?? 0);
-              netRxPoints.push(c.netRx ?? 0);
-              netTxPoints.push(c.netTx ?? 0);
+          const cpuPoints: number[] = [];
+          const memPoints: number[] = [];
+          const netRxPoints: number[] = [];
+          const netTxPoints: number[] = [];
+
+          // Ring buffer returns per-device history; flatten all devices
+          for (const deviceHistory of Object.values(res.history) as any[]) {
+            for (const snap of Array.isArray(deviceHistory) ? deviceHistory : []) {
+              const c = snap.containers?.[container.containerName];
+              if (c) {
+                cpuPoints.push(c.cpu ?? 0);
+                memPoints.push(c.memoryUsed ?? 0);
+                netRxPoints.push(c.netRx ?? 0);
+                netTxPoints.push(c.netTx ?? 0);
+              }
             }
           }
-          setHistory({
-            cpu: cpuPoints,
-            mem: memPoints,
-            netRx: netRxPoints,
-            netTx: netTxPoints,
-          });
+
+          if (cpuPoints.length >= 2) {
+            setHistory({
+              cpu: cpuPoints,
+              mem: memPoints,
+              netRx: netRxPoints,
+              netTx: netTxPoints,
+            });
+          }
         }
       } catch {
         /* silent */

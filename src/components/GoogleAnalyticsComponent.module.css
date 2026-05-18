@@ -731,6 +731,8 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   transition:
     border-color var(--transition-fast),
     transform 120ms ease,
@@ -918,6 +920,8 @@
   padding: 12px 18px;
   align-items: center;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   transition: background var(--transition-fast);
   animation: fadeIn var(--transition-normal) ease-out both;
 
@@ -995,6 +999,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
+  text-decoration: none;
   transition:
     color var(--transition-fast),
     border-color var(--transition-fast);

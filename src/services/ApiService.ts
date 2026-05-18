@@ -193,6 +193,34 @@ export default class ApiService {
   }
 
   /**
+   * Get persistent container metrics from MongoDB time-series collection.
+   * Returns per-container historical data points with configurable range.
+   *
+   * @param range  - Time range: "1h", "6h", "24h", "7d" (default: "1h")
+   * @param container - Optional container name filter
+   * @param device - Optional device ID filter
+   * @param limit  - Max samples per container (default: 120)
+   */
+  static async getContainerMetrics({
+    range = "1h",
+    container,
+    device,
+    limit = 120,
+  }: {
+    range?: string;
+    container?: string;
+    device?: string;
+    limit?: number;
+  } = {}) {
+    const qs = new URLSearchParams();
+    qs.set("range", range);
+    if (container) qs.set("container", container);
+    if (device) qs.set("device", device);
+    if (limit !== 120) qs.set("limit", String(limit));
+    return ApiService._request(`/stats/containers/metrics?${qs.toString()}`);
+  }
+
+  /**
    * Get Docker system info — disk usage breakdown (images, volumes, build cache).
 
    */

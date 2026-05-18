@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import Link from "next/link";
 import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
@@ -291,7 +292,11 @@ function SparklineChart({ series, metrics }: { [key: string]: any }) {
 
 // ── Main Component ────────────────────────────────────────────
 
-export default function GoogleAnalyticsComponent() {
+export default function GoogleAnalyticsComponent({
+  propertyId,
+}: {
+  propertyId?: string;
+} = {}) {
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [period, setPeriod] = useState("30d");
@@ -327,8 +332,11 @@ export default function GoogleAnalyticsComponent() {
         const res = await ApiService.getGAProperties();
         const props = res.properties || [];
         setProperties(props);
-        // Auto-select only if exactly one property
-        if (props.length === 1) {
+        // Auto-select from URL param, or if exactly one property
+        if (propertyId) {
+          const match = props.find((p: any) => p.id === propertyId);
+          if (match) setSelectedProperty(match);
+        } else if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
       } catch (error: any) {
@@ -666,24 +674,22 @@ export default function GoogleAnalyticsComponent() {
       </PageHeaderComponent>
 
       {/* ── Property Listing (no property selected) ────────────── */}
-      {!selectedProperty && (
+      {!selectedProperty && !propertyId && (
         <PropertyListingComponent
           properties={properties}
-          // @ts-ignore
-          onSelect={(prop: any) => setSelectedProperty(prop)}
         />
       )}
 
       {/* ── Back bar + selected property header ────────────────── */}
       {selectedProperty && properties.length > 1 && (
         <div className={styles.backBar}>
-          <button
+          <Link
+            href="/web-analytics"
             className={styles.backBtn}
-            onClick={() => setSelectedProperty(null)}
           >
             <ArrowLeft size={12} strokeWidth={2.2} />
             All Properties
-          </button>
+          </Link>
           <span className={styles.selectedLabel}>{selectedProperty.label}</span>
           <span className={styles.selectedMeta}>
             {selectedProperty.measurementId}
