@@ -74,6 +74,30 @@
   opacity: 0.4;
 }
 
+/* ── Language Cell ── */
+
+.languageCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  cursor: default;
+}
+
+.languageDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.languageName {
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* ── Repo Link ── */
 
 .repoLink {

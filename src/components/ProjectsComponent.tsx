@@ -119,6 +119,7 @@ export default function ProjectsComponent() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [projectSizes, setProjectSizes] = useState<any>({});
+  const [projectLanguages, setProjectLanguages] = useState<any>({});
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
@@ -160,11 +161,21 @@ export default function ProjectsComponent() {
     }
   }
 
+  async function loadLanguages() {
+    try {
+      const res = await ApiService.getProjectLanguages();
+      setProjectLanguages(res.languages || {});
+    } catch (error) {
+      console.error("Project languages fetch failed:", error);
+    }
+  }
+
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
     loadServices(true);
     loadSizes();
+    loadLanguages();
   }, []);
 
   const handleRefresh = () => {
@@ -470,6 +481,7 @@ export default function ProjectsComponent() {
                   // @ts-ignore
                   allServices={allItems}
                   projectSizes={projectSizes}
+                  projectLanguages={projectLanguages}
                   sortKey={sortKey}
                   sortDir={sortDir}
                   title={
@@ -519,6 +531,7 @@ export default function ProjectsComponent() {
                   // @ts-ignore
                   allServices={allItems}
                   projectSizes={projectSizes}
+                  projectLanguages={projectLanguages}
                   excludeColumns={["tier", "domain", "database", "containers"]}
                   sortKey={sortKey}
                   sortDir={sortDir}

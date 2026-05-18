@@ -566,6 +566,26 @@ export default function ServiceCardComponent({
           </div>
         )}
 
+        {/* ── Node Version (from health endpoint) ── */}
+        {service.metadata?.nodeVersion && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Node</span>
+            <span className={`${styles.detailValue} ${styles.mono}`}>
+              {service.metadata.nodeVersion}
+            </span>
+          </div>
+        )}
+
+        {/* ── Python Version (from health endpoint, if available) ── */}
+        {service.metadata?.pythonVersion && (
+          <div className={styles.detail}>
+            <span className={styles.detailLabel}>Python</span>
+            <span className={`${styles.detailValue} ${styles.mono}`}>
+              {service.metadata.pythonVersion}
+            </span>
+          </div>
+        )}
+
         {service.port && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Port</span>

@@ -27,6 +27,48 @@ import {
 import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import styles from "./ProjectTableComponent.module.css";
 
+// ── GitHub Linguist Language Colors ────────────────────────────────
+// Official colors from github/linguist for the most common languages.
+const LANGUAGE_COLORS: Record<string, string> = {
+  TypeScript: "#3178c6",
+  JavaScript: "#f1e05a",
+  Python: "#3572a5",
+  Java: "#b07219",
+  Go: "#00add8",
+  Rust: "#dea584",
+  "C++": "#f34b7d",
+  C: "#555555",
+  "C#": "#178600",
+  Ruby: "#701516",
+  PHP: "#4f5d95",
+  Swift: "#f05138",
+  Kotlin: "#a97bff",
+  Dart: "#00b4ab",
+  Shell: "#89e051",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  SCSS: "#c6538c",
+  Vue: "#41b883",
+  Svelte: "#ff3e00",
+  Lua: "#000080",
+  Perl: "#0298c3",
+  R: "#198ce7",
+  Scala: "#c22d40",
+  Elixir: "#6e4a7e",
+  Haskell: "#5e5086",
+  Clojure: "#db5855",
+  "Objective-C": "#438eff",
+  Dockerfile: "#384d54",
+  Makefile: "#427819",
+  Nix: "#7e7eff",
+  Zig: "#ec915c",
+  Astro: "#ff5a03",
+  MDX: "#fcb32c",
+};
+
+/** Fallback color for unlisted languages */
+const DEFAULT_LANGUAGE_COLOR = "#8b8b8b";
+
 // ── Formatting helpers ─────────────────────────────────────────────
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
@@ -36,7 +78,7 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
  * @param {Set<string>} [excludeColumns] — column keys to omit
  */
-function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
+function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns = new Set()) {
   return [
     {
       key: "name",
@@ -201,6 +243,33 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
       sortValue: (row: any) => row.repo || "",
     },
     {
+      key: "language",
+      label: "Language",
+      sortable: true,
+      description: "Primary language detected by GitHub Linguist",
+      render: (service: any) => {
+        // @ts-ignore
+        const langData = projectLanguages[service.id];
+        if (!langData?.primary) return <span className={styles.mutedCell}>—</span>;
+        const color = LANGUAGE_COLORS[langData.primary] || DEFAULT_LANGUAGE_COLOR;
+        const topLangs = langData.breakdown
+          .slice(0, 3)
+          .map((l: any) => `${l.language} ${l.percent}%`)
+          .join(", ");
+        return (
+          <span className={styles.languageCell} title={topLangs}>
+            <span
+              className={styles.languageDot}
+              style={{ background: color }}
+            />
+            <span className={styles.languageName}>{langData.primary}</span>
+          </span>
+        );
+      },
+      // @ts-ignore
+      sortValue: (row: any) => projectLanguages[row.id]?.primary || "",
+    },
+    {
       key: "dependencies",
       label: "Deps",
       sortable: true,
@@ -276,6 +345,7 @@ export default function ProjectTableComponent({
   services,
   allServices = [],
   projectSizes = {},
+  projectLanguages = {},
   containerStats = {},
   // @ts-ignore
   excludeColumns,
@@ -298,8 +368,8 @@ export default function ProjectTableComponent({
   );
 
   const columns = useCallback(
-    () => buildColumns(projectSizes, excludeSet),
-    [projectSizes, excludeSet],
+    () => buildColumns(projectSizes, projectLanguages, excludeSet),
+    [projectSizes, projectLanguages, excludeSet],
   )();
 
   const getRowClassName = useCallback((row: any) => {

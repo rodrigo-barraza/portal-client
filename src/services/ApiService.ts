@@ -149,6 +149,14 @@ export default class ApiService {
     return ApiService._request(`/services/analysis${qs}`);
   }
 
+  /**
+   * Get GitHub Linguist language breakdown for all projects.
+   * @returns {Promise<{ languages: Record<string, { primary: string, breakdown: any[], totalBytes: number }> }>}
+   */
+  static async getProjectLanguages() {
+    return ApiService._request("/services/languages");
+  }
+
   // ── Stats ─────────────────────────────────────────────────────
 
   /**
