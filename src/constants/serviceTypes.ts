@@ -8,7 +8,17 @@
 //   (res.projectTypeColors) since those are the canonical source.
 // ============================================================
 
-import { BookOpen, Bot, Database, Globe, HardDrive, Monitor, Rocket, Server, Wrench } from "lucide-react";
+import {
+  BookOpen,
+  Bot,
+  Database,
+  Globe,
+  HardDrive,
+  Monitor,
+  Rocket,
+  Server,
+  Wrench,
+} from "lucide-react";
 
 /**
  * Map projectType → Lucide icon component.
@@ -38,14 +48,14 @@ export function getServiceIcon(service: any) {
  * Used as a fallback when the API response doesn't include colors.
  */
 export const DEFAULT_SERVICE_TYPE_COLORS = {
-  Service:  { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)" },
-  Client:   { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)" },
-  Bot:      { color: "#eab308", subtle: "rgba(234, 179, 8, 0.12)" },
+  Service: { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)" },
+  Client: { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)" },
+  Bot: { color: "#eab308", subtle: "rgba(234, 179, 8, 0.12)" },
   Database: { color: "#a855f7", subtle: "rgba(168, 85, 247, 0.12)" },
-  Store:    { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)" },
-  Library:  { color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)" },
-  Kit:      { color: "#f59e0b", subtle: "rgba(245, 158, 11, 0.12)" },
-  Tool:     { color: "#8b5cf6", subtle: "rgba(139, 92, 246, 0.12)" },
+  Store: { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)" },
+  Library: { color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)" },
+  Kit: { color: "#f59e0b", subtle: "rgba(245, 158, 11, 0.12)" },
+  Tool: { color: "#8b5cf6", subtle: "rgba(139, 92, 246, 0.12)" },
 };
 
 /**
@@ -53,7 +63,22 @@ export const DEFAULT_SERVICE_TYPE_COLORS = {
  * Orange (Tier 0 Foundation), Blue (Tier 1 Services & Clients), Green (Tier 2 Bots).
  */
 export const DEFAULT_DEPLOY_TIER_COLORS = {
-  0: { color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)", stroke: "rgba(249, 115, 22, 0.35)", fill: "rgba(249, 115, 22, 0.04)" },
-  1: { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)", stroke: "rgba(59, 130, 246, 0.35)", fill: "rgba(59, 130, 246, 0.04)" },
-  2: { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)", stroke: "rgba(34, 197, 94, 0.35)", fill: "rgba(34, 197, 94, 0.04)" },
+  0: {
+    color: "#f97316",
+    subtle: "rgba(249, 115, 22, 0.12)",
+    stroke: "rgba(249, 115, 22, 0.35)",
+    fill: "rgba(249, 115, 22, 0.04)",
+  },
+  1: {
+    color: "#3b82f6",
+    subtle: "rgba(59, 130, 246, 0.12)",
+    stroke: "rgba(59, 130, 246, 0.35)",
+    fill: "rgba(59, 130, 246, 0.04)",
+  },
+  2: {
+    color: "#22c55e",
+    subtle: "rgba(34, 197, 94, 0.12)",
+    stroke: "rgba(34, 197, 94, 0.35)",
+    fill: "rgba(34, 197, 94, 0.04)",
+  },
 };

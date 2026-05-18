@@ -18,10 +18,14 @@ import {
   TableComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import {
+  SERVICE_TYPE_ICONS,
+  SERVICE_TYPE_COLORS,
+  DEPLOY_TIER_COLORS,
+  DEFAULT_SERVICE_TYPE_ICON,
+} from "../constants";
 import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import styles from "./ProjectTableComponent.module.css";
-
 
 // ── Formatting helpers ─────────────────────────────────────────────
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
@@ -42,8 +46,13 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
         const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
         const isHealthy = isNonDeployed ? true : service.healthy;
         // @ts-ignore
-        const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
-        const iconClass = isNonDeployed ? styles.iconNeutral : (isHealthy ? styles.iconHealthy : styles.iconUnhealthy);
+        const TypeIcon =
+          SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+        const iconClass = isNonDeployed
+          ? styles.iconNeutral
+          : isHealthy
+            ? styles.iconHealthy
+            : styles.iconUnhealthy;
         return (
           <div className={styles.nameCell}>
             <TypeIcon
@@ -68,11 +77,15 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
         return (
           <BadgeComponent
             variant="info"
-            style={colors ? {
-              color: colors.color,
-              background: colors.subtle,
-              borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-            } : undefined}
+            style={
+              colors
+                ? {
+                    color: colors.color,
+                    background: colors.subtle,
+                    borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                  }
+                : undefined
+            }
           >
             {service.projectType}
           </BadgeComponent>
@@ -86,7 +99,8 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
       sortable: true,
       description: "Core scaffolding required to build & deploy new projects",
       render: (service: any) => {
-        if (!service.essential) return <span className={styles.mutedCell}>—</span>;
+        if (!service.essential)
+          return <span className={styles.mutedCell}>—</span>;
         return (
           <BadgeComponent
             variant="info"
@@ -96,7 +110,11 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
               borderColor: "rgba(245, 158, 11, 0.25)",
             }}
           >
-            <ShieldCheck size={11} strokeWidth={2.4} style={{ marginRight: 4 }} />
+            <ShieldCheck
+              size={11}
+              strokeWidth={2.4}
+              style={{ marginRight: 4 }}
+            />
             Core
           </BadgeComponent>
         );
@@ -115,11 +133,15 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
         return (
           <BadgeComponent
             variant="info"
-            style={colors ? {
-              color: colors.color,
-              background: colors.subtle,
-              borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-            } : undefined}
+            style={
+              colors
+                ? {
+                    color: colors.color,
+                    background: colors.subtle,
+                    borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                  }
+                : undefined
+            }
           >
             {tier}
           </BadgeComponent>
@@ -169,7 +191,11 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
           >
             <GitBranch size={12} strokeWidth={2.2} />
             <span>{slug.split("/").pop()}</span>
-            <ExternalLink size={10} strokeWidth={2} className={styles.externalIcon} />
+            <ExternalLink
+              size={10}
+              strokeWidth={2}
+              className={styles.externalIcon}
+            />
           </a>
         );
       },
@@ -213,7 +239,8 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
       sortable: true,
       description: "Number of Docker containers for this project",
       render: (service: any) => {
-        if (!service.dockerProject) return <span className={styles.mutedCell}>—</span>;
+        if (!service.dockerProject)
+          return <span className={styles.mutedCell}>—</span>;
         return (
           <BadgeComponent variant="info">
             <Container size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -244,7 +271,6 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
     },
   ].filter((col) => !excludeColumns.has(col.key));
 }
-
 
 export default function ProjectTableComponent({
   // @ts-ignore
@@ -277,13 +303,10 @@ export default function ProjectTableComponent({
     [projectSizes, excludeSet],
   )();
 
-  const getRowClassName = useCallback(
-    (row: any) => {
-      if (NON_DEPLOYED_TYPES.has(row.projectType)) return styles.rowNeutral;
-      return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
-    },
-    [],
-  );
+  const getRowClassName = useCallback((row: any) => {
+    if (NON_DEPLOYED_TYPES.has(row.projectType)) return styles.rowNeutral;
+    return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
+  }, []);
 
   const handleRowClick = useCallback(
     // @ts-ignore
@@ -300,8 +323,8 @@ export default function ProjectTableComponent({
   }
 
   const stats = selectedProject?.dockerProject
-    // @ts-ignore
-    ? containerStats[selectedProject.dockerProject]
+    ? // @ts-ignore
+      containerStats[selectedProject.dockerProject]
     : null;
 
   return (
@@ -330,7 +353,11 @@ export default function ProjectTableComponent({
         width={640}
       >
         {selectedProject && (
-          <ExpandedProjectPanel service={selectedProject} stats={stats} allServices={allServices} />
+          <ExpandedProjectPanel
+            service={selectedProject}
+            stats={stats}
+            allServices={allServices}
+          />
         )}
       </DrawerComponent>
     </>

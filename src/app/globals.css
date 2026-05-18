@@ -22,7 +22,11 @@
 
   /* Portal-specific gradient */
   --portal-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-  --portal-gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  --portal-gradient-subtle: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1),
+    rgba(168, 85, 247, 0.1)
+  );
 
   /* ── Status Colors ────────────────────────────────────── */
   --status-running: #34d399;

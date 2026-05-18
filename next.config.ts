@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: [],
   turbopack: {},
-  transpilePackages: ["@rodrigo-barraza/components-library", "@rodrigo-barraza/utilities-library"],
+  transpilePackages: [
+    "@rodrigo-barraza/components-library",
+    "@rodrigo-barraza/utilities-library",
+  ],
 
   env: {
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT,

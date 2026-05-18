@@ -34,12 +34,56 @@ import styles from "./StorageComponent.module.css";
 
 // ── File type helpers ────────────────────────────────────────────
 
-const IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".ico"]);
+const IMAGE_EXTS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".svg",
+  ".bmp",
+  ".ico",
+]);
 const AUDIO_EXTS = new Set([".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"]);
 const VIDEO_EXTS = new Set([".mp4", ".webm", ".mkv", ".mov", ".avi"]);
-const TEXT_EXTS = new Set([".txt", ".md", ".csv", ".log", ".ini", ".yml", ".yaml", ".toml"]);
-const CODE_EXTS = new Set([".js", ".ts", ".jsx", ".tsx", ".py", ".rb", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".css", ".html", ".json", ".xml", ".sh"]);
-const ARCHIVE_EXTS = new Set([".zip", ".gz", ".tar", ".rar", ".7z", ".bz2", ".xz"]);
+const TEXT_EXTS = new Set([
+  ".txt",
+  ".md",
+  ".csv",
+  ".log",
+  ".ini",
+  ".yml",
+  ".yaml",
+  ".toml",
+]);
+const CODE_EXTS = new Set([
+  ".js",
+  ".ts",
+  ".jsx",
+  ".tsx",
+  ".py",
+  ".rb",
+  ".go",
+  ".rs",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".css",
+  ".html",
+  ".json",
+  ".xml",
+  ".sh",
+]);
+const ARCHIVE_EXTS = new Set([
+  ".zip",
+  ".gz",
+  ".tar",
+  ".rar",
+  ".7z",
+  ".bz2",
+  ".xz",
+]);
 
 function getFileExt(name: any) {
   return (name || "").match(/\.[^.]+$/)?.[0]?.toLowerCase() || "";
@@ -206,7 +250,10 @@ export default function StorageComponent() {
   const openPreview = async (object) => {
     setPreviewObject(object);
     try {
-      const stat = await ApiService.statStorageObject(activeBucket, object.name);
+      const stat = await ApiService.statStorageObject(
+        activeBucket,
+        object.name,
+      );
       setPreviewStat(stat);
     } catch {
       setPreviewStat(null);
@@ -245,7 +292,9 @@ export default function StorageComponent() {
   const filteredPrefixes = useMemo(() => {
     if (!search) return prefixes;
     const q = search.toLowerCase();
-    return prefixes.filter((p) => folderLabel(p, prefix).toLowerCase().includes(q));
+    return prefixes.filter((p) =>
+      folderLabel(p, prefix).toLowerCase().includes(q),
+    );
   }, [prefixes, search, prefix]);
 
   // ── Breadcrumb path segments ─────────────────────────────────
@@ -294,7 +343,17 @@ export default function StorageComponent() {
       return `${buckets.length}/${totalExpected} buckets loaded · ${totalBucketObjects.toLocaleString()} objects · ${formatBytes(totalBucketSize)}`;
     }
     return `${buckets.length} buckets · ${totalBucketObjects.toLocaleString()} objects · ${formatBytes(totalBucketSize)}`;
-  }, [view, streaming, buckets.length, totalExpected, totalBucketObjects, totalBucketSize, activeBucket, objects.length, totalSize]);
+  }, [
+    view,
+    streaming,
+    buckets.length,
+    totalExpected,
+    totalBucketObjects,
+    totalBucketSize,
+    activeBucket,
+    objects.length,
+    totalSize,
+  ]);
 
   return (
     <div className={styles.storage}>
@@ -320,7 +379,10 @@ export default function StorageComponent() {
             {breadcrumbSegments.map((seg, index) => {
               const isLast = index === breadcrumbSegments.length - 1;
               return (
-                <span key={index} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span
+                  key={index}
+                  style={{ display: "flex", alignItems: "center", gap: 4 }}
+                >
                   {index > 0 && (
                     <ChevronRight size={12} className={styles.breadcrumbSep} />
                   )}
@@ -437,7 +499,8 @@ export default function StorageComponent() {
                   </div>
                   {bucket.creationDate && (
                     <div className={styles.bucketDate}>
-                      Created {new Date(bucket.creationDate).toLocaleDateString()}
+                      Created{" "}
+                      {new Date(bucket.creationDate).toLocaleDateString()}
                     </div>
                   )}
                 </div>
@@ -452,24 +515,38 @@ export default function StorageComponent() {
                 >
                   <div className={styles.bucketCardInner}>
                     <div className={styles.bucketHeader}>
-                      <div className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}>
+                      <div
+                        className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}
+                      >
                         <HardDrive size={18} strokeWidth={1.8} />
                       </div>
-                      <div className={styles.skeletonLine} style={{ width: "60%" }} />
+                      <div
+                        className={styles.skeletonLine}
+                        style={{ width: "60%" }}
+                      />
                     </div>
                     <div className={styles.bucketMeta}>
                       <div className={styles.bucketStat}>
                         <span className={styles.bucketStatLabel}>Objects</span>
-                        <div className={styles.skeletonLine} style={{ width: 48 }} />
+                        <div
+                          className={styles.skeletonLine}
+                          style={{ width: 48 }}
+                        />
                       </div>
                       <div className={styles.bucketStat}>
                         <span className={styles.bucketStatLabel}>Size</span>
-                        <div className={styles.skeletonLine} style={{ width: 64 }} />
+                        <div
+                          className={styles.skeletonLine}
+                          style={{ width: 64 }}
+                        />
                       </div>
                     </div>
                   </div>
                   <div className={styles.bucketDate}>
-                    <div className={styles.skeletonLine} style={{ width: "40%" }} />
+                    <div
+                      className={styles.skeletonLine}
+                      style={{ width: "40%" }}
+                    />
                   </div>
                 </div>
               ))}
@@ -479,9 +556,13 @@ export default function StorageComponent() {
       )}
 
       {/* ── Object Views ── */}
-      {view === "objects" && (
-        objectsLoading ? (
-          <LoadingIndicatorComponent size="small" label={`Loading ${activeBucket}…`} className="loading-center" />
+      {view === "objects" &&
+        (objectsLoading ? (
+          <LoadingIndicatorComponent
+            size="small"
+            label={`Loading ${activeBucket}…`}
+            className="loading-center"
+          />
         ) : objectViewMode === "table" ? (
           /* ── Table View ── */
           <ObjectTableView
@@ -508,8 +589,7 @@ export default function StorageComponent() {
             openPreview={openPreview}
             handleDelete={handleDelete}
           />
-        )
-      )}
+        ))}
 
       {/* ── Preview Overlay ── */}
       {previewObject && (
@@ -527,9 +607,18 @@ export default function StorageComponent() {
 // ── Object Table View ────────────────────────────────────────────
 
 function ObjectTableView({
-  objects, prefixes, prefix, activeBucket,
-  search, setSearch, navigateToPrefix, openPreview, handleDelete,
-}: { [key: string]: any }) {
+  objects,
+  prefixes,
+  prefix,
+  activeBucket,
+  search,
+  setSearch,
+  navigateToPrefix,
+  openPreview,
+  handleDelete,
+}: {
+  [key: string]: any;
+}) {
   return (
     <div className={styles.objectListContainer}>
       <div className={styles.objectListHeader}>
@@ -562,8 +651,8 @@ function ObjectTableView({
       </div>
 
       {/* ── Folders ── */}
-{/* @ts-ignore */}
-{prefixes.map((pfx: any) => (
+      {/* @ts-ignore */}
+      {prefixes.map((pfx: any) => (
         <div
           key={pfx}
           className={`${styles.objectRow} ${styles.folderRow}`}
@@ -582,8 +671,8 @@ function ObjectTableView({
       ))}
 
       {/* ── Objects ── */}
-{/* @ts-ignore */}
-{objects.map((object: any, index: any) => {
+      {/* @ts-ignore */}
+      {objects.map((object: any, index: any) => {
         const FileIcon = getFileIcon(object.name);
         const canPreview = isPreviewable(object.name);
         const hasThumb = isImage(object.name);
@@ -597,7 +686,11 @@ function ObjectTableView({
               {hasThumb ? (
                 <img
                   className={styles.tableThumb}
-                  src={ApiService.buildStorageDownloadUrl(activeBucket, object.name, { inline: true })}
+                  src={ApiService.buildStorageDownloadUrl(
+                    activeBucket,
+                    object.name,
+                    { inline: true },
+                  )}
                   alt=""
                   loading="lazy"
                 />
@@ -629,7 +722,10 @@ function ObjectTableView({
               <a
                 className={styles.actionBtn}
                 title="Download"
-                href={ApiService.buildStorageDownloadUrl(activeBucket, object.name)}
+                href={ApiService.buildStorageDownloadUrl(
+                  activeBucket,
+                  object.name,
+                )}
                 download
                 onClick={(e) => e.stopPropagation()}
               >
@@ -660,7 +756,13 @@ function ObjectTableView({
 
 // ── Bucket Table View ────────────────────────────────────────────
 
-function BucketTableView({ buckets, skeletonCount, openBucket }: { [key: string]: any }) {
+function BucketTableView({
+  buckets,
+  skeletonCount,
+  openBucket,
+}: {
+  [key: string]: any;
+}) {
   return (
     <div className={styles.objectListContainer}>
       {/* ── Column Headers ── */}
@@ -672,8 +774,8 @@ function BucketTableView({ buckets, skeletonCount, openBucket }: { [key: string]
       </div>
 
       {/* ── Bucket Rows ── */}
-{/* @ts-ignore */}
-{buckets.map((bucket: any, index: any) => (
+      {/* @ts-ignore */}
+      {buckets.map((bucket: any, index: any) => (
         <div
           key={bucket.name}
           className={`${styles.objectRow} ${styles.folderRow}`}
@@ -739,9 +841,18 @@ function BucketTableView({ buckets, skeletonCount, openBucket }: { [key: string]
 // ── Object Grid View ─────────────────────────────────────────────
 
 function ObjectGridView({
-  objects, prefixes, prefix, activeBucket,
-  search, setSearch, navigateToPrefix, openPreview, handleDelete,
-}: { [key: string]: any }) {
+  objects,
+  prefixes,
+  prefix,
+  activeBucket,
+  search,
+  setSearch,
+  navigateToPrefix,
+  openPreview,
+  handleDelete,
+}: {
+  [key: string]: any;
+}) {
   return (
     <>
       {/* ── Header Bar ── */}
@@ -768,8 +879,8 @@ function ObjectGridView({
 
       <div className={styles.objectGrid}>
         {/* ── Folders ── */}
-{/* @ts-ignore */}
-{prefixes.map((pfx: any) => (
+        {/* @ts-ignore */}
+        {prefixes.map((pfx: any) => (
           <div
             key={pfx}
             className={`${styles.gridCard} ${styles.gridCardFolder}`}
@@ -787,8 +898,8 @@ function ObjectGridView({
         ))}
 
         {/* ── Objects ── */}
-{/* @ts-ignore */}
-{objects.map((object: any, index: any) => {
+        {/* @ts-ignore */}
+        {objects.map((object: any, index: any) => {
           const FileIcon = getFileIcon(object.name);
           const hasThumb = isImage(object.name);
           const canPreview = isPreviewable(object.name);
@@ -797,13 +908,17 @@ function ObjectGridView({
               key={object.name}
               className={styles.gridCard}
               style={{ animationDelay: `${index * 30}ms` }}
-              onClick={() => canPreview ? openPreview(object) : undefined}
+              onClick={() => (canPreview ? openPreview(object) : undefined)}
             >
               <div className={styles.gridCardThumb}>
                 {hasThumb ? (
                   <img
                     className={styles.gridThumbImg}
-                    src={ApiService.buildStorageDownloadUrl(activeBucket, object.name, { inline: true })}
+                    src={ApiService.buildStorageDownloadUrl(
+                      activeBucket,
+                      object.name,
+                      { inline: true },
+                    )}
                     alt=""
                     loading="lazy"
                   />
@@ -812,7 +927,10 @@ function ObjectGridView({
                 )}
               </div>
               <div className={styles.gridCardInfo}>
-                <span className={styles.gridCardName} title={displayName(object.name, prefix)}>
+                <span
+                  className={styles.gridCardName}
+                  title={displayName(object.name, prefix)}
+                >
                   {displayName(object.name, prefix)}
                 </span>
                 <span className={styles.gridCardMeta}>
@@ -823,7 +941,10 @@ function ObjectGridView({
                 <a
                   className={styles.actionBtn}
                   title="Download"
-                  href={ApiService.buildStorageDownloadUrl(activeBucket, object.name)}
+                  href={ApiService.buildStorageDownloadUrl(
+                    activeBucket,
+                    object.name,
+                  )}
                   download
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -832,7 +953,10 @@ function ObjectGridView({
                 <button
                   className={`${styles.actionBtn} ${styles.danger}`}
                   title="Delete"
-                  onClick={(e) => { e.stopPropagation(); handleDelete(object); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(object);
+                  }}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -855,9 +979,20 @@ function ObjectGridView({
 
 // ── Preview Overlay ──────────────────────────────────────────────
 
-function PreviewOverlay({ bucketName, object, stat, onClose }: { [key: string]: any }) {
+function PreviewOverlay({
+  bucketName,
+  object,
+  stat,
+  onClose,
+}: {
+  [key: string]: any;
+}) {
   const mediaType = getMediaType(object.name);
-  const downloadUrl = ApiService.buildStorageDownloadUrl(bucketName, object.name, { inline: true });
+  const downloadUrl = ApiService.buildStorageDownloadUrl(
+    bucketName,
+    object.name,
+    { inline: true },
+  );
   const filename = object.name.split("/").pop();
 
   // Close on Escape
@@ -889,18 +1024,10 @@ function PreviewOverlay({ bucketName, object, stat, onClose }: { [key: string]: 
             />
           )}
           {mediaType === "audio" && (
-            <audio
-              className={styles.previewAudio}
-              controls
-              src={downloadUrl}
-            />
+            <audio className={styles.previewAudio} controls src={downloadUrl} />
           )}
           {mediaType === "video" && (
-            <video
-              className={styles.previewVideo}
-              controls
-              src={downloadUrl}
-            />
+            <video className={styles.previewVideo} controls src={downloadUrl} />
           )}
           {!mediaType && (
             <div className={styles.previewFallback}>
@@ -920,7 +1047,9 @@ function PreviewOverlay({ bucketName, object, stat, onClose }: { [key: string]: 
             {stat?.contentType && (
               <>
                 <span className={styles.previewMetaLabel}>Type</span>
-                <span className={styles.previewMetaValue}>{stat.contentType}</span>
+                <span className={styles.previewMetaValue}>
+                  {stat.contentType}
+                </span>
               </>
             )}
             {stat?.etag && (
@@ -933,7 +1062,9 @@ function PreviewOverlay({ bucketName, object, stat, onClose }: { [key: string]: 
               <>
                 <span className={styles.previewMetaLabel}>Modified</span>
                 <span className={styles.previewMetaValue}>
-                  {new Date(stat?.lastModified || object.lastModified).toLocaleString()}
+                  {new Date(
+                    stat?.lastModified || object.lastModified,
+                  ).toLocaleString()}
                 </span>
               </>
             )}

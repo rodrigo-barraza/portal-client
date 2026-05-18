@@ -98,8 +98,13 @@
 }
 
 @keyframes chipDotPulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(34, 197, 94, 0.2); }
-  50% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+  }
 }
 
 .chipDevice {
@@ -167,8 +172,13 @@
 }
 
 @keyframes dotPulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.25); }
-  50% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
 }
 
 /* ── Terminal Actions ── */
@@ -500,4 +510,3 @@
     display: none;
   }
 }
-

@@ -16,16 +16,16 @@ Infrastructure monitoring dashboard for the **Sun** ecosystem — displays real-
 
 ## Stack
 
-| Dependency | Purpose |
-|---|---|
-| Next.js 16 | React framework (App Router) |
-| React 19 | UI library |
-| `@rodrigo-barraza/components-library` | Shared component library |
-| `@rodrigo-barraza/utilities-library` | Shared utility functions |
-| Lucide React | Icons |
-| Luxon | Date/time formatting |
-| NextAuth.js | Google SSO authentication |
-| Recharts | Analytics charts |
+| Dependency                            | Purpose                      |
+| ------------------------------------- | ---------------------------- |
+| Next.js 16                            | React framework (App Router) |
+| React 19                              | UI library                   |
+| `@rodrigo-barraza/components-library` | Shared component library     |
+| `@rodrigo-barraza/utilities-library`  | Shared utility functions     |
+| Lucide React                          | Icons                        |
+| Luxon                                 | Date/time formatting         |
+| NextAuth.js                           | Google SSO authentication    |
+| Recharts                              | Analytics charts             |
 
 ## Getting Started
 
@@ -49,14 +49,14 @@ Secrets are resolved in priority order:
 3. Vault service (`VAULT_SERVICE_URL` + `VAULT_SERVICE_TOKEN`)
 4. Shared `../vault-service/.env` fallback
 
-| Variable | Description |
-|---|---|
-| `PORTAL_PORT` | Dev server port |
-| `VAULT_SERVICE_URL` | Vault service endpoint |
-| `PORTAL_API_URL` | Portal service backend URL |
-| `AUTH_GOOGLE_ID` | Google OAuth client ID |
-| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
-| `AUTH_SECRET` | NextAuth.js session secret |
+| Variable              | Description                    |
+| --------------------- | ------------------------------ |
+| `PORTAL_PORT`         | Dev server port                |
+| `VAULT_SERVICE_URL`   | Vault service endpoint         |
+| `PORTAL_API_URL`      | Portal service backend URL     |
+| `AUTH_GOOGLE_ID`      | Google OAuth client ID         |
+| `AUTH_GOOGLE_SECRET`  | Google OAuth client secret     |
+| `AUTH_SECRET`         | NextAuth.js session secret     |
 | `AUTH_ALLOWED_EMAILS` | Comma-separated allowed emails |
 
 ## Scripts

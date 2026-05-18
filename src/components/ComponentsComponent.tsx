@@ -100,7 +100,11 @@ function formatSize(kb: any) {
  *
  * @param {{ catalog: Array<{ name, category, m3, hasTests, files, sizeKb, description }> }} props
  */
-export default function ComponentsComponent({ catalog = [] }: { [key: string]: any }) {
+export default function ComponentsComponent({
+  catalog = [],
+}: {
+  [key: string]: any;
+}) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
@@ -110,7 +114,7 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
   const components = useMemo(
     // @ts-ignore
     () => catalog.filter((c) => c.type === "component" || !c.type),
-    [catalog]
+    [catalog],
   );
 
   // ── Filter logic ─────────────────────────────────────────────
@@ -129,7 +133,7 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
         (c) =>
           c.name.toLowerCase().includes(q) ||
           c.description.toLowerCase().includes(q) ||
-          humanize(c.name).toLowerCase().includes(q)
+          humanize(c.name).toLowerCase().includes(q),
       );
     }
 
@@ -155,7 +159,8 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
 
   return (
     <div className={styles.components}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Components"
         subtitle={`${components.length} components · ${m3Count} M3 · ${testedCount} tested`}
       >
@@ -207,8 +212,10 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
             >
               <span className={styles.pillEmoji}>{cat.icon}</span>
               {cat.label}
-{/* @ts-ignore */}
-<span className={styles.pillCount}>{(categoryCounts as any)[key] || 0}</span>
+              {/* @ts-ignore */}
+              <span className={styles.pillCount}>
+                {(categoryCounts as any)[key] || 0}
+              </span>
             </button>
           ))}
         </div>
@@ -240,16 +247,22 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
       </div>
 
       {/* ── Category header ── */}
-{/* @ts-ignore */}
-{activeCategory !== "all" && (CATEGORIES as any)[activeCategory] && (
+      {/* @ts-ignore */}
+      {activeCategory !== "all" && (CATEGORIES as any)[activeCategory] && (
         <div className={styles.categoryHeader}>
-{/* @ts-ignore */}
-<span className={styles.categoryEmoji}>{(CATEGORIES as any)[activeCategory].icon}</span>
+          {/* @ts-ignore */}
+          <span className={styles.categoryEmoji}>
+            {(CATEGORIES as any)[activeCategory].icon}
+          </span>
           <div>
-{/* @ts-ignore */}
-<h2 className={styles.categoryTitle}>{(CATEGORIES as any)[activeCategory].label}</h2>
-{/* @ts-ignore */}
-<p className={styles.categoryDesc}>{(CATEGORIES as any)[activeCategory].description}</p>
+            {/* @ts-ignore */}
+            <h2 className={styles.categoryTitle}>
+              {(CATEGORIES as any)[activeCategory].label}
+            </h2>
+            {/* @ts-ignore */}
+            <p className={styles.categoryDesc}>
+              {(CATEGORIES as any)[activeCategory].description}
+            </p>
           </div>
         </div>
       )}
@@ -265,8 +278,8 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
       {/* ── Grid / List ── */}
       {viewMode === "grid" ? (
         <div className={styles.grid}>
-{/* @ts-ignore */}
-{filtered.map((comp: any, i: any) => (
+          {/* @ts-ignore */}
+          {filtered.map((comp: any, i: any) => (
             <div
               key={comp.name}
               className={styles.card}
@@ -278,7 +291,12 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
                 </div>
                 <div className={styles.cardMeta}>
                   {comp.m3 && (
-                    <span className={styles.m3Badge} title="Material Design 3 compliant">M3</span>
+                    <span
+                      className={styles.m3Badge}
+                      title="Material Design 3 compliant"
+                    >
+                      M3
+                    </span>
                   )}
                   {comp.hasTests && (
                     <span className={styles.testBadge} title="Has unit tests">
@@ -309,9 +327,11 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
                   <Package size={11} />
                   {formatSize(comp.sizeKb)}
                 </span>
-                <span className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}>
-{/* @ts-ignore */}
-{(CATEGORIES as any)[comp.category]?.label}
+                <span
+                  className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}
+                >
+                  {/* @ts-ignore */}
+                  {(CATEGORIES as any)[comp.category]?.label}
                 </span>
               </div>
             </div>
@@ -319,8 +339,8 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
         </div>
       ) : (
         <div className={styles.list}>
-{/* @ts-ignore */}
-{filtered.map((comp: any, i: any) => (
+          {/* @ts-ignore */}
+          {filtered.map((comp: any, i: any) => (
             <div
               key={comp.name}
               className={styles.listRow}
@@ -350,9 +370,11 @@ export default function ComponentsComponent({ catalog = [] }: { [key: string]: a
                 )}
               </div>
               <div className={styles.listStats}>
-                <span className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}>
-{/* @ts-ignore */}
-{(CATEGORIES as any)[comp.category]?.label}
+                <span
+                  className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}
+                >
+                  {/* @ts-ignore */}
+                  {(CATEGORIES as any)[comp.category]?.label}
                 </span>
                 <span className={styles.cardStat}>
                   <FileCode2 size={11} />

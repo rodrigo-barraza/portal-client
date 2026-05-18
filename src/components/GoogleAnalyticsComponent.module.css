@@ -74,7 +74,11 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), transparent 60%);
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.04),
+    transparent 60%
+  );
   pointer-events: none;
 }
 
@@ -739,7 +743,11 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), transparent 60%);
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.03),
+      transparent 60%
+    );
     pointer-events: none;
     opacity: 0;
     transition: opacity var(--transition-fast);
@@ -910,8 +918,7 @@
   padding: 12px 18px;
   align-items: center;
   cursor: pointer;
-  transition:
-    background var(--transition-fast);
+  transition: background var(--transition-fast);
   animation: fadeIn var(--transition-normal) ease-out both;
 
   &:not(:last-child) {
@@ -1037,8 +1044,8 @@
     grid-template-columns: 1fr 80px 80px;
   }
 
-  .propertyListHeader > :nth-child(n+4),
-  .propertyListRow > :nth-child(n+4) {
+  .propertyListHeader > :nth-child(n + 4),
+  .propertyListRow > :nth-child(n + 4) {
     display: none;
   }
 }

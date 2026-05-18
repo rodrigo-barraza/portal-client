@@ -31,7 +31,15 @@ import {
   TableComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatPercent, getRootDomain, ACTION_COOLDOWN_MS, ACTION_COOLDOWN_LONG_MS, HIGHLIGHT_DURATION_MS } from "@rodrigo-barraza/utilities-library";
+import {
+  formatBytes,
+  formatDuration,
+  formatPercent,
+  getRootDomain,
+  ACTION_COOLDOWN_MS,
+  ACTION_COOLDOWN_LONG_MS,
+  HIGHLIGHT_DURATION_MS,
+} from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import ContainerDetailPanel from "./ContainerDetailPanelComponent";
 import styles from "./ContainerStatsComponent.module.css";
@@ -46,20 +54,31 @@ function severityColor(pct, thresholds = [40, 80]) {
   return "var(--success)";
 }
 
-
 // ── Inline Percent Bar ──────────────────────────────────────────
 function MiniBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.miniBarTrack}>
-      <div className={styles.miniBarFill} style={{ width: `${clamped}%`, background: color }} />
+      <div
+        className={styles.miniBarFill}
+        style={{ width: `${clamped}%`, background: color }}
+      />
     </div>
   );
 }
 
 // ── Action Cell ─────────────────────────────────────────────────
 
-function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackAvailable }: { [key: string]: any }) {
+function ActionCell({
+  service,
+  onRestart,
+  onStop,
+  onStart,
+  onRollback,
+  rollbackAvailable,
+}: {
+  [key: string]: any;
+}) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -76,8 +95,11 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setStopping(true);
-            try { await onStop?.(service.id, service); }
-            finally { setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS); }
+            try {
+              await onStop?.(service.id, service);
+            } finally {
+              setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
+            }
           }}
           title="Stop"
         >
@@ -90,8 +112,11 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setStarting(true);
-            try { await onStart?.(service.id, service); }
-            finally { setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS); }
+            try {
+              await onStart?.(service.id, service);
+            } finally {
+              setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
+            }
           }}
           title="Start"
         >
@@ -115,8 +140,11 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
           onClick={async (e) => {
             e.stopPropagation();
             setRollingBack(true);
-            try { await onRollback?.(service.id, service); }
-            finally { setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS); }
+            try {
+              await onRollback?.(service.id, service);
+            } finally {
+              setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
+            }
           }}
           title="Rollback to previous build"
         >
@@ -130,12 +158,19 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
         onClick={async (e) => {
           e.stopPropagation();
           setRestarting(true);
-          try { await onRestart?.(service.id, service); }
-          finally { setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS); }
+          try {
+            await onRestart?.(service.id, service);
+          } finally {
+            setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
+          }
         }}
         title="Restart"
       >
-        <RotateCcw size={9} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
+        <RotateCcw
+          size={9}
+          strokeWidth={2.6}
+          className={restarting ? styles.spin : ""}
+        />
       </button>
     </div>
   );
@@ -143,10 +178,22 @@ function ActionCell({ service, onRestart, onStop, onStart, onRollback, rollbackA
 
 // ── Column Definitions ──────────────────────────────────────────
 
-function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, systemInfo, containerHistory }: { [key: string]: any }) {
+function buildColumns({
+  onRestart,
+  onStop,
+  onStart,
+  onRollback,
+  rollbackMap,
+  systemInfo,
+  containerHistory,
+}: {
+  [key: string]: any;
+}) {
   // Build per-device host RAM lookup for detecting uncapped containers
   const sysDevices = systemInfo
-    ? (Array.isArray(systemInfo) ? systemInfo : [systemInfo])
+    ? Array.isArray(systemInfo)
+      ? systemInfo
+      : [systemInfo]
     : [];
   const hostRamByDevice = {};
   for (const d of sysDevices) {
@@ -175,9 +222,7 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       key: "status",
       label: "Status",
       sortable: true,
-      render: (row: any) => (
-        <StatusBadgeComponent healthy={row.healthy} />
-      ),
+      render: (row: any) => <StatusBadgeComponent healthy={row.healthy} />,
       sortValue: (row: any) => (row.healthy ? 1 : 0),
     },
     {
@@ -190,7 +235,9 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
         const color = severityColor(cpuPct);
         return (
           <div className={styles.metricCell}>
-            <span className={styles.metricValue} style={{ color }}>{formatPercent(cpuPct, "adaptive")}</span>
+            <span className={styles.metricValue} style={{ color }}>
+              {formatPercent(cpuPct, "adaptive")}
+            </span>
             <MiniBar percent={cpuPct} color={color} />
           </div>
         );
@@ -203,10 +250,17 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: false,
       render: (row: any) => {
         const history = containerHistory?.[row.containerName]?.cpu;
-        if (!history || history.length < 2) return <span className={styles.dimText}>—</span>;
+        if (!history || history.length < 2)
+          return <span className={styles.dimText}>—</span>;
         return (
           <div className={styles.inlineSparkline}>
-            <SparklineComponent data={history} color="#10b981" maxValue={100} height={24} historyMax={HISTORY_MAX} />
+            <SparklineComponent
+              data={history}
+              color="#10b981"
+              maxValue={100}
+              height={24}
+              historyMax={HISTORY_MAX}
+            />
           </div>
         );
       },
@@ -220,14 +274,18 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
         if (!mem) return <span className={styles.dimText}>—</span>;
         // @ts-ignore
         const hostRam = hostRamByDevice[row.device] || 0;
-        const isCapped = mem.limit > 0 && hostRam > 0 && mem.limit < hostRam * 0.99;
+        const isCapped =
+          mem.limit > 0 && hostRam > 0 && mem.limit < hostRam * 0.99;
         const pct = isCapped ? (mem.used / mem.limit) * 100 : mem.percent;
         const color = severityColor(pct, [60, 85]);
         return (
           <div className={styles.metricCell}>
             <span className={styles.metricValue} style={{ color }}>
               {formatBytes(mem.used)}
-              <span className={styles.metricLimit}> / {isCapped ? formatBytes(mem.limit) : "∞"}</span>
+              <span className={styles.metricLimit}>
+                {" "}
+                / {isCapped ? formatBytes(mem.limit) : "∞"}
+              </span>
             </span>
             <MiniBar percent={pct} color={color} />
           </div>
@@ -241,11 +299,18 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: false,
       render: (row: any) => {
         const history = containerHistory?.[row.containerName]?.mem;
-        if (!history || history.length < 2) return <span className={styles.dimText}>—</span>;
+        if (!history || history.length < 2)
+          return <span className={styles.dimText}>—</span>;
         const maxVal = row._stats?.memory?.limit || Math.max(...history, 1);
         return (
           <div className={styles.inlineSparkline}>
-            <SparklineComponent data={history} color="#3b82f6" maxValue={maxVal} height={24} historyMax={HISTORY_MAX} />
+            <SparklineComponent
+              data={history}
+              color="#3b82f6"
+              maxValue={maxVal}
+              height={24}
+              historyMax={HISTORY_MAX}
+            />
           </div>
         );
       },
@@ -256,15 +321,23 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: true,
       render: (row: any) => {
         const net = row._stats?.network;
-        if (!net || (net.rx === 0 && net.tx === 0)) return <span className={styles.dimText}>—</span>;
+        if (!net || (net.rx === 0 && net.tx === 0))
+          return <span className={styles.dimText}>—</span>;
         return (
           <div className={styles.ioCell}>
-            <span className={styles.ioCompact}><span className={styles.ioArrow}>↓</span>{formatBytes(net.rx)}</span>
-            <span className={styles.ioCompact}><span className={styles.ioArrow}>↑</span>{formatBytes(net.tx)}</span>
+            <span className={styles.ioCompact}>
+              <span className={styles.ioArrow}>↓</span>
+              {formatBytes(net.rx)}
+            </span>
+            <span className={styles.ioCompact}>
+              <span className={styles.ioArrow}>↑</span>
+              {formatBytes(net.tx)}
+            </span>
           </div>
         );
       },
-      sortValue: (row: any) => (row._stats?.network?.rx || 0) + (row._stats?.network?.tx || 0),
+      sortValue: (row: any) =>
+        (row._stats?.network?.rx || 0) + (row._stats?.network?.tx || 0),
     },
 
     {
@@ -274,7 +347,9 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       render: (row: any) => {
         const created = row._stats?.created;
         if (!created) return <span className={styles.dimText}>—</span>;
-        return <DateTimeBadgeComponent date={created * 1000} mini showIcon={false} />;
+        return (
+          <DateTimeBadgeComponent date={created * 1000} mini showIcon={false} />
+        );
       },
       sortValue: (row: any) => row._stats?.created ?? Infinity,
     },
@@ -284,7 +359,10 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: true,
       render: (row: any) =>
         row.visibility ? (
-          <VisibilityBadgeComponent visibility={row.visibility} icons={{ Globe, Lock }} />
+          <VisibilityBadgeComponent
+            visibility={row.visibility}
+            icons={{ Globe, Lock }}
+          />
         ) : null,
       sortValue: (row: any) => row.visibility || "",
     },
@@ -293,9 +371,7 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       label: "Port",
       sortable: true,
       render: (row: any) =>
-        row.port ? (
-          <PortBadgeComponent port={row.port} />
-        ) : null,
+        row.port ? <PortBadgeComponent port={row.port} /> : null,
       sortValue: (row: any) => row.port || 0,
     },
     {
@@ -304,9 +380,7 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: true,
       description: "Internal IP and port (socket address)",
       render: (row: any) =>
-        row.url ? (
-          <AddressBadgeComponent address={row.url} link />
-        ) : null,
+        row.url ? <AddressBadgeComponent address={row.url} link /> : null,
       sortValue: (row: any) => row.url || "",
     },
     {
@@ -328,7 +402,10 @@ function buildColumns({ onRestart, onStop, onStart, onRollback, rollbackMap, sys
       sortable: true,
       render: (row: any) =>
         row.responseTimeMs != null ? (
-          <ResponseTimeBadgeComponent ms={row.responseTimeMs} formatter={formatDuration} />
+          <ResponseTimeBadgeComponent
+            ms={row.responseTimeMs}
+            formatter={formatDuration}
+          />
         ) : null,
       sortValue: (row: any) => row.responseTimeMs ?? Infinity,
     },
@@ -374,7 +451,9 @@ export default function ContainerStatsComponent() {
   const [activeDevice, setActiveDevice] = useState<any>(null); // null = all hosts
   const [rollbackMap, setRollbackMap] = useState<any>({}); // serviceId → boolean
   const didFetch = useRef(false);
-  const [containerHistory, setContainerHistory] = useState<Record<string, { cpu: number[]; mem: number[] }>>({});
+  const [containerHistory, setContainerHistory] = useState<
+    Record<string, { cpu: number[]; mem: number[] }>
+  >({});
 
   // Fetch container stats and project registry, then join them
   const fetchData = useCallback(async () => {
@@ -407,7 +486,7 @@ export default function ContainerStatsComponent() {
           id: svc?.id || `${c.device || "unknown"}-${c.name}`,
           containerName: c.name,
           // Project registry fields
-          healthy: svc?.healthy ?? (c.state === "running"),
+          healthy: svc?.healthy ?? c.state === "running",
           registered: !!svc,
           visibility: svc?.visibility || null,
           port: svc?.port || null,
@@ -441,7 +520,9 @@ export default function ContainerStatsComponent() {
       });
 
       // Sort by name
-      rows.sort((a: any, b: any) => a.containerName.localeCompare(b.containerName));
+      rows.sort((a: any, b: any) =>
+        a.containerName.localeCompare(b.containerName),
+      );
 
       setContainerRows(rows);
 
@@ -460,8 +541,14 @@ export default function ContainerStatsComponent() {
       setContainerStats(statsMap);
 
       // Accumulate sparkline history for CPU and memory
-      const totalCpu = containers.reduce((sum: number, c: any) => sum + (c.cpu?.percent || 0), 0);
-      const totalMem = containers.reduce((sum: number, c: any) => sum + (c.memory?.used || 0), 0);
+      const totalCpu = containers.reduce(
+        (sum: number, c: any) => sum + (c.cpu?.percent || 0),
+        0,
+      );
+      const totalMem = containers.reduce(
+        (sum: number, c: any) => sum + (c.memory?.used || 0),
+        0,
+      );
       setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
       setMemHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalMem]);
 
@@ -471,8 +558,14 @@ export default function ContainerStatsComponent() {
         for (const c of containers) {
           const existing = next[c.name] || { cpu: [], mem: [] };
           next[c.name] = {
-            cpu: [...existing.cpu.slice(-(HISTORY_MAX - 1)), c.cpu?.percent || 0],
-            mem: [...existing.mem.slice(-(HISTORY_MAX - 1)), c.memory?.used || 0],
+            cpu: [
+              ...existing.cpu.slice(-(HISTORY_MAX - 1)),
+              c.cpu?.percent || 0,
+            ],
+            mem: [
+              ...existing.mem.slice(-(HISTORY_MAX - 1)),
+              c.memory?.used || 0,
+            ],
           };
         }
         return next;
@@ -567,7 +660,10 @@ export default function ContainerStatsComponent() {
       await ApiService.rollbackService(serviceId);
       setTimeout(fetchData, ACTION_COOLDOWN_MS);
       // Refresh rollback availability
-      setTimeout(() => checkRollbackAvailability(containerRows), HIGHLIGHT_DURATION_MS);
+      setTimeout(
+        () => checkRollbackAvailability(containerRows),
+        HIGHLIGHT_DURATION_MS,
+      );
     } catch (error) {
       console.error("Rollback failed:", error);
     }
@@ -617,7 +713,15 @@ export default function ContainerStatsComponent() {
     return containerRows.filter((r) => r.device === activeDevice);
   }, [containerRows, activeDevice]);
 
-  const columns = buildColumns({ onRestart: handleRestart, onStop: handleStop, onStart: handleStart, onRollback: handleRollback, rollbackMap, systemInfo, containerHistory });
+  const columns = buildColumns({
+    onRestart: handleRestart,
+    onStop: handleStop,
+    onStart: handleStart,
+    onRollback: handleRollback,
+    rollbackMap,
+    systemInfo,
+    containerHistory,
+  });
   const healthyCount = filteredRows.filter((r) => r.healthy).length;
 
   // Check rollback availability once data loads
@@ -630,14 +734,26 @@ export default function ContainerStatsComponent() {
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
     if (!activeDevice) return Object.values(containerStats);
-    return filteredRows.map((r) => containerStats[r.containerName]).filter(Boolean);
+    return filteredRows
+      .map((r) => containerStats[r.containerName])
+      .filter(Boolean);
   }, [containerStats, activeDevice, filteredRows]);
 
-  const avgCpuUsage = filteredStats.length > 0
-    ? filteredStats.reduce((sum: any, c: any) => sum + (c.cpu?.percent || 0), 0) / filteredStats.length
-    : 0;
-  const totalCpuUsage = filteredStats.reduce((sum: any, c: any) => sum + (c.cpu?.percent || 0), 0);
-  const totalMemUsed = filteredStats.reduce((sum: any, c: any) => sum + (c.memory?.used || 0), 0);
+  const avgCpuUsage =
+    filteredStats.length > 0
+      ? filteredStats.reduce(
+          (sum: any, c: any) => sum + (c.cpu?.percent || 0),
+          0,
+        ) / filteredStats.length
+      : 0;
+  const totalCpuUsage = filteredStats.reduce(
+    (sum: any, c: any) => sum + (c.cpu?.percent || 0),
+    0,
+  );
+  const totalMemUsed = filteredStats.reduce(
+    (sum: any, c: any) => sum + (c.memory?.used || 0),
+    0,
+  );
 
   // Use actual host RAM from systemInfo instead of summing per-container cgroup limits.
   // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
@@ -662,10 +778,16 @@ export default function ContainerStatsComponent() {
     return Object.values(perDevice).reduce((sum, v) => sum + v, 0);
   }, [systemInfo, activeDevice, filteredRows]);
 
-  const memPercent = totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
-  const totalNetRx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.rx || 0), 0);
-  const totalNetTx = filteredRows.reduce((sum, r) => sum + (r._stats?.network?.tx || 0), 0);
-
+  const memPercent =
+    totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
+  const totalNetRx = filteredRows.reduce(
+    (sum, r) => sum + (r._stats?.network?.rx || 0),
+    0,
+  );
+  const totalNetTx = filteredRows.reduce(
+    (sum, r) => sum + (r._stats?.network?.tx || 0),
+    0,
+  );
 
   const getRowClassName = (row: any) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
@@ -688,14 +810,19 @@ export default function ContainerStatsComponent() {
   if (loading) {
     return (
       <div className={styles.section}>
-        <LoadingIndicatorComponent size="small" label="Querying containers…" className="loading-center" />
+        <LoadingIndicatorComponent
+          size="small"
+          label="Querying containers…"
+          className="loading-center"
+        />
       </div>
     );
   }
 
   return (
     <div className={styles.section}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Containers"
         subtitle={`${healthyCount} of ${filteredRows.length} containers healthy · polling every 5s`}
       />
@@ -708,19 +835,25 @@ export default function ContainerStatsComponent() {
             onClick={() => setActiveDevice(null)}
           >
             All Hosts
-            <span className={styles.devicePillCount}>{containerRows.length}</span>
+            <span className={styles.devicePillCount}>
+              {containerRows.length}
+            </span>
           </button>
           {deviceIds.map((deviceId) => (
             <button
               // @ts-ignore
               key={deviceId as string}
               className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
-              onClick={() => setActiveDevice(activeDevice === deviceId ? null : deviceId)}
+              onClick={() =>
+                setActiveDevice(activeDevice === deviceId ? null : deviceId)
+              }
             >
-{/* @ts-ignore */}
-{deviceId as string}
-{/* @ts-ignore */}
-<span className={styles.devicePillCount}>{(deviceContainerCounts as any)[deviceId as string] || 0}</span>
+              {/* @ts-ignore */}
+              {deviceId as string}
+              {/* @ts-ignore */}
+              <span className={styles.devicePillCount}>
+                {(deviceContainerCounts as any)[deviceId as string] || 0}
+              </span>
             </button>
           ))}
         </div>
@@ -730,67 +863,119 @@ export default function ContainerStatsComponent() {
       {!loading && (
         <div className={styles.summaryGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
+            >
               <Server size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{filteredRows.length}</span>
+              <span className={styles.statCardValue}>
+                {filteredRows.length}
+              </span>
               <span className={styles.statCardLabel}>Containers</span>
               <span className={styles.statCardSub}>
                 {activeDevice
                   ? `${healthyCount} healthy on ${activeDevice}`
-                  : (systemInfo
-                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersRunning || 0), 0) : (systemInfo.containersRunning || 0)} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersStopped || 0), 0) : (systemInfo.containersStopped || 0)} stopped`
-                    : `${healthyCount} healthy`)
-                  }
+                  : systemInfo
+                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
+                    : `${healthyCount} healthy`}
               </span>
             </div>
           </div>
 
           <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
             <div className={styles.statCardHeader}>
-              <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
+              <div
+                className={styles.statCardIcon}
+                style={{
+                  color: "#10b981",
+                  background: "rgba(16,185,129,0.08)",
+                }}
+              >
                 <Cpu size={18} strokeWidth={2} />
               </div>
               <div className={styles.statCardContent}>
-                <span className={styles.statCardValue} style={{ color: severityColor(avgCpuUsage) }}>{totalCpuUsage.toFixed(1)}%</span>
+                <span
+                  className={styles.statCardValue}
+                  style={{ color: severityColor(avgCpuUsage) }}
+                >
+                  {totalCpuUsage.toFixed(1)}%
+                </span>
                 <span className={styles.statCardLabel}>CPU Usage</span>
-                <span className={styles.statCardSub}>{avgCpuUsage.toFixed(1)}% avg per container</span>
+                <span className={styles.statCardSub}>
+                  {avgCpuUsage.toFixed(1)}% avg per container
+                </span>
               </div>
             </div>
-            <SparklineComponent data={cpuHistory} color="#10b981" maxValue={100} height={48} historyMax={HISTORY_MAX} />
+            <SparklineComponent
+              data={cpuHistory}
+              color="#10b981"
+              maxValue={100}
+              height={48}
+              historyMax={HISTORY_MAX}
+            />
           </div>
 
           <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
             <div className={styles.statCardHeader}>
-              <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
+              <div
+                className={styles.statCardIcon}
+                style={{
+                  color: "#3b82f6",
+                  background: "rgba(59,130,246,0.08)",
+                }}
+              >
                 <MemoryStick size={18} strokeWidth={2} />
               </div>
               <div className={styles.statCardContent}>
-                <span className={styles.statCardValue} style={{ color: severityColor(memPercent, [60, 85]) }}>{formatBytes(totalMemUsed)}</span>
+                <span
+                  className={styles.statCardValue}
+                  style={{ color: severityColor(memPercent, [60, 85]) }}
+                >
+                  {formatBytes(totalMemUsed)}
+                </span>
                 <span className={styles.statCardLabel}>Memory Used</span>
-                <span className={styles.statCardSub}>{totalMemLimit ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total` : "—"}</span>
+                <span className={styles.statCardSub}>
+                  {totalMemLimit
+                    ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total`
+                    : "—"}
+                </span>
               </div>
             </div>
-            <SparklineComponent data={memHistory} color="#3b82f6" maxValue={totalMemLimit || 1} height={48} historyMax={HISTORY_MAX} />
+            <SparklineComponent
+              data={memHistory}
+              color="#3b82f6"
+              maxValue={totalMemLimit || 1}
+              height={48}
+              historyMax={HISTORY_MAX}
+            />
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
+            >
               <Network size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{formatBytes(totalNetRx + totalNetTx)}</span>
+              <span className={styles.statCardValue}>
+                {formatBytes(totalNetRx + totalNetTx)}
+              </span>
               <span className={styles.statCardLabel}>Network I/O</span>
-              <span className={styles.statCardSub}>↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx</span>
+              <span className={styles.statCardSub}>
+                ↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx
+              </span>
             </div>
           </div>
-
         </div>
       )}
 
       {filteredRows.length === 0 ? (
-        <div className={styles.emptyState}>No containers found{activeDevice ? ` on ${activeDevice}` : ""}</div>
+        <div className={styles.emptyState}>
+          No containers found{activeDevice ? ` on ${activeDevice}` : ""}
+        </div>
       ) : (
         <TableComponent
           title="Containers"
@@ -811,16 +996,21 @@ export default function ContainerStatsComponent() {
         onClose={() => setSelectedContainer(null)}
         title={selectedContainer?.containerName || "Container Detail"}
         width={540}
-        headerActions={selectedContainer ? (
-          <ActionCell
-            service={selectedContainer}
-            onRestart={handleRestart}
-            onStop={handleStop}
-            onStart={handleStart}
-            onRollback={handleRollback}
-            rollbackAvailable={selectedContainer?.restartable && !!rollbackMap[selectedContainer.id]}
-          />
-        ) : null}
+        headerActions={
+          selectedContainer ? (
+            <ActionCell
+              service={selectedContainer}
+              onRestart={handleRestart}
+              onStop={handleStop}
+              onStart={handleStart}
+              onRollback={handleRollback}
+              rollbackAvailable={
+                selectedContainer?.restartable &&
+                !!rollbackMap[selectedContainer.id]
+              }
+            />
+          ) : null
+        }
       >
         {selectedContainer && (
           <ContainerDetailPanel
@@ -832,4 +1022,3 @@ export default function ContainerStatsComponent() {
     </div>
   );
 }
-

@@ -2,7 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Cpu, GitFork, Globe, Lock, MemoryStick, Package, Play, RotateCcw, ScrollText, Server, Square, Undo2 } from "lucide-react";
+import {
+  Cpu,
+  GitFork,
+  Globe,
+  Lock,
+  MemoryStick,
+  Package,
+  Play,
+  RotateCcw,
+  ScrollText,
+  Server,
+  Square,
+  Undo2,
+} from "lucide-react";
 import {
   AddressBadgeComponent,
   BadgeComponent,
@@ -15,14 +28,24 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatElapsedTime, formatPercent, ACTION_COOLDOWN_MS, ACTION_COOLDOWN_LONG_MS } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_ICONS, SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import {
+  formatBytes,
+  formatDuration,
+  formatElapsedTime,
+  formatPercent,
+  ACTION_COOLDOWN_MS,
+  ACTION_COOLDOWN_LONG_MS,
+} from "@rodrigo-barraza/utilities-library";
+import {
+  SERVICE_TYPE_ICONS,
+  SERVICE_TYPE_COLORS,
+  DEPLOY_TIER_COLORS,
+  DEFAULT_SERVICE_TYPE_ICON,
+} from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ServiceCardComponent.module.css";
 
-
 const MAX_SPARKLINE_POINTS = 60;
-
 
 /** Severity color from percentage. */
 // @ts-ignore
@@ -33,7 +56,15 @@ function severityColor(pct, thresholds = [40, 80]) {
 }
 
 // ── Inline Sparkline Canvas ────────────────────────────────────────
-function Sparkline({ data, color, fillColor, max, height = 20 }: { [key: string]: any }) {
+function Sparkline({
+  data,
+  color,
+  fillColor,
+  max,
+  height = 20,
+}: {
+  [key: string]: any;
+}) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -102,14 +133,26 @@ function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
-      <div className={styles.barFill} style={{ width: `${clamped}%`, background: color }} />
+      <div
+        className={styles.barFill}
+        style={{ width: `${clamped}%`, background: color }}
+      />
     </div>
   );
 }
 
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
-export default function ServiceCardComponent({ service, containerStats, onRestart, onStop, onStart, onRollback }: { [key: string]: any }) {
+export default function ServiceCardComponent({
+  service,
+  containerStats,
+  onRestart,
+  onStop,
+  onStart,
+  onRollback,
+}: {
+  [key: string]: any;
+}) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -117,12 +160,17 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
   const [rollbackAvailable, setRollbackAvailable] = useState(false);
   const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
   const isHealthy = isNonDeployed ? true : service.healthy;
-  const statusClass = isNonDeployed ? styles.nonDeployed : (isHealthy ? styles.healthy : styles.unhealthy);
+  const statusClass = isNonDeployed
+    ? styles.nonDeployed
+    : isHealthy
+      ? styles.healthy
+      : styles.unhealthy;
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
   // @ts-ignore
-  const TypeIcon = SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+  const TypeIcon =
+    SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 
   // Lazily check rollback availability for restartable services
   useEffect(() => {
@@ -162,7 +210,11 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   }
                 }}
               >
-                <Square size={10} strokeWidth={2.6} className={stopping ? styles.pulse : ""} />
+                <Square
+                  size={10}
+                  strokeWidth={2.6}
+                  className={stopping ? styles.pulse : ""}
+                />
                 {stopping ? "Stopping…" : "Stop"}
               </button>
             ) : (
@@ -178,7 +230,12 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   }
                 }}
               >
-                <Play size={10} strokeWidth={2.6} fill="currentColor" className={starting ? styles.pulse : ""} />
+                <Play
+                  size={10}
+                  strokeWidth={2.6}
+                  fill="currentColor"
+                  className={starting ? styles.pulse : ""}
+                />
                 {starting ? "Starting…" : "Start"}
               </button>
             )}
@@ -200,11 +257,18 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                   try {
                     await onRollback?.(service.id);
                   } finally {
-                    setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
+                    setTimeout(
+                      () => setRollingBack(false),
+                      ACTION_COOLDOWN_LONG_MS,
+                    );
                   }
                 }}
               >
-                <Undo2 size={10} strokeWidth={2.6} className={rollingBack ? styles.pulse : ""} />
+                <Undo2
+                  size={10}
+                  strokeWidth={2.6}
+                  className={rollingBack ? styles.pulse : ""}
+                />
                 {rollingBack ? "Rolling back…" : "Rollback"}
               </button>
             )}
@@ -221,7 +285,11 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
                 }
               }}
             >
-              <RotateCcw size={10} strokeWidth={2.6} className={restarting ? styles.spin : ""} />
+              <RotateCcw
+                size={10}
+                strokeWidth={2.6}
+                className={restarting ? styles.spin : ""}
+              />
               {restarting ? "Restarting…" : "Restart"}
             </button>
           </div>
@@ -254,23 +322,39 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             {/* CPU */}
             <div className={styles.metricBlock}>
               <div className={styles.metricHeader}>
-                <Cpu size={11} strokeWidth={2.2} className={styles.metricIcon} />
+                <Cpu
+                  size={11}
+                  strokeWidth={2.2}
+                  className={styles.metricIcon}
+                />
                 <span className={styles.metricLabel}>CPU</span>
                 <span className={styles.metricValues}>
-                  <span style={{ color: severityColor(containerStats.cpu.percent) }}>
+                  <span
+                    style={{ color: severityColor(containerStats.cpu.percent) }}
+                  >
                     {formatPercent(containerStats.cpu.percent, "adaptive")}
                   </span>
                   <span className={styles.metricDim}>
-                    · {containerStats.cpu.cores} core{containerStats.cpu.cores !== 1 ? "s" : ""}
+                    · {containerStats.cpu.cores} core
+                    {containerStats.cpu.cores !== 1 ? "s" : ""}
                   </span>
                 </span>
               </div>
-              <PercentBar percent={containerStats.cpu.percent} color={severityColor(containerStats.cpu.percent)} />
+              <PercentBar
+                percent={containerStats.cpu.percent}
+                color={severityColor(containerStats.cpu.percent)}
+              />
               {containerStats.spark?.cpu?.length >= 2 && (
                 <Sparkline
                   data={containerStats.spark.cpu}
                   color={severityColor(containerStats.cpu.percent)}
-                  fillColor={containerStats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : containerStats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                  fillColor={
+                    containerStats.cpu.percent > 80
+                      ? "rgba(239,68,68,0.12)"
+                      : containerStats.cpu.percent > 40
+                        ? "rgba(245,158,11,0.12)"
+                        : "rgba(16,185,129,0.12)"
+                  }
                   max={100}
                 />
               )}
@@ -279,26 +363,53 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
             {/* Memory */}
             <div className={styles.metricBlock}>
               <div className={styles.metricHeader}>
-                <MemoryStick size={11} strokeWidth={2.2} className={styles.metricIcon} />
+                <MemoryStick
+                  size={11}
+                  strokeWidth={2.2}
+                  className={styles.metricIcon}
+                />
                 <span className={styles.metricLabel}>RAM</span>
                 <span className={styles.metricValues}>
-                  <span style={{ color: severityColor(containerStats.memory.percent, [60, 85]) }}>
+                  <span
+                    style={{
+                      color: severityColor(
+                        containerStats.memory.percent,
+                        [60, 85],
+                      ),
+                    }}
+                  >
                     {formatBytes(containerStats.memory.used)}
                   </span>
                   <span className={styles.metricDim}>
                     / {formatBytes(containerStats.memory.limit)}
                   </span>
-                  <span style={{ color: severityColor(containerStats.memory.percent, [60, 85]) }}>
+                  <span
+                    style={{
+                      color: severityColor(
+                        containerStats.memory.percent,
+                        [60, 85],
+                      ),
+                    }}
+                  >
                     {formatPercent(containerStats.memory.percent, "adaptive")}
                   </span>
                 </span>
               </div>
-              <PercentBar percent={containerStats.memory.percent} color={severityColor(containerStats.memory.percent, [60, 85])} />
+              <PercentBar
+                percent={containerStats.memory.percent}
+                color={severityColor(containerStats.memory.percent, [60, 85])}
+              />
               {containerStats.spark?.mem?.length >= 2 && (
                 <Sparkline
                   data={containerStats.spark.mem}
                   color={severityColor(containerStats.memory.percent, [60, 85])}
-                  fillColor={containerStats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : containerStats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                  fillColor={
+                    containerStats.memory.percent > 85
+                      ? "rgba(239,68,68,0.12)"
+                      : containerStats.memory.percent > 60
+                        ? "rgba(245,158,11,0.12)"
+                        : "rgba(16,185,129,0.12)"
+                  }
                   max={containerStats.memory.limit}
                 />
               )}
@@ -309,65 +420,78 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         {/* ── Stage / Visibility ── */}
         <div className={styles.detail}>
           <span className={styles.detailLabel}>Environment</span>
-          <BadgeComponent
-            variant={isProduction ? "success" : "info"}
-          >
+          <BadgeComponent variant={isProduction ? "success" : "info"}>
             {service.environment || "Unknown"}
           </BadgeComponent>
         </div>
 
-        {service.projectType && (() => {
-          // @ts-ignore
-          const colors = SERVICE_TYPE_COLORS[service.projectType];
-          return (
-            <div className={styles.detail}>
-              <span className={styles.detailLabel}>Type</span>
-              <BadgeComponent
-                variant="info"
-                style={colors ? {
-                  color: colors.color,
-                  background: colors.subtle,
-                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-                } : undefined}
-              >
-                {service.projectType}
-              </BadgeComponent>
-            </div>
-          );
-        })()}
+        {service.projectType &&
+          (() => {
+            // @ts-ignore
+            const colors = SERVICE_TYPE_COLORS[service.projectType];
+            return (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Type</span>
+                <BadgeComponent
+                  variant="info"
+                  style={
+                    colors
+                      ? {
+                          color: colors.color,
+                          background: colors.subtle,
+                          borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                        }
+                      : undefined
+                  }
+                >
+                  {service.projectType}
+                </BadgeComponent>
+              </div>
+            );
+          })()}
 
-        {service.deployTier != null && (() => {
-          // @ts-ignore
-          const colors = DEPLOY_TIER_COLORS[service.deployTier];
-          return (
-            <div className={styles.detail}>
-              <span className={styles.detailLabel}>Tier</span>
-              <BadgeComponent
-                variant="info"
-                style={colors ? {
-                  color: colors.color,
-                  background: colors.subtle,
-                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-                } : undefined}
-              >
-                {`Tier ${service.deployTier}`}
-              </BadgeComponent>
-            </div>
-          );
-        })()}
+        {service.deployTier != null &&
+          (() => {
+            // @ts-ignore
+            const colors = DEPLOY_TIER_COLORS[service.deployTier];
+            return (
+              <div className={styles.detail}>
+                <span className={styles.detailLabel}>Tier</span>
+                <BadgeComponent
+                  variant="info"
+                  style={
+                    colors
+                      ? {
+                          color: colors.color,
+                          background: colors.subtle,
+                          borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                        }
+                      : undefined
+                  }
+                >
+                  {`Tier ${service.deployTier}`}
+                </BadgeComponent>
+              </div>
+            );
+          })()}
 
         {service.visibility && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Visibility</span>
-            <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
+            <VisibilityBadgeComponent
+              visibility={service.visibility}
+              icons={{ Globe, Lock }}
+            />
           </div>
         )}
-
 
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Response</span>
-            <ResponseTimeBadgeComponent ms={service.responseTimeMs} formatter={formatDuration} />
+            <ResponseTimeBadgeComponent
+              ms={service.responseTimeMs}
+              formatter={formatDuration}
+            />
           </div>
         )}
 
@@ -466,7 +590,10 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
         {service.repo && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Repository</span>
-            <RepositoryBadgeComponent repo={service.repo} icons={{ Github: GitFork }} />
+            <RepositoryBadgeComponent
+              repo={service.repo}
+              icons={{ Github: GitFork }}
+            />
           </div>
         )}
 
@@ -479,13 +606,8 @@ export default function ServiceCardComponent({ service, containerStats, onRestar
       </div>
 
       {service.error && !isHealthy && (
-        <div className={styles.errorBar}>
-          {service.error}
-        </div>
+        <div className={styles.errorBar}>{service.error}</div>
       )}
-
-
     </div>
   );
 }
-

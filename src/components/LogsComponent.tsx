@@ -11,7 +11,10 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { PageHeaderComponent, SearchInputComponent } from "@rodrigo-barraza/components-library";
+import {
+  PageHeaderComponent,
+  SearchInputComponent,
+} from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";
@@ -24,25 +27,25 @@ const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
 const ANSI_RE = /\x1b\[([0-9;]*)m/g;
 
 const ANSI_COLORS = [
-  null,           // 0 – default (inherit)
-  "#ef4444",      // 1 – red
-  "#22c55e",      // 2 – green
-  "#eab308",      // 3 – yellow
-  "#3b82f6",      // 4 – blue
-  "#a855f7",      // 5 – magenta
-  "#06b6d4",      // 6 – cyan
-  "#d4d4d8",      // 7 – white
+  null, // 0 – default (inherit)
+  "#ef4444", // 1 – red
+  "#22c55e", // 2 – green
+  "#eab308", // 3 – yellow
+  "#3b82f6", // 4 – blue
+  "#a855f7", // 5 – magenta
+  "#06b6d4", // 6 – cyan
+  "#d4d4d8", // 7 – white
 ];
 
 const ANSI_BRIGHT_COLORS = [
-  "#71717a",      // 0 – bright black (gray)
-  "#f87171",      // 1 – bright red
-  "#4ade80",      // 2 – bright green
-  "#fde047",      // 3 – bright yellow
-  "#60a5fa",      // 4 – bright blue
-  "#c084fc",      // 5 – bright magenta
-  "#22d3ee",      // 6 – bright cyan
-  "#ffffff",      // 7 – bright white
+  "#71717a", // 0 – bright black (gray)
+  "#f87171", // 1 – bright red
+  "#4ade80", // 2 – bright green
+  "#fde047", // 3 – bright yellow
+  "#60a5fa", // 4 – bright blue
+  "#c084fc", // 5 – bright magenta
+  "#22d3ee", // 6 – bright cyan
+  "#ffffff", // 7 – bright white
 ];
 
 /**
@@ -99,7 +102,15 @@ function parseAnsi(text: any) {
     // Push text before this escape
     if (match.index > lastIndex) {
       const chunk = text.slice(lastIndex, match.index);
-      if (color || bgColor || bold || dim || italic || underline || strikethrough) {
+      if (
+        color ||
+        bgColor ||
+        bold ||
+        dim ||
+        italic ||
+        underline ||
+        strikethrough
+      ) {
         const style = {};
         // @ts-ignore
         if (color) style.color = color;
@@ -114,8 +125,15 @@ function parseAnsi(text: any) {
         // @ts-ignore
         if (underline) style.textDecoration = "underline";
         // @ts-ignore
-        if (strikethrough) style.textDecoration = (style.textDecoration ? style.textDecoration + " line-through" : "line-through");
-        parts.push(<span key={key++} style={style}>{chunk}</span>);
+        if (strikethrough)
+          style.textDecoration = style.textDecoration
+            ? style.textDecoration + " line-through"
+            : "line-through";
+        parts.push(
+          <span key={key++} style={style}>
+            {chunk}
+          </span>,
+        );
       } else {
         parts.push(chunk);
       }
@@ -127,15 +145,22 @@ function parseAnsi(text: any) {
     for (let i = 0; i < codes.length; i++) {
       const c = codes[i];
       if (c === 0) {
-        color = null; bgColor = null; bold = false; dim = false;
-        italic = false; underline = false; strikethrough = false;
+        color = null;
+        bgColor = null;
+        bold = false;
+        dim = false;
+        italic = false;
+        underline = false;
+        strikethrough = false;
       } else if (c === 1) bold = true;
       else if (c === 2) dim = true;
       else if (c === 3) italic = true;
       else if (c === 4) underline = true;
       else if (c === 9) strikethrough = true;
-      else if (c === 22) { bold = false; dim = false; }
-      else if (c === 23) italic = false;
+      else if (c === 22) {
+        bold = false;
+        dim = false;
+      } else if (c === 23) italic = false;
       else if (c === 24) underline = false;
       else if (c === 29) strikethrough = false;
       else if (c === 39) color = null;
@@ -145,9 +170,11 @@ function parseAnsi(text: any) {
       else if (c >= 90 && c <= 97) color = ANSI_BRIGHT_COLORS[c - 90];
       else if (c >= 100 && c <= 107) bgColor = ANSI_BRIGHT_COLORS[c - 100];
       else if (c === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
-        color = ansi256ToHex(codes[i + 2]); i += 2;
+        color = ansi256ToHex(codes[i + 2]);
+        i += 2;
       } else if (c === 48 && codes[i + 1] === 5 && codes[i + 2] != null) {
-        bgColor = ansi256ToHex(codes[i + 2]); i += 2;
+        bgColor = ansi256ToHex(codes[i + 2]);
+        i += 2;
       }
     }
   }
@@ -155,7 +182,15 @@ function parseAnsi(text: any) {
   // Push remaining text after last escape
   if (lastIndex < text.length) {
     const chunk = text.slice(lastIndex);
-    if (color || bgColor || bold || dim || italic || underline || strikethrough) {
+    if (
+      color ||
+      bgColor ||
+      bold ||
+      dim ||
+      italic ||
+      underline ||
+      strikethrough
+    ) {
       const style = {};
       // @ts-ignore
       if (color) style.color = color;
@@ -170,8 +205,15 @@ function parseAnsi(text: any) {
       // @ts-ignore
       if (underline) style.textDecoration = "underline";
       // @ts-ignore
-      if (strikethrough) style.textDecoration = (style.textDecoration ? style.textDecoration + " line-through" : "line-through");
-      parts.push(<span key={key++} style={style}>{chunk}</span>);
+      if (strikethrough)
+        style.textDecoration = style.textDecoration
+          ? style.textDecoration + " line-through"
+          : "line-through";
+      parts.push(
+        <span key={key++} style={style}>
+          {chunk}
+        </span>,
+      );
     } else {
       parts.push(chunk);
     }
@@ -215,7 +257,11 @@ function parseLine(raw: any) {
   if (match) {
     const ts = match[1];
     const content = raw.slice(match[0].length);
-    return { timestamp: ts.slice(11, 23), content, level: detectLevel(content) };
+    return {
+      timestamp: ts.slice(11, 23),
+      content,
+      level: detectLevel(content),
+    };
   }
   return { timestamp: null, content: raw, level: detectLevel(raw) };
 }
@@ -358,7 +404,8 @@ export default function LogsComponent() {
   // ── Auto-connect when ?container= is in the URL ─────────────
   useEffect(() => {
     if (didAutoConnect.current) return;
-    const containerParam = searchParams.get("container") || searchParams.get("service");
+    const containerParam =
+      searchParams.get("container") || searchParams.get("service");
     if (!containerParam || containers.length === 0) return;
 
     const match = containers.find((c) => c.name === containerParam);
@@ -465,7 +512,8 @@ export default function LogsComponent() {
 
   return (
     <div className={styles.logs}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Logs"
         subtitle={
           activeContainer
@@ -491,9 +539,12 @@ export default function LogsComponent() {
           for (const container of sorted) {
             if (container.device !== lastDevice) {
               groups.push(
-                <span key={`device-${container.device}`} className={styles.deviceLabel}>
+                <span
+                  key={`device-${container.device}`}
+                  className={styles.deviceLabel}
+                >
                   {container.deviceName || container.device}
-                </span>
+                </span>,
               );
               lastDevice = container.device;
             }
@@ -501,24 +552,32 @@ export default function LogsComponent() {
             const dotClass = [
               styles.chipDot,
               isRunning ? styles.chipDotHealthy : styles.chipDotUnhealthy,
-            ].filter(Boolean).join(" ");
+            ]
+              .filter(Boolean)
+              .join(" ");
 
             const chipClass = [
               styles.serviceChip,
               activeContainer === container.name ? styles.active : "",
               !isRunning ? styles.chipStateStopped : "",
-            ].filter(Boolean).join(" ");
+            ]
+              .filter(Boolean)
+              .join(" ");
 
             groups.push(
               <button
                 key={`${container.device}-${container.name}`}
                 className={chipClass}
-                onClick={() => connectToContainer(container.name, container.device)}
+                onClick={() =>
+                  connectToContainer(container.name, container.device)
+                }
               >
                 <span className={dotClass} />
                 {container.name}
-                <span className={styles.chipDevice}>{container.deviceName}</span>
-              </button>
+                <span className={styles.chipDevice}>
+                  {container.deviceName}
+                </span>
+              </button>,
             );
           }
           return groups;
@@ -535,7 +594,9 @@ export default function LogsComponent() {
                 className={`${styles.terminalDot} ${connected ? styles.connected : ""}`}
               />
               {activeContainerName}
-              {connected && <span style={{ opacity: 0.5, marginLeft: 2 }}>live</span>}
+              {connected && (
+                <span style={{ opacity: 0.5, marginLeft: 2 }}>live</span>
+              )}
             </div>
 
             <div className={styles.terminalActions}>
@@ -566,7 +627,11 @@ export default function LogsComponent() {
                 }}
                 title="Search (Ctrl+F)"
               >
-                {showSearch ? <X size={13} strokeWidth={1.8} /> : <Search size={13} strokeWidth={1.8} />}
+                {showSearch ? (
+                  <X size={13} strokeWidth={1.8} />
+                ) : (
+                  <Search size={13} strokeWidth={1.8} />
+                )}
               </button>
 
               <button
@@ -602,11 +667,7 @@ export default function LogsComponent() {
           </div>
 
           {/* Error banner */}
-          {error && (
-            <div className={styles.errorBanner}>
-              ✕ {error}
-            </div>
-          )}
+          {error && <div className={styles.errorBanner}>✕ {error}</div>}
 
           {/* Log body */}
           <div
@@ -629,7 +690,10 @@ export default function LogsComponent() {
             )}
 
             {filteredLines.map((line, i) => (
-<div key={i} className={`${styles.logLine} ${(LINE_LEVEL_CLASS as any)[line.level] || ""}`}>
+              <div
+                key={i}
+                className={`${styles.logLine} ${(LINE_LEVEL_CLASS as any)[line.level] || ""}`}
+              >
                 <span className={styles.lineNumber}>{i + 1}</span>
                 {line.timestamp && (
                   <span className={styles.lineTimestamp}>{line.timestamp}</span>

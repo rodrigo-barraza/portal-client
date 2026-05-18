@@ -204,8 +204,6 @@
   border-radius: var(--border-radius-sm);
 }
 
-
-
 /* ══════════════════════════════════════════════════════════════════
    Tab: Topology (Mini SVG Graph)
    ══════════════════════════════════════════════════════════════════ */
@@ -242,7 +240,9 @@
 }
 
 @keyframes miniEdgeFlow {
-  to { stroke-dashoffset: -24; }
+  to {
+    stroke-dashoffset: -24;
+  }
 }
 
 .miniEdgeFlowing .miniEdgeLine {
@@ -270,14 +270,26 @@
     box-shadow var(--transition-fast);
 }
 
-.miniNodeInternal .miniNodeIconWrap { color: var(--success); }
-.miniNodeInternal { border-color: rgba(16, 185, 129, 0.1); }
+.miniNodeInternal .miniNodeIconWrap {
+  color: var(--success);
+}
+.miniNodeInternal {
+  border-color: rgba(16, 185, 129, 0.1);
+}
 
-.miniNodeExternal .miniNodeIconWrap { color: var(--node-external); }
-.miniNodeExternal { border-color: rgba(45, 212, 191, 0.1); }
+.miniNodeExternal .miniNodeIconWrap {
+  color: var(--node-external);
+}
+.miniNodeExternal {
+  border-color: rgba(45, 212, 191, 0.1);
+}
 
-.miniNodeInfra .miniNodeIconWrap { color: var(--node-infra); }
-.miniNodeInfra { border-color: rgba(168, 85, 247, 0.1); }
+.miniNodeInfra .miniNodeIconWrap {
+  color: var(--node-infra);
+}
+.miniNodeInfra {
+  border-color: rgba(168, 85, 247, 0.1);
+}
 
 .miniNodeSelf {
   border-color: var(--accent-color) !important;
@@ -466,8 +478,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .realtimeValue {
@@ -585,8 +602,12 @@
   }
 
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   .metricsGrid {

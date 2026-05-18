@@ -11,7 +11,13 @@ import {
   Container,
   ChevronDown,
 } from "lucide-react";
-import { BadgeComponent, ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, StatusDotComponent } from "@rodrigo-barraza/components-library";
+import {
+  BadgeComponent,
+  ButtonComponent,
+  LoadingIndicatorComponent,
+  PageHeaderComponent,
+  StatusDotComponent,
+} from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
@@ -34,7 +40,6 @@ const DEVICE_COLOR_MAP = {
   SBC: "var(--success)",
   NAS: "var(--info)",
 };
-
 
 /**
  * Color by severity threshold for CPU/memory values.
@@ -121,11 +126,14 @@ export default function DevicesComponent() {
   });
 
   const totalContainers = containers.length;
-  const runningContainers = containers.filter((c) => c.state === "running").length;
+  const runningContainers = containers.filter(
+    (c) => c.state === "running",
+  ).length;
 
   return (
     <div className={styles.devices}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Devices"
         subtitle={
           loading
@@ -144,7 +152,11 @@ export default function DevicesComponent() {
       </PageHeaderComponent>
 
       {loading ? (
-        <LoadingIndicatorComponent size="small" label="Discovering devices…" className="loading-center" />
+        <LoadingIndicatorComponent
+          size="small"
+          label="Discovering devices…"
+          className="loading-center"
+        />
       ) : (
         <div className={styles.deviceList}>
           {sortedDevices.map((device, index) => (
@@ -172,7 +184,8 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
   const accentColor = DEVICE_COLOR_MAP[device.type] || "var(--accent-color)";
   // @ts-ignore
   const runningCount = containers.filter((c) => c.state === "running").length;
-  const allRunning = runningCount === containers.length && containers.length > 0;
+  const allRunning =
+    runningCount === containers.length && containers.length > 0;
 
   return (
     <div
@@ -216,11 +229,8 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
         <code className={styles.hostname}>{device.hostname}</code>
       </div>
 
-
       {/* ── Notes ── */}
-      {device.notes && (
-        <p className={styles.deviceNotes}>{device.notes}</p>
-      )}
+      {device.notes && <p className={styles.deviceNotes}>{device.notes}</p>}
 
       {/* ── Containers Table ── */}
       {containers.length > 0 && (
@@ -237,19 +247,17 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
               className={`${styles.chevron} ${containersExpanded ? styles.chevronExpanded : ""}`}
             />
           </button>
-          <div className={`${styles.servicesCollapsible} ${containersExpanded ? styles.servicesExpanded : ""}`}>
+          <div
+            className={`${styles.servicesCollapsible} ${containersExpanded ? styles.servicesExpanded : ""}`}
+          >
             <div className={styles.servicesTable}>
               {containers.map((container: any) => (
-                <ContainerRow
-                  key={container.name}
-                  container={container}
-                />
+                <ContainerRow key={container.name} container={container} />
               ))}
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -260,14 +268,20 @@ function ContainerRow({ container }: { [key: string]: any }) {
   const isRunning = container.state === "running";
 
   return (
-    <div className={`${styles.serviceRow} ${isRunning ? styles.healthy : styles.unhealthy}`}>
+    <div
+      className={`${styles.serviceRow} ${isRunning ? styles.healthy : styles.unhealthy}`}
+    >
       <div className={styles.serviceLeft}>
         <StatusDotComponent
           variant={isRunning ? "healthy" : "unhealthy"}
           size="sm"
           pulse={isRunning}
         />
-        <Container size={13} strokeWidth={1.8} className={styles.containerIcon} />
+        <Container
+          size={13}
+          strokeWidth={1.8}
+          className={styles.containerIcon}
+        />
         <span className={styles.svcName}>{container.name}</span>
         <BadgeComponent variant={isRunning ? "success" : "danger"}>
           {container.state || "unknown"}
@@ -284,17 +298,26 @@ function ContainerRow({ container }: { [key: string]: any }) {
               title={`CPU: ${formatPercent(container.cpu.percent, "adaptive")} · ${container.cpu.cores} core${container.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
-              <span className={styles.metricValue}>{formatPercent(container.cpu.percent, "adaptive")}</span>
+              <span className={styles.metricValue}>
+                {formatPercent(container.cpu.percent, "adaptive")}
+              </span>
             </span>
             {container.memory && (
               <span
                 className={styles.metricBadge}
                 // @ts-ignore
-                style={{ "--metric-color": severityColor(container.memory.percent, [60, 85]) }}
+                style={{
+                  "--metric-color": severityColor(
+                    container.memory.percent,
+                    [60, 85],
+                  ),
+                }}
                 title={`RAM: ${formatBytes(container.memory.used)} / ${formatBytes(container.memory.limit)} (${formatPercent(container.memory.percent, "adaptive")})`}
               >
                 <MemoryStick size={10} strokeWidth={2.4} />
-                <span className={styles.metricValue}>{formatBytes(container.memory.used)}</span>
+                <span className={styles.metricValue}>
+                  {formatBytes(container.memory.used)}
+                </span>
               </span>
             )}
           </div>
@@ -307,5 +330,3 @@ function ContainerRow({ container }: { [key: string]: any }) {
     </div>
   );
 }
-
-

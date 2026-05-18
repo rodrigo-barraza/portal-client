@@ -24,12 +24,15 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
+import {
+  formatBytes,
+  formatDuration,
+  formatPercent,
+} from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import styles from "./ContainerDetailPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
-
 
 // @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
@@ -40,7 +43,15 @@ function severityColor(pct, thresholds = [40, 80]) {
 
 // ── Sparkline (Canvas) ────────────────────────────────────────────
 
-function Sparkline({ data, color, fillColor, max, height = 36 }: { [key: string]: any }) {
+function Sparkline({
+  data,
+  color,
+  fillColor,
+  max,
+  height = 36,
+}: {
+  [key: string]: any;
+}) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -108,7 +119,10 @@ function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
-      <div className={styles.barFill} style={{ width: `${clamped}%`, background: color }} />
+      <div
+        className={styles.barFill}
+        style={{ width: `${clamped}%`, background: color }}
+      />
     </div>
   );
 }
@@ -139,7 +153,12 @@ function formatTimestamp(ts: any) {
 
 // ── Main Panel ────────────────────────────────────────────────────
 
-export default function ContainerDetailPanel({ container, stats }: { [key: string]: any }) {
+export default function ContainerDetailPanel({
+  container,
+  stats,
+}: {
+  [key: string]: any;
+}) {
   const [history, setHistory] = useState<any>(null);
   const didFetch = useRef(false);
 
@@ -166,9 +185,16 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
               netTxPoints.push(c.netTx ?? 0);
             }
           }
-          setHistory({ cpu: cpuPoints, mem: memPoints, netRx: netRxPoints, netTx: netTxPoints });
+          setHistory({
+            cpu: cpuPoints,
+            mem: memPoints,
+            netRx: netRxPoints,
+            netTx: netTxPoints,
+          });
         }
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     })();
   }, [container]);
 
@@ -189,19 +215,28 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {container.visibility && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Visibility</span>
-              <VisibilityBadgeComponent visibility={container.visibility} icons={{ Globe, Lock }} />
+              <VisibilityBadgeComponent
+                visibility={container.visibility}
+                icons={{ Globe, Lock }}
+              />
             </div>
           )}
           {container.responseTimeMs != null && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Response</span>
-              <ResponseTimeBadgeComponent ms={container.responseTimeMs} formatter={formatDuration} />
+              <ResponseTimeBadgeComponent
+                ms={container.responseTimeMs}
+                formatter={formatDuration}
+              />
             </div>
           )}
           {container.device && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Device</span>
-              <DeviceBadgeComponent device={container.device} icons={{ Server }} />
+              <DeviceBadgeComponent
+                device={container.device}
+                icons={{ Server }}
+              />
             </div>
           )}
         </div>
@@ -221,7 +256,9 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
             {stats.state && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>State</span>
-                <span className={styles.stateBadge} data-state={stats.state}>{stats.state}</span>
+                <span className={styles.stateBadge} data-state={stats.state}>
+                  {stats.state}
+                </span>
               </div>
             )}
             {uptime && (
@@ -233,13 +270,17 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
             {stats.created && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Created</span>
-                <span className={styles.fieldValueMono}>{formatTimestamp(stats.created)}</span>
+                <span className={styles.fieldValueMono}>
+                  {formatTimestamp(stats.created)}
+                </span>
               </div>
             )}
             {stats.command && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Command</span>
-                <span className={styles.commandText} title={stats.command}>{stats.command}</span>
+                <span className={styles.commandText} title={stats.command}>
+                  {stats.command}
+                </span>
               </div>
             )}
             {stats.pids > 0 && (
@@ -278,21 +319,37 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {/* CPU */}
           <div className={styles.metricCard}>
             <div className={styles.metricCardHeader}>
-              <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <Cpu
+                size={13}
+                strokeWidth={2.2}
+                className={styles.metricCardIcon}
+              />
               <span className={styles.metricCardTitle}>CPU</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.cpu.percent) }}>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.cpu.percent) }}
+              >
                 {formatPercent(stats.cpu.percent, "adaptive")}
               </span>
               <span className={styles.metricCardDim}>
                 · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
               </span>
             </div>
-            <PercentBar percent={stats.cpu.percent} color={severityColor(stats.cpu.percent)} />
+            <PercentBar
+              percent={stats.cpu.percent}
+              color={severityColor(stats.cpu.percent)}
+            />
             {history?.cpu?.length >= 2 && (
               <Sparkline
                 data={history.cpu}
                 color={severityColor(stats.cpu.percent)}
-                fillColor={stats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : stats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                fillColor={
+                  stats.cpu.percent > 80
+                    ? "rgba(239,68,68,0.12)"
+                    : stats.cpu.percent > 40
+                      ? "rgba(245,158,11,0.12)"
+                      : "rgba(16,185,129,0.12)"
+                }
                 max={100}
               />
             )}
@@ -302,17 +359,26 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {stats.cpuThrottling && stats.cpuThrottling.throttledPeriods > 0 && (
             <div className={styles.metricCard}>
               <div className={styles.metricCardHeader}>
-                <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                <Cpu
+                  size={13}
+                  strokeWidth={2.2}
+                  className={styles.metricCardIcon}
+                />
                 <span className={styles.metricCardTitle}>CPU Throttling</span>
               </div>
               <div className={styles.ioStats}>
                 <span className={styles.ioStat}>
                   <span className={styles.ioDir}>Throttled</span>
-                  <span className={styles.ioValue}>{stats.cpuThrottling.throttledPeriods} / {stats.cpuThrottling.periods} periods</span>
+                  <span className={styles.ioValue}>
+                    {stats.cpuThrottling.throttledPeriods} /{" "}
+                    {stats.cpuThrottling.periods} periods
+                  </span>
                 </span>
                 <span className={styles.ioStat}>
                   <span className={styles.ioDir}>Time</span>
-                  <span className={styles.ioValue}>{formatNanoseconds(stats.cpuThrottling.throttledTimeNs)}</span>
+                  <span className={styles.ioValue}>
+                    {formatNanoseconds(stats.cpuThrottling.throttledTimeNs)}
+                  </span>
                 </span>
               </div>
             </div>
@@ -321,22 +387,43 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {/* Memory */}
           <div className={styles.metricCard}>
             <div className={styles.metricCardHeader}>
-              <MemoryStick size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <MemoryStick
+                size={13}
+                strokeWidth={2.2}
+                className={styles.metricCardIcon}
+              />
               <span className={styles.metricCardTitle}>RAM</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
+              >
                 {formatBytes(stats.memory.used)}
               </span>
-              <span className={styles.metricCardDim}>/ {formatBytes(stats.memory.limit)}</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+              <span className={styles.metricCardDim}>
+                / {formatBytes(stats.memory.limit)}
+              </span>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
+              >
                 {formatPercent(stats.memory.percent, "adaptive")}
               </span>
             </div>
-            <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />
+            <PercentBar
+              percent={stats.memory.percent}
+              color={severityColor(stats.memory.percent, [60, 85])}
+            />
             {history?.mem?.length >= 2 && (
               <Sparkline
                 data={history.mem}
                 color={severityColor(stats.memory.percent, [60, 85])}
-                fillColor={stats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : stats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                fillColor={
+                  stats.memory.percent > 85
+                    ? "rgba(239,68,68,0.12)"
+                    : stats.memory.percent > 60
+                      ? "rgba(245,158,11,0.12)"
+                      : "rgba(16,185,129,0.12)"
+                }
                 max={stats.memory.limit}
               />
             )}
@@ -346,40 +433,62 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {stats.memoryDetail && (
             <div className={styles.metricCard}>
               <div className={styles.metricCardHeader}>
-                <MemoryStick size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                <MemoryStick
+                  size={13}
+                  strokeWidth={2.2}
+                  className={styles.metricCardIcon}
+                />
                 <span className={styles.metricCardTitle}>Memory Breakdown</span>
               </div>
               <div className={styles.detailGrid}>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>RSS</span>
-                  <span className={styles.detailValue}>{formatBytes(stats.memoryDetail.rss)}</span>
+                  <span className={styles.detailValue}>
+                    {formatBytes(stats.memoryDetail.rss)}
+                  </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Cache</span>
-                  <span className={styles.detailValue}>{formatBytes(stats.memoryDetail.cache)}</span>
+                  <span className={styles.detailValue}>
+                    {formatBytes(stats.memoryDetail.cache)}
+                  </span>
                 </div>
                 {stats.memoryDetail.swap > 0 && (
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Swap</span>
-                    <span className={styles.detailValue} style={{ color: "var(--warning)" }}>{formatBytes(stats.memoryDetail.swap)}</span>
+                    <span
+                      className={styles.detailValue}
+                      style={{ color: "var(--warning)" }}
+                    >
+                      {formatBytes(stats.memoryDetail.swap)}
+                    </span>
                   </div>
                 )}
                 {stats.memoryDetail.maxUsage > 0 && (
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Peak</span>
-                    <span className={styles.detailValue}>{formatBytes(stats.memoryDetail.maxUsage)}</span>
+                    <span className={styles.detailValue}>
+                      {formatBytes(stats.memoryDetail.maxUsage)}
+                    </span>
                   </div>
                 )}
                 {stats.memoryDetail.pgfault > 0 && (
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Page Faults</span>
-                    <span className={styles.detailValue}>{stats.memoryDetail.pgfault.toLocaleString()}</span>
+                    <span className={styles.detailValue}>
+                      {stats.memoryDetail.pgfault.toLocaleString()}
+                    </span>
                   </div>
                 )}
                 {stats.memoryDetail.pgmajfault > 0 && (
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Major Faults</span>
-                    <span className={styles.detailValue} style={{ color: "var(--danger)" }}>{stats.memoryDetail.pgmajfault.toLocaleString()}</span>
+                    <span
+                      className={styles.detailValue}
+                      style={{ color: "var(--danger)" }}
+                    >
+                      {stats.memoryDetail.pgmajfault.toLocaleString()}
+                    </span>
                   </div>
                 )}
               </div>
@@ -388,106 +497,161 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
 
           {/* Network + Block I/O + PIDs */}
           <div className={styles.metricRow}>
-            {stats.network && (stats.network.rx > 0 || stats.network.tx > 0) && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
-                  <Globe size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-                  <span className={styles.metricCardTitle}>Network</span>
-                </div>
-                <div className={styles.ioStats}>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>RX</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.network.rx)}</span>
-                  </span>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>TX</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.network.tx)}</span>
-                  </span>
-                </div>
-                {/* Packet counts */}
-                {(stats.network.rxPackets > 0 || stats.network.txPackets > 0) && (
+            {stats.network &&
+              (stats.network.rx > 0 || stats.network.tx > 0) && (
+                <div className={styles.metricCard}>
+                  <div className={styles.metricCardHeader}>
+                    <Globe
+                      size={13}
+                      strokeWidth={2.2}
+                      className={styles.metricCardIcon}
+                    />
+                    <span className={styles.metricCardTitle}>Network</span>
+                  </div>
                   <div className={styles.ioStats}>
                     <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Packets RX</span>
-                      <span className={styles.ioValue}>{stats.network.rxPackets?.toLocaleString()}</span>
+                      <span className={styles.ioDir}>RX</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.network.rx)}
+                      </span>
                     </span>
                     <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Packets TX</span>
-                      <span className={styles.ioValue}>{stats.network.txPackets?.toLocaleString()}</span>
+                      <span className={styles.ioDir}>TX</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.network.tx)}
+                      </span>
                     </span>
                   </div>
-                )}
-                {/* Errors / Drops */}
-                {(stats.network.rxDropped > 0 || stats.network.txDropped > 0 || stats.network.rxErrors > 0 || stats.network.txErrors > 0) && (
-                  <div className={styles.ioStatsWarn}>
-                    {(stats.network.rxDropped > 0 || stats.network.txDropped > 0) && (
+                  {/* Packet counts */}
+                  {(stats.network.rxPackets > 0 ||
+                    stats.network.txPackets > 0) && (
+                    <div className={styles.ioStats}>
                       <span className={styles.ioStat}>
-                        <span className={styles.ioDir}>Dropped</span>
-                        <span className={styles.ioValue}>{(stats.network.rxDropped + stats.network.txDropped).toLocaleString()}</span>
+                        <span className={styles.ioDir}>Packets RX</span>
+                        <span className={styles.ioValue}>
+                          {stats.network.rxPackets?.toLocaleString()}
+                        </span>
                       </span>
-                    )}
-                    {(stats.network.rxErrors > 0 || stats.network.txErrors > 0) && (
                       <span className={styles.ioStat}>
-                        <span className={styles.ioDir}>Errors</span>
-                        <span className={styles.ioValueDanger}>{(stats.network.rxErrors + stats.network.txErrors).toLocaleString()}</span>
+                        <span className={styles.ioDir}>Packets TX</span>
+                        <span className={styles.ioValue}>
+                          {stats.network.txPackets?.toLocaleString()}
+                        </span>
                       </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                    </div>
+                  )}
+                  {/* Errors / Drops */}
+                  {(stats.network.rxDropped > 0 ||
+                    stats.network.txDropped > 0 ||
+                    stats.network.rxErrors > 0 ||
+                    stats.network.txErrors > 0) && (
+                    <div className={styles.ioStatsWarn}>
+                      {(stats.network.rxDropped > 0 ||
+                        stats.network.txDropped > 0) && (
+                        <span className={styles.ioStat}>
+                          <span className={styles.ioDir}>Dropped</span>
+                          <span className={styles.ioValue}>
+                            {(
+                              stats.network.rxDropped + stats.network.txDropped
+                            ).toLocaleString()}
+                          </span>
+                        </span>
+                      )}
+                      {(stats.network.rxErrors > 0 ||
+                        stats.network.txErrors > 0) && (
+                        <span className={styles.ioStat}>
+                          <span className={styles.ioDir}>Errors</span>
+                          <span className={styles.ioValueDanger}>
+                            {(
+                              stats.network.rxErrors + stats.network.txErrors
+                            ).toLocaleString()}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {stats.blockIO && (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
-                  <HardDrive size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-                  <span className={styles.metricCardTitle}>Block I/O</span>
+            {stats.blockIO &&
+              (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
+                <div className={styles.metricCard}>
+                  <div className={styles.metricCardHeader}>
+                    <HardDrive
+                      size={13}
+                      strokeWidth={2.2}
+                      className={styles.metricCardIcon}
+                    />
+                    <span className={styles.metricCardTitle}>Block I/O</span>
+                  </div>
+                  <div className={styles.ioStats}>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>Read</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.blockIO.read)}
+                      </span>
+                    </span>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>Write</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.blockIO.write)}
+                      </span>
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.ioStats}>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>Read</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.read)}</span>
-                  </span>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>Write</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.write)}</span>
-                  </span>
-                </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Per-Interface Network Breakdown */}
-          {stats.network?.interfaces && Object.keys(stats.network.interfaces).length > 1 && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
-                <Unplug size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-                <span className={styles.metricCardTitle}>Network Interfaces</span>
+          {stats.network?.interfaces &&
+            Object.keys(stats.network.interfaces).length > 1 && (
+              <div className={styles.metricCard}>
+                <div className={styles.metricCardHeader}>
+                  <Unplug
+                    size={13}
+                    strokeWidth={2.2}
+                    className={styles.metricCardIcon}
+                  />
+                  <span className={styles.metricCardTitle}>
+                    Network Interfaces
+                  </span>
+                </div>
+                <div className={styles.interfaceList}>
+                  {Object.entries(stats.network.interfaces).map(
+                    ([name, iface]) => (
+                      <div key={name} className={styles.interfaceRow}>
+                        <span className={styles.interfaceName}>{name}</span>
+                        {/* @ts-ignore */}
+                        <span className={styles.ioCompactDetail}>
+                          ↓ {formatBytes((iface as any).rxBytes)} · ↑{" "}
+                          {formatBytes((iface as any).txBytes)}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                </div>
               </div>
-              <div className={styles.interfaceList}>
-                {Object.entries(stats.network.interfaces).map(([name, iface]) => (
-                  <div key={name} className={styles.interfaceRow}>
-                    <span className={styles.interfaceName}>{name}</span>
-{/* @ts-ignore */}
-<span className={styles.ioCompactDetail}>↓ {formatBytes((iface as any).rxBytes)} · ↑ {formatBytes((iface as any).txBytes)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
           {/* Port Mappings */}
           {stats.ports && stats.ports.length > 0 && (
             <div className={styles.metricCard}>
               <div className={styles.metricCardHeader}>
-                <Globe size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                <Globe
+                  size={13}
+                  strokeWidth={2.2}
+                  className={styles.metricCardIcon}
+                />
                 <span className={styles.metricCardTitle}>Port Mappings</span>
               </div>
               <div className={styles.portList}>
                 {stats.ports.map((p: any, i: any) => (
                   <div key={i} className={styles.portRow}>
                     <span className={styles.portMapping}>
-                      {p.publicPort ? `${p.ip || "0.0.0.0"}:${p.publicPort}` : "—"} → {p.privatePort}/{p.type}
+                      {p.publicPort
+                        ? `${p.ip || "0.0.0.0"}:${p.publicPort}`
+                        : "—"}{" "}
+                      → {p.privatePort}/{p.type}
                     </span>
                   </div>
                 ))}
@@ -499,18 +663,30 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {stats.mounts && stats.mounts.length > 0 && (
             <div className={styles.metricCard}>
               <div className={styles.metricCardHeader}>
-                <Database size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                <Database
+                  size={13}
+                  strokeWidth={2.2}
+                  className={styles.metricCardIcon}
+                />
                 <span className={styles.metricCardTitle}>Mounts</span>
-                <span className={styles.metricCardDim}>{stats.mounts.length}</span>
+                <span className={styles.metricCardDim}>
+                  {stats.mounts.length}
+                </span>
               </div>
               <div className={styles.mountList}>
                 {stats.mounts.map((m: any, i: any) => (
                   <div key={i} className={styles.mountRow}>
                     <span className={styles.mountType}>{m.type}</span>
-                    <span className={styles.mountPath} title={`${m.source} → ${m.destination}`}>
-                      {m.name || m.source?.split("/").pop() || m.source} → {m.destination}
+                    <span
+                      className={styles.mountPath}
+                      title={`${m.source} → ${m.destination}`}
+                    >
+                      {m.name || m.source?.split("/").pop() || m.source} →{" "}
+                      {m.destination}
                     </span>
-                    <span className={styles.mountMode}>{m.rw ? "rw" : "ro"}</span>
+                    <span className={styles.mountMode}>
+                      {m.rw ? "rw" : "ro"}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -521,18 +697,31 @@ export default function ContainerDetailPanel({ container, stats }: { [key: strin
           {stats.labels && Object.keys(stats.labels).length > 0 && (
             <div className={styles.metricCard}>
               <div className={styles.metricCardHeader}>
-                <Layers size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+                <Layers
+                  size={13}
+                  strokeWidth={2.2}
+                  className={styles.metricCardIcon}
+                />
                 <span className={styles.metricCardTitle}>Labels</span>
-                <span className={styles.metricCardDim}>{Object.keys(stats.labels).length}</span>
+                <span className={styles.metricCardDim}>
+                  {Object.keys(stats.labels).length}
+                </span>
               </div>
               <div className={styles.labelList}>
                 {Object.entries(stats.labels)
                   .sort(([a], [b]) => a.localeCompare(b))
                   .map(([key, value]) => (
                     <div key={key} className={styles.labelRow}>
-                      <span className={styles.labelKey} title={key}>{key}</span>
-{/* @ts-ignore */}
-<span className={styles.labelValue} title={value as string}>{value as string}</span>
+                      <span className={styles.labelKey} title={key}>
+                        {key}
+                      </span>
+                      {/* @ts-ignore */}
+                      <span
+                        className={styles.labelValue}
+                        title={value as string}
+                      >
+                        {value as string}
+                      </span>
                     </div>
                   ))}
               </div>

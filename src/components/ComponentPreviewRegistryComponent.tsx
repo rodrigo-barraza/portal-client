@@ -144,7 +144,12 @@ const PREVIEWS = {
     <PreviewStack gap={6}>
       <CheckboxComponent label="Enabled" checked={false} onChange={() => {}} />
       <CheckboxComponent label="Checked" checked={true} onChange={() => {}} />
-      <CheckboxComponent label="Disabled" disabled checked={false} onChange={() => {}} />
+      <CheckboxComponent
+        label="Disabled"
+        disabled
+        checked={false}
+        onChange={() => {}}
+      />
     </PreviewStack>
   ),
 
@@ -156,7 +161,10 @@ const PREVIEWS = {
   ),
 
   CollapsibleBlockComponent: () => (
-    <CollapsibleBlockComponent label="Collapsible Section" icon={<Info size={14} />}>
+    <CollapsibleBlockComponent
+      label="Collapsible Section"
+      icon={<Info size={14} />}
+    >
       <div style={{ padding: "8px 12px", fontSize: 12 }}>
         Content is revealed when expanded. Supports smooth height animations.
       </div>
@@ -178,7 +186,11 @@ const PREVIEWS = {
   ),
 
   DatePickerComponent: () => (
-    <DatePickerComponent value="" onChange={() => {}} placeholder="Select date…" />
+    <DatePickerComponent
+      value=""
+      onChange={() => {}}
+      placeholder="Select date…"
+    />
   ),
 
   DialogComponent: () => (
@@ -239,29 +251,57 @@ const PREVIEWS = {
   ),
 
   FormGroupComponent: () => (
-    <FormGroupComponent label="Email Address" hint="We'll never share your email.">
-      <InputComponent value="" onChange={() => {}} placeholder="you@example.com" />
+    <FormGroupComponent
+      label="Email Address"
+      hint="We'll never share your email."
+    >
+      <InputComponent
+        value=""
+        onChange={() => {}}
+        placeholder="you@example.com"
+      />
     </FormGroupComponent>
   ),
 
   IconButtonComponent: () => (
     <PreviewRow>
-      <IconButtonComponent icon={<Star size={14} />} onClick={() => {}} tooltip="Favorite" />
-      <IconButtonComponent icon={<Copy size={14} />} onClick={() => {}} tooltip="Copy" />
+      <IconButtonComponent
+        icon={<Star size={14} />}
+        onClick={() => {}}
+        tooltip="Favorite"
+      />
+      <IconButtonComponent
+        icon={<Copy size={14} />}
+        onClick={() => {}}
+        tooltip="Copy"
+      />
       <IconButtonComponent
         icon={<Trash2 size={14} />}
         onClick={() => {}}
         variant="destructive"
         tooltip="Delete"
       />
-      <IconButtonComponent icon={<Settings size={14} />} onClick={() => {}} disabled />
+      <IconButtonComponent
+        icon={<Settings size={14} />}
+        onClick={() => {}}
+        disabled
+      />
     </PreviewRow>
   ),
 
   InputComponent: () => (
     <PreviewStack>
-      <InputComponent value="" onChange={() => {}} placeholder="Standard input…" />
-      <InputComponent value="" onChange={() => {}} placeholder="With label…" label="Email" />
+      <InputComponent
+        value=""
+        onChange={() => {}}
+        placeholder="Standard input…"
+      />
+      <InputComponent
+        value=""
+        onChange={() => {}}
+        placeholder="With label…"
+        label="Email"
+      />
     </PreviewStack>
   ),
 
@@ -273,7 +313,9 @@ const PREVIEWS = {
     </PreviewRow>
   ),
 
-  LoadingStateComponent: () => <LoadingStateComponent message="Fetching data…" />,
+  LoadingStateComponent: () => (
+    <LoadingStateComponent message="Fetching data…" />
+  ),
 
   MenuComponent: () => (
     <div className={styles.previewPlaceholder}>
@@ -299,7 +341,12 @@ const PREVIEWS = {
         <NavigationDrawerComponent.SectionHeader>
           Folders
         </NavigationDrawerComponent.SectionHeader>
-        <NavigationDrawerComponent.Item icon={Home} label="Inbox" badge="24" active />
+        <NavigationDrawerComponent.Item
+          icon={Home}
+          label="Inbox"
+          badge="24"
+          active
+        />
         <NavigationDrawerComponent.Item icon={FileText} label="Drafts" />
         <NavigationDrawerComponent.Item icon={Star} label="Starred" />
         <NavigationDrawerComponent.Divider />
@@ -349,9 +396,25 @@ const PREVIEWS = {
 
   RadioComponent: () => (
     <PreviewStack gap={6}>
-      <RadioComponent value="a" selectedValue="a" onChange={() => {}} label="Option A" />
-      <RadioComponent value="b" selectedValue="a" onChange={() => {}} label="Option B" />
-      <RadioComponent value="c" selectedValue="a" onChange={() => {}} label="Option C" disabled />
+      <RadioComponent
+        value="a"
+        selectedValue="a"
+        onChange={() => {}}
+        label="Option A"
+      />
+      <RadioComponent
+        value="b"
+        selectedValue="a"
+        onChange={() => {}}
+        label="Option B"
+      />
+      <RadioComponent
+        value="c"
+        selectedValue="a"
+        onChange={() => {}}
+        label="Option C"
+        disabled
+      />
     </PreviewStack>
   ),
 
@@ -364,7 +427,11 @@ const PREVIEWS = {
   ),
 
   SearchInputComponent: () => (
-    <SearchInputComponent value="" onChange={() => {}} placeholder="Search anything…" />
+    <SearchInputComponent
+      value=""
+      onChange={() => {}}
+      placeholder="Search anything…"
+    />
   ),
 
   MultiSelectComponent: () => (
@@ -413,7 +480,11 @@ const PREVIEWS = {
 
   SplitButtonComponent: () => (
     <PreviewRow>
-      <SplitButtonComponent icon={Download} onClick={() => {}} onTrailingClick={() => {}}>
+      <SplitButtonComponent
+        icon={Download}
+        onClick={() => {}}
+        onTrailingClick={() => {}}
+      >
         Download
       </SplitButtonComponent>
       <SplitButtonComponent
@@ -429,8 +500,19 @@ const PREVIEWS = {
 
   StatsCardComponent: () => (
     <PreviewRow>
-      <StatsCardComponent label="Requests" value="12.4k" icon={Zap} variant="accent" glow />
-      <StatsCardComponent label="Uptime" value="99.9%" icon={Check} variant="success" />
+      <StatsCardComponent
+        label="Requests"
+        value="12.4k"
+        icon={Zap}
+        variant="accent"
+        glow
+      />
+      <StatsCardComponent
+        label="Uptime"
+        value="99.9%"
+        icon={Check}
+        variant="success"
+      />
     </PreviewRow>
   ),
 
@@ -438,7 +520,12 @@ const PREVIEWS = {
     <PreviewStack gap={6}>
       <SwitchComponent label="Enabled" checked={true} onChange={() => {}} />
       <SwitchComponent label="Disabled" checked={false} onChange={() => {}} />
-      <SwitchComponent label="Inactive" checked={false} onChange={() => {}} disabled />
+      <SwitchComponent
+        label="Inactive"
+        checked={false}
+        onChange={() => {}}
+        disabled
+      />
     </PreviewStack>
   ),
 
@@ -508,7 +595,10 @@ const PREVIEWS = {
       </ButtonComponent>
       <span style={{ flex: 1 }} />
       <IconButtonComponent icon={<Bookmark size={14} />} onClick={() => {}} />
-      <IconButtonComponent icon={<MoreVertical size={14} />} onClick={() => {}} />
+      <IconButtonComponent
+        icon={<MoreVertical size={14} />}
+        onClick={() => {}}
+      />
     </ToolbarComponent>
   ),
 

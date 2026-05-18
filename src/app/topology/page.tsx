@@ -7,7 +7,9 @@ export const metadata = {
 
 export default function TopologyPage() {
   return (
-    <PageLayoutComponent mainStyle={{ padding: 0, display: "flex", flexDirection: "column" }}>
+    <PageLayoutComponent
+      mainStyle={{ padding: 0, display: "flex", flexDirection: "column" }}
+    >
       <TopologyComponent />
     </PageLayoutComponent>
   );

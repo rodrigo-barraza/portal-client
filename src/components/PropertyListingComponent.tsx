@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  LayoutGrid,
-  Table2,
-  TrendingUp,
-  ArrowRight,
-} from "lucide-react";
+import { LayoutGrid, Table2, TrendingUp, ArrowRight } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
@@ -17,7 +12,12 @@ import styles from "./GoogleAnalyticsComponent.module.css";
  * Shows all GA4 properties in a card grid or list/table view.
  * Each card/row shows a quick overview summary fetched in parallel.
  */
-export default function PropertyListingComponent({ properties, onSelect }: { [key: string]: any }) {
+export default function PropertyListingComponent({
+  properties,
+  onSelect,
+}: {
+  [key: string]: any;
+}) {
   const [viewMode, setViewMode] = useState("card");
   const [summaries, setSummaries] = useState<any>({});
   const didFetch = useRef(false);
@@ -65,15 +65,16 @@ export default function PropertyListingComponent({ properties, onSelect }: { [ke
           </button>
         </div>
         <span className={styles.propertySummary}>
-          {properties.length} {properties.length === 1 ? "property" : "properties"}
+          {properties.length}{" "}
+          {properties.length === 1 ? "property" : "properties"}
         </span>
       </div>
 
       {/* ── Card View ── */}
       {viewMode === "card" && (
         <div className={styles.propertyGrid}>
-{/* @ts-ignore */}
-{properties.map((prop: any) => {
+          {/* @ts-ignore */}
+          {properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
               <div
@@ -86,12 +87,18 @@ export default function PropertyListingComponent({ properties, onSelect }: { [ke
                     <TrendingUp size={18} strokeWidth={2} />
                   </div>
                   <div className={styles.propertyCardInfo}>
-                    <span className={styles.propertyCardName}>{prop.label}</span>
+                    <span className={styles.propertyCardName}>
+                      {prop.label}
+                    </span>
                     <span className={styles.propertyCardMeta}>
                       {prop.measurementId || prop.id}
                     </span>
                   </div>
-                  <ArrowRight size={14} strokeWidth={2} className={styles.propertyCardArrow} />
+                  <ArrowRight
+                    size={14}
+                    strokeWidth={2}
+                    className={styles.propertyCardArrow}
+                  />
                 </div>
 
                 {s?.loaded ? (
@@ -102,19 +109,25 @@ export default function PropertyListingComponent({ properties, onSelect }: { [ke
                           <span className={styles.propertyCardStatValue}>
                             {formatNumber(s.overview.totalUsers)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>Users</span>
+                          <span className={styles.propertyCardStatLabel}>
+                            Users
+                          </span>
                         </div>
                         <div className={styles.propertyCardStat}>
                           <span className={styles.propertyCardStatValue}>
                             {formatNumber(s.overview.pageviews)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>Pageviews</span>
+                          <span className={styles.propertyCardStatLabel}>
+                            Pageviews
+                          </span>
                         </div>
                         <div className={styles.propertyCardStat}>
                           <span className={styles.propertyCardStatValue}>
                             {formatNumber(s.overview.sessions)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>Sessions</span>
+                          <span className={styles.propertyCardStatLabel}>
+                            Sessions
+                          </span>
                         </div>
                       </div>
                     )}
@@ -147,8 +160,8 @@ export default function PropertyListingComponent({ properties, onSelect }: { [ke
             <span className={styles.propertyListHeaderCell}>Sessions</span>
             <span className={styles.propertyListHeaderCell}>Active Now</span>
           </div>
-{/* @ts-ignore */}
-{properties.map((prop: any) => {
+          {/* @ts-ignore */}
+          {properties.map((prop: any) => {
             const s = summaries[prop.id];
             return (
               <div
@@ -171,7 +184,9 @@ export default function PropertyListingComponent({ properties, onSelect }: { [ke
                 <span className={styles.propertyListValue}>
                   {s?.overview ? formatNumber(s.overview.sessions) : "—"}
                 </span>
-                <div className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}>
+                <div
+                  className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}
+                >
                   {s?.realtime ? (
                     <>
                       <div className={styles.propertyListRealtimeDot} />

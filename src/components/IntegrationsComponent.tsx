@@ -1,8 +1,23 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ExternalLink, Check, X, Key, Search, ChevronDown, ChevronRight } from "lucide-react";
-import { BadgeComponent, ButtonComponent, InputComponent, LoadingIndicatorComponent, PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import {
+  RefreshCw,
+  ExternalLink,
+  Check,
+  X,
+  Key,
+  Search,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+import {
+  BadgeComponent,
+  ButtonComponent,
+  InputComponent,
+  LoadingIndicatorComponent,
+  PageHeaderComponent,
+} from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";
@@ -59,13 +74,19 @@ export default function IntegrationsComponent() {
         );
       });
       // @ts-ignore
-      return { ...cat, integrations: filtered, configuredCount: filtered.filter((i) => i.configured).length, totalCount: filtered.length };
+      return {
+        ...cat,
+        integrations: filtered,
+        configuredCount: filtered.filter((i) => i.configured).length,
+        totalCount: filtered.length,
+      };
     })
     .filter((cat: any) => cat.integrations.length > 0);
 
   return (
     <div className={styles.integrations}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Integrations"
         subtitle={
           loading
@@ -95,7 +116,10 @@ export default function IntegrationsComponent() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className={styles.clearSearch} onClick={() => setSearchQuery("")}>
+            <button
+              className={styles.clearSearch}
+              onClick={() => setSearchQuery("")}
+            >
               <X size={12} strokeWidth={2.5} />
             </button>
           )}
@@ -114,18 +138,24 @@ export default function IntegrationsComponent() {
             <span className={styles.statLabel}>Configured</span>
           </div>
           <div className={`${styles.statCard} ${styles.statMissing}`}>
-            <span className={styles.statValue}>{data.totalCount - data.configuredCount}</span>
+            <span className={styles.statValue}>
+              {data.totalCount - data.configuredCount}
+            </span>
             <span className={styles.statLabel}>Missing</span>
           </div>
         </div>
       )}
 
       {loading ? (
-        <LoadingIndicatorComponent size="small" label="Loading integrations…" className="loading-center" />
+        <LoadingIndicatorComponent
+          size="small"
+          label="Loading integrations…"
+          className="loading-center"
+        />
       ) : (
         <div className={styles.categoryList}>
-{/* @ts-ignore */}
-{filteredCategories?.map((cat: any, catIndex: any) => {
+          {/* @ts-ignore */}
+          {filteredCategories?.map((cat: any, catIndex: any) => {
             const isCollapsed = collapsedCategories[cat.category];
             return (
               <div
@@ -179,7 +209,9 @@ export default function IntegrationsComponent() {
                                 <X size={10} strokeWidth={3} />
                               </div>
                             )}
-                            <span className={styles.providerName}>{item.provider}</span>
+                            <span className={styles.providerName}>
+                              {item.provider}
+                            </span>
                           </div>
                           {item.docs && (
                             <a
@@ -196,7 +228,11 @@ export default function IntegrationsComponent() {
 
                         <div className={styles.cardBody}>
                           <div className={styles.keyRow}>
-                            <Key size={11} strokeWidth={2} className={styles.keyIcon} />
+                            <Key
+                              size={11}
+                              strokeWidth={2}
+                              className={styles.keyIcon}
+                            />
                             <code className={styles.envKey}>{item.envKey}</code>
                           </div>
                           {item.maskedKey ? (

@@ -36,7 +36,8 @@ const RAW_PORTAL_SERVICE_URL =
 
 // ── Public URL from vault (browser production override) ────────
 const PUBLIC_PORTAL_SERVICE_URL =
-  process.env.NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL || process.env.PORTAL_SERVICE_PUBLIC_URL;
+  process.env.NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL ||
+  process.env.PORTAL_SERVICE_PUBLIC_URL;
 
 // ── Portal API URL ─────────────────────────────────────────────
 function resolvePortalServiceUrl() {
@@ -44,7 +45,8 @@ function resolvePortalServiceUrl() {
 
   const isProduction = window.location.hostname.endsWith(".dev");
 
-  if (isProduction && PUBLIC_PORTAL_SERVICE_URL) return PUBLIC_PORTAL_SERVICE_URL;
+  if (isProduction && PUBLIC_PORTAL_SERVICE_URL)
+    return PUBLIC_PORTAL_SERVICE_URL;
   if (RAW_PORTAL_SERVICE_URL) return RAW_PORTAL_SERVICE_URL;
 
   // Defensive fallback — infer API URL from current hostname when

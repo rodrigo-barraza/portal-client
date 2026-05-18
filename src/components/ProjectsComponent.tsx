@@ -1,8 +1,24 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { RefreshCw, ArrowUpDown, LayoutGrid, Table2, FolderKanban, HeartPulse, Server, Layers, HardDrive, BookOpen } from "lucide-react";
-import { ButtonComponent, LoadingIndicatorComponent, PageHeaderComponent, MultiSelectComponent } from "@rodrigo-barraza/components-library";
+import {
+  RefreshCw,
+  ArrowUpDown,
+  LayoutGrid,
+  Table2,
+  FolderKanban,
+  HeartPulse,
+  Server,
+  Layers,
+  HardDrive,
+  BookOpen,
+} from "lucide-react";
+import {
+  ButtonComponent,
+  LoadingIndicatorComponent,
+  PageHeaderComponent,
+  MultiSelectComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
@@ -44,7 +60,6 @@ const STATIC_FILTER_OPTIONS = {
   },
 };
 
-
 /** Compare two services by the chosen sort key. */
 // @ts-ignore
 function compareBySortKey(a, b, sortKey, sortDir) {
@@ -82,7 +97,9 @@ function compareBySortKey(a, b, sortKey, sortDir) {
  */
 function buildFilterOptions(items: any) {
   // @ts-ignore
-  const types = [...new Set(items.map((s) => s.projectType).filter(Boolean))].sort();
+  const types = [
+    ...new Set(items.map((s) => s.projectType).filter(Boolean)),
+  ].sort();
   // @ts-ignore
   const hosts = [...new Set(items.map((s) => s.device).filter(Boolean))].sort();
 
@@ -98,7 +115,6 @@ function buildFilterOptions(items: any) {
     },
   };
 }
-
 
 export default function ProjectsComponent() {
   const [services, setServices] = useState<any[]>([]);
@@ -116,7 +132,6 @@ export default function ProjectsComponent() {
     device: [],
   });
 
-
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
@@ -124,12 +139,13 @@ export default function ProjectsComponent() {
   // ── View mode state ────────────────────────────────────────────
   const [viewMode, setViewMode] = useState("table");
 
-
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
       // @ts-ignore
-      setServices((res.services || []).filter((s) => s.projectType !== "Infrastructure"));
+      setServices(
+        (res.services || []).filter((s) => s.projectType !== "Infrastructure"),
+      );
     } catch (error) {
       console.error("Services fetch failed:", error);
     } finally {
@@ -172,16 +188,36 @@ export default function ProjectsComponent() {
     .filter((s) => {
       if (filters.status.length) {
         const isHealthy = s.healthy;
-        if (!filters.status.some((v) => (v === "healthy" && isHealthy) || (v === "unhealthy" && !isHealthy))) return false;
+        if (
+          !filters.status.some(
+            (v) =>
+              (v === "healthy" && isHealthy) ||
+              (v === "unhealthy" && !isHealthy),
+          )
+        )
+          return false;
       }
       // @ts-ignore
-      if (filters.visibility.length && !filters.visibility.includes(s.visibility)) return false;
+      if (
+        filters.visibility.length &&
+        !filters.visibility.includes(s.visibility)
+      )
+        return false;
       // @ts-ignore
-      if (filters.environment.length && !filters.environment.includes(s.environment)) return false;
+      if (
+        filters.environment.length &&
+        !filters.environment.includes(s.environment)
+      )
+        return false;
       // @ts-ignore
-      if (filters.projectType.length && !filters.projectType.includes(s.projectType)) return false;
+      if (
+        filters.projectType.length &&
+        !filters.projectType.includes(s.projectType)
+      )
+        return false;
       // @ts-ignore
-      if (filters.device.length && !filters.device.includes(s.device)) return false;
+      if (filters.device.length && !filters.device.includes(s.device))
+        return false;
       return true;
     })
     .sort((a: any, b: any) => compareBySortKey(a, b, sortKey, sortDir));
@@ -198,14 +234,21 @@ export default function ProjectsComponent() {
 
   // ── Project summary computed values ─────────────────────────────
   const unhealthyCount = allDeployed.length - healthyCount;
-  const uniqueDevices = [...new Set(allDeployed.map((s) => s.device).filter(Boolean))];
-  const uniqueTypes = [...new Set(allItems.map((s) => s.projectType).filter(Boolean))];
-  const totalSizeBytes = Object.values(projectSizes).reduce((sum: any, s: any) => sum + (s.sizeBytes || 0), 0);
-
+  const uniqueDevices = [
+    ...new Set(allDeployed.map((s) => s.device).filter(Boolean)),
+  ];
+  const uniqueTypes = [
+    ...new Set(allItems.map((s) => s.projectType).filter(Boolean)),
+  ];
+  const totalSizeBytes = Object.values(projectSizes).reduce(
+    (sum: any, s: any) => sum + (s.sizeBytes || 0),
+    0,
+  );
 
   return (
     <div className={styles.services}>
-      <PageHeaderComponent sticky={false}
+      <PageHeaderComponent
+        sticky={false}
         title="Projects"
         subtitle={
           loading
@@ -227,57 +270,89 @@ export default function ProjectsComponent() {
       {!loading && (
         <div className={styles.summaryGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
+            >
               <FolderKanban size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue}>{allItems.length}</span>
               <span className={styles.statCardLabel}>Projects</span>
-              <span className={styles.statCardSub}>{allDeployed.length} deployed · {allNonDeployed.length} libraries & tools</span>
+              <span className={styles.statCardSub}>
+                {allDeployed.length} deployed · {allNonDeployed.length}{" "}
+                libraries & tools
+              </span>
             </div>
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}
+            >
               <HeartPulse size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue}>{healthyCount}</span>
               <span className={styles.statCardLabel}>Healthy</span>
-              <span className={styles.statCardSub}>{unhealthyCount > 0 ? `${unhealthyCount} unhealthy` : "All systems nominal"}</span>
+              <span className={styles.statCardSub}>
+                {unhealthyCount > 0
+                  ? `${unhealthyCount} unhealthy`
+                  : "All systems nominal"}
+              </span>
             </div>
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}
+            >
               <Server size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{uniqueDevices.length}</span>
+              <span className={styles.statCardValue}>
+                {uniqueDevices.length}
+              </span>
               <span className={styles.statCardLabel}>Devices</span>
-              <span className={styles.statCardSub}>{uniqueDevices.join(" · ") || "No devices"}</span>
+              <span className={styles.statCardSub}>
+                {uniqueDevices.join(" · ") || "No devices"}
+              </span>
             </div>
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
+            >
               <Layers size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
               <span className={styles.statCardValue}>{uniqueTypes.length}</span>
               <span className={styles.statCardLabel}>Types</span>
-              <span className={styles.statCardSub}>{uniqueTypes.join(" · ") || "No types"}</span>
+              <span className={styles.statCardSub}>
+                {uniqueTypes.join(" · ") || "No types"}
+              </span>
             </div>
           </div>
 
           <div className={styles.statCard}>
-            <div className={styles.statCardIcon} style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}
+            >
               <HardDrive size={18} strokeWidth={2} />
             </div>
             <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}</span>
+              <span className={styles.statCardValue}>
+                {totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}
+              </span>
               <span className={styles.statCardLabel}>Total Code</span>
-              <span className={styles.statCardSub}>{Object.keys(projectSizes).length} repos measured</span>
+              <span className={styles.statCardSub}>
+                {Object.keys(projectSizes).length} repos measured
+              </span>
             </div>
           </div>
         </div>
@@ -293,29 +368,34 @@ export default function ProjectsComponent() {
           </div>
 
           {Object.entries(filterOptions).map(([dimension, config]) => (
-              <MultiSelectComponent
-                key={dimension}
-                label={config.label}
-                // @ts-ignore
-                value={filters[dimension]}
-                options={config.values}
-                // @ts-ignore
-                onChange={(values) => setFilter(dimension, values)}
-                allLabel="All"
-              />
+            <MultiSelectComponent
+              key={dimension}
+              label={config.label}
+              // @ts-ignore
+              value={filters[dimension]}
+              options={config.values}
+              // @ts-ignore
+              onChange={(values) => setFilter(dimension, values)}
+              allLabel="All"
+            />
           ))}
 
           {hasActiveFilter && (
             <button
               className={styles.clearBtn}
               onClick={() =>
-                setFilters({ status: [], visibility: [], environment: [], projectType: [], device: [] })
+                setFilters({
+                  status: [],
+                  visibility: [],
+                  environment: [],
+                  projectType: [],
+                  device: [],
+                })
               }
             >
               Clear
             </button>
           )}
-
 
           {/* ── Divider ── */}
           <div className={styles.barDivider} />
@@ -351,7 +431,11 @@ export default function ProjectsComponent() {
       )}
 
       {loading ? (
-        <LoadingIndicatorComponent size="small" label="Polling projects…" className="loading-center" />
+        <LoadingIndicatorComponent
+          size="small"
+          label="Polling projects…"
+          className="loading-center"
+        />
       ) : (
         <>
           {hasActiveFilter && (
@@ -369,7 +453,9 @@ export default function ProjectsComponent() {
                     <div className={styles.sectionLabel}>
                       <Server size={13} strokeWidth={2.2} />
                       <span>Deployed Services</span>
-                      <span className={styles.sectionCount}>{deployedItems.length}</span>
+                      <span className={styles.sectionCount}>
+                        {deployedItems.length}
+                      </span>
                     </div>
                   )}
                   <div className={styles.grid}>
@@ -389,8 +475,16 @@ export default function ProjectsComponent() {
                   projectSizes={projectSizes}
                   sortKey={sortKey}
                   sortDir={sortDir}
-                  title={nonDeployedItems.length > 0 ? "Deployed Services" : undefined}
-                  subtitle={nonDeployedItems.length > 0 ? `${deployedItems.length} projects` : undefined}
+                  title={
+                    nonDeployedItems.length > 0
+                      ? "Deployed Services"
+                      : undefined
+                  }
+                  subtitle={
+                    nonDeployedItems.length > 0
+                      ? `${deployedItems.length} projects`
+                      : undefined
+                  }
                   // @ts-ignore
                   onSort={(key, dir) => {
                     setSortKey(key);
@@ -409,7 +503,9 @@ export default function ProjectsComponent() {
                   <div className={styles.sectionLabel}>
                     <BookOpen size={13} strokeWidth={2.2} />
                     <span>Libraries & Toolkits</span>
-                    <span className={styles.sectionCount}>{nonDeployedItems.length}</span>
+                    <span className={styles.sectionCount}>
+                      {nonDeployedItems.length}
+                    </span>
                   </div>
                   <div className={styles.grid}>
                     {nonDeployedItems.map((service: any) => (

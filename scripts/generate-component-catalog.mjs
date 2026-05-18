@@ -15,60 +15,58 @@
 import fs from "node:fs";
 import path from "node:path";
 
-
-
 // ── Category map (components only) ──────────────────────────────
 const CATEGORY_MAP = {
-  ButtonComponent:           "actions",
-  IconButtonComponent:       "actions",
-  FabComponent:              "actions",
-  ExtendedFabComponent:      "actions",
-  FabMenuComponent:          "actions",
-  SplitButtonComponent:      "actions",
-  CopyButtonComponent:       "actions",
-  CloseButtonComponent:      "actions",
-  SnackbarComponent:         "communication",
-  ToastComponent:            "communication",
-  TooltipComponent:          "communication",
-  BadgeComponent:            "communication",
-  CountBadgeComponent:       "communication",
-  ResponseTimeBadgeComponent:"communication",
-  VisibilityBadgeComponent:  "communication",
-  CardComponent:             "containment",
-  DialogComponent:           "containment",
-  ModalComponent:            "containment",
-  CarouselComponent:         "containment",
+  ButtonComponent: "actions",
+  IconButtonComponent: "actions",
+  FabComponent: "actions",
+  ExtendedFabComponent: "actions",
+  FabMenuComponent: "actions",
+  SplitButtonComponent: "actions",
+  CopyButtonComponent: "actions",
+  CloseButtonComponent: "actions",
+  SnackbarComponent: "communication",
+  ToastComponent: "communication",
+  TooltipComponent: "communication",
+  BadgeComponent: "communication",
+  CountBadgeComponent: "communication",
+  ResponseTimeBadgeComponent: "communication",
+  VisibilityBadgeComponent: "communication",
+  CardComponent: "containment",
+  DialogComponent: "containment",
+  ModalComponent: "containment",
+  CarouselComponent: "containment",
   CollapsibleBlockComponent: "containment",
-  StatsCardComponent:        "containment",
-  EmptyStateComponent:       "containment",
-  DiscordChatComponent:      "containment",
-  TextFieldComponent:        "inputs",
-  InputComponent:            "inputs",
-  TextAreaComponent:         "inputs",
-  SearchInputComponent:      "inputs",
-  SelectComponent:           "inputs",
-  CheckboxComponent:         "inputs",
-  RadioComponent:            "inputs",
-  SwitchComponent:           "inputs",
-  ToggleComponent:           "inputs",
-  SliderComponent:           "inputs",
-  DatePickerComponent:       "inputs",
-  FormGroupComponent:        "inputs",
-  NavigationSidebarComponent:"navigation",
+  StatsCardComponent: "containment",
+  EmptyStateComponent: "containment",
+  DiscordChatComponent: "containment",
+  TextFieldComponent: "inputs",
+  InputComponent: "inputs",
+  TextAreaComponent: "inputs",
+  SearchInputComponent: "inputs",
+  SelectComponent: "inputs",
+  CheckboxComponent: "inputs",
+  RadioComponent: "inputs",
+  SwitchComponent: "inputs",
+  ToggleComponent: "inputs",
+  SliderComponent: "inputs",
+  DatePickerComponent: "inputs",
+  FormGroupComponent: "inputs",
+  NavigationSidebarComponent: "navigation",
   NavigationDrawerComponent: "navigation",
-  NavigationRailComponent:   "navigation",
-  TabBarComponent:           "navigation",
-  MenuComponent:             "navigation",
-  PaginationComponent:       "navigation",
-  TopAppBarComponent:        "navigation",
-  BottomAppBarComponent:     "navigation",
-  ProgressIndicatorComponent:"indicators",
+  NavigationRailComponent: "navigation",
+  TabBarComponent: "navigation",
+  MenuComponent: "navigation",
+  PaginationComponent: "navigation",
+  TopAppBarComponent: "navigation",
+  BottomAppBarComponent: "navigation",
+  ProgressIndicatorComponent: "indicators",
   LoadingIndicatorComponent: "indicators",
-  LoadingStateComponent:     "indicators",
-  PageHeaderComponent:       "layout",
-  ToolbarComponent:          "layout",
-  DividerComponent:          "layout",
-  TableComponent:            "layout",
+  LoadingStateComponent: "indicators",
+  PageHeaderComponent: "layout",
+  ToolbarComponent: "layout",
+  DividerComponent: "layout",
+  TableComponent: "layout",
 };
 
 // ── Known providers (live under components/ but are context wrappers) ─
@@ -86,9 +84,13 @@ function extractDescription(filePath) {
     if (descMatch) return descMatch[1].trim();
 
     // Fallback: first @param line hint
-    const paramMatch = source.match(/@param\s+\{[^}]+\}\s+\[?\w+\]?\s+[—–-]\s*(.+)/);
+    const paramMatch = source.match(
+      /@param\s+\{[^}]+\}\s+\[?\w+\]?\s+[—–-]\s*(.+)/,
+    );
     if (paramMatch) return paramMatch[1].trim();
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return "";
 }
 
@@ -116,8 +118,11 @@ function totalSize(targetPath) {
   if (stat.isFile()) return stat.size;
 
   return fs.readdirSync(targetPath).reduce((sum, f) => {
-    try { return sum + fs.statSync(path.join(targetPath, f)).size; }
-    catch { return sum; }
+    try {
+      return sum + fs.statSync(path.join(targetPath, f)).size;
+    } catch {
+      return sum;
+    }
   }, 0);
 }
 
@@ -137,8 +142,16 @@ function scanComponents(componentsDir) {
     if (entry.isDirectory()) {
       const dirPath = path.join(componentsDir, entry.name);
       const files = fs.readdirSync(dirPath);
-      const testFiles = files.filter((f) => f.includes(".test.") || f.includes(".spec."));
-      const mainFile = files.find((f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts"));
+      const testFiles = files.filter(
+        (f) => f.includes(".test.") || f.includes(".spec."),
+      );
+      const mainFile = files.find(
+        (f) =>
+          /\.(js|ts|tsx)$/.test(f) &&
+          !f.includes(".test.") &&
+          !f.includes(".spec.") &&
+          !f.endsWith(".d.ts"),
+      );
       const mainPath = mainFile ? path.join(dirPath, mainFile) : null;
 
       catalog.push({
@@ -165,14 +178,19 @@ function scanHooks(hooksDir) {
   const catalog = [];
 
   const hookFiles = files.filter(
-    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
+    (f) =>
+      /\.(js|ts|tsx)$/.test(f) &&
+      !f.includes(".test.") &&
+      !f.includes(".spec.") &&
+      !f.endsWith(".d.ts"),
   );
 
   for (const file of hookFiles) {
     const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(hooksDir, file);
     const testExists = files.some(
-      (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
+      (f) =>
+        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
     );
 
     catalog.push({
@@ -198,14 +216,19 @@ function scanServices(servicesDir) {
   const catalog = [];
 
   const serviceFiles = files.filter(
-    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
+    (f) =>
+      /\.(js|ts|tsx)$/.test(f) &&
+      !f.includes(".test.") &&
+      !f.includes(".spec.") &&
+      !f.endsWith(".d.ts"),
   );
 
   for (const file of serviceFiles) {
     const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(servicesDir, file);
     const testExists = files.some(
-      (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
+      (f) =>
+        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
     );
 
     catalog.push({
@@ -231,14 +254,19 @@ function scanUtilities(utilsDir) {
   const catalog = [];
 
   const utilFiles = files.filter(
-    (f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts")
+    (f) =>
+      /\.(js|ts|tsx)$/.test(f) &&
+      !f.includes(".test.") &&
+      !f.includes(".spec.") &&
+      !f.endsWith(".d.ts"),
   );
 
   for (const file of utilFiles) {
     const name = file.replace(/\.(js|ts|tsx)$/, "");
     const filePath = path.join(utilsDir, file);
     const testExists = files.some(
-      (f) => f.startsWith(name) && (f.includes(".test.") || f.includes(".spec."))
+      (f) =>
+        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
     );
 
     catalog.push({
@@ -270,8 +298,16 @@ function scanProviders(componentsDir) {
     if (entry.isDirectory()) {
       const dirPath = path.join(componentsDir, entry.name);
       const files = fs.readdirSync(dirPath);
-      const testFiles = files.filter((f) => f.includes(".test.") || f.includes(".spec."));
-      const mainFile = files.find((f) => /\.(js|ts|tsx)$/.test(f) && !f.includes(".test.") && !f.includes(".spec.") && !f.endsWith(".d.ts"));
+      const testFiles = files.filter(
+        (f) => f.includes(".test.") || f.includes(".spec."),
+      );
+      const mainFile = files.find(
+        (f) =>
+          /\.(js|ts|tsx)$/.test(f) &&
+          !f.includes(".test.") &&
+          !f.includes(".spec.") &&
+          !f.endsWith(".d.ts"),
+      );
 
       catalog.push({
         name,
@@ -281,9 +317,15 @@ function scanProviders(componentsDir) {
         hasTests: testFiles.length > 0,
         files: files.length,
         sizeKb: +(totalSize(dirPath) / 1024).toFixed(1),
-        description: mainFile ? extractDescription(path.join(dirPath, mainFile)) : "",
+        description: mainFile
+          ? extractDescription(path.join(dirPath, mainFile))
+          : "",
       });
-    } else if (entry.isFile() && /\.(js|ts|tsx)$/.test(entry.name) && !entry.name.endsWith(".d.ts")) {
+    } else if (
+      entry.isFile() &&
+      /\.(js|ts|tsx)$/.test(entry.name) &&
+      !entry.name.endsWith(".d.ts")
+    ) {
       const filePath = path.join(componentsDir, entry.name);
       catalog.push({
         name,
@@ -305,7 +347,10 @@ function scanProviders(componentsDir) {
 function main() {
   // Resolve directly to src/ — the library uses source-first architecture
   // so require.resolve() fails on the strict exports map.
-  const libRoot = path.resolve(process.cwd(), "node_modules/@rodrigo-barraza/components-library");
+  const libRoot = path.resolve(
+    process.cwd(),
+    "node_modules/@rodrigo-barraza/components-library",
+  );
   const srcDir = path.join(libRoot, "src");
   const componentsDir = path.resolve(srcDir, "components");
   const hooksDir = path.resolve(srcDir, "hooks");
@@ -331,8 +376,12 @@ function main() {
   for (const item of catalog) {
     byType[item.type] = (byType[item.type] || 0) + 1;
   }
-  const summary = Object.entries(byType).map(([t, n]) => `${n} ${t}s`).join(", ");
-  console.log(`✔ Generated catalog: ${catalog.length} entries (${summary}) → ${outPath}`);
+  const summary = Object.entries(byType)
+    .map(([t, n]) => `${n} ${t}s`)
+    .join(", ");
+  console.log(
+    `✔ Generated catalog: ${catalog.length} entries (${summary}) → ${outPath}`,
+  );
 }
 
 main();

@@ -6,7 +6,11 @@ const mockRedirect = vi.fn();
 vi.mock("next/navigation", () => ({
   redirect: mockRedirect,
   usePathname: vi.fn(() => "/"),
-  useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() })),
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  })),
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 

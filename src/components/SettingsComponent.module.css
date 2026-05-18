@@ -367,7 +367,11 @@
 }
 
 .dangerSection .sectionHeader {
-  border-bottom-color: color-mix(in srgb, var(--danger) 15%, var(--border-subtle));
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--danger) 15%,
+    var(--border-subtle)
+  );
 }
 
 .dangerSection .sectionIconWrap {

@@ -48,7 +48,9 @@ export default class ApiService {
 
    */
   static async restartService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/restart`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/restart`, {
+      method: "POST",
+    });
   }
 
   /**
@@ -56,7 +58,9 @@ export default class ApiService {
 
    */
   static async stopService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/stop`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/stop`, {
+      method: "POST",
+    });
   }
 
   /**
@@ -64,7 +68,9 @@ export default class ApiService {
 
    */
   static async startService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/start`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/start`, {
+      method: "POST",
+    });
   }
 
   /**
@@ -72,7 +78,9 @@ export default class ApiService {
 
    */
   static async rollbackService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/rollback`, { method: "POST" });
+    return ApiService._request(`/services/${serviceId}/rollback`, {
+      method: "POST",
+    });
   }
 
   /**
@@ -94,7 +102,10 @@ export default class ApiService {
 
    */
   static async restartContainer(containerName: string, device: string) {
-    return ApiService._request(`/containers/${containerName}/restart?device=${encodeURIComponent(device)}`, { method: "POST" });
+    return ApiService._request(
+      `/containers/${containerName}/restart?device=${encodeURIComponent(device)}`,
+      { method: "POST" },
+    );
   }
 
   /**
@@ -103,7 +114,10 @@ export default class ApiService {
 
    */
   static async stopContainer(containerName: string, device: string) {
-    return ApiService._request(`/containers/${containerName}/stop?device=${encodeURIComponent(device)}`, { method: "POST" });
+    return ApiService._request(
+      `/containers/${containerName}/stop?device=${encodeURIComponent(device)}`,
+      { method: "POST" },
+    );
   }
 
   /**
@@ -112,7 +126,10 @@ export default class ApiService {
 
    */
   static async startContainer(containerName: string, device: string) {
-    return ApiService._request(`/containers/${containerName}/start?device=${encodeURIComponent(device)}`, { method: "POST" });
+    return ApiService._request(
+      `/containers/${containerName}/start?device=${encodeURIComponent(device)}`,
+      { method: "POST" },
+    );
   }
 
   /**
@@ -216,7 +233,10 @@ export default class ApiService {
    * @param {{ tail?: number, follow?: boolean, device?: string }} [opts]
 
    */
-  static buildLogStreamUrl(containerName: string, { tail = 200, follow = true, device }: any = {}) {
+  static buildLogStreamUrl(
+    containerName: string,
+    { tail = 200, follow = true, device }: any = {},
+  ) {
     let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
     if (device) url += `&device=${encodeURIComponent(device)}`;
     return url;
@@ -251,7 +271,9 @@ export default class ApiService {
    * @returns {{ close: () => void }} — call close() to abort
    */
   static streamStorageBuckets(onEvent: any) {
-    const es = new EventSource(`${PORTAL_SERVICE_URL}/object-store/buckets/stream`);
+    const es = new EventSource(
+      `${PORTAL_SERVICE_URL}/object-store/buckets/stream`,
+    );
 
     es.addEventListener("init", (e) => {
       onEvent({ type: "init", ...JSON.parse(e.data) });
@@ -286,12 +308,17 @@ export default class ApiService {
 
    * @param {{ prefix?: string, recursive?: boolean }} [opts]
    */
-  static async getStorageObjects(bucketName: string, { prefix = "", recursive = false }: any = {}) {
+  static async getStorageObjects(
+    bucketName: string,
+    { prefix = "", recursive = false }: any = {},
+  ) {
     const qs = new URLSearchParams();
     if (prefix) qs.set("prefix", prefix);
     if (recursive) qs.set("recursive", "true");
     const query = qs.toString();
-    return ApiService._request(`/object-store/buckets/${bucketName}${query ? `?${query}` : ""}`);
+    return ApiService._request(
+      `/object-store/buckets/${bucketName}${query ? `?${query}` : ""}`,
+    );
   }
 
   /**
@@ -300,7 +327,9 @@ export default class ApiService {
 
    */
   static async statStorageObject(bucketName: string, objectName: string) {
-    return ApiService._request(`/object-store/buckets/${bucketName}/stat/${objectName}`);
+    return ApiService._request(
+      `/object-store/buckets/${bucketName}/stat/${objectName}`,
+    );
   }
 
   /**
@@ -310,7 +339,11 @@ export default class ApiService {
    * @param {{ inline?: boolean }} [opts]
 
    */
-  static buildStorageDownloadUrl(bucketName: string, objectName: string, { inline = false }: any = {}) {
+  static buildStorageDownloadUrl(
+    bucketName: string,
+    objectName: string,
+    { inline = false }: any = {},
+  ) {
     const qs = inline ? "?inline=true" : "";
     return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;
   }
@@ -321,7 +354,10 @@ export default class ApiService {
 
    */
   static async deleteStorageObject(bucketName: string, objectName: string) {
-    return ApiService._request(`/object-store/buckets/${bucketName}/${objectName}`, { method: "DELETE" });
+    return ApiService._request(
+      `/object-store/buckets/${bucketName}/${objectName}`,
+      { method: "DELETE" },
+    );
   }
 
   // ── Google Analytics ────────────────────────────────────────
@@ -347,7 +383,9 @@ export default class ApiService {
 
    */
   static async getGAOverview(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/overview?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/overview?period=${period}`,
+    );
   }
 
   /**
@@ -356,7 +394,9 @@ export default class ApiService {
 
    */
   static async getGAPages(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/pages?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/pages?period=${period}`,
+    );
   }
 
   /**
@@ -365,7 +405,9 @@ export default class ApiService {
 
    */
   static async getGASources(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/sources?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/sources?period=${period}`,
+    );
   }
 
   /**
@@ -374,7 +416,9 @@ export default class ApiService {
 
    */
   static async getGAGeography(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/geography?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/geography?period=${period}`,
+    );
   }
 
   /**
@@ -383,7 +427,9 @@ export default class ApiService {
 
    */
   static async getGADevices(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/devices?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/devices?period=${period}`,
+    );
   }
 
   /**
@@ -392,7 +438,9 @@ export default class ApiService {
 
    */
   static async getGATimeSeries(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/timeseries?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/timeseries?period=${period}`,
+    );
   }
 
   /**
@@ -401,7 +449,9 @@ export default class ApiService {
 
    */
   static async getGAChannels(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/channels?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/channels?period=${period}`,
+    );
   }
 
   /**
@@ -410,7 +460,9 @@ export default class ApiService {
 
    */
   static async getGALandingPages(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/landing-pages?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/landing-pages?period=${period}`,
+    );
   }
 
   /**
@@ -419,7 +471,9 @@ export default class ApiService {
 
    */
   static async getGAHeatmap(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/heatmap?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/heatmap?period=${period}`,
+    );
   }
 
   /**
@@ -428,7 +482,9 @@ export default class ApiService {
 
    */
   static async getGANewVsReturning(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/new-vs-returning?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/new-vs-returning?period=${period}`,
+    );
   }
 
   /**
@@ -437,6 +493,8 @@ export default class ApiService {
 
    */
   static async getGAEvents(propertyId: string, period = "30d") {
-    return ApiService._request(`/google-analytics/${propertyId}/events?period=${period}`);
+    return ApiService._request(
+      `/google-analytics/${propertyId}/events?period=${period}`,
+    );
   }
 }

@@ -172,7 +172,6 @@
   gap: 6px;
 }
 
-
 .segmentedControl {
   display: flex;
   align-items: center;
@@ -248,7 +247,6 @@
   flex-shrink: 0;
 }
 
-
 /* ── Filter Summary ── */
 
 .filterSummary {
@@ -322,7 +320,6 @@
     min-width: 0;
   }
 
-
   .barDivider {
     display: none;
   }
@@ -336,4 +333,3 @@
     padding: 32px 16px;
   }
 }
-

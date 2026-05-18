@@ -26,13 +26,23 @@ import {
   StatusBadgeComponent,
   VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatElapsedTime, formatNumber, formatPercent } from "@rodrigo-barraza/utilities-library";
-import { SERVICE_TYPE_COLORS, DEPLOY_TIER_COLORS, SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON } from "../constants";
+import {
+  formatBytes,
+  formatDuration,
+  formatElapsedTime,
+  formatNumber,
+  formatPercent,
+} from "@rodrigo-barraza/utilities-library";
+import {
+  SERVICE_TYPE_COLORS,
+  DEPLOY_TIER_COLORS,
+  SERVICE_TYPE_ICONS,
+  DEFAULT_SERVICE_TYPE_ICON,
+} from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ExpandedProjectPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
-
 
 // @ts-ignore
 function severityColor(pct, thresholds = [40, 80]) {
@@ -54,7 +64,15 @@ function formatGAPercent(value: any) {
 
 // ── Sparkline (Canvas) ────────────────────────────────────────────
 
-function Sparkline({ data, color, fillColor, max, height = 28 }: { [key: string]: any }) {
+function Sparkline({
+  data,
+  color,
+  fillColor,
+  max,
+  height = 28,
+}: {
+  [key: string]: any;
+}) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -124,7 +142,10 @@ function PercentBar({ percent, color }: { [key: string]: any }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
-      <div className={styles.barFill} style={{ width: `${clamped}%`, background: color }} />
+      <div
+        className={styles.barFill}
+        style={{ width: `${clamped}%`, background: color }}
+      />
     </div>
   );
 }
@@ -146,42 +167,61 @@ function ProjectTab({ service }: { [key: string]: any }) {
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Identity</h4>
         <div className={`${styles.fieldGrid} ${styles.fieldGridSingle}`}>
-          {service.projectType && (() => {
-            // @ts-ignore
-            const colors = SERVICE_TYPE_COLORS[service.projectType];
-            return (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Type</span>
-                <BadgeComponent variant="info" style={colors ? {
-                  color: colors.color,
-                  background: colors.subtle,
-                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-                } : undefined}>
-                  {service.projectType}
-                </BadgeComponent>
-              </div>
-            );
-          })()}
-          {service.deployTier != null && (() => {
-            // @ts-ignore
-            const colors = DEPLOY_TIER_COLORS[service.deployTier];
-            return (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Tier</span>
-                <BadgeComponent variant="info" style={colors ? {
-                  color: colors.color,
-                  background: colors.subtle,
-                  borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
-                } : undefined}>
-                  {`Tier ${service.deployTier}`}
-                </BadgeComponent>
-              </div>
-            );
-          })()}
+          {service.projectType &&
+            (() => {
+              // @ts-ignore
+              const colors = SERVICE_TYPE_COLORS[service.projectType];
+              return (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Type</span>
+                  <BadgeComponent
+                    variant="info"
+                    style={
+                      colors
+                        ? {
+                            color: colors.color,
+                            background: colors.subtle,
+                            borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                          }
+                        : undefined
+                    }
+                  >
+                    {service.projectType}
+                  </BadgeComponent>
+                </div>
+              );
+            })()}
+          {service.deployTier != null &&
+            (() => {
+              // @ts-ignore
+              const colors = DEPLOY_TIER_COLORS[service.deployTier];
+              return (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Tier</span>
+                  <BadgeComponent
+                    variant="info"
+                    style={
+                      colors
+                        ? {
+                            color: colors.color,
+                            background: colors.subtle,
+                            borderColor: `color-mix(in srgb, ${colors.color} 25%, transparent)`,
+                          }
+                        : undefined
+                    }
+                  >
+                    {`Tier ${service.deployTier}`}
+                  </BadgeComponent>
+                </div>
+              );
+            })()}
           {service.repo && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Repository</span>
-              <RepositoryBadgeComponent repo={service.repo} icons={{ Github: GitFork }} />
+              <RepositoryBadgeComponent
+                repo={service.repo}
+                icons={{ Github: GitFork }}
+              />
             </div>
           )}
           {service.domain && (
@@ -200,39 +240,54 @@ function ProjectTab({ service }: { [key: string]: any }) {
             {service.metadata?.version && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Version</span>
-                <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.version}</span>
+                <span className={`${styles.fieldValue} ${styles.mono}`}>
+                  {service.metadata.version}
+                </span>
               </div>
             )}
             {service.isInfrastructure && service.metadata?.uptime != null && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Uptime</span>
-                <span className={styles.fieldValue}>{formatElapsedTime(service.metadata.uptime)}</span>
+                <span className={styles.fieldValue}>
+                  {formatElapsedTime(service.metadata.uptime)}
+                </span>
               </div>
             )}
-            {service.isInfrastructure && service.metadata?.connections != null && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Connections</span>
-                <span className={styles.fieldValue}>{service.metadata.connections}</span>
-              </div>
-            )}
-            {service.isInfrastructure && service.metadata?.databases != null && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Databases</span>
-                <span className={styles.fieldValue}>{service.metadata.databases}</span>
-              </div>
-            )}
+            {service.isInfrastructure &&
+              service.metadata?.connections != null && (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Connections</span>
+                  <span className={styles.fieldValue}>
+                    {service.metadata.connections}
+                  </span>
+                </div>
+              )}
+            {service.isInfrastructure &&
+              service.metadata?.databases != null && (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Databases</span>
+                  <span className={styles.fieldValue}>
+                    {service.metadata.databases}
+                  </span>
+                </div>
+              )}
             {service.isInfrastructure && service.metadata?.buckets != null && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Buckets</span>
-                <span className={styles.fieldValue}>{service.metadata.buckets}</span>
+                <span className={styles.fieldValue}>
+                  {service.metadata.buckets}
+                </span>
               </div>
             )}
-            {service.isInfrastructure && service.metadata?.bucketNames?.length > 0 && (
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>Bucket Names</span>
-                <span className={`${styles.fieldValue} ${styles.mono}`}>{service.metadata.bucketNames.join(", ")}</span>
-              </div>
-            )}
+            {service.isInfrastructure &&
+              service.metadata?.bucketNames?.length > 0 && (
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>Bucket Names</span>
+                  <span className={`${styles.fieldValue} ${styles.mono}`}>
+                    {service.metadata.bucketNames.join(", ")}
+                  </span>
+                </div>
+              )}
             {service.checkedAt && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Last Checked</span>
@@ -262,26 +317,39 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
             </div>
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Environment</span>
-              <BadgeComponent variant={service.environment === "Production" ? "success" : "info"}>
+              <BadgeComponent
+                variant={
+                  service.environment === "Production" ? "success" : "info"
+                }
+              >
                 {service.environment || "Unknown"}
               </BadgeComponent>
             </div>
             {service.visibility && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Visibility</span>
-                <VisibilityBadgeComponent visibility={service.visibility} icons={{ Globe, Lock }} />
+                <VisibilityBadgeComponent
+                  visibility={service.visibility}
+                  icons={{ Globe, Lock }}
+                />
               </div>
             )}
             {service.responseTimeMs != null && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Response</span>
-                <ResponseTimeBadgeComponent ms={service.responseTimeMs} formatter={formatDuration} />
+                <ResponseTimeBadgeComponent
+                  ms={service.responseTimeMs}
+                  formatter={formatDuration}
+                />
               </div>
             )}
             {service.device && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Device</span>
-                <DeviceBadgeComponent device={service.device} icons={{ Server }} />
+                <DeviceBadgeComponent
+                  device={service.device}
+                  icons={{ Server }}
+                />
               </div>
             )}
           </div>
@@ -312,21 +380,37 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
           {/* CPU */}
           <div className={styles.metricCard}>
             <div className={styles.metricCardHeader}>
-              <Cpu size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <Cpu
+                size={13}
+                strokeWidth={2.2}
+                className={styles.metricCardIcon}
+              />
               <span className={styles.metricCardTitle}>CPU</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.cpu.percent) }}>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.cpu.percent) }}
+              >
                 {formatPercent(stats.cpu.percent, "adaptive")}
               </span>
               <span className={styles.metricCardDim}>
                 · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
               </span>
             </div>
-            <PercentBar percent={stats.cpu.percent} color={severityColor(stats.cpu.percent)} />
+            <PercentBar
+              percent={stats.cpu.percent}
+              color={severityColor(stats.cpu.percent)}
+            />
             {stats.spark?.cpu?.length >= 2 && (
               <Sparkline
                 data={stats.spark.cpu}
                 color={severityColor(stats.cpu.percent)}
-                fillColor={stats.cpu.percent > 80 ? "rgba(239,68,68,0.12)" : stats.cpu.percent > 40 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                fillColor={
+                  stats.cpu.percent > 80
+                    ? "rgba(239,68,68,0.12)"
+                    : stats.cpu.percent > 40
+                      ? "rgba(245,158,11,0.12)"
+                      : "rgba(16,185,129,0.12)"
+                }
                 max={100}
                 height={36}
               />
@@ -336,22 +420,43 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
           {/* Memory */}
           <div className={styles.metricCard}>
             <div className={styles.metricCardHeader}>
-              <MemoryStick size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
+              <MemoryStick
+                size={13}
+                strokeWidth={2.2}
+                className={styles.metricCardIcon}
+              />
               <span className={styles.metricCardTitle}>RAM</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
+              >
                 {formatBytes(stats.memory.used)}
               </span>
-              <span className={styles.metricCardDim}>/ {formatBytes(stats.memory.limit)}</span>
-              <span className={styles.metricCardValue} style={{ color: severityColor(stats.memory.percent, [60, 85]) }}>
+              <span className={styles.metricCardDim}>
+                / {formatBytes(stats.memory.limit)}
+              </span>
+              <span
+                className={styles.metricCardValue}
+                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
+              >
                 {formatPercent(stats.memory.percent, "adaptive")}
               </span>
             </div>
-            <PercentBar percent={stats.memory.percent} color={severityColor(stats.memory.percent, [60, 85])} />
+            <PercentBar
+              percent={stats.memory.percent}
+              color={severityColor(stats.memory.percent, [60, 85])}
+            />
             {stats.spark?.mem?.length >= 2 && (
               <Sparkline
                 data={stats.spark.mem}
                 color={severityColor(stats.memory.percent, [60, 85])}
-                fillColor={stats.memory.percent > 85 ? "rgba(239,68,68,0.12)" : stats.memory.percent > 60 ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)"}
+                fillColor={
+                  stats.memory.percent > 85
+                    ? "rgba(239,68,68,0.12)"
+                    : stats.memory.percent > 60
+                      ? "rgba(245,158,11,0.12)"
+                      : "rgba(16,185,129,0.12)"
+                }
                 max={stats.memory.limit}
                 height={36}
               />
@@ -360,43 +465,61 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
 
           {/* Network + Block I/O + PIDs */}
           <div className={styles.metricRow}>
-            {stats.network && (stats.network.rx > 0 || stats.network.tx > 0) && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
-                  <Globe size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-                  <span className={styles.metricCardTitle}>Network</span>
+            {stats.network &&
+              (stats.network.rx > 0 || stats.network.tx > 0) && (
+                <div className={styles.metricCard}>
+                  <div className={styles.metricCardHeader}>
+                    <Globe
+                      size={13}
+                      strokeWidth={2.2}
+                      className={styles.metricCardIcon}
+                    />
+                    <span className={styles.metricCardTitle}>Network</span>
+                  </div>
+                  <div className={styles.ioStats}>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>RX</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.network.rx)}
+                      </span>
+                    </span>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>TX</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.network.tx)}
+                      </span>
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.ioStats}>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>RX</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.network.rx)}</span>
-                  </span>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>TX</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.network.tx)}</span>
-                  </span>
-                </div>
-              </div>
-            )}
+              )}
 
-            {stats.blockIO && (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
-                  <Server size={13} strokeWidth={2.2} className={styles.metricCardIcon} />
-                  <span className={styles.metricCardTitle}>Block I/O</span>
+            {stats.blockIO &&
+              (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
+                <div className={styles.metricCard}>
+                  <div className={styles.metricCardHeader}>
+                    <Server
+                      size={13}
+                      strokeWidth={2.2}
+                      className={styles.metricCardIcon}
+                    />
+                    <span className={styles.metricCardTitle}>Block I/O</span>
+                  </div>
+                  <div className={styles.ioStats}>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>Read</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.blockIO.read)}
+                      </span>
+                    </span>
+                    <span className={styles.ioStat}>
+                      <span className={styles.ioDir}>Write</span>
+                      <span className={styles.ioValue}>
+                        {formatBytes(stats.blockIO.write)}
+                      </span>
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.ioStats}>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>Read</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.read)}</span>
-                  </span>
-                  <span className={styles.ioStat}>
-                    <span className={styles.ioDir}>Write</span>
-                    <span className={styles.ioValue}>{formatBytes(stats.blockIO.write)}</span>
-                  </span>
-                </div>
-              </div>
-            )}
+              )}
 
             {stats.pids > 0 && (
               <div className={styles.metricCard}>
@@ -410,7 +533,11 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
         </div>
       ) : (
         <div className={styles.containerMetricsEmpty}>
-          <BarChart3 size={18} strokeWidth={1.5} className={styles.emptyTabIcon} />
+          <BarChart3
+            size={18}
+            strokeWidth={1.5}
+            className={styles.emptyTabIcon}
+          />
           <span>No metrics</span>
         </div>
       )}
@@ -421,7 +548,11 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
 // ── Mini topology constants ───────────────────────────────────────
 const MINI_NODE_W = 110;
 const MINI_NODE_H = 52;
-const TIER_LABELS = ["Tier 0 — Foundation", "Tier 1 — Services & Clients", "Tier 2 — Bots"];
+const TIER_LABELS = [
+  "Tier 0 — Foundation",
+  "Tier 1 — Services & Clients",
+  "Tier 2 — Bots",
+];
 
 function getIcon(svc: any) {
   // @ts-ignore
@@ -454,8 +585,10 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
   for (const svc of allServices) {
     for (const dep of svc.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
-      const criticality = typeof dep === "string" ? "required" : dep.criticality || "required";
-      if (idSet.has(depId)) allEdges.push({ source: depId, target: svc.id, criticality });
+      const criticality =
+        typeof dep === "string" ? "required" : dep.criticality || "required";
+      if (idSet.has(depId))
+        allEdges.push({ source: depId, target: svc.id, criticality });
     }
   }
 
@@ -474,7 +607,10 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
   while (queue.length > 0) {
     const id = queue.shift();
     for (const dep of upstream.get(id) || []) {
-      if (!connected.has(dep)) { connected.add(dep); queue.push(dep); }
+      if (!connected.has(dep)) {
+        connected.add(dep);
+        queue.push(dep);
+      }
     }
   }
   for (const child of downstream.get(service.id) || []) connected.add(child);
@@ -482,7 +618,9 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
   // Filter services and edges to connected subgraph
   // @ts-ignore
   const graphServices = allServices.filter((s) => connected.has(s.id));
-  const graphEdges = allEdges.filter((e) => connected.has(e.source) && connected.has(e.target));
+  const graphEdges = allEdges.filter(
+    (e) => connected.has(e.source) && connected.has(e.target),
+  );
 
   if (graphServices.length <= 1) {
     return (
@@ -500,13 +638,16 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
     // @ts-ignore
     tiers[tier].push(svc);
   }
-  for (const tier of tiers) tier.sort((a: any, b: any) => a.name.localeCompare(b.name));
+  for (const tier of tiers)
+    tier.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
   const GAP_X = 20;
   const GAP_Y = 72;
   const LABEL_W = 120;
   const positions = {};
-  const layerWidths = tiers.map((l) => l.length * (MINI_NODE_W + GAP_X) - GAP_X);
+  const layerWidths = tiers.map(
+    (l) => l.length * (MINI_NODE_W + GAP_X) - GAP_X,
+  );
   const maxW = Math.max(...layerWidths, 0);
 
   let usedTierCount = 0;
@@ -540,7 +681,14 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
     <div className={styles.miniTopology}>
       <svg viewBox={`0 0 ${svgW} ${svgH}`} className={styles.miniTopologySvg}>
         <defs>
-          <linearGradient id="mini-prism-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="300">
+          <linearGradient
+            id="mini-prism-gradient"
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            y1="0"
+            x2="300"
+            y2="300"
+          >
             <stop offset="0%" stopColor="#ff0000" />
             <stop offset="16%" stopColor="#ff8800" />
             <stop offset="33%" stopColor="#ffff00" />
@@ -548,7 +696,14 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
             <stop offset="66%" stopColor="#0088ff" />
             <stop offset="83%" stopColor="#8800ff" />
             <stop offset="100%" stopColor="#ff0088" />
-            <animateTransform attributeName="gradientTransform" type="rotate" from="0 150 150" to="360 150 150" dur="2s" repeatCount="indefinite" />
+            <animateTransform
+              attributeName="gradientTransform"
+              type="rotate"
+              from="0 150 150"
+              to="360 150 150"
+              dur="2s"
+              repeatCount="indefinite"
+            />
           </linearGradient>
         </defs>
 
@@ -564,11 +719,27 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
           const x2 = tp.x + MINI_NODE_W / 2;
           const y2 = tp.y;
           const isOpt = edge.criticality === "optional";
-          const isSelfEdge = edge.source === service.id || edge.target === service.id;
+          const isSelfEdge =
+            edge.source === service.id || edge.target === service.id;
           const d = miniEdgePath(x1, y1, x2, y2);
           return (
-            <g key={`${edge.source}-${edge.target}-${i}`} className={isSelfEdge ? styles.miniEdgeFlowing : ""}>
-              <path d={d} stroke={isSelfEdge ? "url(#mini-prism-gradient)" : "var(--border-color)"} strokeWidth={isSelfEdge ? 2 : 1.2} fill="none" strokeOpacity={isSelfEdge ? 0.9 : isOpt ? 0.25 : 0.4} strokeDasharray={isOpt && !isSelfEdge ? "4 3" : "none"} className={styles.miniEdgeLine} />
+            <g
+              key={`${edge.source}-${edge.target}-${i}`}
+              className={isSelfEdge ? styles.miniEdgeFlowing : ""}
+            >
+              <path
+                d={d}
+                stroke={
+                  isSelfEdge
+                    ? "url(#mini-prism-gradient)"
+                    : "var(--border-color)"
+                }
+                strokeWidth={isSelfEdge ? 2 : 1.2}
+                fill="none"
+                strokeOpacity={isSelfEdge ? 0.9 : isOpt ? 0.25 : 0.4}
+                strokeDasharray={isOpt && !isSelfEdge ? "4 3" : "none"}
+                className={styles.miniEdgeLine}
+              />
             </g>
           );
         })}
@@ -577,26 +748,49 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
         {tiers.map((layer, li) => {
           if (!layer.length || tierYPositions[li] == null) return null;
           return (
-            <text key={`tier-${li}`} x={0} y={tierYPositions[li]} className={styles.miniTierLabel} dominantBaseline="middle">
+            <text
+              key={`tier-${li}`}
+              x={0}
+              y={tierYPositions[li]}
+              className={styles.miniTierLabel}
+              dominantBaseline="middle"
+            >
               {TIER_LABELS[li] || `Tier ${li}`}
             </text>
           );
         })}
 
         {/* Nodes */}
-{/* @ts-ignore */}
-{graphServices.map((svc: any) => {
+        {/* @ts-ignore */}
+        {graphServices.map((svc: any) => {
           // @ts-ignore
           const pos = positions[svc.id];
           if (!pos) return null;
           const Icon = getIcon(svc);
           const isSelf = svc.id === service.id;
-          const typeClass = svc.isInfrastructure ? styles.miniNodeInfra : svc.visibility === "external" ? styles.miniNodeExternal : styles.miniNodeInternal;
+          const typeClass = svc.isInfrastructure
+            ? styles.miniNodeInfra
+            : svc.visibility === "external"
+              ? styles.miniNodeExternal
+              : styles.miniNodeInternal;
           return (
-            <foreignObject key={svc.id} x={pos.x} y={pos.y} width={MINI_NODE_W} height={MINI_NODE_H} style={{ overflow: "visible" }}>
-              <div className={`${styles.miniNodeCard} ${typeClass} ${isSelf ? styles.miniNodeSelf : ""}`}>
-                <div className={`${styles.miniStatusDot} ${svc.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`} />
-                <div className={styles.miniNodeIconWrap}><Icon size={14} strokeWidth={1.5} /></div>
+            <foreignObject
+              key={svc.id}
+              x={pos.x}
+              y={pos.y}
+              width={MINI_NODE_W}
+              height={MINI_NODE_H}
+              style={{ overflow: "visible" }}
+            >
+              <div
+                className={`${styles.miniNodeCard} ${typeClass} ${isSelf ? styles.miniNodeSelf : ""}`}
+              >
+                <div
+                  className={`${styles.miniStatusDot} ${svc.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`}
+                />
+                <div className={styles.miniNodeIconWrap}>
+                  <Icon size={14} strokeWidth={1.5} />
+                </div>
                 <span className={styles.miniNodeName}>{svc.name}</span>
               </div>
             </foreignObject>
@@ -606,7 +800,6 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
     </div>
   );
 }
-
 
 // ── Tab: Web Analytics ────────────────────────────────────────────
 
@@ -632,15 +825,22 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
         setOverview(ov);
         setPages(pg);
         setRealtime(rt);
-      } catch { /* silent */ }
-      finally { setLoading(false); }
+      } catch {
+        /* silent */
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [propertyId]);
 
   if (!propertyId) {
     return (
       <div className={styles.emptyTab}>
-        <TrendingUp size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
+        <TrendingUp
+          size={24}
+          strokeWidth={1.5}
+          className={styles.emptyTabIcon}
+        />
         <span>No analytics property configured</span>
         <span className={styles.emptyTabHint}>
           Add <code>analyticsPropertyId</code> to this project in projects.json
@@ -663,7 +863,9 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
       {realtime && (
         <div className={styles.realtimePill}>
           <div className={styles.realtimeDot} />
-          <span className={styles.realtimeValue}>{formatNumber(realtime.activeUsers)}</span>
+          <span className={styles.realtimeValue}>
+            {formatNumber(realtime.activeUsers)}
+          </span>
           <span className={styles.realtimeLabel}>active now</span>
         </div>
       )}
@@ -672,23 +874,33 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
       {overview && (
         <div className={styles.gaCards}>
           <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>{formatNumber(overview.totalUsers)}</span>
+            <span className={styles.gaCardValue}>
+              {formatNumber(overview.totalUsers)}
+            </span>
             <span className={styles.gaCardLabel}>Users</span>
           </div>
           <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>{formatNumber(overview.pageviews)}</span>
+            <span className={styles.gaCardValue}>
+              {formatNumber(overview.pageviews)}
+            </span>
             <span className={styles.gaCardLabel}>Pageviews</span>
           </div>
           <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>{formatNumber(overview.sessions)}</span>
+            <span className={styles.gaCardValue}>
+              {formatNumber(overview.sessions)}
+            </span>
             <span className={styles.gaCardLabel}>Sessions</span>
           </div>
           <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>{formatGADuration(overview.avgSessionDuration)}</span>
+            <span className={styles.gaCardValue}>
+              {formatGADuration(overview.avgSessionDuration)}
+            </span>
             <span className={styles.gaCardLabel}>Avg Duration</span>
           </div>
           <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>{formatGAPercent(overview.engagementRate)}</span>
+            <span className={styles.gaCardValue}>
+              {formatGAPercent(overview.engagementRate)}
+            </span>
             <span className={styles.gaCardLabel}>Engagement</span>
           </div>
         </div>
@@ -701,8 +913,12 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
           <div className={styles.gaPageList}>
             {pages.pages.slice(0, 5).map((p: any, i: any) => (
               <div key={i} className={styles.gaPageRow}>
-                <span className={`${styles.gaPagePath} ${styles.mono}`}>{p.pagePath}</span>
-                <span className={styles.gaPageViews}>{formatNumber(p.pageviews)}</span>
+                <span className={`${styles.gaPagePath} ${styles.mono}`}>
+                  {p.pagePath}
+                </span>
+                <span className={styles.gaPageViews}>
+                  {formatNumber(p.pageviews)}
+                </span>
               </div>
             ))}
           </div>
@@ -714,12 +930,19 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
 
 // ── Main Expanded Panel ───────────────────────────────────────────
 
-export default function ExpandedProjectPanel({ service, stats, allServices = [] }: { [key: string]: any }) {
+export default function ExpandedProjectPanel({
+  service,
+  stats,
+  allServices = [],
+}: {
+  [key: string]: any;
+}) {
   const [activeTab, setActiveTab] = useState("project");
 
   // Filter tabs: only show web-analytics if property exists
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.id === "web-analytics" && !service.analyticsPropertyId) return false;
+    if (tab.id === "web-analytics" && !service.analyticsPropertyId)
+      return false;
     return true;
   });
 
@@ -745,16 +968,18 @@ export default function ExpandedProjectPanel({ service, stats, allServices = [] 
       {/* ── Tab Content ── */}
       <div className={styles.tabContent}>
         {activeTab === "project" && <ProjectTab service={service} />}
-        {activeTab === "container" && <ContainerTab service={service} stats={stats} />}
-        {activeTab === "topology" && <TopologyTab service={service} allServices={allServices} />}
+        {activeTab === "container" && (
+          <ContainerTab service={service} stats={stats} />
+        )}
+        {activeTab === "topology" && (
+          <TopologyTab service={service} allServices={allServices} />
+        )}
         {activeTab === "web-analytics" && <WebAnalyticsTab service={service} />}
       </div>
 
       {/* ── Error Bar ── */}
       {service.error && !service.healthy && (
-        <div className={styles.errorBar}>
-          {service.error}
-        </div>
+        <div className={styles.errorBar}>{service.error}</div>
       )}
     </div>
   );

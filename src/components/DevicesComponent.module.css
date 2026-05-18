@@ -26,7 +26,8 @@
 
   &:hover {
     border-color: color-mix(in srgb, var(--device-accent) 30%, transparent);
-    box-shadow: 0 0 20px color-mix(in srgb, var(--device-accent) 8%, transparent);
+    box-shadow: 0 0 20px
+      color-mix(in srgb, var(--device-accent) 8%, transparent);
   }
 }
 
@@ -149,9 +150,6 @@
   border-radius: 2px;
 }
 
-
-
-
 /* ── Notes ── */
 
 .deviceNotes {
@@ -182,7 +180,9 @@
   background: none;
   border: none;
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 
   &:hover {
     color: var(--text-secondary);
@@ -370,9 +370,20 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--metric-color, var(--text-secondary));
-  background: color-mix(in srgb, var(--metric-color, var(--text-secondary)) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--metric-color, var(--text-secondary)) 15%, transparent);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  background: color-mix(
+    in srgb,
+    var(--metric-color, var(--text-secondary)) 10%,
+    transparent
+  );
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--metric-color, var(--text-secondary)) 15%,
+      transparent
+    );
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .metricValue {
@@ -478,7 +489,6 @@
   border-radius: 2px;
   white-space: nowrap;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════
    Mobile Responsive

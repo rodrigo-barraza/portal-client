@@ -682,8 +682,10 @@
   max-height: 60vh;
   object-fit: contain;
   border-radius: var(--border-radius-sm);
-  background:
-    repeating-conic-gradient(rgba(128, 128, 128, 0.08) 0% 25%, transparent 0% 50%)
+  background: repeating-conic-gradient(
+      rgba(128, 128, 128, 0.08) 0% 25%,
+      transparent 0% 50%
+    )
     50% / 16px 16px;
 }
 

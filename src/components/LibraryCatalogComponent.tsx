@@ -9,12 +9,7 @@
  */
 
 import { useState, useMemo } from "react";
-import {
-  Search,
-  FlaskConical,
-  Package,
-  FileCode2,
-} from "lucide-react";
+import { Search, FlaskConical, Package, FileCode2 } from "lucide-react";
 import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
 import styles from "./LibraryCatalogComponent.module.css";
 
@@ -52,14 +47,16 @@ export default function LibraryCatalogComponent({
   icon,
   accentColor = "#6366f1",
   accentSubtle = "rgba(99, 102, 241, 0.1)",
-}: { [key: string]: any }) {
+}: {
+  [key: string]: any;
+}) {
   const [search, setSearch] = useState("");
 
   // Filter to this type only
   const items = useMemo(
     // @ts-ignore
     () => catalog.filter((c) => c.type === type),
-    [catalog, type]
+    [catalog, type],
   );
 
   // Search filtering
@@ -71,7 +68,7 @@ export default function LibraryCatalogComponent({
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.description?.toLowerCase().includes(q) ||
-        humanize(c.name).toLowerCase().includes(q)
+        humanize(c.name).toLowerCase().includes(q),
     );
   }, [items, search]);
 
@@ -84,7 +81,9 @@ export default function LibraryCatalogComponent({
       <PageHeaderComponent
         sticky={false}
         title={title}
-        subtitle={subtitle || `${items.length} ${type}s · ${testedCount} tested`}
+        subtitle={
+          subtitle || `${items.length} ${type}s · ${testedCount} tested`
+        }
       >
         <div className={styles.headerStats}>
           <div className={styles.statPill}>
@@ -112,15 +111,16 @@ export default function LibraryCatalogComponent({
           />
         </div>
         <div className={styles.countLabel}>
-          {filtered.length} {type}{filtered.length !== 1 ? "s" : ""}
+          {filtered.length} {type}
+          {filtered.length !== 1 ? "s" : ""}
           {search && ` matching "${search}"`}
         </div>
       </div>
 
       {/* ── Grid ── */}
       <div className={styles.grid}>
-{/* @ts-ignore */}
-{filtered.map((item: any, i: any) => (
+        {/* @ts-ignore */}
+        {filtered.map((item: any, i: any) => (
           <div
             key={item.name}
             className={styles.card}
