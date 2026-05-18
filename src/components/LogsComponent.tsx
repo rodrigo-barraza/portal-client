@@ -527,7 +527,7 @@ export default function LogsComponent() {
 
       {/* ── Terminal Viewer ── */}
       {activeContainer ? (
-        <div className={styles.terminal}>
+        <div className={styles.terminal} data-theme="dark">
           {/* Header */}
           <div className={styles.terminalHeader}>
             <div className={styles.terminalTitle}>
@@ -652,7 +652,7 @@ export default function LogsComponent() {
           )}
         </div>
       ) : (
-        <div className={styles.emptyTerminal}>
+        <div className={styles.emptyTerminal} data-theme="dark">
           <ScrollText size={40} strokeWidth={1} />
           <span>Select a container to start streaming logs</span>
         </div>
