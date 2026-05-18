@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
-  Eye, EyeOff, Layers, Grid3X3, ArrowDown, ArrowUp,
+  Eye, EyeOff, Layers, Grid3X3, ArrowDown, ArrowUp, GitBranch,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -54,11 +54,13 @@ const EDGE_TYPE_CONFIG: Record<EdgeType, { label: string; color: string; subtle:
 };
 
 // ── Directional edge colors (when a node is selected) ───────
-// Incoming = edges flowing INTO the selected node (its upstream dependencies)
-// Outgoing = edges flowing OUT FROM the selected node (its downstream consumers)
+// Incoming  = direct edges flowing INTO the selected node (its immediate dependencies)
+// Outgoing  = direct edges flowing OUT FROM the selected node (its immediate consumers)
+// Network   = transitive edges between other connected nodes (not directly touching the selected node)
 const EDGE_DIRECTION_CONFIG = {
-  incoming: { color: "#06b6d4", label: "Upstream",   glow: "rgba(6, 182, 212, 0.25)" },
-  outgoing: { color: "#f59e0b", label: "Downstream", glow: "rgba(245, 158, 11, 0.25)" },
+  incoming: { color: "#00e5ff", label: "Upstream",   glow: "rgba(0, 229, 255, 0.3)" },
+  outgoing: { color: "#ff5722", label: "Downstream", glow: "rgba(255, 87, 34, 0.3)" },
+  network:  { color: "#b388ff", label: "Network",    glow: "rgba(179, 136, 255, 0.2)" },
 };
 
 // ── Icon resolver (by projectType) ──────────────────────────────
@@ -592,24 +594,21 @@ export default function TopologyComponent() {
       visited.add(child);
     }
 
-    // Build edge direction map: edgeKey → "incoming" | "outgoing"
-    // "incoming" = this edge feeds INTO the selected node (upstream path)
-    // "outgoing" = this edge flows OUT from the selected node (downstream consumers)
-    const dirMap = new Map<string, "incoming" | "outgoing">();
+    // Build edge direction map: edgeKey → "incoming" | "outgoing" | "network"
+    // "incoming" = direct edge INTO the selected node (immediate dependency)
+    // "outgoing" = direct edge OUT FROM the selected node (immediate consumer)
+    // "network"  = transitive edge between other connected nodes
+    const dirMap = new Map<string, "incoming" | "outgoing" | "network">();
     for (const e of edges) {
       const key = `${e.source}-${e.target}`;
       if (!visited.has(e.source) || !visited.has(e.target)) continue;
 
-      // Direct edges touching the selected node
       if (e.target === selectedNode) {
-        // source → selectedNode : something the selected node depends on
         dirMap.set(key, "incoming");
       } else if (e.source === selectedNode) {
-        // selectedNode → target : something that depends on the selected node
         dirMap.set(key, "outgoing");
       } else {
-        // Transitive upstream edge (part of the upstream chain)
-        dirMap.set(key, "incoming");
+        dirMap.set(key, "network");
       }
     }
 
@@ -932,10 +931,13 @@ export default function TopologyComponent() {
                 </linearGradient>
                 {/* Directional edge arrowhead markers */}
                 <marker id="arrow-incoming" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.incoming.color} opacity="0.85" />
+                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.incoming.color} opacity="0.9" />
                 </marker>
                 <marker id="arrow-outgoing" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.outgoing.color} opacity="0.85" />
+                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.outgoing.color} opacity="0.9" />
+                </marker>
+                <marker id="arrow-network" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.network.color} opacity="0.7" />
                 </marker>
               </defs>
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
@@ -1230,7 +1232,7 @@ export default function TopologyComponent() {
             {selectedNode && (
               <>
                 <div className={styles.legendSep} />
-                <div className={styles.legendTitle}>Direction</div>
+                <div className={styles.legendTitle}>Selected</div>
                 <div className={styles.legendItem}>
                   <div className={styles.legendEdgeLine} style={{ borderTopColor: EDGE_DIRECTION_CONFIG.incoming.color, borderTopStyle: "solid", borderTopWidth: "2.5px" }} />
                   <ArrowDown size={11} strokeWidth={2} style={{ color: EDGE_DIRECTION_CONFIG.incoming.color }} />
@@ -1240,6 +1242,11 @@ export default function TopologyComponent() {
                   <div className={styles.legendEdgeLine} style={{ borderTopColor: EDGE_DIRECTION_CONFIG.outgoing.color, borderTopStyle: "solid", borderTopWidth: "2.5px" }} />
                   <ArrowUp size={11} strokeWidth={2} style={{ color: EDGE_DIRECTION_CONFIG.outgoing.color }} />
                   <span>{EDGE_DIRECTION_CONFIG.outgoing.label}</span>
+                </div>
+                <div className={styles.legendItem}>
+                  <div className={styles.legendEdgeLine} style={{ borderTopColor: EDGE_DIRECTION_CONFIG.network.color, borderTopStyle: "solid", borderTopWidth: "2px", opacity: 0.7 }} />
+                  <GitBranch size={11} strokeWidth={2} style={{ color: EDGE_DIRECTION_CONFIG.network.color }} />
+                  <span>{EDGE_DIRECTION_CONFIG.network.label}</span>
                 </div>
               </>
             )}
