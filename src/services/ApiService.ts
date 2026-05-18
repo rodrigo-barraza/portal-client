@@ -123,6 +123,15 @@ export default class ApiService {
     return ApiService._request("/services/sizes");
   }
 
+  /**
+   * Get auto-detected ecosystem dependencies (imports, API calls, repo sizes).
+   * @returns {Promise<{ dependencies: Record<string, { imports: any[], apiCalls: any[] }>, repoSizes: Record<string, { sizeKB: number, sizeBytes: number }>, analyzedAt: string }>}
+   */
+  static async getProjectAnalysis(refresh = false) {
+    const qs = refresh ? "?refresh=true" : "";
+    return ApiService._request(`/services/analysis${qs}`);
+  }
+
   // ── Stats ─────────────────────────────────────────────────────
 
   /**

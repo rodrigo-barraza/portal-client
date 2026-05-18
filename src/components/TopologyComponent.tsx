@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
-  Eye, EyeOff, Layers, Grid3X3, ArrowDown, ArrowUp, GitBranch,
+  Eye, EyeOff, Layers, Grid3X3, ArrowDown, ArrowUp, GitBranch, HardDrive,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -33,6 +33,16 @@ const TYPE_ORDER = ["Service", "Client", "Bot", "Library", "Kit", "Tool", "Datab
 
 // ── Non-tiered project types (rendered independently) ────────
 const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
+
+// ── Infrastructure dependency IDs (not detectable from code) ──
+const INFRA_IDS = new Set(["mongodb", "minio", "lm-studio", "lm-studio-2"]);
+
+// ── Size formatter ──────────────────────────────────────────
+function formatSize(kb: number): string {
+  if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(1)} GB`;
+  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
+  return `${kb} KB`;
+}
 
 // ── Edge type taxonomy ──────────────────────────────────────────
 type EdgeType = "api" | "import" | "tooling" | "infra";
@@ -340,6 +350,8 @@ export default function TopologyComponent() {
   const [tierColors, setTierColors] = useState(DEPLOY_TIER_COLORS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [repoSizes, setRepoSizes] = useState<Record<string, { sizeKB: number; sizeBytes: number }>>({});
   const [hoveredNode, setHoveredNode] = useState<any>(null);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -385,15 +397,61 @@ export default function TopologyComponent() {
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   // ── Data fetching ───────────────────────────────────────────
+  /**
+   * Merge analysis-detected dependencies into the service dependsOn arrays.
+   * Keeps infrastructure deps (MongoDB, MinIO, LM Studio) from the registry,
+   * and supplements/replaces library import + API call deps with detected ones.
+   */
+  function mergeAnalysisDeps(services: any[], analysis: any): any[] {
+    if (!analysis?.dependencies) return services;
+
+    return services.map((svc: any) => {
+      const detected = analysis.dependencies[svc.id];
+      if (!detected) return svc;
+
+      // Keep infra deps from the hard-coded registry
+      const infraDeps = (svc.dependsOn || []).filter((dep: any) => {
+        const depId = typeof dep === "string" ? dep : dep.id;
+        return INFRA_IDS.has(depId);
+      });
+
+      // Build detected deps with criticality
+      const detectedDeps: any[] = [];
+      for (const imp of detected.imports || []) {
+        detectedDeps.push({ id: imp.target, name: imp.target, criticality: "required", source: "detected" });
+      }
+      for (const api of detected.apiCalls || []) {
+        // Avoid duplicates from imports
+        if (!detectedDeps.some((d: any) => d.id === api.target)) {
+          detectedDeps.push({ id: api.target, name: api.target, criticality: "required", source: "detected" });
+        }
+      }
+
+      return { ...svc, dependsOn: [...infraDeps, ...detectedDeps] };
+    });
+  }
+
   async function loadData(refresh = false) {
     try {
-      const res = await ApiService.getServices(refresh);
+      const [servicesRes, analysisRes] = await Promise.all([
+        ApiService.getServices(refresh),
+        ApiService.getProjectAnalysis(refresh).catch(() => null),
+      ]);
+
       // @ts-ignore
-      const svcs = (res.services || []).map((s) => ({ ...s, isInfrastructure: false }));
+      let svcs = (servicesRes.services || []).map((s) => ({ ...s, isInfrastructure: false }));
       // @ts-ignore
-      const infra = (res.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
+      const infra = (servicesRes.infrastructure || []).map((s) => ({ ...s, isInfrastructure: true }));
+
+      // Merge detected dependencies into service data
+      if (analysisRes) {
+        svcs = mergeAnalysisDeps(svcs, analysisRes);
+        setAnalysisData(analysisRes);
+        if (analysisRes.repoSizes) setRepoSizes(analysisRes.repoSizes);
+      }
+
       setAllServices([...svcs, ...infra]);
-      if (res.deployTierColors) setTierColors(res.deployTierColors);
+      if (servicesRes.deployTierColors) setTierColors(servicesRes.deployTierColors);
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
@@ -1178,7 +1236,14 @@ export default function TopologyComponent() {
                         {!NON_TIERED_TYPES.has(svc.projectType) && <div className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`} />}
                         <div className={styles.nodeIconWrap} style={nodeColor ? { color: nodeColor } : undefined}><Icon size={18} strokeWidth={1.5} /></div>
                         <span className={styles.nodeName}>{svc.name}</span>
-                        {svc.device && <span className={styles.nodeHost}>{svc.device}</span>}
+                        {repoSizes[svc.id] ? (
+                          <span className={styles.nodeSize}>
+                            <HardDrive size={9} strokeWidth={1.5} />
+                            {formatSize(repoSizes[svc.id].sizeKB)}
+                          </span>
+                        ) : svc.device ? (
+                          <span className={styles.nodeHost}>{svc.device}</span>
+                        ) : null}
                       </div>
                     </foreignObject>
                   );
@@ -1271,8 +1336,32 @@ export default function TopologyComponent() {
               {tooltipData.url && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>URL</span><span className={styles.tooltipValue}>{tooltipData.url}</span></div>}
               <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Environment</span><span className={styles.tooltipValue}>{tooltipData.environment}</span></div>
               {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
+              {repoSizes[tooltipData.id] && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Repo Size</span><span className={styles.tooltipValue}>{formatSize(repoSizes[tooltipData.id].sizeKB)}</span></div>}
               {tooltipData.responseTimeMs != null && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Latency</span><span className={styles.tooltipValue}>{tooltipData.responseTimeMs}ms</span></div>}
               {tooltipData.error && !tooltipData.healthy && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Error</span><span className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}>{tooltipData.error}</span></div>}
+              {/* Detected dependencies from code analysis */}
+              {analysisData?.dependencies?.[tooltipData.id] && (() => {
+                const detected = analysisData.dependencies[tooltipData.id];
+                const hasImports = detected.imports?.length > 0;
+                const hasApiCalls = detected.apiCalls?.length > 0;
+                if (!hasImports && !hasApiCalls) return null;
+                return (
+                  <div className={styles.tooltipDeps}>
+                    {hasImports && (
+                      <>
+                        <span className={styles.tooltipDepLabel}>📦 Imports</span>
+                        <span className={styles.tooltipDepList}>{detected.imports.map((i: any) => i.target).join(", ")}</span>
+                      </>
+                    )}
+                    {hasApiCalls && (
+                      <>
+                        <span className={styles.tooltipDepLabel}>🔗 API Calls</span>
+                        <span className={styles.tooltipDepList}>{detected.apiCalls.map((a: any) => a.target).join(", ")}</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
               {tooltipData.dependsOn?.length > 0 && (() => {
                 // @ts-ignore
                 const required = tooltipData.dependsOn.filter((d: any) => (typeof d === "string" ? true : d.criticality !== "optional"));
