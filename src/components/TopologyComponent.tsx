@@ -1341,6 +1341,7 @@ export default function TopologyComponent() {
               <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Environment</span><span className={styles.tooltipValue}>{tooltipData.environment}</span></div>
               {tooltipData.visibility && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Visibility</span><span className={styles.tooltipValue}>{tooltipData.visibility}</span></div>}
               {repoSizes[tooltipData.id] && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Repo Size</span><span className={styles.tooltipValue}>{formatSize(repoSizes[tooltipData.id].sizeKB)}</span></div>}
+              {analysisData?.owners?.[tooltipData.id] && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Owner</span><span className={styles.tooltipValue}>{analysisData.owners[tooltipData.id]}</span></div>}
               {tooltipData.responseTimeMs != null && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Latency</span><span className={styles.tooltipValue}>{tooltipData.responseTimeMs}ms</span></div>}
               {tooltipData.error && !tooltipData.healthy && <div className={styles.tooltipRow}><span className={styles.tooltipLabel}>Error</span><span className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}>{tooltipData.error}</span></div>}
               {/* Detected dependencies from code analysis */}
