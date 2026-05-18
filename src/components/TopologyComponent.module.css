@@ -299,11 +299,21 @@ g:hover > .clusterDragHandle:hover {
   transition: stroke-opacity var(--transition-fast);
 }
 
+.connectionGlow {
+  pointer-events: none;
+  filter: blur(3px);
+}
+
 @keyframes edgeFlow {
   to { stroke-dashoffset: -24; }
 }
 
 .connectionFlowing .connectionLine {
+  stroke-dasharray: 8 6;
+  animation: edgeFlow 0.6s linear infinite;
+}
+
+.connectionFlowing .connectionGlow {
   stroke-dasharray: 8 6;
   animation: edgeFlow 0.6s linear infinite;
 }

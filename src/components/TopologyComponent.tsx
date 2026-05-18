@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   RefreshCw, ZoomIn, ZoomOut, Maximize2, Search, X, Move,
-  Eye, EyeOff, Layers, Grid3X3,
+  Eye, EyeOff, Layers, Grid3X3, ArrowDown, ArrowUp,
 } from "lucide-react";
 import { ButtonComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { SERVICE_TYPE_ICONS, DEFAULT_SERVICE_TYPE_ICON, DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../constants";
@@ -51,6 +51,14 @@ const EDGE_TYPE_CONFIG: Record<EdgeType, { label: string; color: string; subtle:
   infra:   { label: "Infrastructure", color: "#f97316", subtle: "rgba(249, 115, 22, 0.12)",  dash: "none",  width: 2,   opacity: 0.5,  defaultVisible: true },
   import:  { label: "Library Imports", color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)",   dash: "3 5",   width: 1,   opacity: 0.25, defaultVisible: true },
   tooling: { label: "Deploy Tooling", color: "#a855f7", subtle: "rgba(168, 85, 247, 0.12)",  dash: "6 4",   width: 1,   opacity: 0.15, defaultVisible: false },
+};
+
+// ── Directional edge colors (when a node is selected) ───────
+// Incoming = edges flowing INTO the selected node (its upstream dependencies)
+// Outgoing = edges flowing OUT FROM the selected node (its downstream consumers)
+const EDGE_DIRECTION_CONFIG = {
+  incoming: { color: "#06b6d4", label: "Upstream",   glow: "rgba(6, 182, 212, 0.25)" },
+  outgoing: { color: "#f59e0b", label: "Downstream", glow: "rgba(245, 158, 11, 0.25)" },
 };
 
 // ── Icon resolver (by projectType) ──────────────────────────────
@@ -242,12 +250,86 @@ function collectEdges(services: any) {
   return edges;
 }
 
-// ── Bézier edge path (same as Prism Client workflows) ──────────────────
-// @ts-ignore
-function edgePath(x1, y1, x2, y2) {
-  const dy = Math.abs(y2 - y1);
-  const cp = Math.max(dy * 0.5, 50);
-  return `M ${x1} ${y1} C ${x1} ${y1 + cp}, ${x2} ${y2 - cp}, ${x2} ${y2}`;
+// ── Smart port placement — dynamic edge anchoring ──────────────────────
+// Picks the best connection side (top/bottom/left/right) for each node
+// based on relative center-to-center position, then generates a
+// direction-aware cubic Bézier with control points extending outward.
+type PortSide = "top" | "bottom" | "left" | "right";
+
+interface PortResult {
+  x1: number; y1: number; side1: PortSide;
+  x2: number; y2: number; side2: PortSide;
+}
+
+function getPortPoint(pos: { x: number; y: number }, side: PortSide) {
+  switch (side) {
+    case "top":    return { x: pos.x + NODE_W / 2, y: pos.y };
+    case "bottom": return { x: pos.x + NODE_W / 2, y: pos.y + NODE_H };
+    case "left":   return { x: pos.x,              y: pos.y + NODE_H / 2 };
+    case "right":  return { x: pos.x + NODE_W,     y: pos.y + NODE_H / 2 };
+  }
+}
+
+function computeEdgeAnchors(
+  sp: { x: number; y: number },
+  tp: { x: number; y: number },
+): PortResult {
+  // Center-to-center delta
+  const cx1 = sp.x + NODE_W / 2, cy1 = sp.y + NODE_H / 2;
+  const cx2 = tp.x + NODE_W / 2, cy2 = tp.y + NODE_H / 2;
+  const dx = cx2 - cx1;
+  const dy = cy2 - cy1;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  let side1: PortSide, side2: PortSide;
+
+  // When the vertical gap between nodes is minimal (they're roughly side-by-side),
+  // prefer horizontal ports to avoid edges crossing through node bodies
+  const verticalOverlap = !(sp.y + NODE_H < tp.y || tp.y + NODE_H < sp.y);
+  const horizontalOverlap = !(sp.x + NODE_W < tp.x || tp.x + NODE_W < sp.x);
+
+  if (verticalOverlap && !horizontalOverlap) {
+    // Nodes are side-by-side vertically — use left/right ports
+    side1 = dx > 0 ? "right" : "left";
+    side2 = dx > 0 ? "left" : "right";
+  } else if (horizontalOverlap && !verticalOverlap) {
+    // Nodes are stacked vertically — use top/bottom ports
+    side1 = dy > 0 ? "bottom" : "top";
+    side2 = dy > 0 ? "top" : "bottom";
+  } else if (absDy >= absDx) {
+    // Predominantly vertical relationship
+    side1 = dy > 0 ? "bottom" : "top";
+    side2 = dy > 0 ? "top" : "bottom";
+  } else {
+    // Predominantly horizontal relationship
+    side1 = dx > 0 ? "right" : "left";
+    side2 = dx > 0 ? "left" : "right";
+  }
+
+  const p1 = getPortPoint(sp, side1);
+  const p2 = getPortPoint(tp, side2);
+
+  return { x1: p1.x, y1: p1.y, side1, x2: p2.x, y2: p2.y, side2 };
+}
+
+// Control point offset — extends outward from the port face
+function ctrlOffset(side: PortSide, dist: number): { dx: number; dy: number } {
+  const magnitude = Math.max(dist * 0.4, 40);
+  switch (side) {
+    case "top":    return { dx: 0, dy: -magnitude };
+    case "bottom": return { dx: 0, dy:  magnitude };
+    case "left":   return { dx: -magnitude, dy: 0 };
+    case "right":  return { dx:  magnitude, dy: 0 };
+  }
+}
+
+function edgePath(anchor: PortResult): string {
+  const { x1, y1, side1, x2, y2, side2 } = anchor;
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  const c1 = ctrlOffset(side1, dist);
+  const c2 = ctrlOffset(side2, dist);
+  return `M ${x1} ${y1} C ${x1 + c1.dx} ${y1 + c1.dy}, ${x2 + c2.dx} ${y2 + c2.dy}, ${x2} ${y2}`;
 }
 
 // ── Main Component ───────────────────────────────────────────────
@@ -482,8 +564,9 @@ export default function TopologyComponent() {
   }, [searchMatches, typeGroups, viewMode]);
 
   // ── Upstream dependency chain + immediate downstream from selected node ──
-  const connectedNodes = useMemo(() => {
-    if (!selectedNode) return new Set();
+  // Also classifies edges as "incoming" or "outgoing" relative to the selected node
+  const { connectedNodes, edgeDirectionMap } = useMemo(() => {
+    if (!selectedNode) return { connectedNodes: new Set(), edgeDirectionMap: new Map() };
 
     const upstream = new Map();   // target → [sources]
     const downstream = new Map(); // source → [targets]
@@ -509,7 +592,28 @@ export default function TopologyComponent() {
       visited.add(child);
     }
 
-    return visited;
+    // Build edge direction map: edgeKey → "incoming" | "outgoing"
+    // "incoming" = this edge feeds INTO the selected node (upstream path)
+    // "outgoing" = this edge flows OUT from the selected node (downstream consumers)
+    const dirMap = new Map<string, "incoming" | "outgoing">();
+    for (const e of edges) {
+      const key = `${e.source}-${e.target}`;
+      if (!visited.has(e.source) || !visited.has(e.target)) continue;
+
+      // Direct edges touching the selected node
+      if (e.target === selectedNode) {
+        // source → selectedNode : something the selected node depends on
+        dirMap.set(key, "incoming");
+      } else if (e.source === selectedNode) {
+        // selectedNode → target : something that depends on the selected node
+        dirMap.set(key, "outgoing");
+      } else {
+        // Transitive upstream edge (part of the upstream chain)
+        dirMap.set(key, "incoming");
+      }
+    }
+
+    return { connectedNodes: visited, edgeDirectionMap: dirMap };
   }, [selectedNode, edges]);
 
 
@@ -826,6 +930,13 @@ export default function TopologyComponent() {
                   <stop offset="100%" stopColor="#ff0088" />
                   <animateTransform attributeName="gradientTransform" type="rotate" from="0 150 150" to="360 150 150" dur="2s" repeatCount="indefinite" />
                 </linearGradient>
+                {/* Directional edge arrowhead markers */}
+                <marker id="arrow-incoming" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.incoming.color} opacity="0.85" />
+                </marker>
+                <marker id="arrow-outgoing" viewBox="0 0 10 8" refX="10" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 4 L 0 8 z" fill={EDGE_DIRECTION_CONFIG.outgoing.color} opacity="0.85" />
+                </marker>
               </defs>
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {/* ── Edges ── */}
@@ -836,10 +947,7 @@ export default function TopologyComponent() {
                   const tp = positions[edge.target];
                   if (!sp || !tp) return null;
 
-                  const x1 = sp.x + NODE_W / 2;
-                  const y1 = sp.y + NODE_H;
-                  const x2 = tp.x + NODE_W / 2;
-                  const y2 = tp.y;
+                  const anchor = computeEdgeAnchors(sp, tp);
 
                   const isSelected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
                   const isHovered = hoveredNode === edge.source || hoveredNode === edge.target;
@@ -848,7 +956,7 @@ export default function TopologyComponent() {
                   const isFadedBySelection = selectedNode && !isSelected;
                   const isFadedBySearch = searchMatches && (!searchMatches.has(edge.source) || !searchMatches.has(edge.target));
                   const isFaded = isFadedBySelection || isFadedBySearch;
-                  const d = edgePath(x1, y1, x2, y2);
+                  const d = edgePath(anchor);
 
                   // Edge type styling
                   const etc = EDGE_TYPE_CONFIG[edge.type as EdgeType] || EDGE_TYPE_CONFIG.api;
@@ -857,16 +965,38 @@ export default function TopologyComponent() {
                   const baseWidth = etc.width;
                   const baseOpacity = etc.opacity;
 
+                  // Directional edge classification (when a node is selected)
+                  const edgeKey = `${edge.source}-${edge.target}`;
+                  const direction = edgeDirectionMap.get(edgeKey);
+                  const dirConfig = direction ? EDGE_DIRECTION_CONFIG[direction as keyof typeof EDGE_DIRECTION_CONFIG] : null;
+                  const showDirectional = isSelected && dirConfig;
+
+                  // When selected, use directional color; otherwise use edge type color
+                  const strokeColor = showDirectional ? dirConfig.color : baseColor;
+                  const markerEnd = showDirectional ? `url(#arrow-${direction})` : undefined;
+
                   return (
                     <g key={`${edge.source}-${edge.target}-${i}`} className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}${isFaded ? ` ${styles.edgeFaded}` : ""}`}>
                       <path d={d} stroke="transparent" strokeWidth={12} fill="none" />
+                      {/* Glow layer for directional edges */}
+                      {showDirectional && (
+                        <path
+                          d={d}
+                          stroke={dirConfig.color}
+                          strokeWidth={6}
+                          fill="none"
+                          strokeOpacity={0.12}
+                          className={styles.connectionGlow}
+                        />
+                      )}
                       <path
                         d={d}
-                        stroke={isSelected ? "url(#prism-gradient)" : baseColor}
+                        stroke={strokeColor}
                         strokeWidth={isActive ? 2.5 : isOptional ? Math.max(baseWidth - 0.5, 0.75) : baseWidth}
                         fill="none"
                         strokeOpacity={isActive ? 0.9 : isOptional ? baseOpacity * 0.5 : baseOpacity}
                         strokeDasharray={isOptional && !isSelected ? "6 4" : baseDash}
+                        markerEnd={markerEnd}
                         className={styles.connectionLine}
                       />
                     </g>
@@ -1097,6 +1227,22 @@ export default function TopologyComponent() {
             <div className={styles.legendSep} />
             <div className={styles.legendItem}><div className={styles.legendLine} /><span>Required</span></div>
             <div className={styles.legendItem}><div className={styles.legendLine} style={{ borderTopStyle: "dashed", opacity: 0.5 }} /><span>Optional</span></div>
+            {selectedNode && (
+              <>
+                <div className={styles.legendSep} />
+                <div className={styles.legendTitle}>Direction</div>
+                <div className={styles.legendItem}>
+                  <div className={styles.legendEdgeLine} style={{ borderTopColor: EDGE_DIRECTION_CONFIG.incoming.color, borderTopStyle: "solid", borderTopWidth: "2.5px" }} />
+                  <ArrowDown size={11} strokeWidth={2} style={{ color: EDGE_DIRECTION_CONFIG.incoming.color }} />
+                  <span>{EDGE_DIRECTION_CONFIG.incoming.label}</span>
+                </div>
+                <div className={styles.legendItem}>
+                  <div className={styles.legendEdgeLine} style={{ borderTopColor: EDGE_DIRECTION_CONFIG.outgoing.color, borderTopStyle: "solid", borderTopWidth: "2.5px" }} />
+                  <ArrowUp size={11} strokeWidth={2} style={{ color: EDGE_DIRECTION_CONFIG.outgoing.color }} />
+                  <span>{EDGE_DIRECTION_CONFIG.outgoing.label}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Zoom */}
