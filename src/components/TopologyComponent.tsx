@@ -34,9 +34,6 @@ const TYPE_ORDER = ["Service", "Client", "Bot", "Library", "Kit", "Tool", "Datab
 // ── Non-tiered project types (rendered independently) ────────
 const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
-// ── Infrastructure dependency IDs (not detectable from code) ──
-const INFRA_IDS = new Set(["mongodb", "minio", "lm-studio", "lm-studio-2"]);
-
 // ── Size formatter ──────────────────────────────────────────
 function formatSize(kb: number): string {
   if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(1)} GB`;
@@ -396,11 +393,11 @@ export default function TopologyComponent() {
   // Keep zoomRef in sync
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
-  // ── Data fetching ───────────────────────────────────────────
   /**
-   * Merge analysis-detected dependencies into the service dependsOn arrays.
-   * Keeps infrastructure deps (MongoDB, MinIO, LM Studio) from the registry,
-   * and supplements/replaces library import + API call deps with detected ones.
+   * Supplement service dependsOn with analysis-detected dependencies.
+   * Keeps ALL original deps (hard-coded in registry) and adds any
+   * newly detected imports/API calls that aren't already present.
+   * If analysis found nothing for a project, deps are unchanged.
    */
   function mergeAnalysisDeps(services: any[], analysis: any): any[] {
     if (!analysis?.dependencies) return services;
@@ -409,25 +406,32 @@ export default function TopologyComponent() {
       const detected = analysis.dependencies[svc.id];
       if (!detected) return svc;
 
-      // Keep infra deps from the hard-coded registry
-      const infraDeps = (svc.dependsOn || []).filter((dep: any) => {
-        const depId = typeof dep === "string" ? dep : dep.id;
-        return INFRA_IDS.has(depId);
-      });
+      // If analysis found nothing, keep original deps unchanged
+      const hasDetected = (detected.imports?.length > 0) || (detected.apiCalls?.length > 0);
+      if (!hasDetected) return svc;
 
-      // Build detected deps with criticality
-      const detectedDeps: any[] = [];
+      // Build a set of existing dep IDs for dedup
+      const existingIds = new Set(
+        (svc.dependsOn || []).map((dep: any) => typeof dep === "string" ? dep : dep.id),
+      );
+
+      // Add detected deps that aren't already present
+      const newDeps: any[] = [];
       for (const imp of detected.imports || []) {
-        detectedDeps.push({ id: imp.target, name: imp.target, criticality: "required", source: "detected" });
+        if (!existingIds.has(imp.target)) {
+          newDeps.push({ id: imp.target, name: imp.target, criticality: "required", source: "detected" });
+          existingIds.add(imp.target);
+        }
       }
       for (const api of detected.apiCalls || []) {
-        // Avoid duplicates from imports
-        if (!detectedDeps.some((d: any) => d.id === api.target)) {
-          detectedDeps.push({ id: api.target, name: api.target, criticality: "required", source: "detected" });
+        if (!existingIds.has(api.target)) {
+          newDeps.push({ id: api.target, name: api.target, criticality: "required", source: "detected" });
+          existingIds.add(api.target);
         }
       }
 
-      return { ...svc, dependsOn: [...infraDeps, ...detectedDeps] };
+      if (newDeps.length === 0) return svc;
+      return { ...svc, dependsOn: [...(svc.dependsOn || []), ...newDeps] };
     });
   }
 
