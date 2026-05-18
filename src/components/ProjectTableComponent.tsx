@@ -45,9 +45,8 @@ function buildColumns(projectSizes = {}, excludeColumns = new Set()) {
       render: (service: any) => {
         const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
         const isHealthy = isNonDeployed ? true : service.healthy;
-        // @ts-ignore
         const TypeIcon =
-          SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+          (SERVICE_TYPE_ICONS as any)[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
         const iconClass = isNonDeployed
           ? styles.iconNeutral
           : isHealthy

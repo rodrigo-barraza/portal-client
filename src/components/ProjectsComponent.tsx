@@ -96,12 +96,10 @@ function compareBySortKey(a, b, sortKey, sortDir) {
  * Returns the full SORT_OPTIONS object, extending the static ones.
  */
 function buildFilterOptions(items: any) {
-  // @ts-ignore
-  const types = [
-    ...new Set(items.map((s) => s.projectType).filter(Boolean)),
+  const types: string[] = [
+    ...new Set<string>(items.map((s: any) => s.projectType).filter(Boolean)),
   ].sort();
-  // @ts-ignore
-  const hosts = [...new Set(items.map((s) => s.device).filter(Boolean))].sort();
+  const hosts: string[] = [...new Set<string>(items.map((s: any) => s.device).filter(Boolean))].sort();
 
   return {
     ...STATIC_FILTER_OPTIONS,
@@ -124,7 +122,7 @@ export default function ProjectsComponent() {
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Record<string, any[]>>({
     status: [],
     visibility: [],
     environment: [],
@@ -142,9 +140,8 @@ export default function ProjectsComponent() {
   async function loadServices(refresh = false) {
     try {
       const res = await ApiService.getServices(refresh);
-      // @ts-ignore
       setServices(
-        (res.services || []).filter((s) => s.projectType !== "Infrastructure"),
+        (res.services || []).filter((s: any) => s.projectType !== "Infrastructure"),
       );
     } catch (error) {
       console.error("Services fetch failed:", error);

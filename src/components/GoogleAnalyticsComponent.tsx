@@ -169,8 +169,7 @@ function DonutChart({
   const total = segments.reduce((sum: any, s: any) => sum + s.value, 0);
 
   // Pre-compute cumulative offsets to avoid mutating during render
-  // @ts-ignore
-  const cumulativeValues = [];
+  const cumulativeValues: number[] = [];
   let running = 0;
   for (const seg of segments) {
     cumulativeValues.push(running);
@@ -1053,9 +1052,8 @@ export default function GoogleAnalyticsComponent() {
                               key={d.category}
                               label={d.category}
                               value={d.sessions}
-                              // @ts-ignore
                               max={Math.max(
-                                ...devices.categories.map((c) => c.sessions),
+                                ...devices.categories.map((c: any) => c.sessions),
                               )}
                               color={CHART_COLORS[i % CHART_COLORS.length]}
                               suffix=" sessions"
@@ -1091,9 +1089,8 @@ export default function GoogleAnalyticsComponent() {
                                 key={b.browser}
                                 label={b.browser}
                                 value={b.sessions}
-                                // @ts-ignore
                                 max={Math.max(
-                                  ...devices.browsers.map((br) => br.sessions),
+                                  ...devices.browsers.map((br: any) => br.sessions),
                                 )}
                                 color={
                                   CHART_COLORS[(i + 3) % CHART_COLORS.length]
@@ -1137,10 +1134,9 @@ export default function GoogleAnalyticsComponent() {
                               key={d.os}
                               label={d.os}
                               value={d.sessions}
-                              // @ts-ignore
                               max={Math.max(
                                 ...(devices.operatingSystems || []).map(
-                                  (o) => o.sessions,
+                                  (o: any) => o.sessions,
                                 ),
                               )}
                               color={
@@ -1184,11 +1180,10 @@ export default function GoogleAnalyticsComponent() {
                                   ? "Returning Users"
                                   : s.segment
                             }
-                            // @ts-ignore
                             value={s.users}
                             max={Math.max(
                               ...(newVsReturning.segments || []).map(
-                                (sg) => sg.users,
+                                (sg: any) => sg.users,
                               ),
                             )}
                             color={i === 0 ? "#6366f1" : "#10b981"}

@@ -73,11 +73,10 @@ export default function IntegrationsComponent() {
           item.category.toLowerCase().includes(q)
         );
       });
-      // @ts-ignore
       return {
         ...cat,
         integrations: filtered,
-        configuredCount: filtered.filter((i) => i.configured).length,
+        configuredCount: filtered.filter((i: any) => i.configured).length,
         totalCount: filtered.length,
       };
     })

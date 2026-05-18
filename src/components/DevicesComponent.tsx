@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, type CSSProperties } from "react";
 import {
   RefreshCw,
   Monitor,
@@ -191,10 +191,9 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
     <div
       className={styles.deviceCard}
       style={{
-        // @ts-ignore
         "--device-accent": accentColor,
         animationDelay: `${delay}ms`,
-      }}
+      } as CSSProperties}
     >
       {/* ── Device Header ── */}
       <div className={styles.deviceHeader}>
@@ -293,8 +292,7 @@ function ContainerRow({ container }: { [key: string]: any }) {
           <div className={styles.metricBadges}>
             <span
               className={styles.metricBadge}
-              // @ts-ignore
-              style={{ "--metric-color": severityColor(container.cpu.percent) }}
+              style={{ "--metric-color": severityColor(container.cpu.percent) } as CSSProperties}
               title={`CPU: ${formatPercent(container.cpu.percent, "adaptive")} · ${container.cpu.cores} core${container.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
@@ -305,13 +303,12 @@ function ContainerRow({ container }: { [key: string]: any }) {
             {container.memory && (
               <span
                 className={styles.metricBadge}
-                // @ts-ignore
                 style={{
                   "--metric-color": severityColor(
                     container.memory.percent,
                     [60, 85],
                   ),
-                }}
+                } as CSSProperties}
                 title={`RAM: ${formatBytes(container.memory.used)} / ${formatBytes(container.memory.limit)} (${formatPercent(container.memory.percent, "adaptive")})`}
               >
                 <MemoryStick size={10} strokeWidth={2.4} />

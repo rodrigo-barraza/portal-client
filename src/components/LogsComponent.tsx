@@ -111,20 +111,13 @@ function parseAnsi(text: any) {
         underline ||
         strikethrough
       ) {
-        const style = {};
-        // @ts-ignore
+        const style: Record<string, any> = {};
         if (color) style.color = color;
-        // @ts-ignore
         if (bgColor) style.backgroundColor = bgColor;
-        // @ts-ignore
         if (bold) style.fontWeight = 700;
-        // @ts-ignore
         if (dim) style.opacity = 0.6;
-        // @ts-ignore
         if (italic) style.fontStyle = "italic";
-        // @ts-ignore
         if (underline) style.textDecoration = "underline";
-        // @ts-ignore
         if (strikethrough)
           style.textDecoration = style.textDecoration
             ? style.textDecoration + " line-through"
@@ -191,20 +184,13 @@ function parseAnsi(text: any) {
       underline ||
       strikethrough
     ) {
-      const style = {};
-      // @ts-ignore
+      const style: Record<string, any> = {};
       if (color) style.color = color;
-      // @ts-ignore
       if (bgColor) style.backgroundColor = bgColor;
-      // @ts-ignore
       if (bold) style.fontWeight = 700;
-      // @ts-ignore
       if (dim) style.opacity = 0.6;
-      // @ts-ignore
       if (italic) style.fontStyle = "italic";
-      // @ts-ignore
       if (underline) style.textDecoration = "underline";
-      // @ts-ignore
       if (strikethrough)
         style.textDecoration = style.textDecoration
           ? style.textDecoration + " line-through"
