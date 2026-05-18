@@ -7,7 +7,7 @@
     "dev": "next dev -p 4000",
     "prebuild": "node scripts/generate-component-catalog.mjs",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4000",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -20,8 +20,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@rodrigo-barraza/components-library": "git+https://github.com/rodrigo-barraza/components-library.git",
-    "@rodrigo-barraza/utilities-library": "git+https://github.com/rodrigo-barraza/utilities-library.git",
+    "@rodrigo-barraza/components-library": "github:rodrigo-barraza/components-library",
+    "@rodrigo-barraza/utilities-library": "github:rodrigo-barraza/utilities-library",
     "lucide-react": "^1.14.0",
     "luxon": "^3.7.2",
     "next": "16.2.6",

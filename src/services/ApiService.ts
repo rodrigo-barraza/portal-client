@@ -3,7 +3,7 @@
  * Follows the same static-method pattern as Prism Client's PrismService.
  */
 
-import { PORTAL_SERVICE_URL } from "../../config";
+import { PORTAL_SERVICE_URL } from "@/config";
 import { createApiClient } from "@rodrigo-barraza/components-library";
 
 const request = createApiClient(PORTAL_SERVICE_URL, { noCache: true });

@@ -2,7 +2,7 @@
 // Web Portal — Runtime Configuration
 // ============================================================
 // Typed accessor layer over process.env. The Vault service is
-// the single source of truth — next.config.mjs hydrates
+// the single source of truth — next.config.ts hydrates
 // process.env from the Vault before any module imports run.
 //
 // This file contains NO defaults and NO secrets.
@@ -22,8 +22,6 @@
 //     • All URLs use full values from vault (LAN IPs for Docker)
 // ============================================================
 
-export const PORT = process.env.PORTAL_CLIENT_PORT;
-
 // Environment-aware project name — isolates data between dev and prod
 export const PROJECT_NAME = "portal";
 
@@ -31,7 +29,7 @@ const IS_BROWSER = typeof window !== "undefined";
 
 // ── Raw values from process.env ────────────────────────────────
 // NEXT_PUBLIC_ vars are guaranteed inlined by both webpack and Turbopack.
-// Non-prefixed vars (from next.config.mjs `env` block) are used as fallback
+// Non-prefixed vars (from next.config.ts `env` block) are used as fallback
 // for SSR, where process.env is available at runtime.
 const RAW_PORTAL_SERVICE_URL =
   process.env.NEXT_PUBLIC_PORTAL_SERVICE_URL || process.env.PORTAL_SERVICE_URL;
