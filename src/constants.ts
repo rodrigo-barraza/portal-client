@@ -19,13 +19,13 @@ export const NAV_SECTIONS = [
   {
     label: "Infrastructure",
     items: [
-      { id: "projects", label: "Projects", href: "/projects", icon: "Server" },
       {
         id: "containers",
         label: "Containers",
         href: "/containers",
         icon: "Container",
       },
+      { id: "projects", label: "Projects", href: "/projects", icon: "Server" },
       { id: "devices", label: "Devices", href: "/devices", icon: "Cpu" },
       {
         id: "topology",
