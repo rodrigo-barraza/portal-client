@@ -260,6 +260,7 @@ function buildColumns({
               maxValue={100}
               height={24}
               historyMax={HISTORY_MAX}
+              showGrid
             />
           </div>
         );
@@ -310,6 +311,7 @@ function buildColumns({
               maxValue={maxVal}
               height={24}
               historyMax={HISTORY_MAX}
+              showGrid
             />
           </div>
         );
@@ -966,6 +968,7 @@ export default function ContainerStatsComponent() {
               maxValue={100}
               height={48}
               historyMax={HISTORY_MAX}
+              showGrid
             />
           </div>
 
@@ -1001,6 +1004,7 @@ export default function ContainerStatsComponent() {
               maxValue={totalMemLimit || 1}
               height={48}
               historyMax={HISTORY_MAX}
+              showGrid
             />
           </div>
 
