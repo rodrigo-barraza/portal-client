@@ -217,6 +217,29 @@
   color: var(--accent-color);
 }
 
+.terminalBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.restartSpin {
+  color: var(--accent-color);
+}
+
+.restartSpin svg {
+  animation: spinRestart 0.8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes spinRestart {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .lineCount {
   font-size: 0.625rem;
   color: rgba(255, 255, 255, 0.25);

@@ -10,6 +10,7 @@ import {
   Play,
   Search,
   X,
+  RotateCw,
 } from "lucide-react";
 import {
   PageHeaderComponent,
@@ -255,6 +256,7 @@ function parseLine(raw: any) {
 export default function LogsComponent() {
   const [containers, setContainers] = useState<any[]>([]);
   const [activeContainer, setActiveContainer] = useState<any>(null);
+  const [activeDevice, setActiveDevice] = useState<string | null>(null);
   const [lines, setLines] = useState<any[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<any>(null);
@@ -263,6 +265,7 @@ export default function LogsComponent() {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [bufferedCount, setBufferedCount] = useState(0);
+  const [restarting, setRestarting] = useState(false);
 
   const eventSourceRef = useRef(null);
   const bodyRef = useRef(null);
@@ -312,6 +315,7 @@ export default function LogsComponent() {
       }
 
       setActiveContainer(containerName);
+      setActiveDevice(device);
       setLines([]);
       setConnected(false);
       setError(null);
@@ -455,6 +459,21 @@ export default function LogsComponent() {
     setLines([]);
     pauseBufferRef.current = [];
     setBufferedCount(0);
+  };
+
+  // ── Restart container ───────────────────────────────────────
+  const handleRestart = async () => {
+    if (!activeContainer || !activeDevice || restarting) return;
+    setRestarting(true);
+    try {
+      await ApiService.restartContainer(activeContainer, activeDevice);
+      // Reconnect to the log stream after restart
+      connectToContainer(activeContainer, activeDevice);
+    } catch (err: any) {
+      setError(err?.message || "Failed to restart container");
+    } finally {
+      setRestarting(false);
+    }
   };
 
   // ── Scroll to bottom ────────────────────────────────────────
@@ -648,6 +667,17 @@ export default function LogsComponent() {
                 title="Clear"
               >
                 <Trash2 size={13} strokeWidth={1.8} />
+              </button>
+
+              <span className={styles.separator} />
+
+              <button
+                className={`${styles.terminalBtn} ${restarting ? styles.restartSpin : ""}`}
+                onClick={handleRestart}
+                disabled={restarting}
+                title="Restart container"
+              >
+                <RotateCw size={13} strokeWidth={1.8} />
               </button>
             </div>
           </div>
