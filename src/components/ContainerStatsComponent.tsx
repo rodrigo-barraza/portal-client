@@ -350,7 +350,7 @@ function buildColumns({
         const created = row._stats?.created;
         if (!created) return <span className={styles.dimText}>—</span>;
         return (
-          <DateTimeBadgeComponent date={created * 1000} mini showIcon={false} />
+          <DateTimeBadgeComponent date={created * 1000} showIcon={false} />
         );
       },
       sortValue: (row: any) => row._stats?.created ?? Infinity,
