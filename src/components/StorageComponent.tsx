@@ -21,6 +21,9 @@ import {
   Database,
   LayoutGrid,
   Table2,
+  Layers,
+  Package,
+  Box,
 } from "lucide-react";
 import {
   ButtonComponent,
@@ -31,6 +34,137 @@ import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./StorageComponent.module.css";
+
+// ── Donut Chart (SVG ring) ────────────────────────────────────────
+function DonutChart({
+  segments,
+  size = 120,
+  strokeWidth = 14,
+}: {
+  [key: string]: any;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+  const total = segments.reduce((sum: any, s: any) => sum + s.value, 0);
+
+  let accumulated = 0;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className={styles.donut}
+    >
+      {/* Track */}
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke="var(--bg-tertiary)"
+        strokeWidth={strokeWidth}
+      />
+      {/* Segments */}
+      {segments.map((seg: any, i: any) => {
+        const pct = total > 0 ? seg.value / total : 0;
+        const dashLength = pct * circumference;
+        const dashOffset = -(accumulated / total) * circumference;
+        accumulated += seg.value;
+
+        return (
+          <circle
+            key={i}
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${dashLength} ${circumference - dashLength}`}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${center} ${center})`}
+            className={styles.donutSegment}
+            style={{ animationDelay: `${i * 100}ms` }}
+          />
+        );
+      })}
+      {/* Center text */}
+      <text
+        x={center}
+        y={center - 4}
+        textAnchor="middle"
+        className={styles.donutTotal}
+      >
+        {formatBytes(total)}
+      </text>
+      <text
+        x={center}
+        y={center + 12}
+        textAnchor="middle"
+        className={styles.donutLabel}
+      >
+        Total
+      </text>
+    </svg>
+  );
+}
+
+// ── Percentage Bar ────────────────────────────────────────────────
+function UsageBar({
+  value,
+  max,
+  color,
+  label,
+  sublabel,
+}: {
+  [key: string]: any;
+}) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+
+  return (
+    <div className={styles.usageBarRow}>
+      <div className={styles.usageBarInfo}>
+        <span className={styles.usageBarLabel}>{label}</span>
+        <span className={styles.usageBarValue}>
+          {formatBytes(value)}
+          {sublabel && (
+            <span className={styles.usageBarSub}> · {sublabel}</span>
+          )}
+        </span>
+      </div>
+      <div className={styles.usageBarTrack}>
+        <div
+          className={styles.usageBarFill}
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Disk Category Colors ──────────────────────────────────────────
+const DISK_COLORS = {
+  images: "#6366f1",
+  volumes: "#8b5cf6",
+  buildCache: "#a855f7",
+  containers: "#ec4899",
+};
+
+const BUCKET_COLORS = [
+  "#6366f1",
+  "#8b5cf6",
+  "#a855f7",
+  "#ec4899",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#14b8a6",
+  "#f97316",
+];
 
 // ── File type helpers ────────────────────────────────────────────
 
@@ -159,6 +293,11 @@ export default function StorageComponent() {
   const [previewObject, setPreviewObject] = useState<any>(null);
   const [previewStat, setPreviewStat] = useState<any>(null);
 
+  // Storage overview state
+  const [systemInfo, setSystemInfo] = useState<any>(null);
+  const [storageSummary, setStorageSummary] = useState<any>(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+
   // ── Progressive bucket streaming ────────────────────────────
   const streamBuckets = useCallback(() => {
     setStreaming(true);
@@ -194,13 +333,31 @@ export default function StorageComponent() {
     });
   }, []);
 
+  // ── Fetch storage overview data ──────────────────────────────
+  const loadOverviewData = useCallback(async () => {
+    try {
+      const [sysRes, storageRes] = await Promise.all([
+        // @ts-ignore
+        ApiService.getSystemInfo().catch(() => null),
+        ApiService.getStorageSummary().catch(() => null),
+      ]);
+      setSystemInfo(sysRes);
+      setStorageSummary(storageRes);
+    } catch (error) {
+      console.error("Storage overview fetch failed:", error);
+    } finally {
+      setOverviewLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
     streamBuckets();
+    loadOverviewData();
     // @ts-ignore
     return () => streamRef.current?.close();
-  }, [streamBuckets]);
+  }, [streamBuckets, loadOverviewData]);
 
   // ── Object listing ───────────────────────────────────────────
   // @ts-ignore
@@ -331,6 +488,57 @@ export default function StorageComponent() {
     return buckets.reduce((sum, b) => sum + (b.objectCount || 0), 0);
   }, [buckets]);
 
+  // ── Disk usage donut segments ─────────────────────────────────
+  const diskSegments = useMemo(() => {
+    if (!systemInfo?.disk) return [];
+    const diskUsage = systemInfo.disk;
+    return [
+      {
+        value: diskUsage.images.totalSize,
+        color: DISK_COLORS.images,
+        label: "Images",
+      },
+      {
+        value: diskUsage.volumes.totalSize,
+        color: DISK_COLORS.volumes,
+        label: "Volumes",
+      },
+      {
+        value: diskUsage.buildCache.totalSize,
+        color: DISK_COLORS.buildCache,
+        label: "Build Cache",
+      },
+      {
+        value: diskUsage.containers.totalWritableSize,
+        color: DISK_COLORS.containers,
+        label: "Containers",
+      },
+    ].filter((s) => s.value > 0);
+  }, [systemInfo]);
+
+  // ── Bucket donut segments ─────────────────────────────────────
+  const bucketSegments = useMemo(() => {
+    if (!storageSummary?.buckets) return [];
+    return (
+      storageSummary.buckets
+        // @ts-ignore
+        .filter((b) => b.totalSize > 0)
+        .sort((a: any, b: any) => b.totalSize - a.totalSize)
+        .map((b: any, i: any) => ({
+          value: b.totalSize,
+          color: BUCKET_COLORS[i % BUCKET_COLORS.length],
+          label: b.name,
+          objectCount: b.objectCount,
+        }))
+    );
+  }, [storageSummary]);
+
+  const maxBucketSize =
+    bucketSegments.length > 0
+      ? // @ts-ignore
+        Math.max(...bucketSegments.map((s) => s.value))
+      : 0;
+
   // ── Subtitle helper ──────────────────────────────────────────
   const subtitle = useMemo(() => {
     if (view !== "buckets") {
@@ -371,6 +579,183 @@ export default function StorageComponent() {
           Refresh
         </ButtonComponent>
       </PageHeaderComponent>
+
+      {/* ── Storage Overview ────────────────────────────────────── */}
+      {view === "buckets" && (
+        <div className={styles.overviewSection}>
+          {overviewLoading ? (
+            <LoadingIndicatorComponent
+              size="small"
+              label="Querying storage…"
+              className="loading-center"
+            />
+          ) : (
+            <div className={styles.storageGrid}>
+              {/* ── MinIO Buckets ── */}
+              {storageSummary && bucketSegments.length > 0 && (
+                <div className={styles.storagePanel}>
+                  <div className={styles.storagePanelHeader}>
+                    <Database
+                      size={15}
+                      strokeWidth={2.2}
+                      className={styles.storagePanelIcon}
+                    />
+                    <span className={styles.storagePanelTitle}>
+                      MinIO Object Storage
+                    </span>
+                    <span className={styles.storagePanelMeta}>
+                      {storageSummary.totalObjects?.toLocaleString()} objects
+                    </span>
+                  </div>
+
+                  <div className={styles.storagePanelBody}>
+                    <DonutChart
+                      segments={bucketSegments}
+                      size={130}
+                      strokeWidth={16}
+                    />
+                    <div className={styles.storageLegend}>
+                      {bucketSegments.map((seg: any, i: any) => (
+                        <div key={i} className={styles.legendItem}>
+                          <UsageBar
+                            value={seg.value}
+                            max={maxBucketSize}
+                            color={seg.color}
+                            label={seg.label}
+                            sublabel={`${seg.objectCount.toLocaleString()} objects`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Docker Disk Usage ── */}
+              {systemInfo?.disk && (
+                <div className={styles.storagePanel}>
+                  <div className={styles.storagePanelHeader}>
+                    <Layers
+                      size={15}
+                      strokeWidth={2.2}
+                      className={styles.storagePanelIcon}
+                    />
+                    <span className={styles.storagePanelTitle}>
+                      Docker Disk Usage
+                    </span>
+                    <span className={styles.storagePanelMeta}>
+                      v{systemInfo.serverVersion}
+                    </span>
+                  </div>
+
+                  <div className={styles.storagePanelBody}>
+                    <DonutChart
+                      segments={diskSegments}
+                      size={130}
+                      strokeWidth={16}
+                    />
+                    <div className={styles.storageLegend}>
+                      <UsageBar
+                        value={systemInfo.disk.images.totalSize}
+                        max={systemInfo.disk.totalReclaimable}
+                        color={DISK_COLORS.images}
+                        label="Images"
+                        sublabel={`${systemInfo.disk.images.count} images`}
+                      />
+                      <UsageBar
+                        value={systemInfo.disk.volumes.totalSize}
+                        max={systemInfo.disk.totalReclaimable}
+                        color={DISK_COLORS.volumes}
+                        label="Volumes"
+                        sublabel={`${systemInfo.disk.volumes.count} volumes`}
+                      />
+                      <UsageBar
+                        value={systemInfo.disk.buildCache.totalSize}
+                        max={systemInfo.disk.totalReclaimable}
+                        color={DISK_COLORS.buildCache}
+                        label="Build Cache"
+                        sublabel={`${systemInfo.disk.buildCache.count} layers`}
+                      />
+                      <UsageBar
+                        value={systemInfo.disk.containers.totalWritableSize}
+                        max={systemInfo.disk.totalReclaimable}
+                        color={DISK_COLORS.containers}
+                        label="Container Layers"
+                        sublabel={`${systemInfo.disk.containers.count} containers`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* ── Top Images ── */}
+                  {systemInfo.disk.images.items?.length > 0 && (
+                    <div className={styles.imageList}>
+                      <div className={styles.imageListHeader}>
+                        <Package size={12} strokeWidth={2.2} />
+                        <span>Largest Images</span>
+                      </div>
+                      {systemInfo.disk.images.items
+                        .slice(0, 8)
+                        .map((image: any, i: any) => {
+                          const tag = image.tags?.[0] || image.id;
+                          const displayTag =
+                            tag.length > 50 ? `…${tag.slice(-48)}` : tag;
+                          return (
+                            <div key={i} className={styles.imageRow}>
+                              <Box
+                                size={12}
+                                strokeWidth={1.8}
+                                className={styles.imageIcon}
+                              />
+                              <span className={styles.imageName} title={tag}>
+                                {displayTag}
+                              </span>
+                              <span className={styles.imageSize}>
+                                {formatBytes(image.size)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {/* ── Volumes ── */}
+                  {systemInfo.disk.volumes.items?.length > 0 && (
+                    <div className={styles.imageList}>
+                      <div className={styles.imageListHeader}>
+                        <HardDrive size={12} strokeWidth={2.2} />
+                        <span>Volumes</span>
+                      </div>
+                      {systemInfo.disk.volumes.items
+                        .slice(0, 8)
+                        .map((vol: any, i: any) => {
+                          const name =
+                            vol.name.length > 40
+                              ? `${vol.name.slice(0, 12)}…${vol.name.slice(-24)}`
+                              : vol.name;
+                          return (
+                            <div key={i} className={styles.imageRow}>
+                              <Database
+                                size={12}
+                                strokeWidth={1.8}
+                                className={styles.imageIcon}
+                              />
+                              <span className={styles.imageName} title={vol.name}>
+                                {name}
+                              </span>
+                              <span className={styles.imageSize}>
+                                {formatBytes(vol.size)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Breadcrumb Navigation ── */}
       {view === "objects" && (

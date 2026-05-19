@@ -806,6 +806,220 @@
   border-radius: var(--border-radius-sm);
 }
 
+/* ── Storage Overview ─────────────────────────────────────────────── */
+
+.overviewSection {
+  margin-bottom: 24px;
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.storageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .storageGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.storagePanel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  animation: fadeIn var(--transition-normal) ease-out both;
+}
+
+.storagePanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.storagePanelIcon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.storagePanelTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.storagePanelMeta {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.storagePanelBody {
+  display: flex;
+  gap: 24px;
+  padding: 20px 18px;
+  align-items: flex-start;
+}
+
+.storageLegend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.legendItem {
+  display: contents;
+}
+
+/* ── Donut Chart ──────────────────────────────────────────────────── */
+
+.donut {
+  flex-shrink: 0;
+}
+
+.donutSegment {
+  animation: donutGrow 600ms ease-out both;
+}
+
+@keyframes donutGrow {
+  from {
+    stroke-dasharray: 0 9999;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.donutTotal {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.donutLabel {
+  font-size: 0.625rem;
+  fill: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+/* ── Usage Bars ───────────────────────────────────────────────────── */
+
+.usageBarRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usageBarInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.usageBarLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.usageBarValue {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.usageBarSub {
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+}
+
+.usageBarTrack {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.usageBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transform-origin: left;
+  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Image / Volume List ──────────────────────────────────────────── */
+
+.imageList {
+  border-top: 1px solid var(--border-color);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.imageListHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.imageRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  animation: fadeIn 200ms ease-out both;
+}
+
+.imageIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.imageName {
+  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imageSize {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Mobile Responsive
    ═══════════════════════════════════════════════════════════════════ */
@@ -828,5 +1042,18 @@
 
   .objectName {
     max-width: 180px;
+  }
+
+  .storagePanelBody {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .donut {
+    align-self: center;
+  }
+
+  .storageGrid {
+    grid-template-columns: 1fr;
   }
 }

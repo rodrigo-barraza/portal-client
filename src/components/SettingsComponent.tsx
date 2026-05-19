@@ -384,7 +384,7 @@ export default function SettingsComponent() {
                       <option value="/devices">Devices</option>
                       <option value="/topology">Topology</option>
                       <option value="/logs">Logs</option>
-                      <option value="/metrics">Metrics</option>
+                      <option value="/object-store">Object Store</option>
                     </select>
                     <ChevronDown
                       size={13}
