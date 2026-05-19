@@ -261,6 +261,7 @@ function buildColumns({
               height={24}
               historyMax={HISTORY_MAX}
               showGrid
+              formatValue={(v: number) => formatPercent(v, "adaptive")}
             />
           </div>
         );
@@ -312,6 +313,7 @@ function buildColumns({
               height={24}
               historyMax={HISTORY_MAX}
               showGrid
+              formatValue={(v: number) => formatBytes(v)}
             />
           </div>
         );
@@ -969,6 +971,7 @@ export default function ContainerStatsComponent() {
               height={48}
               historyMax={HISTORY_MAX}
               showGrid
+              formatValue={(v: number) => formatPercent(v, "adaptive")}
             />
           </div>
 
@@ -1005,6 +1008,7 @@ export default function ContainerStatsComponent() {
               height={48}
               historyMax={HISTORY_MAX}
               showGrid
+              formatValue={(v: number) => formatBytes(v)}
             />
           </div>
 
