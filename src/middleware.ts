@@ -9,7 +9,7 @@ import { createAuthMiddleware } from "@rodrigo-barraza/utilities-library/nextjs"
 import { auth, AUTH_ENABLED } from "@/auth";
 
 export const middleware = createAuthMiddleware({
-  auth: auth as any,
+  auth: auth as never,
   authEnabled: AUTH_ENABLED,
 });
 

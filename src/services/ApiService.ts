@@ -12,8 +12,11 @@ export default class ApiService {
   /**
    * Shared fetch helper — delegates to components-library.
    */
-  static async _request(endpoint: string, { method = "GET", body }: any = {}) {
-    return request(method as any, endpoint, body);
+  static async _request(
+    endpoint: string,
+    { method = "GET", body }: { method?: string; body?: any } = {},
+  ) {
+    return request(method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH", endpoint, body);
   }
 
   // ── Root ──────────────────────────────────────────────────────

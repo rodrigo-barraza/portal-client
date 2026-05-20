@@ -222,7 +222,7 @@ function detectLevel(text: any) {
   return null;
 }
 
-const LEVEL_CLASS = {
+const LEVEL_CLASS: Record<string, string> = {
   error: styles.levelError,
   warn: styles.levelWarn,
   info: styles.levelInfo,
@@ -230,7 +230,7 @@ const LEVEL_CLASS = {
   debug: styles.levelDebug,
 };
 
-const LINE_LEVEL_CLASS = {
+const LINE_LEVEL_CLASS: Record<string, string> = {
   error: styles.logLineError,
   warn: styles.logLineWarn,
   success: styles.logLineSuccess,
@@ -708,14 +708,13 @@ export default function LogsComponent() {
             {filteredLines.map((line, i) => (
               <div
                 key={i}
-                className={`${styles.logLine} ${(LINE_LEVEL_CLASS as any)[line.level] || ""}`}
+                className={`${styles.logLine} ${LINE_LEVEL_CLASS[line.level || ""] || ""}`}
               >
                 <span className={styles.lineNumber}>{i + 1}</span>
                 {line.timestamp && (
                   <span className={styles.lineTimestamp}>{line.timestamp}</span>
                 )}
                 <span
-                  // @ts-ignore
                   className={`${styles.lineContent} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
                 >
                   {parseAnsi(line.content)}

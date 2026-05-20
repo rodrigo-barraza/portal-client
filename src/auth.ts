@@ -43,8 +43,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn({ user }) {
       if (!AUTH_ENABLED) return true;
       if (ALLOWED_EMAILS.length === 0) return true;
-      // @ts-ignore
-      return ALLOWED_EMAILS.includes(user.email?.toLowerCase());
+      const email = user.email?.toLowerCase();
+      return email ? ALLOWED_EMAILS.includes(email) : false;
     },
 
     /**
