@@ -22,12 +22,34 @@ import {
 import ApiService from "../services/ApiService";
 import styles from "./IntegrationsComponent.module.css";
 
+interface IntegrationItem {
+  provider: string;
+  envKey: string;
+  category: string;
+  configured: boolean;
+  docs?: string;
+  maskedKey?: string;
+}
+
+interface IntegrationCategory {
+  category: string;
+  integrations: IntegrationItem[];
+  configuredCount?: number;
+  totalCount?: number;
+}
+
+interface IntegrationsData {
+  categories: IntegrationCategory[];
+  totalCount: number;
+  configuredCount: number;
+}
+
 export default function IntegrationsComponent() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<IntegrationsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [collapsedCategories, setCollapsedCategories] = useState<any>({});
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const didFetch = useRef(false);
 
   async function loadIntegrations() {
@@ -53,9 +75,7 @@ export default function IntegrationsComponent() {
     loadIntegrations();
   };
 
-  // @ts-ignore
-  const toggleCategory = (category) => {
-    // @ts-ignore
+  const toggleCategory = (category: string) => {
     setCollapsedCategories((prev) => ({
       ...prev,
       [category]: !prev[category],
@@ -64,8 +84,8 @@ export default function IntegrationsComponent() {
 
   // ── Filter by search ────────────────────────────────────────
   const filteredCategories = data?.categories
-    ?.map((cat: any) => {
-      const filtered = cat.integrations.filter((item: any) => {
+    ?.map((cat: IntegrationCategory) => {
+      const filtered = cat.integrations.filter((item: IntegrationItem) => {
         const q = searchQuery.toLowerCase();
         return (
           item.provider.toLowerCase().includes(q) ||
@@ -76,11 +96,11 @@ export default function IntegrationsComponent() {
       return {
         ...cat,
         integrations: filtered,
-        configuredCount: filtered.filter((i: any) => i.configured).length,
+        configuredCount: filtered.filter((i: IntegrationItem) => i.configured).length,
         totalCount: filtered.length,
       };
     })
-    .filter((cat: any) => cat.integrations.length > 0);
+    .filter((cat: IntegrationCategory) => cat.integrations.length > 0);
 
   return (
     <div className={styles.integrations}>
@@ -111,8 +131,7 @@ export default function IntegrationsComponent() {
             size="sm"
             placeholder="Search providers, keys…"
             value={searchQuery}
-            // @ts-ignore
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
             <button
@@ -153,8 +172,7 @@ export default function IntegrationsComponent() {
         />
       ) : (
         <div className={styles.categoryList}>
-          {/* @ts-ignore */}
-          {filteredCategories?.map((cat: any, catIndex: any) => {
+          {filteredCategories?.map((cat: IntegrationCategory, catIndex: number) => {
             const isCollapsed = collapsedCategories[cat.category];
             return (
               <div
@@ -192,7 +210,7 @@ export default function IntegrationsComponent() {
                 {/* ── Integration Cards ── */}
                 {!isCollapsed && (
                   <div className={styles.integrationCards}>
-                    {cat.integrations.map((item: any) => (
+                    {cat.integrations.map((item: IntegrationItem) => (
                       <div
                         key={item.envKey}
                         className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}

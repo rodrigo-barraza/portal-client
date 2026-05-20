@@ -25,14 +25,15 @@ import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
 import styles from "./ProjectsComponent.module.css";
+import type { PortalService } from "../types/portal";
 
 // ── Project type classification ──────────────────────────────────
 // Non-deployed project types — these don't run as Docker containers
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
 /** Whether a project is a deployed (containerized) service. */
-function isDeployedProject(service: any) {
-  return !NON_DEPLOYED_TYPES.has(service.projectType);
+function isDeployedProject(service: PortalService) {
+  return !NON_DEPLOYED_TYPES.has(service.projectType as string);
 }
 
 // ── Static filter option definitions ─────────────────────────────
@@ -61,8 +62,7 @@ const STATIC_FILTER_OPTIONS = {
 };
 
 /** Compare two services by the chosen sort key. */
-// @ts-ignore
-function compareBySortKey(a, b, sortKey, sortDir) {
+function compareBySortKey(a: PortalService, b: PortalService, sortKey: string, sortDir: string) {
   const dir = sortDir === "asc" ? 1 : -1;
   switch (sortKey) {
     case "name":
@@ -95,11 +95,11 @@ function compareBySortKey(a, b, sortKey, sortDir) {
  * Derive Type and Host filter options from loaded service data.
  * Returns the full SORT_OPTIONS object, extending the static ones.
  */
-function buildFilterOptions(items: any) {
+function buildFilterOptions(items: PortalService[]) {
   const types: string[] = [
-    ...new Set<string>(items.map((s: any) => s.projectType).filter(Boolean)),
+    ...new Set<string>(items.map((s: PortalService) => s.projectType as string).filter(Boolean)),
   ].sort();
-  const hosts: string[] = [...new Set<string>(items.map((s: any) => s.device).filter(Boolean))].sort();
+  const hosts: string[] = [...new Set<string>(items.map((s: PortalService) => s.device as string).filter(Boolean))].sort();
 
   return {
     ...STATIC_FILTER_OPTIONS,
@@ -115,11 +115,11 @@ function buildFilterOptions(items: any) {
 }
 
 export default function ProjectsComponent() {
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<PortalService[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [projectSizes, setProjectSizes] = useState<any>({});
-  const [projectLanguages, setProjectLanguages] = useState<any>({});
+  const [projectSizes, setProjectSizes] = useState<Record<string, { sizeBytes: number; sizeKB: number }>>({});
+  const [projectLanguages, setProjectLanguages] = useState<Record<string, { primary: string; breakdown: { language: string; percent: number }[] }>>({});
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
@@ -133,7 +133,7 @@ export default function ProjectsComponent() {
 
   // ── Sort state ──────────────────────────────────────────────────
   const [sortKey, setSortKey] = useState("name");
-  const [sortDir, setSortDir] = useState("asc");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   // ── View mode state ────────────────────────────────────────────
   const [viewMode, setViewMode] = useState("table");
@@ -142,7 +142,7 @@ export default function ProjectsComponent() {
     try {
       const res = await ApiService.getServices(refresh);
       setServices(
-        (res.services || []).filter((s: any) => s.projectType !== "Infrastructure"),
+        (res.services || []).filter((s: PortalService) => s.projectType !== "Infrastructure"),
       );
     } catch (error) {
       console.error("Services fetch failed:", error);
@@ -183,8 +183,7 @@ export default function ProjectsComponent() {
     loadServices(true);
   };
 
-  // @ts-ignore
-  const setFilter = (dimension, values) => {
+  const setFilter = (dimension: string, values: string[]) => {
     setFilters((prev) => ({ ...prev, [dimension]: values }));
   };
 
@@ -205,30 +204,8 @@ export default function ProjectsComponent() {
         )
           return false;
       }
-      // @ts-ignore
-      if (
-        filters.visibility.length &&
-        !filters.visibility.includes(s.visibility)
-      )
-        return false;
-      // @ts-ignore
-      if (
-        filters.environment.length &&
-        !filters.environment.includes(s.environment)
-      )
-        return false;
-      // @ts-ignore
-      if (
-        filters.projectType.length &&
-        !filters.projectType.includes(s.projectType)
-      )
-        return false;
-      // @ts-ignore
-      if (filters.device.length && !filters.device.includes(s.device))
-        return false;
-      return true;
     })
-    .sort((a: any, b: any) => compareBySortKey(a, b, sortKey, sortDir));
+    .sort((a: PortalService, b: PortalService) => compareBySortKey(a, b, sortKey, sortDir));
 
   // ── Split into deployed services vs libraries/toolkits ──────────
   const deployedItems = filtered.filter(isDeployedProject);
@@ -249,7 +226,7 @@ export default function ProjectsComponent() {
     ...new Set(allItems.map((s) => s.projectType).filter(Boolean)),
   ];
   const totalSizeBytes = Object.values(projectSizes).reduce(
-    (sum: any, s: any) => sum + (s.sizeBytes || 0),
+    (sum: number, s: any) => sum + (s.sizeBytes || 0),
     0,
   );
 
@@ -379,11 +356,9 @@ export default function ProjectsComponent() {
             <MultiSelectComponent
               key={dimension}
               label={config.label}
-              // @ts-ignore
-              value={filters[dimension]}
+              value={filters[dimension] as string[]}
               options={config.values}
-              // @ts-ignore
-              onChange={(values) => setFilter(dimension, values)}
+              onChange={(values: string[]) => setFilter(dimension, values)}
               allLabel="All"
             />
           ))}
@@ -467,7 +442,7 @@ export default function ProjectsComponent() {
                     </div>
                   )}
                   <div className={styles.grid}>
-                    {deployedItems.map((service: any) => (
+                    {deployedItems.map((service: PortalService) => (
                       <ServiceCardComponent
                         key={service.id}
                         service={service}
@@ -478,7 +453,6 @@ export default function ProjectsComponent() {
               ) : (
                 <ProjectTableComponent
                   services={deployedItems}
-                  // @ts-ignore
                   allServices={allItems}
                   projectSizes={projectSizes}
                   projectLanguages={projectLanguages}
@@ -494,8 +468,7 @@ export default function ProjectsComponent() {
                       ? `${deployedItems.length} projects`
                       : undefined
                   }
-                  // @ts-ignore
-                  onSort={(key, dir) => {
+                  onSort={(key: string, dir: "asc" | "desc") => {
                     setSortKey(key);
                     setSortDir(dir);
                   }}
@@ -517,7 +490,7 @@ export default function ProjectsComponent() {
                     </span>
                   </div>
                   <div className={styles.grid}>
-                    {nonDeployedItems.map((service: any) => (
+                    {nonDeployedItems.map((service: PortalService) => (
                       <ServiceCardComponent
                         key={service.id}
                         service={service}
@@ -528,7 +501,6 @@ export default function ProjectsComponent() {
               ) : (
                 <ProjectTableComponent
                   services={nonDeployedItems}
-                  // @ts-ignore
                   allServices={allItems}
                   projectSizes={projectSizes}
                   projectLanguages={projectLanguages}
@@ -537,8 +509,7 @@ export default function ProjectsComponent() {
                   sortDir={sortDir}
                   title="Libraries & Toolkits"
                   subtitle={`${nonDeployedItems.length} projects`}
-                  // @ts-ignore
-                  onSort={(key, dir) => {
+                  onSort={(key: string, dir: "asc" | "desc") => {
                     setSortKey(key);
                     setSortDir(dir);
                   }}

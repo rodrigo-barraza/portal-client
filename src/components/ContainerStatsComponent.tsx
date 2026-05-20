@@ -480,7 +480,6 @@ export default function ContainerStatsComponent() {
   const fetchData = useCallback(async () => {
     try {
       const [containerRes, servicesRes] = await Promise.all([
-        // @ts-ignore
         ApiService.getContainerStats(),
         ApiService.getServices(),
       ]);

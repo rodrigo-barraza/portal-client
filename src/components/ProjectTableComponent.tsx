@@ -24,6 +24,7 @@ import {
   DEPLOY_TIER_COLORS,
   DEFAULT_SERVICE_TYPE_ICON,
 } from "../constants";
+import type { PortalService, ContainerStats } from "../types/portal";
 import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import styles from "./ProjectTableComponent.module.css";
 
@@ -78,17 +79,21 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
  * @param {Set<string>} [excludeColumns] — column keys to omit
  */
-function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns = new Set()) {
+function buildColumns(
+  projectSizes: Record<string, { sizeBytes: number; sizeKB: number }> = {},
+  projectLanguages: Record<string, { primary: string; breakdown: { language: string; percent: number }[] }> = {},
+  excludeColumns = new Set<string>()
+) {
   return [
     {
       key: "name",
       label: "Project",
       sortable: true,
-      render: (service: any) => {
-        const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
+      render: (service: PortalService) => {
+        const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType as string);
         const isHealthy = isNonDeployed ? true : service.healthy;
         const TypeIcon =
-          SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+          (service.projectType && SERVICE_TYPE_ICONS[service.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
         const iconClass = isNonDeployed
           ? styles.iconNeutral
           : isHealthy
@@ -105,16 +110,15 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </div>
         );
       },
-      sortValue: (row: any) => row.name || "",
+      sortValue: (row: PortalService) => row.name || "",
     },
     {
       key: "type",
       label: "Type",
       sortable: true,
-      render: (service: any) => {
+      render: (service: PortalService) => {
         if (!service.projectType) return null;
-        // @ts-ignore
-        const colors = SERVICE_TYPE_COLORS[service.projectType];
+        const colors = SERVICE_TYPE_COLORS[service.projectType as string];
         return (
           <BadgeComponent
             variant="info"
@@ -132,14 +136,14 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => row.projectType || "",
+      sortValue: (row: PortalService) => row.projectType || "",
     },
     {
       key: "essential",
       label: "Essential",
       sortable: true,
       description: "Core scaffolding required to build & deploy new projects",
-      render: (service: any) => {
+      render: (service: PortalService) => {
         if (!service.essential)
           return <span className={styles.mutedCell}>—</span>;
         return (
@@ -160,17 +164,16 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => (row.essential ? 0 : 1),
+      sortValue: (row: PortalService) => (row.essential ? 0 : 1),
     },
     {
       key: "tier",
       label: "Tier",
       sortable: true,
-      render: (service: any) => {
+      render: (service: PortalService) => {
         const tier = service.deployTier;
         if (tier == null) return null;
-        // @ts-ignore
-        const colors = DEPLOY_TIER_COLORS[tier];
+        const colors = DEPLOY_TIER_COLORS[tier as number];
         return (
           <BadgeComponent
             variant="info"
@@ -188,13 +191,13 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => row.deployTier ?? 99,
+      sortValue: (row: PortalService) => (typeof row.deployTier === "number" ? row.deployTier : 99),
     },
     {
       key: "description",
       label: "Description",
       sortable: false,
-      render: (service: any) =>
+      render: (service: PortalService) =>
         service.description ? (
           <span className={styles.descriptionCell}>{service.description}</span>
         ) : (
@@ -205,19 +208,19 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
       key: "domain",
       label: "Domain",
       sortable: true,
-      render: (service: any) =>
+      render: (service: PortalService) =>
         service.domain ? (
           <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
         ) : (
           <span className={styles.mutedCell}>—</span>
         ),
-      sortValue: (row: any) => row.domain || "",
+      sortValue: (row: PortalService) => row.domain || "",
     },
     {
       key: "repo",
       label: "Repo",
       sortable: true,
-      render: (service: any) => {
+      render: (service: PortalService) => {
         if (!service.repo) return <span className={styles.mutedCell}>—</span>;
         // Extract org/repo from GitHub URL
         const match = service.repo.match(/github\.com\/(.+?)(?:\.git)?$/);
@@ -240,21 +243,20 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </a>
         );
       },
-      sortValue: (row: any) => row.repo || "",
+      sortValue: (row: PortalService) => row.repo || "",
     },
     {
       key: "language",
       label: "Language",
       sortable: true,
       description: "Primary language detected by GitHub Linguist",
-      render: (service: any) => {
-        // @ts-ignore
+      render: (service: PortalService) => {
         const langData = projectLanguages[service.id];
         if (!langData?.primary) return <span className={styles.mutedCell}>—</span>;
         const color = LANGUAGE_COLORS[langData.primary] || DEFAULT_LANGUAGE_COLOR;
         const topLangs = langData.breakdown
           .slice(0, 3)
-          .map((l: any) => `${l.language} ${l.percent}%`)
+          .map((l: { language: string; percent: number }) => `${l.language} ${l.percent}%`)
           .join(", ");
         return (
           <span className={styles.languageCell} title={topLangs}>
@@ -266,15 +268,14 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </span>
         );
       },
-      // @ts-ignore
-      sortValue: (row: any) => projectLanguages[row.id]?.primary || "",
+      sortValue: (row: PortalService) => projectLanguages[row.id]?.primary || "",
     },
     {
       key: "dependencies",
       label: "Deps",
       sortable: true,
       description: "Number of upstream dependencies",
-      render: (service: any) => {
+      render: (service: PortalService) => {
         const count = (service.dependsOn || []).length;
         if (count === 0) return <span className={styles.mutedCell}>—</span>;
         return (
@@ -284,13 +285,13 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => (row.dependsOn || []).length,
+      sortValue: (row: PortalService) => (row.dependsOn || []).length,
     },
     {
       key: "database",
       label: "Database",
       sortable: true,
-      render: (service: any) => {
+      render: (service: PortalService) => {
         if (!service.db) return <span className={styles.mutedCell}>—</span>;
         return (
           <BadgeComponent variant="info">
@@ -299,14 +300,14 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => row.db || "",
+      sortValue: (row: PortalService) => row.db || "",
     },
     {
       key: "containers",
       label: "Containers",
       sortable: true,
       description: "Number of Docker containers for this project",
-      render: (service: any) => {
+      render: (service: PortalService) => {
         if (!service.dockerProject)
           return <span className={styles.mutedCell}>—</span>;
         return (
@@ -316,15 +317,14 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      sortValue: (row: any) => (row.dockerProject ? 1 : 0),
+      sortValue: (row: PortalService) => (row.dockerProject ? 1 : 0),
     },
     {
       key: "size",
       label: "Size",
       sortable: true,
       description: "GitHub repository size",
-      render: (service: any) => {
-        // @ts-ignore
+      render: (service: PortalService) => {
         const sizeData = projectSizes[service.id];
         if (!sizeData) return <span className={styles.mutedCell}>—</span>;
         return (
@@ -334,36 +334,42 @@ function buildColumns(projectSizes = {}, projectLanguages = {}, excludeColumns =
           </BadgeComponent>
         );
       },
-      // @ts-ignore
-      sortValue: (row: any) => projectSizes[row.id]?.sizeBytes ?? 0,
+      sortValue: (row: PortalService) => projectSizes[row.id]?.sizeBytes ?? 0,
     },
   ].filter((col) => !excludeColumns.has(col.key));
 }
 
+interface ProjectTableProps {
+  services: PortalService[];
+  allServices?: PortalService[];
+  projectSizes?: Record<string, { sizeBytes: number; sizeKB: number }>;
+  projectLanguages?: Record<string, { primary: string; breakdown: { language: string; percent: number }[] }>;
+  containerStats?: Record<string, ContainerStats>;
+  excludeColumns?: string[];
+  sortKey?: string;
+  sortDir?: "asc" | "desc";
+  onSort?: (key: string, dir: "asc" | "desc") => void;
+  title?: string;
+  subtitle?: string;
+}
+
 export default function ProjectTableComponent({
-  // @ts-ignore
   services,
   allServices = [],
   projectSizes = {},
   projectLanguages = {},
   containerStats = {},
-  // @ts-ignore
   excludeColumns,
-  // @ts-ignore
   sortKey,
-  // @ts-ignore
   sortDir,
-  // @ts-ignore
   onSort,
-  // @ts-ignore
   title,
-  // @ts-ignore
   subtitle,
-}) {
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+}: ProjectTableProps) {
+  const [selectedProject, setSelectedProject] = useState<PortalService | null>(null);
 
   const excludeSet = useMemo(
-    () => (excludeColumns ? new Set(excludeColumns) : new Set()),
+    () => (excludeColumns ? new Set<string>(excludeColumns) : new Set<string>()),
     [excludeColumns],
   );
 
@@ -372,14 +378,13 @@ export default function ProjectTableComponent({
     [projectSizes, projectLanguages, excludeSet],
   )();
 
-  const getRowClassName = useCallback((row: any) => {
-    if (NON_DEPLOYED_TYPES.has(row.projectType)) return styles.rowNeutral;
+  const getRowClassName = useCallback((row: PortalService) => {
+    if (NON_DEPLOYED_TYPES.has(row.projectType as string)) return styles.rowNeutral;
     return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
   }, []);
 
   const handleRowClick = useCallback(
-    // @ts-ignore
-    (row) => setSelectedProject(row),
+    (row: PortalService) => setSelectedProject(row),
     [],
   );
 
@@ -392,8 +397,7 @@ export default function ProjectTableComponent({
   }
 
   const stats = selectedProject?.dockerProject
-    ? // @ts-ignore
-      containerStats[selectedProject.dockerProject]
+    ? containerStats[selectedProject.dockerProject]
     : null;
 
   return (
@@ -403,11 +407,10 @@ export default function ProjectTableComponent({
         subtitle={subtitle}
         columns={columns}
         data={services}
-        getRowKey={(row: any) => row.id}
+        getRowKey={(row: PortalService) => row.id}
         sortKey={sortKey}
         sortDir={sortDir}
-        // @ts-ignore
-        onSort={(key, dir) => onSort(key, dir)}
+        onSort={(key: string, dir: "asc" | "desc") => onSort && onSort(key, dir)}
         emptyText="No projects match the selected filters"
         getRowClassName={getRowClassName}
         onRowClick={handleRowClick}
@@ -424,7 +427,7 @@ export default function ProjectTableComponent({
         {selectedProject && (
           <ExpandedProjectPanel
             service={selectedProject}
-            stats={stats}
+            stats={stats ?? undefined}
             allServices={allServices}
           />
         )}

@@ -57,6 +57,7 @@ export type DependsOnEntry = string | DependencyRef;
 export interface PortalService {
   id: string;
   name: string;
+  description?: string;
   healthy: boolean;
   projectType?: ProjectType | string;
   deployTier?: DeployTier | number;
@@ -73,6 +74,9 @@ export interface PortalService {
   restartable?: boolean;
   checkedAt?: string;
   isInfrastructure?: boolean;
+  essential?: boolean;
+  db?: string;
+  npmPackage?: string;
   dependsOn?: DependsOnEntry[];
   metadata?: ServiceMetadata;
   analyticsPropertyId?: string;
@@ -86,6 +90,8 @@ export interface ServiceMetadata {
   databases?: number;
   buckets?: number;
   bucketNames?: string[];
+  nodeVersion?: string;
+  pythonVersion?: string;
 }
 
 // ─── Container Stats ────────────────────────────────────────

@@ -41,23 +41,21 @@ import {
 } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ExpandedProjectPanelComponent.module.css";
+import type { PortalService, ContainerStats, GAOverview, GAPageRow } from "../types/portal";
 
 const MAX_SPARKLINE_POINTS = 60;
-
-// @ts-ignore
-function severityColor(pct, thresholds = [40, 80]) {
+function severityColor(pct: number, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
 }
 
-// @ts-ignore
-const formatGADuration = (seconds) => {
+const formatGADuration = (seconds: number) => {
   if (!seconds || seconds <= 0) return "0s";
   return formatElapsedTime(seconds);
 };
 
-function formatGAPercent(value: any) {
+function formatGAPercent(value: number | null | undefined) {
   if (value == null) return "0%";
   return `${(value * 100).toFixed(1)}%`;
 }
@@ -71,25 +69,25 @@ function Sparkline({
   max,
   height = 28,
 }: {
-  [key: string]: any;
+  data: number[];
+  color: string;
+  fillColor?: string;
+  max?: number;
+  height?: number;
 }) {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
-    // @ts-ignore
     const context = canvas.getContext("2d");
+    if (!context) return;
     const dpr = window.devicePixelRatio || 1;
-    // @ts-ignore
     const w = canvas.clientWidth;
-    // @ts-ignore
     const h = canvas.clientHeight;
 
-    // @ts-ignore
     canvas.width = w * dpr;
-    // @ts-ignore
     canvas.height = h * dpr;
     context.scale(dpr, dpr);
     context.clearRect(0, 0, w, h);
@@ -138,7 +136,7 @@ function Sparkline({
 
 // ── Percentage Bar ────────────────────────────────────────────────
 
-function PercentBar({ percent, color }: { [key: string]: any }) {
+function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -161,7 +159,7 @@ const TABS = [
 
 // ── Tab: Project ──────────────────────────────────────────────────
 
-function ProjectTab({ service }: { [key: string]: any }) {
+function ProjectTab({ service }: { service: PortalService }) {
   return (
     <div className={styles.projectTab}>
       <div className={styles.section}>
@@ -169,8 +167,7 @@ function ProjectTab({ service }: { [key: string]: any }) {
         <div className={`${styles.fieldGrid} ${styles.fieldGridSingle}`}>
           {service.projectType &&
             (() => {
-              // @ts-ignore
-              const colors = SERVICE_TYPE_COLORS[service.projectType];
+              const colors = SERVICE_TYPE_COLORS[service.projectType as string];
               return (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>Type</span>
@@ -193,8 +190,7 @@ function ProjectTab({ service }: { [key: string]: any }) {
             })()}
           {service.deployTier != null &&
             (() => {
-              // @ts-ignore
-              const colors = DEPLOY_TIER_COLORS[service.deployTier];
+              const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
               return (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>Tier</span>
@@ -280,11 +276,11 @@ function ProjectTab({ service }: { [key: string]: any }) {
               </div>
             )}
             {service.isInfrastructure &&
-              service.metadata?.bucketNames?.length > 0 && (
+              (service.metadata?.bucketNames?.length ?? 0) > 0 && (
                 <div className={styles.field}>
                   <span className={styles.fieldLabel}>Bucket Names</span>
                   <span className={`${styles.fieldValue} ${styles.mono}`}>
-                    {service.metadata.bucketNames.join(", ")}
+                    {service.metadata!.bucketNames!.join(", ")}
                   </span>
                 </div>
               )}
@@ -303,7 +299,7 @@ function ProjectTab({ service }: { [key: string]: any }) {
 
 // ── Tab: Container ────────────────────────────────────────────────
 
-function ContainerTab({ service, stats }: { [key: string]: any }) {
+function ContainerTab({ service, stats }: { service: PortalService; stats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } } }) {
   return (
     <div className={styles.containerTab}>
       {/* ── Left: Container info ── */}
@@ -400,9 +396,9 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
               percent={stats.cpu.percent}
               color={severityColor(stats.cpu.percent)}
             />
-            {stats.spark?.cpu?.length >= 2 && (
+            {(stats.spark?.cpu?.length ?? 0) >= 2 && (
               <Sparkline
-                data={stats.spark.cpu}
+                data={stats.spark!.cpu!}
                 color={severityColor(stats.cpu.percent)}
                 fillColor={
                   stats.cpu.percent > 80
@@ -446,9 +442,9 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
               percent={stats.memory.percent}
               color={severityColor(stats.memory.percent, [60, 85])}
             />
-            {stats.spark?.mem?.length >= 2 && (
+            {(stats.spark?.mem?.length ?? 0) >= 2 && (
               <Sparkline
-                data={stats.spark.mem}
+                data={stats.spark!.mem!}
                 color={severityColor(stats.memory.percent, [60, 85])}
                 fillColor={
                   stats.memory.percent > 85
@@ -521,7 +517,7 @@ function ContainerTab({ service, stats }: { [key: string]: any }) {
                 </div>
               )}
 
-            {stats.pids > 0 && (
+            {(stats.pids ?? 0) > 0 && (
               <div className={styles.metricCard}>
                 <div className={styles.metricCardHeader}>
                   <span className={styles.metricCardTitle}>PIDs</span>
@@ -554,9 +550,8 @@ const TIER_LABELS = [
   "Tier 2 — Bots",
 ];
 
-function getIcon(svc: any) {
-  // @ts-ignore
-  return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+function getIcon(svc: PortalService) {
+  return (svc.projectType && SERVICE_TYPE_ICONS[svc.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
 }
 
 type MiniPortSide = "top" | "bottom" | "left" | "right";
@@ -651,7 +646,7 @@ function miniEdgePath(anchor: MiniPortResult): string {
   return `M ${x1} ${y1} C ${x1 + c1.dx} ${y1 + c1.dy}, ${x2 + c2.dx} ${y2 + c2.dy}, ${x2} ${y2}`;
 }
 
-function TopologyTab({ service, allServices }: { [key: string]: any }) {
+function TopologyTab({ service, allServices }: { service: PortalService; allServices: PortalService[] }) {
   const deps = service.dependsOn || [];
 
   if (deps.length === 0 && allServices.length === 0) {
@@ -665,7 +660,6 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
 
   // Build full edge list from all services
   const allEdges = [];
-  // @ts-ignore
   const idSet = new Set(allServices.map((s) => s.id));
   for (const svc of allServices) {
     for (const dep of svc.dependsOn || []) {
@@ -701,7 +695,6 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
   for (const child of downstream.get(service.id) || []) connected.add(child);
 
   // Filter services and edges to connected subgraph
-  // @ts-ignore
   const graphServices = allServices.filter((s) => connected.has(s.id));
   const graphEdges = allEdges.filter(
     (e) => connected.has(e.source) && connected.has(e.target),
@@ -717,19 +710,18 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
   }
 
   // Layout by deployTier
-  const tiers = [[], [], []];
+  const tiers: PortalService[][] = [[], [], []];
   for (const svc of graphServices) {
-    const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
-    // @ts-ignore
+    const tier = Math.min(Math.max(svc.deployTier as number ?? 2, 0), 2);
     tiers[tier].push(svc);
   }
   for (const tier of tiers)
-    tier.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    tier.sort((a: PortalService, b: PortalService) => a.name.localeCompare(b.name));
 
   const GAP_X = 20;
   const GAP_Y = 72;
   const LABEL_W = 120;
-  const positions = {};
+  const positions: Record<string, { x: number; y: number }> = {};
   const layerWidths = tiers.map(
     (l) => l.length * (MINI_NODE_W + GAP_X) - GAP_X,
   );
@@ -741,7 +733,6 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
     const totalW = layer.length * (MINI_NODE_W + GAP_X) - GAP_X;
     const offsetX = LABEL_W + (maxW - totalW) / 2;
     layer.forEach((svc, si) => {
-      // @ts-ignore
       positions[svc.id] = {
         x: offsetX + si * (MINI_NODE_W + GAP_X),
         y: usedTierCount * (MINI_NODE_H + GAP_Y),
@@ -794,9 +785,7 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
 
         {/* Edges */}
         {graphEdges.map((edge, i) => {
-          // @ts-ignore
           const sp = positions[edge.source];
-          // @ts-ignore
           const tp = positions[edge.target];
           if (!sp || !tp) return null;
           const anchor = computeMiniEdgeAnchors(sp, tp);
@@ -843,9 +832,7 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
         })}
 
         {/* Nodes */}
-        {/* @ts-ignore */}
-        {graphServices.map((svc: any) => {
-          // @ts-ignore
+        {graphServices.map((svc: PortalService) => {
           const pos = positions[svc.id];
           if (!pos) return null;
           const Icon = getIcon(svc);
@@ -885,11 +872,11 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
 
 // ── Tab: Web Analytics ────────────────────────────────────────────
 
-function WebAnalyticsTab({ service }: { [key: string]: any }) {
+function WebAnalyticsTab({ service }: { service: PortalService }) {
   const propertyId = service.analyticsPropertyId;
-  const [overview, setOverview] = useState<any>(null);
-  const [pages, setPages] = useState<any>(null);
-  const [realtime, setRealtime] = useState<any>(null);
+  const [overview, setOverview] = useState<GAOverview | null>(null);
+  const [pages, setPages] = useState<{ pages: GAPageRow[] } | null>(null);
+  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const didFetch = useRef(false);
 
@@ -989,11 +976,11 @@ function WebAnalyticsTab({ service }: { [key: string]: any }) {
       )}
 
       {/* Top Pages */}
-      {pages?.pages?.length > 0 && (
+      {(pages?.pages?.length ?? 0) > 0 && (
         <div className={styles.gaSection}>
           <h4 className={styles.sectionTitle}>Top Pages (30d)</h4>
           <div className={styles.gaPageList}>
-            {pages.pages.slice(0, 5).map((p: any, i: any) => (
+            {pages!.pages.slice(0, 5).map((p: GAPageRow, i: number) => (
               <div key={i} className={styles.gaPageRow}>
                 <span className={`${styles.gaPagePath} ${styles.mono}`}>
                   {p.pagePath}
@@ -1017,7 +1004,9 @@ export default function ExpandedProjectPanel({
   stats,
   allServices = [],
 }: {
-  [key: string]: any;
+  service: PortalService;
+  stats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } };
+  allServices?: PortalService[];
 }) {
   const [activeTab, setActiveTab] = useState("project");
 

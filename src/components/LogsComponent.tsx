@@ -52,7 +52,7 @@ const ANSI_BRIGHT_COLORS = [
 /**
  * Convert a 256-color index to a hex color string.
  */
-function ansi256ToHex(n: any) {
+function ansi256ToHex(n: number) {
   if (n < 8) return ANSI_COLORS[n];
   if (n < 16) return ANSI_BRIGHT_COLORS[n - 8];
   if (n < 232) {
@@ -70,7 +70,7 @@ function ansi256ToHex(n: any) {
 /**
  * Strip ANSI escape codes from a string.
  */
-function stripAnsi(text: any) {
+function stripAnsi(text: string) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
@@ -79,7 +79,7 @@ function stripAnsi(text: any) {
  * Supports SGR codes: reset, bold, dim, italic, underline,
  * strikethrough, standard 8 colors, bright colors, and 256-color.
  */
-function parseAnsi(text: any) {
+function parseAnsi(text: string) {
   // Fast path — no escape codes present
   if (!text.includes("\x1b")) return text;
 
@@ -212,7 +212,7 @@ function parseAnsi(text: any) {
 /**
  * Detect the log level from a line of text.
  */
-function detectLevel(text: any) {
+function detectLevel(text: string) {
   const clean = stripAnsi(text);
   if (/\bERR(?:OR)?\b/i.test(clean)) return "error";
   if (/\bWARN(?:ING)?\b/i.test(clean)) return "warn";
@@ -239,7 +239,7 @@ const LINE_LEVEL_CLASS: Record<string, string> = {
 /**
  * Parse a raw log line into { timestamp, content, level }.
  */
-function parseLine(raw: any) {
+function parseLine(raw: string) {
   const match = raw.match(TIMESTAMP_REGEX);
   if (match) {
     const ts = match[1];
@@ -253,13 +253,26 @@ function parseLine(raw: any) {
   return { timestamp: null, content: raw, level: detectLevel(raw) };
 }
 
+interface LogLine {
+  timestamp: string | null;
+  content: string;
+  level: string | null;
+}
+
+interface LoggableContainer {
+  name: string;
+  device: string;
+  deviceName?: string;
+  state?: string;
+}
+
 export default function LogsComponent() {
-  const [containers, setContainers] = useState<any[]>([]);
-  const [activeContainer, setActiveContainer] = useState<any>(null);
+  const [containers, setContainers] = useState<LoggableContainer[]>([]);
+  const [activeContainer, setActiveContainer] = useState<string | null>(null);
   const [activeDevice, setActiveDevice] = useState<string | null>(null);
-  const [lines, setLines] = useState<any[]>([]);
+  const [lines, setLines] = useState<LogLine[]>([]);
   const [connected, setConnected] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const [paused, setPaused] = useState(false);
   const [search, setSearch] = useState("");
@@ -267,11 +280,11 @@ export default function LogsComponent() {
   const [bufferedCount, setBufferedCount] = useState(0);
   const [restarting, setRestarting] = useState(false);
 
-  const eventSourceRef = useRef(null);
-  const bodyRef = useRef(null);
-  const pauseBufferRef = useRef([]);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const pauseBufferRef = useRef<LogLine[]>([]);
   const didFetch = useRef(false);
-  const searchInputRef = useRef(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const didAutoConnect = useRef(false);
   const searchParams = useSearchParams();
 
@@ -290,8 +303,9 @@ export default function LogsComponent() {
   // ── Auto-scroll to bottom ────────────────────────────────────
   useEffect(() => {
     if (autoScroll && bodyRef.current && !paused) {
-      // @ts-ignore
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+      if (bodyRef.current) {
+        bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+      }
     }
   }, [lines, autoScroll, paused]);
 
@@ -305,11 +319,9 @@ export default function LogsComponent() {
 
   // ── Connect to SSE stream ────────────────────────────────────
   const connectToContainer = useCallback(
-    // @ts-ignore
-    (containerName, device) => {
+    (containerName: string, device: string) => {
       // Disconnect existing stream
       if (eventSourceRef.current) {
-        // @ts-ignore
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
@@ -330,7 +342,6 @@ export default function LogsComponent() {
       });
 
       const es = new EventSource(url);
-      // @ts-ignore
       eventSourceRef.current = es;
 
       es.addEventListener("connected", (_e) => {
@@ -339,16 +350,17 @@ export default function LogsComponent() {
       });
 
       // Server-sent `event: error` — these carry JSON in e.data
-      es.addEventListener("error", (e: any) => {
+      es.addEventListener("error", (e: Event) => {
         // Only handle custom SSE error events (which have .data).
         // Native EventSource errors also fire on this listener but
         // have no .data — those are handled by es.onerror below.
-        if (!e.data) return;
+        const me = e as MessageEvent;
+        if (!me.data) return;
         try {
-          const data = JSON.parse(e.data);
+          const data = JSON.parse(me.data);
           setError(data.error || "Connection error");
         } catch {
-          setError(e.data);
+          setError(me.data);
         }
         setConnected(false);
       });
@@ -362,7 +374,6 @@ export default function LogsComponent() {
         const parsed = parseLine(raw);
 
         if (paused) {
-          // @ts-ignore
           pauseBufferRef.current.push(parsed);
           setBufferedCount(pauseBufferRef.current.length);
           return;
@@ -409,7 +420,6 @@ export default function LogsComponent() {
   useEffect(() => {
     return () => {
       if (eventSourceRef.current) {
-        // @ts-ignore
         eventSourceRef.current.close();
       }
     };
@@ -420,13 +430,11 @@ export default function LogsComponent() {
     const es = eventSourceRef.current;
     if (!es) return;
 
-    // @ts-ignore
-    es.onmessage = (e) => {
+    es.onmessage = (e: MessageEvent) => {
       const raw = e.data;
       const parsed = parseLine(raw);
 
       if (paused) {
-        // @ts-ignore
         pauseBufferRef.current.push(parsed);
         setBufferedCount(pauseBufferRef.current.length);
         return;
@@ -469,8 +477,8 @@ export default function LogsComponent() {
       await ApiService.restartContainer(activeContainer, activeDevice);
       // Reconnect to the log stream after restart
       connectToContainer(activeContainer, activeDevice);
-    } catch (err: any) {
-      setError(err?.message || "Failed to restart container");
+    } catch (err: unknown) {
+      setError((err as Error)?.message || "Failed to restart container");
     } finally {
       setRestarting(false);
     }
@@ -479,7 +487,6 @@ export default function LogsComponent() {
   // ── Scroll to bottom ────────────────────────────────────────
   const scrollToBottom = () => {
     if (bodyRef.current) {
-      // @ts-ignore
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
     setAutoScroll(true);
@@ -496,12 +503,10 @@ export default function LogsComponent() {
 
   // ── Keyboard shortcut for search ────────────────────────────
   useEffect(() => {
-    // @ts-ignore
-    const handler = (e) => {
+    const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "f") {
         e.preventDefault();
         setShowSearch(true);
-        // @ts-ignore
         setTimeout(() => searchInputRef.current?.focus(), 50);
       }
       if (e.key === "Escape" && showSearch) {
@@ -531,7 +536,7 @@ export default function LogsComponent() {
       <div className={styles.serviceList}>
         {(() => {
           // Group by device, running containers first
-          const sorted = [...containers].sort((a: any, b: any) => {
+          const sorted = [...containers].sort((a: LoggableContainer, b: LoggableContainer) => {
             if (a.device !== b.device) return a.device.localeCompare(b.device);
             // Running containers first within each device
             if (a.state === "running" && b.state !== "running") return -1;
@@ -627,7 +632,6 @@ export default function LogsComponent() {
                 onClick={() => {
                   setShowSearch((v) => !v);
                   if (showSearch) setSearch("");
-                  // @ts-ignore
                   else setTimeout(() => searchInputRef.current?.focus(), 50);
                 }}
                 title="Search (Ctrl+F)"

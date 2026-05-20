@@ -666,9 +666,8 @@ const PREVIEWS = {
  * Get the preview renderer for a given component name.
  * Returns null if no preview is available.
  */
-export function getPreview(componentName: any) {
-  // @ts-ignore
-  return PREVIEWS[componentName] || null;
+export function getPreview(componentName: string) {
+  return PREVIEWS[componentName as keyof typeof PREVIEWS] || null;
 }
 
 export default PREVIEWS;

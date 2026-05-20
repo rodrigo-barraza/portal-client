@@ -711,7 +711,6 @@ export default function TopologyComponent() {
       maxX = -Infinity,
       maxY = -Infinity;
     for (const svc of libs) {
-      // @ts-ignore
       const pos = positions[svc.id];
       if (!pos) continue;
       minX = Math.min(minX, pos.x);
@@ -757,7 +756,6 @@ export default function TopologyComponent() {
     const visible = new Set();
     layers.forEach((layer, li) => {
       for (const svc of layer) {
-        // @ts-ignore
         if (searchMatches.has(svc.id)) {
           visible.add(li);
           break;
@@ -777,7 +775,6 @@ export default function TopologyComponent() {
         maxX = -Infinity,
         maxY = -Infinity;
       for (const svc of group.members) {
-        // @ts-ignore
         const pos = positions[svc.id];
         if (!pos) continue;
         minX = Math.min(minX, pos.x);
@@ -1047,7 +1044,6 @@ export default function TopologyComponent() {
   const centerOnContent = useCallback(() => {
     const element = containerRef.current;
     if (!element || allServices.length === 0) return;
-    // @ts-ignore
     const rect = element.getBoundingClientRect();
     // compute bounding box of all nodes
     let minX = Infinity,
@@ -1055,13 +1051,9 @@ export default function TopologyComponent() {
       maxX = -Infinity,
       maxY = -Infinity;
     for (const pos of Object.values(basePositions)) {
-      // @ts-ignore
       minX = Math.min(minX, pos.x);
-      // @ts-ignore
       minY = Math.min(minY, pos.y);
-      // @ts-ignore
       maxX = Math.max(maxX, pos.x + NODE_W);
-      // @ts-ignore
       maxY = Math.max(maxY, pos.y + NODE_H);
     }
     if (minX === Infinity) return;
@@ -1096,7 +1088,7 @@ export default function TopologyComponent() {
   }, [allServices, centerOnContent]);
 
   // ── Tooltip ─────────────────────────────────────────────────
-  const handleNodeEnter = useCallback((e: React.MouseEvent, svc: any) => {
+  const handleNodeEnter = useCallback((e: React.MouseEvent, svc: PortalService) => {
     setHoveredNode(svc.id);
     setTooltipPos({ x: e.clientX, y: e.clientY });
     setTooltipData(svc);
@@ -1160,8 +1152,7 @@ export default function TopologyComponent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                // @ts-ignore
-                onKeyDown={(e) => {
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                   if (e.key === "Escape") {
                     setSearchQuery("");
                     searchRef.current?.blur();
@@ -1171,7 +1162,6 @@ export default function TopologyComponent() {
               {searchQuery && (
                 <button
                   className={styles.searchClear}
-                  // @ts-ignore
                   onClick={() => {
                     setSearchQuery("");
                     searchRef.current?.focus();
@@ -1288,9 +1278,7 @@ export default function TopologyComponent() {
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 {/* ── Edges ── */}
                 {edges.map((edge, i) => {
-                  // @ts-ignore
                   const sp = positions[edge.source];
-                  // @ts-ignore
                   const tp = positions[edge.target];
                   if (!sp || !tp) return null;
 
@@ -1448,7 +1436,6 @@ export default function TopologyComponent() {
                     {/* Tier cluster backgrounds + labels */}
                     {dynamicClusterRects.map((cr, li) => {
                       if (!cr) return null;
-                      // @ts-ignore
                       const tc =
                         tierColors[li] ||
                         DEPLOY_TIER_COLORS[li] ||
@@ -1511,7 +1498,6 @@ export default function TopologyComponent() {
                   typeClusterRects.map((cr, gi) => {
                     if (!cr) return null;
                     const group = typeGroups[gi];
-                    // @ts-ignore
                     const tc =
                       SERVICE_TYPE_COLORS[group.type] ||
                       SERVICE_TYPE_COLORS.Service;
@@ -1576,8 +1562,7 @@ export default function TopologyComponent() {
                   })}
 
                 {/* ── Nodes ── */}
-                {allServices.map((svc: any) => {
-                  // @ts-ignore
+                {allServices.map((svc: PortalService) => {
                   const pos = positions[svc.id];
                   if (!pos) return null;
                   const Icon = getIcon(svc);
@@ -1589,9 +1574,8 @@ export default function TopologyComponent() {
                     searchMatches && !searchMatches.has(svc.id);
                   const isFaded = isFadedBySelection || isFadedBySearch;
 
-                  // @ts-ignore
                   const ptc =
-                    SERVICE_TYPE_COLORS[svc.projectType] ||
+                    SERVICE_TYPE_COLORS[svc.projectType as string] ||
                     SERVICE_TYPE_COLORS.Service;
                   const healthClass = svc.healthy
                     ? styles.nodeHealthy
@@ -1630,7 +1614,7 @@ export default function TopologyComponent() {
                               : undefined
                           }
                         />
-                        {!NON_TIERED_TYPES.has(svc.projectType) && (
+                        {!NON_TIERED_TYPES.has(svc.projectType as string) && (
                           <div
                             className={`${styles.statusDot} ${svc.healthy ? styles.statusHealthy : styles.statusDown}`}
                           />

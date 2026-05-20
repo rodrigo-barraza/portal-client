@@ -14,7 +14,7 @@ import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
 import styles from "./LibraryCatalogComponent.module.css";
 
 /** Human-readable name from export name. */
-function humanize(name: any) {
+function humanize(name: string) {
   return name
     .replace(/Component$/, "")
     .replace(/Service$/, "")
@@ -23,7 +23,7 @@ function humanize(name: any) {
 }
 
 /** Format KB size. */
-function formatSize(kb: any) {
+function formatSize(kb: number) {
   if (kb >= 100) return `${(kb / 1024).toFixed(1)} MB`;
   return `${kb.toFixed(1)} KB`;
 }
@@ -39,6 +39,17 @@ function formatSize(kb: any) {
  *   accentSubtle: string,
  * }} props
  */
+export interface CatalogItem {
+  name: string;
+  type: string;
+  category?: string;
+  m3?: boolean;
+  hasTests?: boolean;
+  files?: number;
+  sizeKb: number;
+  description?: string;
+}
+
 export default function LibraryCatalogComponent({
   catalog = [],
   type,
@@ -48,13 +59,18 @@ export default function LibraryCatalogComponent({
   accentColor = "#6366f1",
   accentSubtle = "rgba(99, 102, 241, 0.1)",
 }: {
-  [key: string]: any;
+  catalog?: CatalogItem[];
+  type: string;
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  accentColor?: string;
+  accentSubtle?: string;
 }) {
   const [search, setSearch] = useState("");
 
   // Filter to this type only
   const items = useMemo(
-    // @ts-ignore
     () => catalog.filter((c) => c.type === type),
     [catalog, type],
   );
@@ -64,7 +80,6 @@ export default function LibraryCatalogComponent({
     if (!search.trim()) return items;
     const q = search.toLowerCase();
     return items.filter(
-      // @ts-ignore
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.description?.toLowerCase().includes(q) ||
@@ -72,9 +87,8 @@ export default function LibraryCatalogComponent({
     );
   }, [items, search]);
 
-  // @ts-ignore
   const testedCount = items.filter((c) => c.hasTests).length;
-  const totalSize = items.reduce((sum: any, c: any) => sum + c.sizeKb, 0);
+  const totalSize = items.reduce((sum: number, c: CatalogItem) => sum + c.sizeKb, 0);
 
   return (
     <div className={styles.catalog}>
@@ -119,17 +133,15 @@ export default function LibraryCatalogComponent({
 
       {/* ── Grid ── */}
       <div className={styles.grid}>
-        {/* @ts-ignore */}
-        {filtered.map((item: any, i: any) => (
+        {filtered.map((item: CatalogItem, i: number) => (
           <div
             key={item.name}
             className={styles.card}
             style={{
               animationDelay: `${Math.min(i * 30, 600)}ms`,
-              // @ts-ignore
               "--card-accent": accentColor,
               "--card-accent-subtle": accentSubtle,
-            }}
+            } as React.CSSProperties}
           >
             <div className={styles.cardHeader}>
               <div

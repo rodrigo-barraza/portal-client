@@ -539,13 +539,11 @@ export default function GoogleAnalyticsComponent({
       "Saturday",
       "Sunday",
     ];
-    const grid = {};
+    const grid: Record<string, number> = {};
     let maxVal = 0;
     for (const cell of heatmap.cells) {
       const key = `${cell.day}:${cell.hour}`;
-      // @ts-ignore
       grid[key] = (grid[key] || 0) + cell.users;
-      // @ts-ignore
       if (grid[key] > maxVal) maxVal = grid[key];
     }
     return { grid, dayOrder, maxVal };
@@ -892,7 +890,6 @@ export default function GoogleAnalyticsComponent({
                           {day.slice(0, 3)}
                         </div>
                         {Array.from({ length: 24 }, (_, h) => {
-                          // @ts-ignore
                           const value = heatmapData.grid[`${day}:${h}`] || 0;
                           const intensity =
                             heatmapData.maxVal > 0

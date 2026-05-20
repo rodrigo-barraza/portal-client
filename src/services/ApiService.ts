@@ -5,6 +5,7 @@
 
 import { PORTAL_SERVICE_URL } from "@/config";
 import { createApiClient } from "@rodrigo-barraza/components-library";
+import type { BucketStreamEvent } from "../types/portal";
 
 const request = createApiClient(PORTAL_SERVICE_URL, { noCache: true });
 
@@ -14,7 +15,7 @@ export default class ApiService {
    */
   static async _request(
     endpoint: string,
-    { method = "GET", body }: { method?: string; body?: any } = {},
+    { method = "GET", body }: { method?: string; body?: unknown } = {},
   ) {
     return request(method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH", endpoint, body);
   }
@@ -145,7 +146,7 @@ export default class ApiService {
 
   /**
    * Get auto-detected ecosystem dependencies (imports, API calls, repo sizes).
-   * @returns {Promise<{ dependencies: Record<string, { imports: any[], apiCalls: any[] }>, repoSizes: Record<string, { sizeKB: number, sizeBytes: number }>, analyzedAt: string }>}
+   * @returns {Promise<{ dependencies: Record<string, { imports: string[], apiCalls: string[] }>, repoSizes: Record<string, { sizeKB: number, sizeBytes: number }>, analyzedAt: string }>}
    */
   static async getProjectAnalysis(refresh = false) {
     const qs = refresh ? "?refresh=true" : "";
@@ -154,7 +155,7 @@ export default class ApiService {
 
   /**
    * Get GitHub Linguist language breakdown for all projects.
-   * @returns {Promise<{ languages: Record<string, { primary: string, breakdown: any[], totalBytes: number }> }>}
+   * @returns {Promise<{ languages: Record<string, { primary: string, breakdown: { language: string, percent: number }[], totalBytes: number }> }>}
    */
   static async getProjectLanguages() {
     return ApiService._request("/services/languages");
@@ -188,7 +189,7 @@ export default class ApiService {
    * Get Docker container resource usage (CPU, memory, network).
 
    */
-  static async getContainerStats(deviceId: string) {
+  static async getContainerStats(deviceId?: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
     return ApiService._request(`/stats/containers${qs}`);
   }
@@ -198,7 +199,7 @@ export default class ApiService {
    * Returns per-device history keyed by device ID.
 
    */
-  static async getContainerStatsHistory(deviceId: string) {
+  static async getContainerStatsHistory(deviceId?: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
     return ApiService._request(`/stats/containers/history${qs}`);
   }
@@ -274,7 +275,7 @@ export default class ApiService {
    */
   static buildLogStreamUrl(
     containerName: string,
-    { tail = 200, follow = true, device }: any = {},
+    { tail = 200, follow = true, device }: { tail?: number; follow?: boolean; device?: string } = {},
   ) {
     let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
     if (device) url += `&device=${encodeURIComponent(device)}`;
@@ -309,17 +310,17 @@ export default class ApiService {
 
    * @returns {{ close: () => void }} — call close() to abort
    */
-  static streamStorageBuckets(onEvent: any) {
+  static streamStorageBuckets(onEvent: (event: BucketStreamEvent) => void) {
     const es = new EventSource(
       `${PORTAL_SERVICE_URL}/object-store/buckets/stream`,
     );
 
-    es.addEventListener("init", (e) => {
-      onEvent({ type: "init", ...JSON.parse(e.data) });
+    es.addEventListener("init", (e: Event) => {
+      onEvent({ type: "init", ...JSON.parse((e as MessageEvent).data) });
     });
 
-    es.addEventListener("bucket", (e) => {
-      onEvent({ type: "bucket", bucket: JSON.parse(e.data) });
+    es.addEventListener("bucket", (e: Event) => {
+      onEvent({ type: "bucket", bucket: JSON.parse((e as MessageEvent).data) });
     });
 
     es.addEventListener("done", () => {
@@ -327,11 +328,12 @@ export default class ApiService {
       es.close();
     });
 
-    es.addEventListener("error", (e: any) => {
+    es.addEventListener("error", (e: Event) => {
       // EventSource fires a generic error on close — only report if we have data
-      if (e.data) {
+      const me = e as MessageEvent;
+      if (me.data) {
         try {
-          onEvent({ type: "error", ...JSON.parse(e.data) });
+          onEvent({ type: "error", ...JSON.parse(me.data) });
         } catch {
           onEvent({ type: "error", message: "Stream error" });
         }
@@ -349,7 +351,7 @@ export default class ApiService {
    */
   static async getStorageObjects(
     bucketName: string,
-    { prefix = "", recursive = false }: any = {},
+    { prefix = "", recursive = false }: { prefix?: string; recursive?: boolean } = {},
   ) {
     const qs = new URLSearchParams();
     if (prefix) qs.set("prefix", prefix);
@@ -381,7 +383,7 @@ export default class ApiService {
   static buildStorageDownloadUrl(
     bucketName: string,
     objectName: string,
-    { inline = false }: any = {},
+    { inline = false }: { inline?: boolean } = {},
   ) {
     const qs = inline ? "?inline=true" : "";
     return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;

@@ -44,8 +44,7 @@ const DEVICE_COLOR_MAP = {
 /**
  * Color by severity threshold for CPU/memory values.
  */
-// @ts-ignore
-function severityColor(pct, thresholds = [40, 80]) {
+function severityColor(pct: number, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
@@ -72,7 +71,6 @@ export default function DevicesComponent() {
 
   const fetchContainers = useCallback(async () => {
     try {
-      // @ts-ignore
       const res = await ApiService.getContainerStats();
       setContainers(res?.containers || []);
     } catch {
@@ -101,26 +99,21 @@ export default function DevicesComponent() {
 
   // Group containers by device name
   const containersByDevice = useMemo(() => {
-    const map = {};
+    const map: Record<string, any[]> = {};
     for (const c of containers) {
       const deviceId = c.device || "unknown";
-      // @ts-ignore
       if (!map[deviceId]) map[deviceId] = [];
-      // @ts-ignore
       map[deviceId].push(c);
     }
     // Sort containers within each device by name
     for (const key of Object.keys(map)) {
-      // @ts-ignore
       map[key].sort((a: any, b: any) => a.name.localeCompare(b.name));
     }
     return map;
   }, [containers]);
 
   const sortedDevices = [...devices].sort((a: any, b: any) => {
-    // @ts-ignore
     const aCount = containersByDevice[a.id]?.length || 0;
-    // @ts-ignore
     const bCount = containersByDevice[b.id]?.length || 0;
     return bCount - aCount;
   });
@@ -164,7 +157,6 @@ export default function DevicesComponent() {
               key={device.id}
               device={device}
               delay={index * 60}
-              // @ts-ignore
               containers={containersByDevice[device.id] || []}
             />
           ))}
@@ -178,12 +170,9 @@ export default function DevicesComponent() {
 
 function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
   const [containersExpanded, setContainersExpanded] = useState(false);
-  // @ts-ignore
-  const DeviceIcon = DEVICE_ICON_MAP[device.type] || Monitor;
-  // @ts-ignore
-  const accentColor = DEVICE_COLOR_MAP[device.type] || "var(--accent-color)";
-  // @ts-ignore
-  const runningCount = containers.filter((c) => c.state === "running").length;
+  const DeviceIcon = DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
+  const accentColor = DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] || "var(--accent-color)";
+  const runningCount = containers.filter((c: any) => c.state === "running").length;
   const allRunning =
     runningCount === containers.length && containers.length > 0;
 

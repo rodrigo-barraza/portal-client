@@ -44,12 +44,12 @@ import {
 } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ServiceCardComponent.module.css";
+import type { PortalService, ContainerStats } from "../types/portal";
 
 const MAX_SPARKLINE_POINTS = 60;
 
 /** Severity color from percentage. */
-// @ts-ignore
-function severityColor(pct, thresholds = [40, 80]) {
+function severityColor(pct: number, thresholds = [40, 80]) {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
@@ -63,25 +63,25 @@ function Sparkline({
   max,
   height = 20,
 }: {
-  [key: string]: any;
+  data: number[];
+  color: string;
+  fillColor?: string;
+  max?: number;
+  height?: number;
 }) {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
-    // @ts-ignore
     const context = canvas.getContext("2d");
+    if (!context) return;
     const dpr = window.devicePixelRatio || 1;
-    // @ts-ignore
     const w = canvas.clientWidth;
-    // @ts-ignore
     const h = canvas.clientHeight;
 
-    // @ts-ignore
     canvas.width = w * dpr;
-    // @ts-ignore
     canvas.height = h * dpr;
     context.scale(dpr, dpr);
     context.clearRect(0, 0, w, h);
@@ -129,7 +129,7 @@ function Sparkline({
 }
 
 // ── Percentage Bar ──────────────────────────────────────────────
-function PercentBar({ percent, color }: { [key: string]: any }) {
+function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -151,14 +151,19 @@ export default function ServiceCardComponent({
   onStart,
   onRollback,
 }: {
-  [key: string]: any;
+  service: PortalService;
+  containerStats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } };
+  onRestart?: (id: string) => Promise<void>;
+  onStop?: (id: string) => Promise<void>;
+  onStart?: (id: string) => Promise<void>;
+  onRollback?: (id: string) => Promise<void>;
 }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
   const [rollingBack, setRollingBack] = useState(false);
   const [rollbackAvailable, setRollbackAvailable] = useState(false);
-  const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType);
+  const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType as string);
   const isHealthy = isNonDeployed ? true : service.healthy;
   const statusClass = isNonDeployed
     ? styles.nonDeployed
@@ -168,9 +173,8 @@ export default function ServiceCardComponent({
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
-  // @ts-ignore
   const TypeIcon =
-    SERVICE_TYPE_ICONS[service.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+    (service.projectType && SERVICE_TYPE_ICONS[service.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
 
   // Lazily check rollback availability for restartable services
   useEffect(() => {
@@ -344,9 +348,9 @@ export default function ServiceCardComponent({
                 percent={containerStats.cpu.percent}
                 color={severityColor(containerStats.cpu.percent)}
               />
-              {containerStats.spark?.cpu?.length >= 2 && (
+              {(containerStats.spark?.cpu?.length ?? 0) >= 2 && (
                 <Sparkline
-                  data={containerStats.spark.cpu}
+                  data={containerStats.spark!.cpu!}
                   color={severityColor(containerStats.cpu.percent)}
                   fillColor={
                     containerStats.cpu.percent > 80
@@ -399,9 +403,9 @@ export default function ServiceCardComponent({
                 percent={containerStats.memory.percent}
                 color={severityColor(containerStats.memory.percent, [60, 85])}
               />
-              {containerStats.spark?.mem?.length >= 2 && (
+              {(containerStats.spark?.mem?.length ?? 0) >= 2 && (
                 <Sparkline
-                  data={containerStats.spark.mem}
+                  data={containerStats.spark!.mem!}
                   color={severityColor(containerStats.memory.percent, [60, 85])}
                   fillColor={
                     containerStats.memory.percent > 85
@@ -427,8 +431,7 @@ export default function ServiceCardComponent({
 
         {service.projectType &&
           (() => {
-            // @ts-ignore
-            const colors = SERVICE_TYPE_COLORS[service.projectType];
+            const colors = SERVICE_TYPE_COLORS[service.projectType as string];
             return (
               <div className={styles.detail}>
                 <span className={styles.detailLabel}>Type</span>
@@ -452,8 +455,7 @@ export default function ServiceCardComponent({
 
         {service.deployTier != null &&
           (() => {
-            // @ts-ignore
-            const colors = DEPLOY_TIER_COLORS[service.deployTier];
+            const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
             return (
               <div className={styles.detail}>
                 <span className={styles.detailLabel}>Tier</span>
@@ -545,7 +547,7 @@ export default function ServiceCardComponent({
                 </span>
               </div>
             )}
-            {service.metadata.bucketNames?.length > 0 && (
+            {service.metadata.bucketNames && service.metadata.bucketNames.length > 0 && (
               <div className={styles.detail}>
                 <span className={styles.detailLabel}>Bucket Names</span>
                 <span className={`${styles.detailValue} ${styles.mono}`}>

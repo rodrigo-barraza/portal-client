@@ -1,26 +1,7 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier";
+import globals from "globals";
+import { createServiceEslintConfig } from "@rodrigo-barraza/utilities-library/eslint";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  prettierConfig,
-  {
-    rules: {
-      "no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          destructuredArrayIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-        },
-      ],
-      "no-console": "off",
-      "prefer-const": "error",
-      "no-var": "error",
-    },
-  },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
-]);
-
-export default eslintConfig;
+export default createServiceEslintConfig({ js, tseslint, prettierConfig, globals });

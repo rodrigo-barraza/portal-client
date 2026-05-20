@@ -197,7 +197,7 @@ export default function ContainerDetailPanel({
         }
 
         // Fall back to in-memory ring buffer
-        // @ts-ignore
+        // Fall back to in-memory ring buffer
         const res = await ApiService.getContainerStatsHistory();
         if (res?.history) {
           const cpuPoints: number[] = [];
