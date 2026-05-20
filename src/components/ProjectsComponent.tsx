@@ -204,6 +204,15 @@ export default function ProjectsComponent() {
         )
           return false;
       }
+      if (filters.visibility.length && !filters.visibility.includes(s.visibility as string))
+        return false;
+      if (filters.environment.length && !filters.environment.includes(s.environment as string))
+        return false;
+      if (filters.projectType.length && !filters.projectType.includes(s.projectType as string))
+        return false;
+      if (filters.device.length && !filters.device.includes(s.device as string))
+        return false;
+      return true;
     })
     .sort((a: PortalService, b: PortalService) => compareBySortKey(a, b, sortKey, sortDir));
 
