@@ -21,6 +21,7 @@ import {
 
 import ApiService from "../services/ApiService";
 import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
+import type { Device, ContainerStats } from "../types/portal";
 import styles from "./DevicesComponent.module.css";
 
 /**
@@ -51,10 +52,10 @@ function severityColor(pct: number, thresholds = [40, 80]) {
 }
 
 export default function DevicesComponent() {
-  const [devices, setDevices] = useState<any[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [containers, setContainers] = useState<any[]>([]);
+  const [containers, setContainers] = useState<Array<Partial<ContainerStats> & { name: string, device?: string }>>([]);
   const didFetch = useRef(false);
 
   async function loadDevices() {
@@ -99,7 +100,7 @@ export default function DevicesComponent() {
 
   // Group containers by device name
   const containersByDevice = useMemo(() => {
-    const map: Record<string, any[]> = {};
+    const map: Record<string, Array<Partial<ContainerStats> & { name: string, device?: string }>> = {};
     for (const c of containers) {
       const deviceId = c.device || "unknown";
       if (!map[deviceId]) map[deviceId] = [];
@@ -107,12 +108,12 @@ export default function DevicesComponent() {
     }
     // Sort containers within each device by name
     for (const key of Object.keys(map)) {
-      map[key].sort((a: any, b: any) => a.name.localeCompare(b.name));
+      map[key].sort((a, b) => a.name.localeCompare(b.name));
     }
     return map;
   }, [containers]);
 
-  const sortedDevices = [...devices].sort((a: any, b: any) => {
+  const sortedDevices = [...devices].sort((a: Device, b: Device) => {
     const aCount = containersByDevice[a.id]?.length || 0;
     const bCount = containersByDevice[b.id]?.length || 0;
     return bCount - aCount;
@@ -168,11 +169,11 @@ export default function DevicesComponent() {
 
 // ── Device Card ───────────────────────────────────────────────────
 
-function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
+function DeviceCard({ device, delay, containers }: { device: Device, delay: number, containers: Array<Partial<ContainerStats> & { name: string, device?: string }> }) {
   const [containersExpanded, setContainersExpanded] = useState(false);
   const DeviceIcon = DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
   const accentColor = DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] || "var(--accent-color)";
-  const runningCount = containers.filter((c: any) => c.state === "running").length;
+  const runningCount = containers.filter((c) => c.state === "running").length;
   const allRunning =
     runningCount === containers.length && containers.length > 0;
 
@@ -239,7 +240,7 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
             className={`${styles.servicesCollapsible} ${containersExpanded ? styles.servicesExpanded : ""}`}
           >
             <div className={styles.servicesTable}>
-              {containers.map((container: any) => (
+              {containers.map((container) => (
                 <ContainerRow key={container.name} container={container} />
               ))}
             </div>
@@ -252,7 +253,7 @@ function DeviceCard({ device, delay, containers }: { [key: string]: any }) {
 
 // ── Container Row ─────────────────────────────────────────────────
 
-function ContainerRow({ container }: { [key: string]: any }) {
+function ContainerRow({ container }: { container: Partial<ContainerStats> & { name: string, device?: string } }) {
   const isRunning = container.state === "running";
 
   return (

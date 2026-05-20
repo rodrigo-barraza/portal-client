@@ -77,7 +77,6 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
  * Column definitions for the centralized TableComponent.
  * Each column maps to a field on the service status object.
 
- * @param {Set<string>} [excludeColumns] — column keys to omit
  */
 function buildColumns(
   projectSizes: Record<string, { sizeBytes: number; sizeKB: number }> = {},

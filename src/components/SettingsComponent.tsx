@@ -398,7 +398,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.segmentedControl}>
-                    {["compact", "comfortable", "spacious"].map((d: any) => (
+                    {["compact", "comfortable", "spacious"].map((d: string) => (
                       <button
                         key={d}
                         className={`${styles.segmentBtn} ${settings.cardDensity === d ? styles.active : ""}`}

@@ -226,7 +226,7 @@ export default function ProjectsComponent() {
     ...new Set(allItems.map((s) => s.projectType).filter(Boolean)),
   ];
   const totalSizeBytes = Object.values(projectSizes).reduce(
-    (sum: number, s: any) => sum + (s.sizeBytes || 0),
+    (sum: number, s: { sizeBytes?: number }) => sum + (s.sizeBytes || 0),
     0,
   );
 

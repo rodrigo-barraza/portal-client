@@ -44,7 +44,6 @@ import type {
   ContainerRow,
   ContainerHistory,
   ContainerStats,
-  ContainerMetricsPoint,
   ContainerMetricsData,
   SystemInfo,
   PortalService,
@@ -557,11 +556,11 @@ export default function ContainerStatsComponent() {
 
       // Accumulate sparkline history for CPU and memory
       const totalCpu = containers.reduce(
-        (sum: number, c: any) => sum + (c.cpu?.percent || 0),
+        (sum: number, c: Partial<ContainerStats>) => sum + (c.cpu?.percent || 0),
         0,
       );
       const totalMem = containers.reduce(
-        (sum: number, c: any) => sum + (c.memory?.used || 0),
+        (sum: number, c: Partial<ContainerStats>) => sum + (c.memory?.used || 0),
         0,
       );
       setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
@@ -628,7 +627,7 @@ export default function ContainerStatsComponent() {
 
         // Find the longest series length across all containers
         let maxLen = 0;
-        for (const [name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
+        for (const [_name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
           if (data.points?.length > maxLen) maxLen = data.points.length;
         }
 
@@ -636,12 +635,12 @@ export default function ContainerStatsComponent() {
         totalCpuPoints = new Array(maxLen).fill(0);
         totalMemPoints = new Array(maxLen).fill(0);
 
-        for (const [name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
+        for (const [_name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
           if (!data.points || data.points.length === 0) continue;
 
           const cpuArr = data.points.map((p) => p.cpu);
           const memArr = data.points.map((p) => p.mem);
-          seededHistory[name] = { cpu: cpuArr, mem: memArr };
+          seededHistory[_name] = { cpu: cpuArr, mem: memArr };
 
           // Accumulate totals — right-align shorter series
           const offset = maxLen - data.points.length;

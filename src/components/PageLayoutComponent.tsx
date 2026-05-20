@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import type { ReactNode, CSSProperties } from "react";
 import {
   PageLayoutComponent as LibraryPageLayout,
   useTheme,
@@ -17,7 +18,9 @@ export default function PageLayoutComponent({
   mainStyle,
   mainClassName,
 }: {
-  [key: string]: any;
+  children: ReactNode;
+  mainStyle?: CSSProperties;
+  mainClassName?: string;
 }) {
   const pathname = usePathname();
   const { theme, themes, setTheme, mounted } = useTheme();

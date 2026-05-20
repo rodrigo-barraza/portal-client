@@ -6,8 +6,6 @@
 // component-local state shapes used across the UI.
 // ============================================================
 
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
 
 // ─── Project Type Taxonomy ──────────────────────────────────
 
@@ -480,6 +478,8 @@ export interface Device {
   ip?: string;
   os?: string;
   arch?: string;
+  type?: string;
+  notes?: string;
   services?: PortalService[];
 }
 

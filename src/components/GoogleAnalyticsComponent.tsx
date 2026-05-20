@@ -58,6 +58,9 @@ import type {
   GAHeatmapCell,
   GANewVsReturningSegment,
   GAEvent,
+  GADeviceCategory,
+  GABrowser,
+  GAOperatingSystem,
 } from "../types/portal";
 
 // ── Palette ───────────────────────────────────────────────────
@@ -364,8 +367,8 @@ export default function GoogleAnalyticsComponent({
         } else if (props.length === 1) {
           setSelectedProperty(props[0]);
         }
-      } catch (error: any) {
-        setError(error.message);
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : String(error));
       } finally {
         setLoading(false);
       }
@@ -555,7 +558,7 @@ export default function GoogleAnalyticsComponent({
     {
       key: "pagePath",
       label: "Page",
-      render: (row: any) => (
+      render: (row: GAPageRow) => (
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>
           {row.pagePath}
         </span>
@@ -565,25 +568,25 @@ export default function GoogleAnalyticsComponent({
       key: "pageviews",
       label: "Views",
       align: "right",
-      render: (row: any) => formatNumber(row.pageviews),
+      render: (row: GAPageRow) => formatNumber(row.pageviews),
     },
     {
       key: "users",
       label: "Users",
       align: "right",
-      render: (row: any) => formatNumber(row.users),
+      render: (row: GAPageRow) => formatNumber(row.users),
     },
     {
       key: "avgDuration",
       label: "Avg Duration",
       align: "right",
-      render: (row: any) => formatElapsedTime(row.avgDuration),
+      render: (row: GAPageRow) => formatElapsedTime(row.avgDuration),
     },
     {
       key: "bounceRate",
       label: "Bounce",
       align: "right",
-      render: (row: any) => formatPercent(row.bounceRate),
+      render: (row: GAPageRow) => formatPercent(row.bounceRate),
     },
   ];
 
@@ -591,7 +594,7 @@ export default function GoogleAnalyticsComponent({
     {
       key: "landingPage",
       label: "Landing Page",
-      render: (row: any) => (
+      render: (row: GALandingPageRow) => (
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>
           {row.landingPage}
         </span>
@@ -601,25 +604,25 @@ export default function GoogleAnalyticsComponent({
       key: "sessions",
       label: "Sessions",
       align: "right",
-      render: (row: any) => formatNumber(row.sessions),
+      render: (row: GALandingPageRow) => formatNumber(row.sessions),
     },
     {
       key: "users",
       label: "Users",
       align: "right",
-      render: (row: any) => formatNumber(row.users),
+      render: (row: GALandingPageRow) => formatNumber(row.users),
     },
     {
       key: "avgDuration",
       label: "Avg Duration",
       align: "right",
-      render: (row: any) => formatElapsedTime(row.avgDuration),
+      render: (row: GALandingPageRow) => formatElapsedTime(row.avgDuration),
     },
     {
       key: "bounceRate",
       label: "Bounce",
       align: "right",
-      render: (row: any) => formatPercent(row.bounceRate),
+      render: (row: GALandingPageRow) => formatPercent(row.bounceRate),
     },
   ];
 
@@ -1068,13 +1071,13 @@ export default function GoogleAnalyticsComponent({
                           centerLabel="Sessions"
                         />
                         <div className={styles.donutLegend}>
-                          {devices.categories.map((d: any, i: any) => (
+                          {devices.categories.map((d: GADeviceCategory, i: number) => (
                             <HorizontalBar
                               key={d.category}
                               label={d.category}
                               value={d.sessions}
                               max={Math.max(
-                                ...devices.categories.map((c: any) => c.sessions),
+                                ...devices.categories.map((c: GADeviceCategory) => c.sessions),
                               )}
                               color={CHART_COLORS[i % CHART_COLORS.length]}
                               suffix=" sessions"
@@ -1105,13 +1108,13 @@ export default function GoogleAnalyticsComponent({
                         <div className={styles.donutLegend}>
                           {devices.browsers
                             .slice(0, 6)
-                            .map((b: any, i: any) => (
+                            .map((b: GABrowser, i: number) => (
                               <HorizontalBar
                                 key={b.browser}
                                 label={b.browser}
                                 value={b.sessions}
                                 max={Math.max(
-                                  ...devices.browsers.map((br: any) => br.sessions),
+                                  ...devices.browsers.map((br: GABrowser) => br.sessions),
                                 )}
                                 color={
                                   CHART_COLORS[(i + 3) % CHART_COLORS.length]
@@ -1150,14 +1153,14 @@ export default function GoogleAnalyticsComponent({
                       <div className={styles.donutLegend}>
                         {devices?.operatingSystems
                           ?.slice(0, 6)
-                          .map((d: any, i: any) => (
+                          .map((d: GAOperatingSystem, i: number) => (
                             <HorizontalBar
                               key={d.os}
                               label={d.os}
                               value={d.sessions}
                               max={Math.max(
                                 ...(devices.operatingSystems || []).map(
-                                  (o: any) => o.sessions,
+                                  (o: GAOperatingSystem) => o.sessions,
                                 ),
                               )}
                               color={
@@ -1191,7 +1194,7 @@ export default function GoogleAnalyticsComponent({
                         centerLabel="Users"
                       />
                       <div className={styles.donutLegend}>
-                        {newVsReturning?.segments?.map((s: any, i: any) => (
+                        {newVsReturning?.segments?.map((s: GANewVsReturningSegment, i: number) => (
                           <HorizontalBar
                             key={s.segment}
                             label={
@@ -1204,7 +1207,7 @@ export default function GoogleAnalyticsComponent({
                             value={s.users}
                             max={Math.max(
                               ...(newVsReturning.segments || []).map(
-                                (sg: any) => sg.users,
+                                (sg: GANewVsReturningSegment) => sg.users,
                               ),
                             )}
                             color={i === 0 ? "#6366f1" : "#10b981"}

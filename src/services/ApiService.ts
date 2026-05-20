@@ -90,7 +90,6 @@ export default class ApiService {
   /**
    * Check if a rollback is available for a containerized service.
 
-   * @returns {Promise<{ available: boolean, previousImage?: object }>}
    */
   static async getRollbackStatus(serviceId: string) {
     return ApiService._request(`/services/${serviceId}/rollback-status`);
@@ -138,7 +137,6 @@ export default class ApiService {
 
   /**
    * Get GitHub repository sizes for all projects.
-   * @returns {Promise<{ sizes: Record<string, { sizeKB: number, sizeBytes: number }> }>}
    */
   static async getProjectSizes() {
     return ApiService._request("/services/sizes");
@@ -146,7 +144,6 @@ export default class ApiService {
 
   /**
    * Get auto-detected ecosystem dependencies (imports, API calls, repo sizes).
-   * @returns {Promise<{ dependencies: Record<string, { imports: string[], apiCalls: string[] }>, repoSizes: Record<string, { sizeKB: number, sizeBytes: number }>, analyzedAt: string }>}
    */
   static async getProjectAnalysis(refresh = false) {
     const qs = refresh ? "?refresh=true" : "";
@@ -155,7 +152,6 @@ export default class ApiService {
 
   /**
    * Get GitHub Linguist language breakdown for all projects.
-   * @returns {Promise<{ languages: Record<string, { primary: string, breakdown: { language: string, percent: number }[], totalBytes: number }> }>}
    */
   static async getProjectLanguages() {
     return ApiService._request("/services/languages");
@@ -207,11 +203,6 @@ export default class ApiService {
   /**
    * Get persistent container metrics from MongoDB time-series collection.
    * Returns per-container historical data points with configurable range.
-   *
-   * @param range  - Time range: "1h", "6h", "24h", "7d" (default: "1h")
-   * @param container - Optional container name filter
-   * @param device - Optional device ID filter
-   * @param limit  - Max samples per container (default: 120)
    */
   static async getContainerMetrics({
     range = "1h",
@@ -270,7 +261,6 @@ export default class ApiService {
    * Build the SSE URL for streaming container logs.
    * The caller should use `new EventSource(url)` to connect.
 
-   * @param {{ tail?: number, follow?: boolean, device?: string }} [opts]
 
    */
   static buildLogStreamUrl(
@@ -308,7 +298,6 @@ export default class ApiService {
    *   { type: "done" }
    *   { type: "error", message }
 
-   * @returns {{ close: () => void }} — call close() to abort
    */
   static streamStorageBuckets(onEvent: (event: BucketStreamEvent) => void) {
     const es = new EventSource(
@@ -347,7 +336,6 @@ export default class ApiService {
   /**
    * List objects in a bucket.
 
-   * @param {{ prefix?: string, recursive?: boolean }} [opts]
    */
   static async getStorageObjects(
     bucketName: string,
@@ -376,8 +364,6 @@ export default class ApiService {
   /**
    * Build a download URL for an object-store object.
 
-
-   * @param {{ inline?: boolean }} [opts]
 
    */
   static buildStorageDownloadUrl(

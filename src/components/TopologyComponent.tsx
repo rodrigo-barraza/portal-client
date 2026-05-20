@@ -1385,7 +1385,7 @@ export default function TopologyComponent() {
                         className={
                           (selectedNode ? styles.tierLabelFaded : "") +
                             (searchVisibleTiers &&
-                            !libs.some((s: any) => searchMatches?.has(s.id))
+                            !libs.some((s: { id: string }) => searchMatches?.has(s.id))
                               ? ` ${styles.tierLabelFaded}`
                               : "") || undefined
                         }
@@ -1912,7 +1912,7 @@ export default function TopologyComponent() {
                           </span>
                           <span className={styles.tooltipDepList}>
                             {detected.imports
-                              .map((i: any) => i.target)
+                              .map((i: { target: string }) => i.target)
                               .join(", ")}
                           </span>
                         </>
@@ -1924,7 +1924,7 @@ export default function TopologyComponent() {
                           </span>
                           <span className={styles.tooltipDepList}>
                             {detected.apiCalls
-                              .map((a: any) => a.target)
+                              .map((a: { target: string }) => a.target)
                               .join(", ")}
                           </span>
                         </>

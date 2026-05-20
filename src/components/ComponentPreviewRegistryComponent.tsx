@@ -32,6 +32,7 @@ import {
   AlertCircle,
   Info,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import {
   BadgeComponent,
@@ -78,7 +79,7 @@ import {
 import styles from "./ComponentPreviewRegistryComponent.module.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
-function PreviewRow({ children, gap = 8 }: { [key: string]: any }) {
+function PreviewRow({ children, gap = 8 }: { children: ReactNode, gap?: number }) {
   return (
     <div className={styles.previewRow} style={{ gap }}>
       {children}
@@ -86,7 +87,7 @@ function PreviewRow({ children, gap = 8 }: { [key: string]: any }) {
   );
 }
 
-function PreviewStack({ children, gap = 8 }: { [key: string]: any }) {
+function PreviewStack({ children, gap = 8 }: { children: ReactNode, gap?: number }) {
   return (
     <div className={styles.previewStack} style={{ gap }}>
       {children}
@@ -94,7 +95,7 @@ function PreviewStack({ children, gap = 8 }: { [key: string]: any }) {
   );
 }
 
-function PreviewLabel({ children }: { [key: string]: any }) {
+function PreviewLabel({ children }: { children: ReactNode }) {
   return <span className={styles.previewLabel}>{children}</span>;
 }
 

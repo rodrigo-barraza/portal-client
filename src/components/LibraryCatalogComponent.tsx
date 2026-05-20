@@ -29,14 +29,6 @@ function formatSize(kb: number) {
 }
 
 /**
- * @param {{
- *   catalog: Array<{ name, type, category, m3, hasTests, files, sizeKb, description }>,
- *   type: string,
- *   title: string,
- *   subtitle?: string,
- *   icon: React.ReactNode,
- *   accentColor: string,
- *   accentSubtle: string,
  * }} props
  */
 export interface CatalogItem {

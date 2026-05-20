@@ -6,6 +6,7 @@ import { LayoutGrid, Table2, TrendingUp, ArrowRight } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
+import type { GAOverview } from "../types/portal";
 import styles from "./GoogleAnalyticsComponent.module.css";
 
 /**
@@ -20,8 +21,8 @@ interface GAProperty {
 }
 
 interface GASummary {
-  overview: any;
-  realtime: any;
+  overview: GAOverview | null;
+  realtime: { activeUsers: number } | null;
   loaded: boolean;
 }
 
