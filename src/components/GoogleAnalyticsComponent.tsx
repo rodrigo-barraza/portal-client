@@ -43,6 +43,22 @@ import {
   formatPercent as _formatPercent,
 } from "@rodrigo-barraza/utilities-library";
 import styles from "./GoogleAnalyticsComponent.module.css";
+import type {
+  DonutSegment,
+  SparklineMetric,
+  GATimeSeriesPoint,
+  GAProperty,
+  GAOverview,
+  GAPageRow,
+  GALandingPageRow,
+  GASource,
+  GALocation,
+  GADevices,
+  GAChannel,
+  GAHeatmapCell,
+  GANewVsReturningSegment,
+  GAEvent,
+} from "../types/portal";
 
 // ── Palette ───────────────────────────────────────────────────
 
@@ -68,15 +84,14 @@ const SPARKLINE_COLORS = {
 // ── Helpers ───────────────────────────────────────────────────
 
 /** GA returns ratios 0–1 — convert to 0–100 for the library's formatPercent */
-// @ts-ignore
-const formatPercent = (value: any) => {
+const formatPercent = (value: number | null | undefined) => {
   if (value == null) return "0%";
   return _formatPercent(value * 100);
 };
 
 // ── Stat Card ─────────────────────────────────────────────────
 
-function DeltaBadge({ value }: { [key: string]: any }) {
+function DeltaBadge({ value }: { value?: number | null }) {
   if (value == null || !isFinite(value)) return null;
   const pct = (value * 100).toFixed(1);
   const isUp = value >= 0;
@@ -101,7 +116,13 @@ function StatCard({
   delay = 0,
   delta,
 }: {
-  [key: string]: any;
+  icon: React.ComponentType<any>;
+  label: string;
+  value: string | number;
+  sub?: string;
+  color: string;
+  delay?: number;
+  delta?: number | null;
 }) {
   return (
     <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
@@ -132,7 +153,11 @@ function HorizontalBar({
   color,
   suffix = "",
 }: {
-  [key: string]: any;
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+  suffix?: string;
 }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
@@ -162,12 +187,15 @@ function DonutChart({
   strokeWidth = 14,
   centerLabel = "Total",
 }: {
-  [key: string]: any;
+  segments: DonutSegment[];
+  size?: number;
+  strokeWidth?: number;
+  centerLabel?: string;
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
-  const total = segments.reduce((sum: any, s: any) => sum + s.value, 0);
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
 
   // Pre-compute cumulative offsets to avoid mutating during render
   const cumulativeValues: number[] = [];
@@ -192,10 +220,9 @@ function DonutChart({
         stroke="var(--bg-tertiary)"
         strokeWidth={strokeWidth}
       />
-      {segments.map((seg: any, i: any) => {
+      {segments.map((seg, i) => {
         const pct = total > 0 ? seg.value / total : 0;
         const dashLength = pct * circumference;
-        // @ts-ignore
         const dashOffset =
           total > 0 ? -(cumulativeValues[i] / total) * circumference : 0;
 
@@ -239,7 +266,7 @@ function DonutChart({
 
 // ── Sparkline Chart ───────────────────────────────────────────
 
-function SparklineChart({ series, metrics }: { [key: string]: any }) {
+function SparklineChart({ series, metrics }: { series: GATimeSeriesPoint[]; metrics: SparklineMetric[] }) {
   if (!series || series.length === 0) return null;
 
   const width = 800;
@@ -255,12 +282,10 @@ function SparklineChart({ series, metrics }: { [key: string]: any }) {
         className={styles.sparklineSvg}
         preserveAspectRatio="none"
       >
-        {/* @ts-ignore */}
-        {metrics.map((metric: any) => {
-          // @ts-ignore
-          const values = series.map((d: any) => d[metric.key] || 0);
+        {metrics.map((metric) => {
+          const values = series.map((d) => (d as unknown as Record<string, number>)[metric.key] || 0);
           const max = Math.max(...values, 1);
-          const points = values.map((v: any, i: any) => {
+          const points = values.map((v, i) => {
             const x =
               padding.left + (i / Math.max(values.length - 1, 1)) * innerW;
             const y = padding.top + innerH - (v / max) * innerH;
@@ -297,29 +322,29 @@ export default function GoogleAnalyticsComponent({
 }: {
   propertyId?: string;
 } = {}) {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [properties, setProperties] = useState<GAProperty[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<GAProperty | null>(null);
   const [period, setPeriod] = useState("30d");
 
-  const [realtime, setRealtime] = useState<any>(null);
-  const [overview, setOverview] = useState<any>(null);
-  const [pages, setPages] = useState<any>(null);
-  const [sources, setSources] = useState<any>(null);
-  const [geography, setGeography] = useState<any>(null);
-  const [devices, setDevices] = useState<any>(null);
-  const [timeSeries, setTimeSeries] = useState<any>(null);
-  const [channels, setChannels] = useState<any>(null);
-  const [landingPages, setLandingPages] = useState<any>(null);
-  const [heatmap, setHeatmap] = useState<any>(null);
-  const [newVsReturning, setNewVsReturning] = useState<any>(null);
-  const [events, setEvents] = useState<any>(null);
+  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(null);
+  const [overview, setOverview] = useState<GAOverview | null>(null);
+  const [pages, setPages] = useState<{ pages: GAPageRow[] } | null>(null);
+  const [sources, setSources] = useState<{ sources: GASource[] } | null>(null);
+  const [geography, setGeography] = useState<{ locations: GALocation[] } | null>(null);
+  const [devices, setDevices] = useState<GADevices | null>(null);
+  const [timeSeries, setTimeSeries] = useState<{ series: GATimeSeriesPoint[] } | null>(null);
+  const [channels, setChannels] = useState<{ channels: GAChannel[] } | null>(null);
+  const [landingPages, setLandingPages] = useState<{ pages: GALandingPageRow[] } | null>(null);
+  const [heatmap, setHeatmap] = useState<{ maxUsers: number, cells: GAHeatmapCell[] } | null>(null);
+  const [newVsReturning, setNewVsReturning] = useState<{ segments: GANewVsReturningSegment[] } | null>(null);
+  const [events, setEvents] = useState<{ events: GAEvent[] } | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [reportsLoading, setReportsLoading] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const didFetch = useRef(false);
-  const realtimeTimer = useRef(null);
+  const realtimeTimer = useRef<NodeJS.Timeout | null>(null);
 
   // ── Load Properties ───────────────────────────────────────
 
@@ -334,7 +359,7 @@ export default function GoogleAnalyticsComponent({
         setProperties(props);
         // Auto-select from URL param, or if exactly one property
         if (propertyId) {
-          const match = props.find((p: any) => p.id === propertyId);
+          const match = props.find((p: GAProperty) => p.id === propertyId);
           if (match) setSelectedProperty(match);
         } else if (props.length === 1) {
           setSelectedProperty(props[0]);
@@ -349,8 +374,7 @@ export default function GoogleAnalyticsComponent({
 
   // ── Load Reports ──────────────────────────────────────────
 
-  // @ts-ignore
-  const loadReports = useCallback(async (property, p) => {
+  const loadReports = useCallback(async (property: GAProperty | null, p: string) => {
     if (!property) return;
     setReportsLoading(true);
 
@@ -401,7 +425,7 @@ export default function GoogleAnalyticsComponent({
 
   // ── Load Realtime ─────────────────────────────────────────
 
-  const loadRealtime = useCallback(async (property: any) => {
+  const loadRealtime = useCallback(async (property: GAProperty | null) => {
     if (!property) return;
     try {
       const res = await ApiService.getGARealtime(property.id);
@@ -424,22 +448,21 @@ export default function GoogleAnalyticsComponent({
     fetchAll();
 
     // Poll realtime every 15 seconds
-    // @ts-ignore
-    clearInterval(realtimeTimer.current);
-    // @ts-ignore
+    if (realtimeTimer.current) clearInterval(realtimeTimer.current);
     realtimeTimer.current = setInterval(() => {
       loadRealtime(selectedProperty);
     }, 15_000);
 
-    // @ts-ignore
-    return () => clearInterval(realtimeTimer.current);
+    return () => {
+      if (realtimeTimer.current) clearInterval(realtimeTimer.current);
+    };
   }, [selectedProperty, period, loadReports, loadRealtime]);
 
   // ── Computed Values ───────────────────────────────────────
 
   const deviceSegments = useMemo(() => {
     if (!devices?.categories) return [];
-    return devices.categories.map((d: any, i: any) => ({
+    return devices.categories.map((d, i) => ({
       value: d.sessions,
       color: CHART_COLORS[i % CHART_COLORS.length],
       label: d.category,
@@ -448,7 +471,7 @@ export default function GoogleAnalyticsComponent({
 
   const browserSegments = useMemo(() => {
     if (!devices?.browsers) return [];
-    return devices.browsers.map((b: any, i: any) => ({
+    return devices.browsers.map((b, i) => ({
       value: b.sessions,
       color: CHART_COLORS[(i + 3) % CHART_COLORS.length],
       label: b.browser,
@@ -456,20 +479,18 @@ export default function GoogleAnalyticsComponent({
   }, [devices]);
 
   const maxSourceSessions =
-    sources?.sources?.length > 0
-      ? // @ts-ignore
-        Math.max(...sources.sources.map((s) => s.sessions))
+    sources?.sources && sources.sources.length > 0
+      ? Math.max(...sources.sources.map((s) => s.sessions))
       : 0;
 
   const maxGeoUsers =
-    geography?.locations?.length > 0
-      ? // @ts-ignore
-        Math.max(...geography.locations.map((l) => l.users))
+    geography?.locations && geography.locations.length > 0
+      ? Math.max(...geography.locations.map((l) => l.users))
       : 0;
 
   const osSegments = useMemo(() => {
     if (!devices?.operatingSystems) return [];
-    return devices.operatingSystems.map((d: any, i: any) => ({
+    return devices.operatingSystems.map((d, i) => ({
       value: d.sessions,
       color: CHART_COLORS[(i + 5) % CHART_COLORS.length],
       label: d.os,
@@ -478,7 +499,7 @@ export default function GoogleAnalyticsComponent({
 
   const nvrSegments = useMemo(() => {
     if (!newVsReturning?.segments) return [];
-    return newVsReturning.segments.map((s: any, i: any) => ({
+    return newVsReturning.segments.map((s, i) => ({
       value: s.users,
       color: i === 0 ? "#6366f1" : "#10b981",
       label:
@@ -491,21 +512,18 @@ export default function GoogleAnalyticsComponent({
   }, [newVsReturning]);
 
   const maxChannelSessions =
-    channels?.channels?.length > 0
-      ? // @ts-ignore
-        Math.max(...channels.channels.map((c) => c.sessions))
+    channels?.channels && channels.channels.length > 0
+      ? Math.max(...channels.channels.map((c) => c.sessions))
       : 0;
 
   const maxEventCount =
-    events?.events?.length > 0
-      ? // @ts-ignore
-        Math.max(...events.events.map((e) => e.eventCount))
+    events?.events && events.events.length > 0
+      ? Math.max(...events.events.map((e) => e.eventCount))
       : 0;
 
   const maxResSessions =
-    devices?.screenResolutions?.length > 0
-      ? // @ts-ignore
-        Math.max(...devices.screenResolutions.map((r) => r.sessions))
+    devices?.screenResolutions && devices.screenResolutions.length > 0
+      ? Math.max(...devices.screenResolutions.map((r) => r.sessions))
       : 0;
 
   // ── Heatmap data processing ───────────────────────────────
@@ -778,7 +796,7 @@ export default function GoogleAnalyticsComponent({
               )}
 
               {/* ── Sparkline Time Series ────────────────────────── */}
-              {timeSeries?.series?.length > 0 && (
+              {(timeSeries?.series?.length ?? 0) > 0 && (
                 <div className={styles.chartPanel}>
                   <div className={styles.chartHeader}>
                     <TrendingUp
@@ -790,7 +808,7 @@ export default function GoogleAnalyticsComponent({
                   </div>
                   <div className={styles.chartBody}>
                     <SparklineChart
-                      series={timeSeries.series}
+                      series={timeSeries!.series}
                       metrics={[
                         { key: "pageviews", color: SPARKLINE_COLORS.pageviews },
                         { key: "users", color: SPARKLINE_COLORS.users },
@@ -825,24 +843,24 @@ export default function GoogleAnalyticsComponent({
               )}
 
               {/* ── Top Pages ────────────────────────────────────── */}
-              {pages?.pages?.length > 0 && (
+              {(pages?.pages?.length ?? 0) > 0 && (
                 <TableComponent
                   title="Top Pages"
                   columns={pageColumns}
-                  data={pages.pages}
-                  getRowKey={(row: any, i: any) => row.pagePath || i}
+                  data={pages!.pages}
+                  getRowKey={(row: GAPageRow, i: number) => row.pagePath || i}
                   emptyText="No page data available"
                   mini
                 />
               )}
 
               {/* ── Landing Pages ─────────────────────────────────── */}
-              {landingPages?.pages?.length > 0 && (
+              {(landingPages?.pages?.length ?? 0) > 0 && (
                 <TableComponent
                   title="Landing Pages"
                   columns={landingColumns}
-                  data={landingPages.pages}
-                  getRowKey={(row: any, i: any) => row.landingPage || i}
+                  data={landingPages!.pages}
+                  getRowKey={(row: GALandingPageRow, i: number) => row.landingPage || i}
                   emptyText="No landing page data"
                   mini
                 />
@@ -899,7 +917,7 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Channel Grouping + Sources ─────────────────────── */}
               <div className={styles.contentGrid}>
-                {channels?.channels?.length > 0 && (
+                {(channels?.channels?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
                     <div className={styles.panelHeader}>
                       <Layers
@@ -911,12 +929,12 @@ export default function GoogleAnalyticsComponent({
                         Channel Grouping
                       </span>
                       <span className={styles.panelMeta}>
-                        {channels.channels.length} channels
+                        {channels!.channels.length} channels
                       </span>
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {channels.channels.map((c: any, i: any) => (
+                        {channels!.channels.map((c, i) => (
                           <HorizontalBar
                             key={c.channel}
                             label={c.channel}
@@ -930,7 +948,7 @@ export default function GoogleAnalyticsComponent({
                   </div>
                 )}
 
-                {sources?.sources?.length > 0 && (
+                {(sources?.sources?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
                     <div className={styles.panelHeader}>
                       <Link2
@@ -940,12 +958,12 @@ export default function GoogleAnalyticsComponent({
                       />
                       <span className={styles.panelTitle}>Traffic Sources</span>
                       <span className={styles.panelMeta}>
-                        {sources.sources.length} sources
+                        {sources!.sources.length} sources
                       </span>
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {sources.sources.slice(0, 10).map((s: any, i: any) => (
+                        {sources!.sources.slice(0, 10).map((s, i) => (
                           <HorizontalBar
                             key={`${s.source}-${s.medium}`}
                             label={`${s.source} / ${s.medium}`}
@@ -962,7 +980,7 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Geography + Events ─────────────────────────────── */}
               <div className={styles.contentGrid}>
-                {geography?.locations?.length > 0 && (
+                {(geography?.locations?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
                     <div className={styles.panelHeader}>
                       <MapPin
@@ -972,14 +990,14 @@ export default function GoogleAnalyticsComponent({
                       />
                       <span className={styles.panelTitle}>Top Locations</span>
                       <span className={styles.panelMeta}>
-                        {geography.locations.length} locations
+                        {geography!.locations.length} locations
                       </span>
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {geography.locations
+                        {geography!.locations
                           .slice(0, 10)
-                          .map((l: any, i: any) => (
+                          .map((l, i) => (
                             <HorizontalBar
                               key={`${l.country}-${l.city}`}
                               label={
@@ -1000,7 +1018,7 @@ export default function GoogleAnalyticsComponent({
                   </div>
                 )}
 
-                {events?.events?.length > 0 && (
+                {(events?.events?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
                     <div className={styles.panelHeader}>
                       <Zap
@@ -1010,12 +1028,12 @@ export default function GoogleAnalyticsComponent({
                       />
                       <span className={styles.panelTitle}>Top Events</span>
                       <span className={styles.panelMeta}>
-                        {events.events.length} events
+                        {events!.events.length} events
                       </span>
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {events.events.map((e: any, i: any) => (
+                        {events!.events.map((e, i) => (
                           <HorizontalBar
                             key={e.eventName}
                             label={e.eventName}
@@ -1203,7 +1221,7 @@ export default function GoogleAnalyticsComponent({
               </div>
 
               {/* ── Screen Resolution ──────────────────────────────── */}
-              {devices?.screenResolutions?.length > 0 && (
+              {(devices?.screenResolutions?.length ?? 0) > 0 && (
                 <div className={styles.panel}>
                   <div className={styles.panelHeader}>
                     <Ruler
@@ -1215,12 +1233,12 @@ export default function GoogleAnalyticsComponent({
                       Screen Resolutions
                     </span>
                     <span className={styles.panelMeta}>
-                      {devices.screenResolutions.length} resolutions
+                      {devices!.screenResolutions.length} resolutions
                     </span>
                   </div>
                   <div className={styles.panelBody}>
                     <div className={styles.barList}>
-                      {devices.screenResolutions.map((r: any, i: any) => (
+                      {devices!.screenResolutions.map((r, i) => (
                         <HorizontalBar
                           key={r.resolution}
                           label={r.resolution}

@@ -40,6 +40,15 @@ import {
   ACTION_COOLDOWN_LONG_MS,
   HIGHLIGHT_DURATION_MS,
 } from "@rodrigo-barraza/utilities-library";
+import type {
+  ContainerRow,
+  ContainerHistory,
+  ContainerStats,
+  ContainerMetricsPoint,
+  ContainerMetricsData,
+  SystemInfo,
+  PortalService,
+} from "../types/portal";
 import ApiService from "../services/ApiService";
 import ContainerDetailPanel from "./ContainerDetailPanelComponent";
 import styles from "./ContainerStatsComponent.module.css";
@@ -47,15 +56,14 @@ import styles from "./ContainerStatsComponent.module.css";
 const POLL_INTERVAL = 5_000;
 const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
 
-// @ts-ignore
-function severityColor(pct, thresholds = [40, 80]) {
+function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
 }
 
 // ── Inline Percent Bar ──────────────────────────────────────────
-function MiniBar({ percent, color }: { [key: string]: any }) {
+function MiniBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.miniBarTrack}>
@@ -77,7 +85,12 @@ function ActionCell({
   onRollback,
   rollbackAvailable,
 }: {
-  [key: string]: any;
+  service: ContainerRow;
+  onRestart?: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onStop?: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onStart?: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onRollback?: (serviceId: string, row: ContainerRow) => Promise<void>;
+  rollbackAvailable?: boolean;
 }) {
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -187,17 +200,22 @@ function buildColumns({
   systemInfo,
   containerHistory,
 }: {
-  [key: string]: any;
+  onRestart: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onStop: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onStart: (serviceId: string, row: ContainerRow) => Promise<void>;
+  onRollback: (serviceId: string) => Promise<void>;
+  rollbackMap: Record<string, boolean>;
+  systemInfo: SystemInfo | SystemInfo[] | null;
+  containerHistory: Record<string, ContainerHistory>;
 }) {
   // Build per-device host RAM lookup for detecting uncapped containers
-  const sysDevices = systemInfo
+  const sysDevices: SystemInfo[] = systemInfo
     ? Array.isArray(systemInfo)
       ? systemInfo
       : [systemInfo]
     : [];
-  const hostRamByDevice = {};
+  const hostRamByDevice: Record<string, number> = {};
   for (const d of sysDevices) {
-    // @ts-ignore
     hostRamByDevice[d.deviceId] = d.totalMemory || 0;
   }
 
@@ -206,7 +224,7 @@ function buildColumns({
       key: "name",
       label: "Container",
       sortable: true,
-      render: (row: any) => (
+      render: (row: ContainerRow) => (
         <div className={styles.nameCell}>
           <Container
             size={14}
@@ -216,20 +234,20 @@ function buildColumns({
           <span className={styles.containerName}>{row.containerName}</span>
         </div>
       ),
-      sortValue: (row: any) => row.containerName || "",
+      sortValue: (row: ContainerRow) => row.containerName || "",
     },
     {
       key: "status",
       label: "Status",
       sortable: true,
-      render: (row: any) => <StatusBadgeComponent healthy={row.healthy} />,
-      sortValue: (row: any) => (row.healthy ? 1 : 0),
+      render: (row: ContainerRow) => <StatusBadgeComponent healthy={row.healthy} />,
+      sortValue: (row: ContainerRow) => (row.healthy ? 1 : 0),
     },
     {
       key: "cpu",
       label: "CPU",
       sortable: true,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const cpuPct = row._stats?.cpu?.percent;
         if (cpuPct == null) return <span className={styles.dimText}>—</span>;
         const color = severityColor(cpuPct);
@@ -242,13 +260,13 @@ function buildColumns({
           </div>
         );
       },
-      sortValue: (row: any) => row._stats?.cpu?.percent ?? -1,
+      sortValue: (row: ContainerRow) => row._stats?.cpu?.percent ?? -1,
     },
     {
       key: "cpuTrend",
       label: "CPU Trend",
       sortable: false,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const history = containerHistory?.[row.containerName]?.cpu;
         if (!history || history.length < 2)
           return <span className={styles.dimText}>—</span>;
@@ -271,11 +289,10 @@ function buildColumns({
       key: "ram",
       label: "RAM",
       sortable: true,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const mem = row._stats?.memory;
         if (!mem) return <span className={styles.dimText}>—</span>;
-        // @ts-ignore
-        const hostRam = hostRamByDevice[row.device] || 0;
+        const hostRam = hostRamByDevice[row.device || ""] || 0;
         const isCapped =
           mem.limit > 0 && hostRam > 0 && mem.limit < hostRam * 0.99;
         const pct = isCapped ? (mem.used / mem.limit) * 100 : mem.percent;
@@ -293,13 +310,13 @@ function buildColumns({
           </div>
         );
       },
-      sortValue: (row: any) => row._stats?.memory?.used ?? -1,
+      sortValue: (row: ContainerRow) => row._stats?.memory?.used ?? -1,
     },
     {
       key: "ramTrend",
       label: "RAM Trend",
       sortable: false,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const history = containerHistory?.[row.containerName]?.mem;
         if (!history || history.length < 2)
           return <span className={styles.dimText}>—</span>;
@@ -323,7 +340,7 @@ function buildColumns({
       key: "netio",
       label: "Net I/O",
       sortable: true,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const net = row._stats?.network;
         if (!net || (net.rx === 0 && net.tx === 0))
           return <span className={styles.dimText}>—</span>;
@@ -340,7 +357,7 @@ function buildColumns({
           </div>
         );
       },
-      sortValue: (row: any) =>
+      sortValue: (row: ContainerRow) =>
         (row._stats?.network?.rx || 0) + (row._stats?.network?.tx || 0),
     },
 
@@ -348,87 +365,87 @@ function buildColumns({
       key: "uptime",
       label: "Uptime",
       sortable: true,
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const created = row._stats?.created;
         if (!created) return <span className={styles.dimText}>—</span>;
         return (
           <DateTimeBadgeComponent date={created * 1000} showIcon={false} />
         );
       },
-      sortValue: (row: any) => row._stats?.created ?? Infinity,
+      sortValue: (row: ContainerRow) => row._stats?.created ?? Infinity,
     },
     {
       key: "visibility",
       label: "Visibility",
       sortable: true,
-      render: (row: any) =>
+      render: (row: ContainerRow) =>
         row.visibility ? (
           <VisibilityBadgeComponent
             visibility={row.visibility}
             icons={{ Globe, Lock }}
           />
         ) : null,
-      sortValue: (row: any) => row.visibility || "",
+      sortValue: (row: ContainerRow) => row.visibility || "",
     },
     {
       key: "port",
       label: "Port",
       sortable: true,
-      render: (row: any) =>
+      render: (row: ContainerRow) =>
         row.port ? <PortBadgeComponent port={row.port} /> : null,
-      sortValue: (row: any) => row.port || 0,
+      sortValue: (row: ContainerRow) => row.port || 0,
     },
     {
       key: "address",
       label: "Address",
       sortable: true,
       description: "Internal IP and port (socket address)",
-      render: (row: any) =>
+      render: (row: ContainerRow) =>
         row.url ? <AddressBadgeComponent address={row.url} link /> : null,
-      sortValue: (row: any) => row.url || "",
+      sortValue: (row: ContainerRow) => row.url || "",
     },
     {
       key: "domain",
       label: "Domain",
       sortable: true,
       description: "Registrable root domain",
-      render: (row: any) => {
+      render: (row: ContainerRow) => {
         const root = getRootDomain(row.domain);
         return root ? (
           <DomainBadgeComponent domain={row.domain} icons={{ Globe }} />
         ) : null;
       },
-      sortValue: (row: any) => getRootDomain(row.domain),
+      sortValue: (row: ContainerRow) => getRootDomain(row.domain),
     },
     {
       key: "response",
       label: "Response",
       sortable: true,
-      render: (row: any) =>
+      render: (row: ContainerRow) =>
         row.responseTimeMs != null ? (
           <ResponseTimeBadgeComponent
             ms={row.responseTimeMs}
             formatter={formatDuration}
           />
         ) : null,
-      sortValue: (row: any) => row.responseTimeMs ?? Infinity,
+      sortValue: (row: ContainerRow) => row.responseTimeMs ?? Infinity,
     },
     {
       key: "device",
       label: "Device",
       sortable: true,
-      render: (row: any) =>
+      render: (row: ContainerRow) =>
         row.device ? (
           <DeviceBadgeComponent device={row.device} icons={{ Server }} />
         ) : null,
-      sortValue: (row: any) => row.device || "",
+      sortValue: (row: ContainerRow) => row.device || "",
     },
     {
       key: "actions",
       label: "Actions",
       sortable: false,
       align: "right",
-      render: (row: any) => (
+      render: (row: ContainerRow) => (
         <ActionCell
           service={row}
           onRestart={onRestart}
@@ -445,15 +462,15 @@ function buildColumns({
 // ── Main Component ──────────────────────────────────────────────
 
 export default function ContainerStatsComponent() {
-  const [containerRows, setContainerRows] = useState<any[]>([]);
+  const [containerRows, setContainerRows] = useState<ContainerRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [systemInfo, setSystemInfo] = useState<any>(null);
-  const [containerStats, setContainerStats] = useState<any>({});
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | SystemInfo[] | null>(null);
+  const [containerStats, setContainerStats] = useState<Record<string, Partial<ContainerStats>>>({});
   const [cpuHistory, setCpuHistory] = useState<number[]>([]);
   const [memHistory, setMemHistory] = useState<number[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<any>(null);
-  const [activeDevice, setActiveDevice] = useState<any>(null); // null = all hosts
-  const [rollbackMap, setRollbackMap] = useState<any>({}); // serviceId → boolean
+  const [selectedContainer, setSelectedContainer] = useState<ContainerRow | null>(null);
+  const [activeDevice, setActiveDevice] = useState<string | null>(null);
+  const [rollbackMap, setRollbackMap] = useState<Record<string, boolean>>({});
   const didFetch = useRef(false);
   const [containerHistory, setContainerHistory] = useState<
     Record<string, { cpu: number[]; mem: number[] }>
@@ -471,24 +488,20 @@ export default function ContainerStatsComponent() {
       const containers = containerRes?.containers || [];
       const services = servicesRes?.services || [];
 
-      // Build lookup: dockerProject → service data
-      const projectByDocker = {};
+      const projectByDocker: Record<string, PortalService> = {};
       for (const svc of services) {
         if (svc.dockerProject) {
-          // @ts-ignore
           projectByDocker[svc.dockerProject] = svc;
         }
       }
 
       // Merge container data with project metadata + stats
-      // @ts-ignore
-      const rows = containers.map((c) => {
-        // @ts-ignore
-        const svc = projectByDocker[c.name] || null;
+      const rows: ContainerRow[] = containers.map((c: Record<string, unknown>) => {
+        const svc = projectByDocker[c.name as string] || null;
         return {
           // Container identity
-          id: svc?.id || `${c.device || "unknown"}-${c.name}`,
-          containerName: c.name,
+          id: svc?.id || `${(c.device as string) || "unknown"}-${c.name}`,
+          containerName: c.name as string,
           // Project registry fields
           healthy: svc?.healthy ?? c.state === "running",
           registered: !!svc,
@@ -497,10 +510,10 @@ export default function ContainerStatsComponent() {
           url: svc?.url || null,
           domain: svc?.domain || null,
           responseTimeMs: svc?.responseTimeMs ?? null,
-          device: c.device || svc?.device || null,
+          device: (c.device as string) || svc?.device || null,
           restartable: svc?.restartable ?? false,
           controllable: true,
-          dockerProject: c.name,
+          dockerProject: c.name as string,
           // Per-container Docker stats (for table columns + drawer)
           _stats: {
             cpu: c.cpu,
@@ -524,17 +537,16 @@ export default function ContainerStatsComponent() {
       });
 
       // Sort by name
-      rows.sort((a: any, b: any) =>
+      rows.sort((a, b) =>
         a.containerName.localeCompare(b.containerName),
       );
 
       setContainerRows(rows);
 
       // Build stats map for summary cards
-      const statsMap = {};
+      const statsMap: Record<string, Partial<ContainerStats>> = {};
       for (const c of containers) {
-        // @ts-ignore
-        statsMap[c.name] = {
+        statsMap[(c as Record<string, unknown>).name as string] = {
           cpu: c.cpu,
           memory: c.memory,
           network: c.network,
@@ -576,10 +588,8 @@ export default function ContainerStatsComponent() {
       });
 
       // Update selected container if drawer is open
-      // @ts-ignore
       setSelectedContainer((prev) => {
         if (!prev) return null;
-        // @ts-ignore
         return rows.find((r) => r.id === prev.id) || null;
       });
     } catch {
@@ -592,9 +602,8 @@ export default function ContainerStatsComponent() {
   // Fetch system info for container count breakdown
   const fetchSystemInfo = useCallback(async () => {
     try {
-      // @ts-ignore
       const res = await ApiService.getSystemInfo().catch(() => null);
-      setSystemInfo(res);
+      setSystemInfo(res as SystemInfo | SystemInfo[] | null);
     } catch {
       // Supplementary — silently ignore
     }
@@ -620,7 +629,7 @@ export default function ContainerStatsComponent() {
 
         // Find the longest series length across all containers
         let maxLen = 0;
-        for (const [name, data] of Object.entries(res.containers) as [string, any][]) {
+        for (const [name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
           if (data.points?.length > maxLen) maxLen = data.points.length;
         }
 
@@ -628,11 +637,11 @@ export default function ContainerStatsComponent() {
         totalCpuPoints = new Array(maxLen).fill(0);
         totalMemPoints = new Array(maxLen).fill(0);
 
-        for (const [name, data] of Object.entries(res.containers) as [string, any][]) {
+        for (const [name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
           if (!data.points || data.points.length === 0) continue;
 
-          const cpuArr = data.points.map((p: any) => p.cpu);
-          const memArr = data.points.map((p: any) => p.mem);
+          const cpuArr = data.points.map((p) => p.cpu);
+          const memArr = data.points.map((p) => p.mem);
           seededHistory[name] = { cpu: cpuArr, mem: memArr };
 
           // Accumulate totals — right-align shorter series
@@ -668,13 +677,12 @@ export default function ContainerStatsComponent() {
     return () => clearInterval(timer);
   }, [fetchData, fetchSystemInfo, systemInfo]);
 
-  // @ts-ignore
-  const handleRestart = async (serviceId, row) => {
+  const handleRestart = async (serviceId: string, row: ContainerRow) => {
     try {
       if (row?.registered && row?.restartable) {
         await ApiService.restartService(serviceId);
       } else {
-        await ApiService.restartContainer(row.containerName, row.device);
+        await ApiService.restartContainer(row.containerName, row.device || "");
       }
       setTimeout(fetchData, ACTION_COOLDOWN_MS);
     } catch (error) {
@@ -682,13 +690,12 @@ export default function ContainerStatsComponent() {
     }
   };
 
-  // @ts-ignore
-  const handleStop = async (serviceId, row) => {
+  const handleStop = async (serviceId: string, row: ContainerRow) => {
     try {
       if (row?.registered && row?.restartable) {
         await ApiService.stopService(serviceId);
       } else {
-        await ApiService.stopContainer(row.containerName, row.device);
+        await ApiService.stopContainer(row.containerName, row.device || "");
       }
       setTimeout(fetchData, ACTION_COOLDOWN_MS);
     } catch (error) {
@@ -696,13 +703,12 @@ export default function ContainerStatsComponent() {
     }
   };
 
-  // @ts-ignore
-  const handleStart = async (serviceId, row) => {
+  const handleStart = async (serviceId: string, row: ContainerRow) => {
     try {
       if (row?.registered && row?.restartable) {
         await ApiService.startService(serviceId);
       } else {
-        await ApiService.startContainer(row.containerName, row.device);
+        await ApiService.startContainer(row.containerName, row.device || "");
       }
       setTimeout(fetchData, ACTION_COOLDOWN_MS);
     } catch (error) {
@@ -710,8 +716,7 @@ export default function ContainerStatsComponent() {
     }
   };
 
-  // @ts-ignore
-  const handleRollback = async (serviceId) => {
+  const handleRollback = async (serviceId: string) => {
     try {
       await ApiService.rollbackService(serviceId);
       setTimeout(fetchData, ACTION_COOLDOWN_MS);
@@ -726,28 +731,23 @@ export default function ContainerStatsComponent() {
   };
 
   // Check rollback availability for all restartable containers
-  // @ts-ignore
-  const checkRollbackAvailability = useCallback(async (rows) => {
+  const checkRollbackAvailability = useCallback(async (rows: ContainerRow[]) => {
     const restartableIds = rows
-      // @ts-ignore
       .filter((r) => r.restartable)
-      // @ts-ignore
       .map((r) => r.id);
 
     if (restartableIds.length === 0) return;
 
     const results = await Promise.allSettled(
-      // @ts-ignore
       restartableIds.map(async (id) => {
         const res = await ApiService.getRollbackStatus(id);
         return { id, available: res.available === true };
       }),
     );
 
-    const map = {};
+    const map: Record<string, boolean> = {};
     for (const result of results) {
       if (result.status === "fulfilled") {
-        // @ts-ignore
         map[result.value.id] = result.value.available;
       }
     }
@@ -756,7 +756,7 @@ export default function ContainerStatsComponent() {
 
   // ── Derive unique device IDs for filter pills ─────────────────
   const deviceIds = useMemo(() => {
-    const ids = new Set();
+    const ids = new Set<string>();
     for (const row of containerRows) {
       if (row.device) ids.add(row.device);
     }
@@ -798,40 +798,38 @@ export default function ContainerStatsComponent() {
   const avgCpuUsage =
     filteredStats.length > 0
       ? filteredStats.reduce(
-          (sum: any, c: any) => sum + (c.cpu?.percent || 0),
+          (sum, c) => sum + (c.cpu?.percent || 0),
           0,
         ) / filteredStats.length
       : 0;
   const totalCpuUsage = filteredStats.reduce(
-    (sum: any, c: any) => sum + (c.cpu?.percent || 0),
+    (sum, c) => sum + (c.cpu?.percent || 0),
     0,
   );
   const totalMemUsed = filteredStats.reduce(
-    (sum: any, c: any) => sum + (c.memory?.used || 0),
+    (sum, c) => sum + (c.memory?.used || 0),
     0,
   );
 
   // Use actual host RAM from systemInfo instead of summing per-container cgroup limits.
   // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
-  const totalMemLimit = useMemo(() => {
+  const totalMemLimit = useMemo((): number => {
     if (systemInfo) {
-      const devices = Array.isArray(systemInfo) ? systemInfo : [systemInfo];
+      const devices: SystemInfo[] = Array.isArray(systemInfo) ? systemInfo : [systemInfo];
       if (activeDevice) {
-        const match = devices.find((d: any) => d.deviceId === activeDevice);
+        const match = devices.find((d) => d.deviceId === activeDevice);
         return match?.totalMemory || 0;
       }
       return devices.reduce((sum, d) => sum + (d.totalMemory || 0), 0);
     }
     // Fallback: take max memory.limit per device (cgroup limit = host RAM for uncapped containers)
-    const perDevice = {};
+    const perDevice: Record<string, number> = {};
     for (const row of filteredRows) {
       const dev = row.device || "_default";
       const limit = row._stats?.memory?.limit || 0;
-      // @ts-ignore
       perDevice[dev] = Math.max(perDevice[dev] || 0, limit);
     }
-    // @ts-ignore
-    return Object.values(perDevice).reduce((sum, v) => sum + v, 0);
+    return (Object.values(perDevice) as number[]).reduce((sum, v) => sum + v, 0);
   }, [systemInfo, activeDevice, filteredRows]);
 
   const memPercent =
@@ -845,7 +843,7 @@ export default function ContainerStatsComponent() {
     0,
   );
 
-  const getRowClassName = (row: any) =>
+  const getRowClassName = (row: ContainerRow) =>
     row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
 
   // Build full stats object for drawer
@@ -853,10 +851,9 @@ export default function ContainerStatsComponent() {
 
   // Derive per-device container counts for the pill labels
   const deviceContainerCounts = useMemo(() => {
-    const counts = {};
+    const counts: Record<string, number> = {};
     for (const row of containerRows) {
       if (row.device) {
-        // @ts-ignore
         counts[row.device] = (counts[row.device] || 0) + 1;
       }
     }
@@ -897,18 +894,15 @@ export default function ContainerStatsComponent() {
           </button>
           {deviceIds.map((deviceId) => (
             <button
-              // @ts-ignore
-              key={deviceId as string}
+              key={deviceId}
               className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
               onClick={() =>
                 setActiveDevice(activeDevice === deviceId ? null : deviceId)
               }
             >
-              {/* @ts-ignore */}
-              {deviceId as string}
-              {/* @ts-ignore */}
+              {deviceId}
               <span className={styles.devicePillCount}>
-                {(deviceContainerCounts as any)[deviceId as string] || 0}
+                {deviceContainerCounts[deviceId] || 0}
               </span>
             </button>
           ))}
@@ -934,7 +928,7 @@ export default function ContainerStatsComponent() {
                 {activeDevice
                   ? `${healthyCount} healthy on ${activeDevice}`
                   : systemInfo
-                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s: any, d) => s + (d.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
+                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
                     : `${healthyCount} healthy`}
               </span>
             </div>
@@ -1042,10 +1036,10 @@ export default function ContainerStatsComponent() {
           subtitle={`${filteredRows.length} containers · ${healthyCount} healthy`}
           columns={columns}
           data={filteredRows}
-          getRowKey={(row: any) => row.id}
+          getRowKey={(row: ContainerRow) => row.id}
           emptyText="No containers found"
           getRowClassName={getRowClassName}
-          onRowClick={(row: any) => setSelectedContainer(row)}
+          onRowClick={(row: ContainerRow) => setSelectedContainer(row)}
           activeRowKey={selectedContainer?.id}
           storageKey="container-table"
         />

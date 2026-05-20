@@ -29,13 +29,21 @@ import {
   formatDuration,
   formatPercent,
 } from "@rodrigo-barraza/utilities-library";
+import type {
+  ContainerRow,
+  ContainerStats,
+  ContainerDetailHistory,
+  ContainerMetricsPoint,
+  NetworkInterface,
+  PortMapping,
+  VolumeMount,
+} from "../types/portal";
 import ApiService from "../services/ApiService";
 import styles from "./ContainerDetailPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
 
-// @ts-ignore
-function severityColor(pct, thresholds = [40, 80]) {
+function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
   if (pct > thresholds[1]) return "var(--danger)";
   if (pct > thresholds[0]) return "var(--warning)";
   return "var(--success)";
@@ -50,25 +58,25 @@ function Sparkline({
   max,
   height = 36,
 }: {
-  [key: string]: any;
+  data: number[];
+  color: string;
+  fillColor?: string;
+  max?: number;
+  height?: number;
 }) {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data || data.length < 2) return;
 
-    // @ts-ignore
     const context = canvas.getContext("2d");
+    if (!context) return;
     const dpr = window.devicePixelRatio || 1;
-    // @ts-ignore
     const w = canvas.clientWidth;
-    // @ts-ignore
     const h = canvas.clientHeight;
 
-    // @ts-ignore
     canvas.width = w * dpr;
-    // @ts-ignore
     canvas.height = h * dpr;
     context.scale(dpr, dpr);
     context.clearRect(0, 0, w, h);
@@ -115,7 +123,7 @@ function Sparkline({
   );
 }
 
-function PercentBar({ percent, color }: { [key: string]: any }) {
+function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
     <div className={styles.barTrack}>
@@ -128,7 +136,7 @@ function PercentBar({ percent, color }: { [key: string]: any }) {
 }
 
 /** Format nanoseconds to human-readable duration */
-function formatNanoseconds(ns: any) {
+function formatNanoseconds(ns: number): string {
   if (!ns || ns === 0) return "0s";
   const ms = ns / 1_000_000;
   if (ms < 1000) return `${ms.toFixed(1)}ms`;
@@ -139,7 +147,7 @@ function formatNanoseconds(ns: any) {
 }
 
 /** Format a Unix timestamp to a localized string */
-function formatTimestamp(ts: any) {
+function formatTimestamp(ts: number): string {
   if (!ts) return "—";
   const date = new Date(ts * 1000);
   return date.toLocaleDateString(undefined, {
@@ -157,9 +165,10 @@ export default function ContainerDetailPanel({
   container,
   stats,
 }: {
-  [key: string]: any;
+  container: ContainerRow;
+  stats: ContainerStats | null;
 }) {
-  const [history, setHistory] = useState<any>(null);
+  const [history, setHistory] = useState<ContainerDetailHistory | null>(null);
   const didFetch = useRef(false);
 
   // Fetch sparkline history — prefer persistent metrics, fall back to ring buffer
@@ -179,10 +188,10 @@ export default function ContainerDetailPanel({
         const containerData = metricsRes?.containers?.[container.containerName];
         if (containerData?.points?.length >= 2) {
           setHistory({
-            cpu: containerData.points.map((p: any) => p.cpu ?? 0),
-            mem: containerData.points.map((p: any) => p.mem ?? 0),
-            netRx: containerData.points.map((p: any) => p.netRx ?? 0),
-            netTx: containerData.points.map((p: any) => p.netTx ?? 0),
+            cpu: containerData.points.map((p: ContainerMetricsPoint) => p.cpu ?? 0),
+            mem: containerData.points.map((p: ContainerMetricsPoint) => p.mem ?? 0),
+            netRx: containerData.points.map((p: ContainerMetricsPoint) => p.netRx ?? 0),
+            netTx: containerData.points.map((p: ContainerMetricsPoint) => p.netTx ?? 0),
           });
           return;
         }
@@ -197,9 +206,11 @@ export default function ContainerDetailPanel({
           const netTxPoints: number[] = [];
 
           // Ring buffer returns per-device history; flatten all devices
-          for (const deviceHistory of Object.values(res.history) as any[]) {
-            for (const snap of Array.isArray(deviceHistory) ? deviceHistory : []) {
-              const c = snap.containers?.[container.containerName];
+          for (const deviceHistory of Object.values(res.history) as unknown[]) {
+            const historyArr = Array.isArray(deviceHistory) ? deviceHistory : [];
+            for (const snap of historyArr) {
+              const snapObj = snap as Record<string, Record<string, Record<string, number>>>;
+              const c = snapObj?.containers?.[container.containerName];
               if (c) {
                 cpuPoints.push(c.cpu ?? 0);
                 memPoints.push(c.memoryUsed ?? 0);
@@ -309,7 +320,7 @@ export default function ContainerDetailPanel({
                 </span>
               </div>
             )}
-            {stats.pids > 0 && (
+            {(stats.pids ?? 0) > 0 && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>PIDs</span>
                 <span className={styles.fieldValueMono}>{stats.pids}</span>
@@ -365,9 +376,9 @@ export default function ContainerDetailPanel({
               percent={stats.cpu.percent}
               color={severityColor(stats.cpu.percent)}
             />
-            {history?.cpu?.length >= 2 && (
+            {(history?.cpu?.length ?? 0) >= 2 && (
               <Sparkline
-                data={history.cpu}
+                data={history!.cpu}
                 color={severityColor(stats.cpu.percent)}
                 fillColor={
                   stats.cpu.percent > 80
@@ -439,9 +450,9 @@ export default function ContainerDetailPanel({
               percent={stats.memory.percent}
               color={severityColor(stats.memory.percent, [60, 85])}
             />
-            {history?.mem?.length >= 2 && (
+            {(history?.mem?.length ?? 0) >= 2 && (
               <Sparkline
-                data={history.mem}
+                data={history!.mem}
                 color={severityColor(stats.memory.percent, [60, 85])}
                 fillColor={
                   stats.memory.percent > 85
@@ -549,8 +560,8 @@ export default function ContainerDetailPanel({
                     </span>
                   </div>
                   {/* Packet counts */}
-                  {(stats.network.rxPackets > 0 ||
-                    stats.network.txPackets > 0) && (
+                  {((stats.network.rxPackets ?? 0) > 0 ||
+                    (stats.network.txPackets ?? 0) > 0) && (
                     <div className={styles.ioStats}>
                       <span className={styles.ioStat}>
                         <span className={styles.ioDir}>Packets RX</span>
@@ -567,29 +578,29 @@ export default function ContainerDetailPanel({
                     </div>
                   )}
                   {/* Errors / Drops */}
-                  {(stats.network.rxDropped > 0 ||
-                    stats.network.txDropped > 0 ||
-                    stats.network.rxErrors > 0 ||
-                    stats.network.txErrors > 0) && (
+                  {((stats.network.rxDropped ?? 0) > 0 ||
+                    (stats.network.txDropped ?? 0) > 0 ||
+                    (stats.network.rxErrors ?? 0) > 0 ||
+                    (stats.network.txErrors ?? 0) > 0) && (
                     <div className={styles.ioStatsWarn}>
-                      {(stats.network.rxDropped > 0 ||
-                        stats.network.txDropped > 0) && (
+                      {((stats.network.rxDropped ?? 0) > 0 ||
+                        (stats.network.txDropped ?? 0) > 0) && (
                         <span className={styles.ioStat}>
                           <span className={styles.ioDir}>Dropped</span>
                           <span className={styles.ioValue}>
                             {(
-                              stats.network.rxDropped + stats.network.txDropped
+                              (stats.network.rxDropped ?? 0) + (stats.network.txDropped ?? 0)
                             ).toLocaleString()}
                           </span>
                         </span>
                       )}
-                      {(stats.network.rxErrors > 0 ||
-                        stats.network.txErrors > 0) && (
+                      {((stats.network.rxErrors ?? 0) > 0 ||
+                        (stats.network.txErrors ?? 0) > 0) && (
                         <span className={styles.ioStat}>
                           <span className={styles.ioDir}>Errors</span>
                           <span className={styles.ioValueDanger}>
                             {(
-                              stats.network.rxErrors + stats.network.txErrors
+                              (stats.network.rxErrors ?? 0) + (stats.network.txErrors ?? 0)
                             ).toLocaleString()}
                           </span>
                         </span>
@@ -647,10 +658,9 @@ export default function ContainerDetailPanel({
                     ([name, iface]) => (
                       <div key={name} className={styles.interfaceRow}>
                         <span className={styles.interfaceName}>{name}</span>
-                        {/* @ts-ignore */}
                         <span className={styles.ioCompactDetail}>
-                          ↓ {formatBytes((iface as any).rxBytes)} · ↑{" "}
-                          {formatBytes((iface as any).txBytes)}
+                          ↓ {formatBytes((iface as NetworkInterface).rxBytes)} · ↑{" "}
+                          {formatBytes((iface as NetworkInterface).txBytes)}
                         </span>
                       </div>
                     ),
@@ -671,7 +681,7 @@ export default function ContainerDetailPanel({
                 <span className={styles.metricCardTitle}>Port Mappings</span>
               </div>
               <div className={styles.portList}>
-                {stats.ports.map((p: any, i: any) => (
+                {stats.ports.map((p: PortMapping, i: number) => (
                   <div key={i} className={styles.portRow}>
                     <span className={styles.portMapping}>
                       {p.publicPort
@@ -700,7 +710,7 @@ export default function ContainerDetailPanel({
                 </span>
               </div>
               <div className={styles.mountList}>
-                {stats.mounts.map((m: any, i: any) => (
+                {stats.mounts.map((m: VolumeMount, i: number) => (
                   <div key={i} className={styles.mountRow}>
                     <span className={styles.mountType}>{m.type}</span>
                     <span
@@ -741,7 +751,6 @@ export default function ContainerDetailPanel({
                       <span className={styles.labelKey} title={key}>
                         {key}
                       </span>
-                      {/* @ts-ignore */}
                       <span
                         className={styles.labelValue}
                         title={value as string}

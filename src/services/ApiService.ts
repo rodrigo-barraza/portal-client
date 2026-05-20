@@ -232,7 +232,7 @@ export default class ApiService {
    * Get Docker system info — disk usage breakdown (images, volumes, build cache).
 
    */
-  static async getSystemInfo(deviceId: string) {
+  static async getSystemInfo(deviceId?: string) {
     const qs = deviceId ? `?device=${deviceId}` : "";
     return ApiService._request(`/stats/system${qs}`);
   }

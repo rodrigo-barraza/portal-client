@@ -1,6 +1,9 @@
 /**
- * constants.js — Centralized constants for the Web Portal app.
+ * constants.ts — Centralized constants for the Web Portal app.
  */
+
+import type { LucideIcon } from "lucide-react";
+import type { ServiceTypeColor, DeployTierColor } from "./types/portal";
 
 import {
   BookOpen,
@@ -110,7 +113,7 @@ export const SERVICE_STATUS = {
 };
 
 // ── Service type → Lucide icon map ──────────────────────────────
-export const SERVICE_TYPE_ICONS = {
+export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
   Service: Server,
   Client: Monitor,
   Bot: Bot,
@@ -125,7 +128,7 @@ export const SERVICE_TYPE_ICONS = {
 export const DEFAULT_SERVICE_TYPE_ICON = Globe;
 
 // ── Service type → badge colors (mirrors vault-service) ─────────
-export const SERVICE_TYPE_COLORS = {
+export const SERVICE_TYPE_COLORS: Record<string, ServiceTypeColor> = {
   Service: { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)" },
   Client: { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)" },
   Bot: { color: "#eab308", subtle: "rgba(234, 179, 8, 0.12)" },
@@ -137,7 +140,7 @@ export const SERVICE_TYPE_COLORS = {
 };
 
 // ── Deploy tier → topology colors (mirrors vault-service) ───────
-export const DEPLOY_TIER_COLORS = {
+export const DEPLOY_TIER_COLORS: Record<number, DeployTierColor> = {
   0: {
     color: "#f97316",
     subtle: "rgba(249, 115, 22, 0.12)",

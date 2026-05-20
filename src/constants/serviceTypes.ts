@@ -8,6 +8,9 @@
 //   (res.projectTypeColors) since those are the canonical source.
 // ============================================================
 
+import type { LucideIcon } from "lucide-react";
+import type { ServiceTypeColor, DeployTierColor, PortalService } from "../types/portal";
+
 import {
   BookOpen,
   Bot,
@@ -23,7 +26,7 @@ import {
 /**
  * Map projectType → Lucide icon component.
  */
-export const SERVICE_TYPE_ICONS = {
+export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
   Service: Server,
   Client: Monitor,
   Bot: Bot,
@@ -38,16 +41,15 @@ export const SERVICE_TYPE_ICONS = {
  * Resolve the icon for a given service entry.
  * Falls back to Globe for unknown types.
  */
-export function getServiceIcon(service: any) {
-  // @ts-ignore
-  return SERVICE_TYPE_ICONS[service.projectType] || Globe;
+export function getServiceIcon(service: Pick<PortalService, "projectType">): LucideIcon {
+  return SERVICE_TYPE_ICONS[service.projectType || ""] || Globe;
 }
 
 /**
  * Default service type colors — mirrors vault-service projectTypeColors.
  * Used as a fallback when the API response doesn't include colors.
  */
-export const DEFAULT_SERVICE_TYPE_COLORS = {
+export const DEFAULT_SERVICE_TYPE_COLORS: Record<string, ServiceTypeColor> = {
   Service: { color: "#3b82f6", subtle: "rgba(59, 130, 246, 0.12)" },
   Client: { color: "#22c55e", subtle: "rgba(34, 197, 94, 0.12)" },
   Bot: { color: "#eab308", subtle: "rgba(234, 179, 8, 0.12)" },
@@ -62,7 +64,7 @@ export const DEFAULT_SERVICE_TYPE_COLORS = {
  * Default deploy tier colors — mirrors vault-service deployTierColors.
  * Orange (Tier 0 Foundation), Blue (Tier 1 Services & Clients), Green (Tier 2 Bots).
  */
-export const DEFAULT_DEPLOY_TIER_COLORS = {
+export const DEFAULT_DEPLOY_TIER_COLORS: Record<number, DeployTierColor> = {
   0: {
     color: "#f97316",
     subtle: "rgba(249, 115, 22, 0.12)",

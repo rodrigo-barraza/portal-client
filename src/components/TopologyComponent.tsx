@@ -29,6 +29,15 @@ import {
   SERVICE_TYPE_COLORS,
 } from "../constants";
 import ApiService from "../services/ApiService";
+import type {
+  PortalService,
+  DependsOnEntry,
+  DependencyRef,
+  NodePosition,
+  TopologyEdge,
+  ProjectAnalysis,
+  DeployTierColor,
+} from "../types/portal";
 import styles from "./TopologyComponent.module.css";
 
 // ── Dimensions ───────────────────────────────────────────────────
@@ -156,9 +165,8 @@ const EDGE_DIRECTION_CONFIG = {
 };
 
 // ── Icon resolver (by projectType) ──────────────────────────────
-function getIcon(svc: any) {
-  // @ts-ignore
-  return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
+function getIcon(svc: Pick<PortalService, "projectType">) {
+  return SERVICE_TYPE_ICONS[svc.projectType || ""] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
 // ── Tier labels ─────────────────────────────────────────────────
@@ -177,9 +185,9 @@ const LIBS_CLUSTER_COLOR = {
 
 // ── Group services by projectType ───────────────────────────────
 function computeTypeGroups(
-  services: any[],
-): { type: string; members: any[] }[] {
-  const groupMap = new Map<string, any[]>();
+  services: PortalService[],
+): { type: string; members: PortalService[] }[] {
+  const groupMap = new Map<string, PortalService[]>();
   for (const svc of services) {
     const projectType = svc.projectType || "Other";
     if (!groupMap.has(projectType)) groupMap.set(projectType, []);
@@ -187,9 +195,9 @@ function computeTypeGroups(
   }
   // Sort each group alphabetically
   for (const members of groupMap.values())
-    members.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    members.sort((a, b) => a.name.localeCompare(b.name));
   // Return in canonical order, then any extras
-  const result: { type: string; members: any[] }[] = [];
+  const result: { type: string; members: PortalService[] }[] = [];
   for (const typeName of TYPE_ORDER) {
     if (groupMap.has(typeName)) {
       result.push({ type: typeName, members: groupMap.get(typeName)! });
@@ -202,9 +210,9 @@ function computeTypeGroups(
 }
 
 // ── Layout for type-grouped view (2-column grid of clusters) ────
-function layoutTypeNodes(groups: { type: string; members: any[] }[]) {
+function layoutTypeNodes(groups: { type: string; members: PortalService[] }[]) {
   const LABEL_H = 28;
-  const positions: Record<string, { x: number; y: number }> = {};
+  const positions: Record<string, NodePosition> = {};
 
   // Pre-compute cluster sizes
   const sizes = groups.map((g) => clusterSize(g.members.length, TYPE_MAX_COLS));
@@ -226,7 +234,7 @@ function layoutTypeNodes(groups: { type: string; members: any[] }[]) {
       const clusterX = colX + (colWidths[c] - sizes[gi].w) / 2;
       const clusterY = rowY + LABEL_H;
 
-      groups[gi].members.forEach((svc: any, si: number) => {
+      groups[gi].members.forEach((svc, si) => {
         const col2 = si % cols;
         const row2 = Math.floor(si / cols);
         positions[svc.id] = {
@@ -244,37 +252,34 @@ function layoutTypeNodes(groups: { type: string; members: any[] }[]) {
 }
 
 // ── Fixed tier layering (uses deployTier from project registry) ──
-function computeLayers(services: any) {
+function computeLayers(services: PortalService[]) {
   // Group by deployTier, excluding non-tiered project types
-  const tiers = [[], [], []];
+  const tiers: PortalService[][] = [[], [], []];
 
   for (const svc of services) {
-    if (NON_TIERED_TYPES.has(svc.projectType)) continue;
+    if (NON_TIERED_TYPES.has(svc.projectType || "")) continue;
     const tier = Math.min(Math.max(svc.deployTier ?? 2, 0), 2);
-    // @ts-ignore
     tiers[tier].push(svc);
   }
 
   // Sort each tier alphabetically for consistent ordering
   for (const tier of tiers)
-    tier.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    tier.sort((a, b) => a.name.localeCompare(b.name));
 
   return tiers;
 }
 
 // ── Extract non-tiered projects (Library, Kit, Tool) ────────────
-function computeLibraries(services: any) {
+function computeLibraries(services: PortalService[]) {
   return (
     services
-      // @ts-ignore
-      .filter((svc: any) => NON_TIERED_TYPES.has(svc.projectType))
-      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .filter((svc) => NON_TIERED_TYPES.has(svc.projectType || ""))
+      .sort((a, b) => a.name.localeCompare(b.name))
   );
 }
 
 // ── Compute cluster dimensions for a given layer ────────────────
-// @ts-ignore
-function clusterSize(count, maxCols = MAX_COLS) {
+function clusterSize(count: number, maxCols = MAX_COLS) {
   if (count === 0) return { cols: 0, rows: 0, w: 0, h: 0 };
   const cols = Math.min(count, maxCols);
   const rows = Math.ceil(count / cols);
@@ -284,10 +289,9 @@ function clusterSize(count, maxCols = MAX_COLS) {
 }
 
 // ── Assign positions from layers (grid clusters) ─────────────────
-// @ts-ignore
-function layoutNodes(layers, libs) {
+function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
   const LABEL_H = 28; // height reserved for tier label above cluster
-  const positions = {};
+  const positions: Record<string, NodePosition> = {};
 
   // ── Libraries column (left side) ──────────────────────────
   const libSize = clusterSize(libs.length, LIBS_MAX_COLS);
@@ -296,11 +300,9 @@ function layoutNodes(layers, libs) {
   if (libs.length > 0) {
     libsColumnW = libSize.w + LIBS_GAP;
 
-    // @ts-ignore
     libs.forEach((svc, si) => {
       const col = si % LIBS_MAX_COLS;
       const row = Math.floor(si / LIBS_MAX_COLS);
-      // @ts-ignore
       positions[svc.id] = {
         x: CLUSTER_PAD + col * (NODE_W + CLUSTER_GAP_X),
         y: LABEL_H + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
@@ -309,25 +311,20 @@ function layoutNodes(layers, libs) {
   }
 
   // ── Tier columns (right side, offset by libs width) ───────
-  // @ts-ignore
   const sizes = layers.map((l) => clusterSize(l.length));
-  // @ts-ignore
   const maxW = Math.max(...sizes.map((s) => s.w), 0);
 
   let curY = 0;
 
-  // @ts-ignore
   layers.forEach((layer, li) => {
     if (!layer.length) return;
     const { cols, w, h } = sizes[li];
     const clusterX = libsColumnW + (maxW - w) / 2;
     const clusterY = curY + LABEL_H;
 
-    // @ts-ignore
     layer.forEach((svc, si) => {
       const col = si % cols;
       const row = Math.floor(si / cols);
-      // @ts-ignore
       positions[svc.id] = {
         x: clusterX + CLUSTER_PAD + col * (NODE_W + CLUSTER_GAP_X),
         y: clusterY + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
@@ -341,19 +338,18 @@ function layoutNodes(layers, libs) {
 }
 
 // ── Collect edges (with type derived from target's projectType) ──
-function collectEdges(services: any) {
-  // @ts-ignore
+function collectEdges(services: PortalService[]): TopologyEdge[] {
   const idSet = new Set(services.map((s) => s.id));
   // Build projectType lookup so edge type comes from the canonical registry classification
-  const typeMap = new Map();
-  for (const svc of services) typeMap.set(svc.id, svc.projectType);
+  const typeMap = new Map<string, string>();
+  for (const svc of services) typeMap.set(svc.id, svc.projectType || "");
 
-  const edges = [];
+  const edges: TopologyEdge[] = [];
   for (const svc of services) {
     for (const dep of svc.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
       const criticality =
-        typeof dep === "string" ? "required" : dep.criticality || "required";
+        typeof dep === "string" ? "required" : (dep as DependencyRef).criticality || "required";
       const targetType = typeMap.get(depId) || "";
       const type: EdgeType = PROJECT_TYPE_TO_EDGE[targetType] || "api";
       if (idSet.has(depId))
@@ -461,18 +457,18 @@ function edgePath(anchor: PortResult): string {
 
 // ── Main Component ───────────────────────────────────────────────
 export default function TopologyComponent() {
-  const [allServices, setAllServices] = useState<any[]>([]);
-  const [tierColors, setTierColors] = useState(DEPLOY_TIER_COLORS);
+  const [allServices, setAllServices] = useState<PortalService[]>([]);
+  const [tierColors, setTierColors] = useState<Record<number, DeployTierColor>>(DEPLOY_TIER_COLORS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [analysisData, setAnalysisData] = useState<ProjectAnalysis | null>(null);
   const [repoSizes, setRepoSizes] = useState<
     Record<string, { sizeKB: number; sizeBytes: number }>
   >({});
-  const [hoveredNode, setHoveredNode] = useState<any>(null);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [tooltipData, setTooltipData] = useState<any>(null);
+  const [tooltipData, setTooltipData] = useState<PortalService | null>(null);
 
   // View mode toggle
   const [viewMode, setViewMode] = useState<ViewMode>("tier");
@@ -480,15 +476,15 @@ export default function TopologyComponent() {
   // Search filter
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
-  const searchRef = useRef(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // Edge type visibility toggles
   const [edgeVisibility, setEdgeVisibility] = useState<
     Record<EdgeType, boolean>
   >(() => {
-    const init: any = {};
+    const init: Record<EdgeType, boolean> = {} as Record<EdgeType, boolean>;
     for (const [key, cfg] of Object.entries(EDGE_TYPE_CONFIG))
-      init[key] = cfg.defaultVisible;
+      init[key as EdgeType] = cfg.defaultVisible;
     return init;
   });
   const toggleEdgeType = useCallback((type: EdgeType) => {
@@ -496,22 +492,27 @@ export default function TopologyComponent() {
   }, []);
 
   // Draggable node positions (overrides layout)
-  const [posOverrides, setPosOverrides] = useState<any>({});
+  const [posOverrides, setPosOverrides] = useState<Record<string, NodePosition>>({});
 
   // Pan / zoom
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  const [dragging, setDragging] = useState<any>(null);
+  const [dragging, setDragging] = useState<{ nodeId: string; offsetX: number; offsetY: number } | null>(null);
 
-  const containerRef = useRef(null);
-  const svgRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef(zoom);
   const didFetch = useRef(false);
 
   // Cluster (group) dragging
-  const clusterDragging = useRef(null);
+  const clusterDragging = useRef<{
+    startX: number;
+    startY: number;
+    memberIds: string[];
+    origPositions: Record<string, NodePosition>;
+  } | null>(null);
 
   // Keep zoomRef in sync
   useEffect(() => {
@@ -524,10 +525,10 @@ export default function TopologyComponent() {
    * newly detected imports/API calls that aren't already present.
    * If analysis found nothing for a project, deps are unchanged.
    */
-  function mergeAnalysisDeps(services: any[], analysis: any): any[] {
+  function mergeAnalysisDeps(services: PortalService[], analysis: ProjectAnalysis | null): PortalService[] {
     if (!analysis?.dependencies) return services;
 
-    return services.map((svc: any) => {
+    return services.map((svc) => {
       const detected = analysis.dependencies[svc.id];
       if (!detected) return svc;
 
@@ -538,13 +539,13 @@ export default function TopologyComponent() {
 
       // Build a set of existing dep IDs for dedup
       const existingIds = new Set(
-        (svc.dependsOn || []).map((dep: any) =>
+        (svc.dependsOn || []).map((dep) =>
           typeof dep === "string" ? dep : dep.id,
         ),
       );
 
       // Add detected deps that aren't already present
-      const newDeps: any[] = [];
+      const newDeps: DependencyRef[] = [];
       for (const imp of detected.imports || []) {
         if (!existingIds.has(imp.target)) {
           newDeps.push({
@@ -580,27 +581,25 @@ export default function TopologyComponent() {
         ApiService.getProjectAnalysis(refresh).catch(() => null),
       ]);
 
-      // @ts-ignore
-      let svcs = (servicesRes.services || []).map((s) => ({
+      let svcs: PortalService[] = ((servicesRes as Record<string, unknown>).services as PortalService[] || []).map((s) => ({
         ...s,
         isInfrastructure: false,
       }));
-      // @ts-ignore
-      const infra = (servicesRes.infrastructure || []).map((s) => ({
+      const infra: PortalService[] = ((servicesRes as Record<string, unknown>).infrastructure as PortalService[] || []).map((s) => ({
         ...s,
         isInfrastructure: true,
       }));
 
       // Merge detected dependencies into service data
       if (analysisRes) {
-        svcs = mergeAnalysisDeps(svcs, analysisRes);
-        setAnalysisData(analysisRes);
-        if (analysisRes.repoSizes) setRepoSizes(analysisRes.repoSizes);
+        svcs = mergeAnalysisDeps(svcs, analysisRes as ProjectAnalysis);
+        setAnalysisData(analysisRes as ProjectAnalysis);
+        if ((analysisRes as ProjectAnalysis).repoSizes) setRepoSizes((analysisRes as ProjectAnalysis).repoSizes!);
       }
 
       setAllServices([...svcs, ...infra]);
-      if (servicesRes.deployTierColors)
-        setTierColors(servicesRes.deployTierColors);
+      if ((servicesRes as Record<string, unknown>).deployTierColors)
+        setTierColors((servicesRes as Record<string, unknown>).deployTierColors as Record<number, DeployTierColor>);
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
@@ -644,7 +643,7 @@ export default function TopologyComponent() {
 
   const allEdges = useMemo(() => collectEdges(allServices), [allServices]);
   const edges = useMemo(
-    () => allEdges.filter((e: any) => edgeVisibility[e.type as EdgeType]),
+    () => allEdges.filter((e) => edgeVisibility[e.type]),
     [allEdges, edgeVisibility],
   );
 
@@ -664,7 +663,6 @@ export default function TopologyComponent() {
   const positions = useMemo(() => {
     const merged = { ...basePositions };
     for (const [id, pos] of Object.entries(posOverrides)) {
-      // @ts-ignore
       if (merged[id]) merged[id] = pos;
     }
     return merged;
@@ -687,7 +685,6 @@ export default function TopologyComponent() {
         maxX = -Infinity,
         maxY = -Infinity;
       for (const svc of layer) {
-        // @ts-ignore
         const pos = positions[svc.id];
         if (!pos) continue;
         minX = Math.min(minX, pos.x);
@@ -869,10 +866,8 @@ export default function TopologyComponent() {
   }, [selectedNode, edges]);
 
   // ── Coordinate conversion ───────────────────────────────────
-  // @ts-ignore
   const screenToSvg = useCallback(
-    (clientX, clientY) => {
-      // @ts-ignore
+    (clientX: number, clientY: number) => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return { x: clientX, y: clientY };
       return {
@@ -884,13 +879,11 @@ export default function TopologyComponent() {
   );
 
   // ── Node drag ───────────────────────────────────────────────
-  // @ts-ignore
   const handleNodeMouseDown = useCallback(
-    (e, svc) => {
+    (e: React.MouseEvent, svc: PortalService) => {
       if (e.button !== 0) return;
       e.stopPropagation();
       setSelectedNode(svc.id);
-      // @ts-ignore
       const pos = positions[svc.id];
       if (!pos) return;
       const svgPos = screenToSvg(e.clientX, e.clientY);
@@ -904,9 +897,8 @@ export default function TopologyComponent() {
   );
 
   // ── Cluster (group) drag ────────────────────────────────────
-  // @ts-ignore
   const handleClusterMouseDown = useCallback(
-    (e, clusterType, clusterIndex) => {
+    (e: React.MouseEvent, clusterType: string, clusterIndex: number) => {
       if (e.button !== 0) return;
       e.stopPropagation();
       setSelectedNode(null);
@@ -914,27 +906,22 @@ export default function TopologyComponent() {
       const svgPos = screenToSvg(e.clientX, e.clientY);
       let memberIds: string[];
       if (clusterType === "libs") {
-        // @ts-ignore
         memberIds = libs.map((s) => s.id);
       } else if (clusterType === "type") {
         memberIds = (typeGroups[clusterIndex]?.members || []).map(
-          (s: any) => s.id,
+          (s) => s.id,
         );
       } else {
-        // @ts-ignore
         memberIds = (layers[clusterIndex] || []).map((s) => s.id);
       }
 
       // Snapshot current positions of all cluster members
-      const origPositions = {};
+      const origPositions: Record<string, NodePosition> = {};
       for (const id of memberIds) {
-        // @ts-ignore
         const pos = positions[id];
-        // @ts-ignore
         if (pos) origPositions[id] = { x: pos.x, y: pos.y };
       }
 
-      // @ts-ignore
       clusterDragging.current = {
         startX: svgPos.x,
         startY: svgPos.y,
@@ -946,11 +933,10 @@ export default function TopologyComponent() {
   );
 
   // ── Canvas pan ──────────────────────────────────────────────
-  // @ts-ignore
   const handleCanvasMouseDown = useCallback(
-    (e) => {
+    (e: React.MouseEvent) => {
       if (e.button !== 0) return;
-      const element = e.target;
+      const element = e.target as Element;
       if (
         element.closest("[data-topo-node]") ||
         element.closest("[data-topo-cluster]")
@@ -968,13 +954,11 @@ export default function TopologyComponent() {
     [pan],
   );
 
-  // @ts-ignore
   const handleMouseMove = useCallback(
-    (e) => {
+    (e: MouseEvent) => {
       // Single node drag
       if (dragging) {
         const svgPos = screenToSvg(e.clientX, e.clientY);
-        // @ts-ignore
         setPosOverrides((prev) => ({
           ...prev,
           [dragging.nodeId]: {
@@ -990,11 +974,9 @@ export default function TopologyComponent() {
         const { startX, startY, origPositions } = clusterDragging.current;
         const dx = svgPos.x - startX;
         const dy = svgPos.y - startY;
-        // @ts-ignore
         setPosOverrides((prev) => {
           const next = { ...prev };
           for (const [id, orig] of Object.entries(origPositions)) {
-            // @ts-ignore
             next[id] = { x: orig.x + dx, y: orig.y + dy };
           }
           return next;
@@ -1019,10 +1001,8 @@ export default function TopologyComponent() {
   }, [dragging, isPanning]);
 
   // ── Zoom toward cursor ──────────────────────────────────────
-  // @ts-ignore
-  const handleWheel = useCallback((e) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    // @ts-ignore
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
     const mouseX = e.clientX - rect.left;
@@ -1044,12 +1024,10 @@ export default function TopologyComponent() {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
     const element = containerRef.current;
-    // @ts-ignore
     element?.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
-      // @ts-ignore
       element?.removeEventListener("wheel", handleWheel);
     };
   }, [handleMouseMove, handleMouseUp, handleWheel]);
@@ -1118,15 +1096,14 @@ export default function TopologyComponent() {
   }, [allServices, centerOnContent]);
 
   // ── Tooltip ─────────────────────────────────────────────────
-  // @ts-ignore
-  const handleNodeEnter = useCallback((e, svc) => {
+  const handleNodeEnter = useCallback((e: React.MouseEvent, svc: any) => {
     setHoveredNode(svc.id);
     setTooltipPos({ x: e.clientX, y: e.clientY });
     setTooltipData(svc);
   }, []);
-  // @ts-ignore
+
   const handleNodeMove = useCallback(
-    (e) => {
+    (e: React.MouseEvent) => {
       if (hoveredNode) setTooltipPos({ x: e.clientX, y: e.clientY });
     },
     [hoveredNode],
@@ -1971,14 +1948,13 @@ export default function TopologyComponent() {
                     </div>
                   );
                 })()}
-              {tooltipData.dependsOn?.length > 0 &&
+              {(tooltipData.dependsOn?.length ?? 0) > 0 &&
                 (() => {
-                  // @ts-ignore
-                  const required = tooltipData.dependsOn.filter((d: any) =>
+                  const deps = tooltipData.dependsOn!;
+                  const required = deps.filter((d) =>
                     typeof d === "string" ? true : d.criticality !== "optional",
                   );
-                  // @ts-ignore
-                  const optional = tooltipData.dependsOn.filter((d: any) =>
+                  const optional = deps.filter((d) =>
                     typeof d === "string"
                       ? false
                       : d.criticality === "optional",
@@ -1992,7 +1968,7 @@ export default function TopologyComponent() {
                           </span>
                           <span className={styles.tooltipDepList}>
                             {required
-                              .map((d: any) =>
+                              .map((d) =>
                                 typeof d === "string" ? d : d.name,
                               )
                               .join(", ")}
@@ -2010,7 +1986,7 @@ export default function TopologyComponent() {
                             className={`${styles.tooltipDepList} ${styles.tooltipDepListOptional}`}
                           >
                             {optional
-                              .map((d: any) =>
+                              .map((d) =>
                                 typeof d === "string" ? d : d.name,
                               )
                               .join(", ")}
