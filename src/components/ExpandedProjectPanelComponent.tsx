@@ -559,11 +559,96 @@ function getIcon(svc: any) {
   return SERVICE_TYPE_ICONS[svc.projectType] || DEFAULT_SERVICE_TYPE_ICON;
 }
 
-// @ts-ignore
-function miniEdgePath(x1, y1, x2, y2) {
-  const dy = Math.abs(y2 - y1);
-  const cp = Math.max(dy * 0.5, 30);
-  return `M ${x1} ${y1} C ${x1} ${y1 + cp}, ${x2} ${y2 - cp}, ${x2} ${y2}`;
+type MiniPortSide = "top" | "bottom" | "left" | "right";
+
+interface MiniPortResult {
+  x1: number;
+  y1: number;
+  side1: MiniPortSide;
+  x2: number;
+  y2: number;
+  side2: MiniPortSide;
+}
+
+function getMiniPortPoint(pos: { x: number; y: number }, side: MiniPortSide) {
+  switch (side) {
+    case "top":
+      return { x: pos.x + MINI_NODE_W / 2, y: pos.y };
+    case "bottom":
+      return { x: pos.x + MINI_NODE_W / 2, y: pos.y + MINI_NODE_H };
+    case "left":
+      return { x: pos.x, y: pos.y + MINI_NODE_H / 2 };
+    case "right":
+      return { x: pos.x + MINI_NODE_W, y: pos.y + MINI_NODE_H / 2 };
+  }
+}
+
+function computeMiniEdgeAnchors(
+  sp: { x: number; y: number },
+  tp: { x: number; y: number },
+): MiniPortResult {
+  // Center-to-center delta
+  const cx1 = sp.x + MINI_NODE_W / 2,
+    cy1 = sp.y + MINI_NODE_H / 2;
+  const cx2 = tp.x + MINI_NODE_W / 2,
+    cy2 = tp.y + MINI_NODE_H / 2;
+  const dx = cx2 - cx1;
+  const dy = cy2 - cy1;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  let side1: MiniPortSide, side2: MiniPortSide;
+
+  // When the vertical gap between nodes is minimal (they're roughly side-by-side),
+  // prefer horizontal ports to avoid edges crossing through node bodies
+  const verticalOverlap = !(sp.y + MINI_NODE_H < tp.y || tp.y + MINI_NODE_H < sp.y);
+  const horizontalOverlap = !(sp.x + MINI_NODE_W < tp.x || tp.x + MINI_NODE_W < sp.x);
+
+  if (verticalOverlap && !horizontalOverlap) {
+    // Nodes are side-by-side vertically — use left/right ports
+    side1 = dx > 0 ? "right" : "left";
+    side2 = dx > 0 ? "left" : "right";
+  } else if (horizontalOverlap && !verticalOverlap) {
+    // Nodes are stacked vertically — use top/bottom ports
+    side1 = dy > 0 ? "bottom" : "top";
+    side2 = dy > 0 ? "top" : "bottom";
+  } else if (absDy >= absDx) {
+    // Predominantly vertical relationship
+    side1 = dy > 0 ? "bottom" : "top";
+    side2 = dy > 0 ? "top" : "bottom";
+  } else {
+    // Predominantly horizontal relationship
+    side1 = dx > 0 ? "right" : "left";
+    side2 = dx > 0 ? "left" : "right";
+  }
+
+  const p1 = getMiniPortPoint(sp, side1);
+  const p2 = getMiniPortPoint(tp, side2);
+
+  return { x1: p1.x, y1: p1.y, side1, x2: p2.x, y2: p2.y, side2 };
+}
+
+// Control point offset — extends outward from the port face
+function miniCtrlOffset(side: MiniPortSide, dist: number): { dx: number; dy: number } {
+  const magnitude = Math.max(dist * 0.4, 40);
+  switch (side) {
+    case "top":
+      return { dx: 0, dy: -magnitude };
+    case "bottom":
+      return { dx: 0, dy: magnitude };
+    case "left":
+      return { dx: -magnitude, dy: 0 };
+    case "right":
+      return { dx: magnitude, dy: 0 };
+  }
+}
+
+function miniEdgePath(anchor: MiniPortResult): string {
+  const { x1, y1, side1, x2, y2, side2 } = anchor;
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  const c1 = miniCtrlOffset(side1, dist);
+  const c2 = miniCtrlOffset(side2, dist);
+  return `M ${x1} ${y1} C ${x1 + c1.dx} ${y1 + c1.dy}, ${x2 + c2.dx} ${y2 + c2.dy}, ${x2} ${y2}`;
 }
 
 function TopologyTab({ service, allServices }: { [key: string]: any }) {
@@ -714,14 +799,11 @@ function TopologyTab({ service, allServices }: { [key: string]: any }) {
           // @ts-ignore
           const tp = positions[edge.target];
           if (!sp || !tp) return null;
-          const x1 = sp.x + MINI_NODE_W / 2;
-          const y1 = sp.y + MINI_NODE_H;
-          const x2 = tp.x + MINI_NODE_W / 2;
-          const y2 = tp.y;
+          const anchor = computeMiniEdgeAnchors(sp, tp);
           const isOpt = edge.criticality === "optional";
           const isSelfEdge =
             edge.source === service.id || edge.target === service.id;
-          const d = miniEdgePath(x1, y1, x2, y2);
+          const d = miniEdgePath(anchor);
           return (
             <g
               key={`${edge.source}-${edge.target}-${i}`}
