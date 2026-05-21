@@ -6,6 +6,8 @@ import {
   Container,
   Cpu,
   Globe,
+  LayoutGrid,
+  List,
   Lock,
   MemoryStick,
   Network,
@@ -469,6 +471,22 @@ export default function ContainerStatsComponent() {
   const [memHistory, setMemHistory] = useState<number[]>([]);
   const [selectedContainer, setSelectedContainer] = useState<ContainerRow | null>(null);
   const [activeDevice, setActiveDevice] = useState<string | null>(null);
+  const [activeType, setActiveType] = useState<"client" | "service" | "bot" | null>(null);
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+
+  // Load view preference from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("portal-container-view-mode");
+    if (saved === "table" || saved === "cards") {
+      setViewMode(saved);
+    }
+  }, []);
+
+  const handleToggleViewMode = (mode: "table" | "cards") => {
+    setViewMode(mode);
+    localStorage.setItem("portal-container-view-mode", mode);
+  };
+
   const [rollbackMap, setRollbackMap] = useState<Record<string, boolean>>({});
   const didFetch = useRef(false);
   const [containerHistory, setContainerHistory] = useState<
@@ -496,6 +514,18 @@ export default function ContainerStatsComponent() {
       // Merge container data with project metadata + stats
       const rows: ContainerRow[] = containers.map((c: Record<string, unknown>) => {
         const svc = projectByDocker[c.name as string] || null;
+        
+        let type: "client" | "service" | "bot";
+        const rawType = (svc?.projectType || "").toLowerCase();
+        const nameLower = (c.name as string).toLowerCase();
+        if (rawType === "client" || nameLower.includes("client")) {
+          type = "client";
+        } else if (rawType === "bot" || nameLower.includes("bot")) {
+          type = "bot";
+        } else {
+          type = "service";
+        }
+
         return {
           // Container identity
           id: svc?.id || `${(c.device as string) || "unknown"}-${c.name}`,
@@ -512,6 +542,7 @@ export default function ContainerStatsComponent() {
           restartable: svc?.restartable ?? false,
           controllable: true,
           dockerProject: c.name as string,
+          projectType: type,
           // Per-container Docker stats (for table columns + drawer)
           _stats: {
             cpu: c.cpu,
@@ -761,11 +792,17 @@ export default function ContainerStatsComponent() {
     return [...ids].sort();
   }, [containerRows]);
 
-  // ── Filter rows by active device ──────────────────────────────
+  // ── Filter rows by active device and container type ───────────
   const filteredRows = useMemo(() => {
-    if (!activeDevice) return containerRows;
-    return containerRows.filter((r) => r.device === activeDevice);
-  }, [containerRows, activeDevice]);
+    let rows = containerRows;
+    if (activeDevice) {
+      rows = rows.filter((r) => r.device === activeDevice);
+    }
+    if (activeType) {
+      rows = rows.filter((r) => r.projectType === activeType);
+    }
+    return rows;
+  }, [containerRows, activeDevice, activeType]);
 
   const columns = buildColumns({
     onRestart: handleRestart,
@@ -787,11 +824,11 @@ export default function ContainerStatsComponent() {
 
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
-    if (!activeDevice) return Object.values(containerStats);
+    if (!activeDevice && !activeType) return Object.values(containerStats);
     return filteredRows
       .map((r) => containerStats[r.containerName])
       .filter(Boolean);
-  }, [containerStats, activeDevice, filteredRows]);
+  }, [containerStats, activeDevice, activeType, filteredRows]);
 
   const avgCpuUsage =
     filteredStats.length > 0
@@ -878,34 +915,90 @@ export default function ContainerStatsComponent() {
         subtitle={`${healthyCount} of ${filteredRows.length} containers healthy · polling every 5s`}
       />
 
-      {/* ── Device Filter Pills ────────────────────────────────────── */}
-      {deviceIds.length > 1 && (
-        <div className={styles.deviceFilter}>
-          <button
-            className={`${styles.devicePill} ${activeDevice === null ? styles.devicePillActive : ""}`}
-            onClick={() => setActiveDevice(null)}
-          >
-            All Hosts
-            <span className={styles.devicePillCount}>
-              {containerRows.length}
-            </span>
-          </button>
-          {deviceIds.map((deviceId) => (
-            <button
-              key={deviceId}
-              className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
-              onClick={() =>
-                setActiveDevice(activeDevice === deviceId ? null : deviceId)
-              }
-            >
-              {deviceId}
-              <span className={styles.devicePillCount}>
-                {deviceContainerCounts[deviceId] || 0}
-              </span>
-            </button>
-          ))}
+      {/* ── Filters & View Toggle ────────────────────────────────── */}
+      <div className={styles.filtersBar}>
+        <div className={styles.filtersContainer}>
+          {/* ── Device Filter Pills ────────────────────────────────── */}
+          {deviceIds.length > 1 && (
+            <div className={styles.filterGroup}>
+              <span className={styles.filterLabel}>Host</span>
+              <div className={styles.deviceFilter}>
+                <button
+                  className={`${styles.devicePill} ${activeDevice === null ? styles.devicePillActive : ""}`}
+                  onClick={() => setActiveDevice(null)}
+                >
+                  All Hosts
+                  <span className={styles.devicePillCount}>
+                    {containerRows.length}
+                  </span>
+                </button>
+                {deviceIds.map((deviceId) => (
+                  <button
+                    key={deviceId}
+                    className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
+                    onClick={() =>
+                      setActiveDevice(activeDevice === deviceId ? null : deviceId)
+                    }
+                  >
+                    {deviceId}
+                    <span className={styles.devicePillCount}>
+                      {deviceContainerCounts[deviceId] || 0}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Type Filter Pills ──────────────────────────────────── */}
+          <div className={styles.filterGroup}>
+            <span className={styles.filterLabel}>Type</span>
+            <div className={styles.deviceFilter}>
+              <button
+                className={`${styles.devicePill} ${activeType === null ? styles.devicePillActive : ""}`}
+                onClick={() => setActiveType(null)}
+              >
+                All Types
+                <span className={styles.devicePillCount}>
+                  {containerRows.length}
+                </span>
+              </button>
+              {(["client", "service", "bot"] as const).map((type) => (
+                <button
+                  key={type}
+                  className={`${styles.devicePill} ${activeType === type ? styles.devicePillActive : ""}`}
+                  onClick={() =>
+                    setActiveType(activeType === type ? null : type)
+                  }
+                >
+                  {type}s
+                  <span className={styles.devicePillCount}>
+                    {containerRows.filter((r) => r.projectType === type).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* ── View Mode Switcher ──────────────────────────────────── */}
+        <div className={styles.viewModeToggle}>
+          <button
+            className={`${styles.toggleBtn} ${viewMode === "table" ? styles.toggleBtnActive : ""}`}
+            onClick={() => handleToggleViewMode("table")}
+            title="Table View"
+          >
+            <List size={14} strokeWidth={2.4} />
+          </button>
+          <button
+            className={`${styles.toggleBtn} ${viewMode === "cards" ? styles.toggleBtnActive : ""}`}
+            onClick={() => handleToggleViewMode("cards")}
+            title="Cards View"
+          >
+            <LayoutGrid size={14} strokeWidth={2.4} />
+          </button>
+        </div>
+      </div>
 
       {/* ── Infrastructure Summary Cards ──────────────────────────── */}
       {!loading && (
@@ -1028,7 +1121,7 @@ export default function ContainerStatsComponent() {
         <div className={styles.emptyState}>
           No containers found{activeDevice ? ` on ${activeDevice}` : ""}
         </div>
-      ) : (
+      ) : viewMode === "table" ? (
         <TableComponent
           title="Containers"
           subtitle={`${filteredRows.length} containers · ${healthyCount} healthy`}
@@ -1041,6 +1134,115 @@ export default function ContainerStatsComponent() {
           activeRowKey={selectedContainer?.id}
           storageKey="container-table"
         />
+      ) : (
+        /* ── Cards Grid View ────────────────────────────────────── */
+        <div className={styles.cardsGrid}>
+          {filteredRows.map((row) => (
+            <div
+              key={row.id}
+              className={`${styles.containerCard} ${row.healthy ? styles.cardHealthy : styles.cardUnhealthy} ${selectedContainer?.id === row.id ? styles.cardActive : ""}`}
+              onClick={() => setSelectedContainer(row)}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitleSection}>
+                  <Container
+                    size={14}
+                    strokeWidth={2.6}
+                    className={`${styles.typeIcon} ${row.healthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+                  />
+                  <span className={styles.cardName}>{row.containerName}</span>
+                </div>
+                <div className={styles.cardBadgeSection}>
+                  <StatusBadgeComponent healthy={row.healthy} />
+                  {row.device && (
+                    <span className={styles.cardDevicePill}>{row.device}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.cardMeta}>
+                {row.port && <PortBadgeComponent port={row.port} />}
+                {row.visibility && (
+                  <VisibilityBadgeComponent
+                    visibility={row.visibility}
+                    icons={{ Globe, Lock }}
+                  />
+                )}
+                {row.domain && (
+                  <DomainBadgeComponent domain={row.domain} icons={{ Globe }} />
+                )}
+              </div>
+
+              <div className={styles.cardMetricsGrid}>
+                <div className={styles.cardMetric}>
+                  <div className={styles.cardMetricHeader}>
+                    <Cpu size={12} className={styles.metricIconCpu} />
+                    <span className={styles.cardMetricLabel}>CPU</span>
+                    <span className={styles.cardMetricValue}>
+                      {row._stats?.cpu?.percent != null
+                        ? formatPercent(row._stats.cpu.percent, "adaptive")
+                        : "—"}
+                    </span>
+                  </div>
+                  {row._stats?.cpu?.percent != null && (
+                    <MiniBar
+                      percent={row._stats.cpu.percent}
+                      color={severityColor(row._stats.cpu.percent)}
+                    />
+                  )}
+                </div>
+
+                <div className={styles.cardMetric}>
+                  <div className={styles.cardMetricHeader}>
+                    <MemoryStick size={12} className={styles.metricIconRam} />
+                    <span className={styles.cardMetricLabel}>RAM</span>
+                    <span className={styles.cardMetricValue}>
+                      {row._stats?.memory
+                        ? formatBytes(row._stats.memory.used)
+                        : "—"}
+                    </span>
+                  </div>
+                  {row._stats?.memory && (
+                    <MiniBar
+                      percent={
+                        row._stats.memory.limit > 0
+                          ? (row._stats.memory.used / row._stats.memory.limit) * 100
+                          : row._stats.memory.percent
+                      }
+                      color={severityColor(
+                        row._stats.memory.limit > 0
+                          ? (row._stats.memory.used / row._stats.memory.limit) * 100
+                          : row._stats.memory.percent,
+                        [60, 85]
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.cardFooter}>
+                <div className={styles.cardUptime}>
+                  {row._stats?.created ? (
+                    <>
+                      <span className={styles.uptimeLabel}>Uptime:</span>
+                      <DateTimeBadgeComponent date={row._stats.created * 1000} showIcon={false} />
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </div>
+                <ActionCell
+                  service={row}
+                  onRestart={handleRestart}
+                  onStop={handleStop}
+                  onStart={handleStart}
+                  onRollback={handleRollback}
+                  rollbackAvailable={row.restartable && !!rollbackMap[row.id]}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <DrawerComponent

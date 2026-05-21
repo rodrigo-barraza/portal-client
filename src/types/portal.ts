@@ -191,6 +191,7 @@ export interface ContainerRow {
   restartable: boolean;
   controllable: boolean;
   dockerProject: string;
+  projectType: "client" | "service" | "bot";
   _stats: ContainerStats | null;
 }
 
