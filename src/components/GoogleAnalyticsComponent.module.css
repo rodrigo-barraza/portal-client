@@ -266,9 +266,13 @@
 }
 
 .sparklineStack {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template: 1fr / 1fr;
+}
+
+/* All children occupy the same grid cell — visual overlay */
+.sparklineStack > * {
+  grid-area: 1 / 1;
 }
 
 .chartLegend {

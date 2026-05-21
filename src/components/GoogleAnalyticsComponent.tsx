@@ -284,7 +284,7 @@ function SparklineChart({ series, metrics }: { series: GATimeSeriesPoint[]; metr
             data={values}
             color={metric.color}
             maxValue={max}
-            height={52}
+            height={140}
             historyMax={values.length}
             showGrid
             formatValue={(v: number) => formatNumber(Math.round(v))}
