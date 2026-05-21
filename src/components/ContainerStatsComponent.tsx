@@ -26,7 +26,7 @@ import {
   PageHeaderComponent,
   PortBadgeComponent,
   ResponseTimeBadgeComponent,
-  SparklineComponent,
+  ChartLineComponent,
   StatusBadgeComponent,
   TableComponent,
   VisibilityBadgeComponent,
@@ -271,7 +271,7 @@ function buildColumns({
           return <span className={styles.dimText}>—</span>;
         return (
           <div className={styles.inlineSparkline}>
-            <SparklineComponent
+            <ChartLineComponent
               data={history}
               color="#10b981"
               maxValue={100}
@@ -322,7 +322,7 @@ function buildColumns({
         const maxVal = row._stats?.memory?.limit || Math.max(...history, 1);
         return (
           <div className={styles.inlineSparkline}>
-            <SparklineComponent
+            <ChartLineComponent
               data={history}
               color="#3b82f6"
               maxValue={maxVal}
@@ -956,7 +956,7 @@ export default function ContainerStatsComponent() {
                 </span>
               </div>
             </div>
-            <SparklineComponent
+            <ChartLineComponent
               data={cpuHistory}
               color="#10b981"
               maxValue={100}
@@ -993,7 +993,7 @@ export default function ContainerStatsComponent() {
                 </span>
               </div>
             </div>
-            <SparklineComponent
+            <ChartLineComponent
               data={memHistory}
               color="#3b82f6"
               maxValue={totalMemLimit || 1}

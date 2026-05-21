@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import {
   AddressBadgeComponent,
+  ChartLineComponent,
   DeviceBadgeComponent,
   LoadingIndicatorComponent,
   PortBadgeComponent,
@@ -49,79 +50,7 @@ function severityColor(pct: number, thresholds: [number, number] = [40, 80]): st
   return "var(--success)";
 }
 
-// ── Sparkline (Canvas) ────────────────────────────────────────────
 
-function Sparkline({
-  data,
-  color,
-  fillColor,
-  max,
-  height = 36,
-}: {
-  data: number[];
-  color: string;
-  fillColor?: string;
-  max?: number;
-  height?: number;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !data || data.length < 2) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    context.scale(dpr, dpr);
-    context.clearRect(0, 0, w, h);
-
-    const effectiveMax = max || Math.max(...data, 0.01);
-    const padding = 1;
-    const drawH = h - padding * 2;
-    const step = w / (MAX_SPARKLINE_POINTS - 1);
-    const startX = w - (data.length - 1) * step;
-
-    context.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const x = startX + i * step;
-      const y = padding + drawH - (data[i] / effectiveMax) * drawH;
-      if (i === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
-    }
-
-    context.strokeStyle = color;
-    context.lineWidth = 1.5;
-    context.lineJoin = "round";
-    context.lineCap = "round";
-    context.stroke();
-
-    if (fillColor) {
-      const lastX = startX + (data.length - 1) * step;
-      context.lineTo(lastX, h);
-      context.lineTo(startX, h);
-      context.closePath();
-      const grad = context.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, fillColor);
-      grad.addColorStop(1, "transparent");
-      context.fillStyle = grad;
-      context.fill();
-    }
-  }, [data, color, fillColor, max, height]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className={styles.sparkline}
-      style={{ height: `${height}px` }}
-    />
-  );
-}
 
 function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
@@ -377,17 +306,13 @@ export default function ContainerDetailPanel({
               color={severityColor(stats.cpu.percent)}
             />
             {(history?.cpu?.length ?? 0) >= 2 && (
-              <Sparkline
+              <ChartLineComponent
                 data={history!.cpu}
                 color={severityColor(stats.cpu.percent)}
-                fillColor={
-                  stats.cpu.percent > 80
-                    ? "rgba(239,68,68,0.12)"
-                    : stats.cpu.percent > 40
-                      ? "rgba(245,158,11,0.12)"
-                      : "rgba(16,185,129,0.12)"
-                }
-                max={100}
+                maxValue={100}
+                height={36}
+                historyMax={MAX_SPARKLINE_POINTS}
+                formatValue={(v: number) => `${v.toFixed(1)}%`}
               />
             )}
           </div>
@@ -451,17 +376,13 @@ export default function ContainerDetailPanel({
               color={severityColor(stats.memory.percent, [60, 85])}
             />
             {(history?.mem?.length ?? 0) >= 2 && (
-              <Sparkline
+              <ChartLineComponent
                 data={history!.mem}
                 color={severityColor(stats.memory.percent, [60, 85])}
-                fillColor={
-                  stats.memory.percent > 85
-                    ? "rgba(239,68,68,0.12)"
-                    : stats.memory.percent > 60
-                      ? "rgba(245,158,11,0.12)"
-                      : "rgba(16,185,129,0.12)"
-                }
-                max={stats.memory.limit}
+                maxValue={stats.memory.limit}
+                height={36}
+                historyMax={MAX_SPARKLINE_POINTS}
+                formatValue={(v: number) => formatBytes(v)}
               />
             )}
           </div>

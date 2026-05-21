@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import Link from "next/link";
 import {
+  ChartLineComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
   TableComponent,
@@ -267,53 +268,29 @@ function DonutChart({
   );
 }
 
-// ── Sparkline Chart ───────────────────────────────────────────
+// ── Sparkline Chart (using ChartLineComponent) ───────────────
 
 function SparklineChart({ series, metrics }: { series: GATimeSeriesPoint[]; metrics: SparklineMetric[] }) {
   if (!series || series.length === 0) return null;
 
-  const width = 800;
-  const height = 160;
-  const padding = { top: 8, right: 8, bottom: 8, left: 8 };
-  const innerW = width - padding.left - padding.right;
-  const innerH = height - padding.top - padding.bottom;
-
   return (
-    <div className={styles.sparklineContainer}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className={styles.sparklineSvg}
-        preserveAspectRatio="none"
-      >
-        {metrics.map((metric) => {
-          const values = series.map((d) => (d as unknown as Record<string, number>)[metric.key] || 0);
-          const max = Math.max(...values, 1);
-          const points = values.map((v, i) => {
-            const x =
-              padding.left + (i / Math.max(values.length - 1, 1)) * innerW;
-            const y = padding.top + innerH - (v / max) * innerH;
-            return `${x},${y}`;
-          });
-
-          const pathD = `M ${points.join(" L ")}`;
-          const areaD = `${pathD} L ${padding.left + innerW},${padding.top + innerH} L ${padding.left},${padding.top + innerH} Z`;
-
-          return (
-            <g key={metric.key}>
-              <path
-                d={areaD}
-                fill={metric.color}
-                className={styles.sparklineArea}
-              />
-              <path
-                d={pathD}
-                stroke={metric.color}
-                className={styles.sparklinePath}
-              />
-            </g>
-          );
-        })}
-      </svg>
+    <div className={styles.sparklineStack}>
+      {metrics.map((metric) => {
+        const values = series.map((d) => (d as unknown as Record<string, number>)[metric.key] || 0);
+        const max = Math.max(...values, 1);
+        return (
+          <ChartLineComponent
+            key={metric.key}
+            data={values}
+            color={metric.color}
+            maxValue={max}
+            height={52}
+            historyMax={values.length}
+            showGrid
+            formatValue={(v: number) => formatNumber(Math.round(v))}
+          />
+        );
+      })}
     </div>
   );
 }
