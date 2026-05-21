@@ -526,3 +526,149 @@ export interface LibraryCatalog {
   name: string;
   exports: LibraryExport[];
 }
+
+// ─── Session Analytics (First-Party) ────────────────────────
+
+/** A tracked project from sessions-service. */
+export interface SessionProject {
+  projectId: string;
+  sessionCount: number;
+  uniqueVisitors: number;
+  lastActivity: string;
+}
+
+/** Overview stats from sessions-service. */
+export interface SessionOverview {
+  totalSessions: number;
+  uniqueVisitors: number;
+  totalPageViews: number;
+  totalDuration: number;
+  avgSessionDuration: number;
+}
+
+/** Geo location from IP geolocation. */
+export interface SessionGeo {
+  country: string | null;
+  countryCode: string | null;
+  region: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  timezone: string | null;
+}
+
+/** A full session record from sessions-service. */
+export interface SessionRecord {
+  sessionId: string;
+  visitorId: string | null;
+  projectId: string | null;
+  ip: string;
+  fingerprintId: string | null;
+  userAgent: string;
+  locale: string | null;
+  browser: { name: string | null; version: string | null; major: string | null };
+  os: { name: string | null; version: string | null };
+  device: { type: string; vendor: string | null; model: string | null };
+  engine: { name: string | null; version: string | null };
+  geo: SessionGeo;
+  viewport: { width: number; height: number } | null;
+  referrer: string | null;
+  utm: Record<string, string> | null;
+  duration: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Paginated sessions response. */
+export interface SessionsListResponse {
+  sessions: SessionRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** A single event record. */
+export interface SessionEventRecord {
+  sessionId: string;
+  visitorId: string | null;
+  projectId: string | null;
+  category: string;
+  action: string;
+  label: string | null;
+  value: unknown;
+  timestamp: string;
+}
+
+/** Paginated events feed response. */
+export interface EventsFeedResponse {
+  events: SessionEventRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** Top page entry from sessions-service. */
+export interface SessionPageRow {
+  path: string;
+  views: number;
+  uniqueVisitors: number;
+}
+
+/** Referrer entry. */
+export interface SessionReferrerRow {
+  referrer: string;
+  sessions: number;
+}
+
+/** Geo breakdown entry. */
+export interface SessionGeoRow {
+  country: string | null;
+  countryCode: string | null;
+  city: string | null;
+  sessions: number;
+  uniqueVisitors: number;
+}
+
+/** Device breakdown from sessions-service. */
+export interface SessionDeviceBreakdown {
+  browsers: { name: string; sessions: number }[];
+  operatingSystems: { name: string; sessions: number }[];
+  deviceTypes: { type: string; sessions: number }[];
+}
+
+/** Time series point. */
+export interface SessionTimeSeriesPoint {
+  date: string;
+  sessions: number;
+  uniqueVisitors: number;
+  pageViews: number;
+}
+
+/** Live sessions response. */
+export interface SessionLiveResponse {
+  activeSessions: number;
+  sessions: SessionRecord[];
+}
+
+/** Top event entry. */
+export interface SessionTopEvent {
+  category: string;
+  action: string;
+  count: number;
+}
+
+/** Cross-client visitor entry. */
+export interface CrossClientVisitor {
+  fingerprintId: string;
+  projects: string[];
+  projectCount: number;
+  totalSessions: number;
+  totalDuration: number;
+  firstSeen: string;
+  lastSeen: string;
+  ips: string[];
+  browsers: string[];
+  oses: string[];
+  devices: string[];
+  geo: { countries: string[]; cities: string[] };
+}

@@ -611,7 +611,7 @@ export default function GoogleAnalyticsComponent({
         <PageHeaderComponent
           sticky={false}
           title="Web Analytics"
-          subtitle="Google Analytics (GA4) reports"
+          subtitle="First-party session analytics and Google Analytics (GA4) reports"
         />
         <LoadingIndicatorComponent
           size="small"
@@ -622,7 +622,7 @@ export default function GoogleAnalyticsComponent({
     );
   }
 
-  if (error || properties.length === 0) {
+  if (error) {
     return (
       <div className={styles.dashboard}>
         <PageHeaderComponent
@@ -633,14 +633,26 @@ export default function GoogleAnalyticsComponent({
         <div className={styles.emptyState}>
           <BarChart3 size={40} strokeWidth={1.5} className={styles.emptyIcon} />
           <span className={styles.emptyTitle}>
-            No Analytics Properties Configured
+            Analytics Error
           </span>
           <span className={styles.emptyDetail}>
-            {error
-              ? `Error: ${error}`
-              : "Add GOOGLE_ANALYTICS_CREDENTIALS to your vault environment and declare analyticsPropertyId on project entries in projects.json to start tracking."}
+            {`Error: ${error}`}
           </span>
         </div>
+      </div>
+    );
+  }
+
+  // No GA properties — still show session projects listing
+  if (properties.length === 0) {
+    return (
+      <div className={styles.dashboard}>
+        <PageHeaderComponent
+          sticky={false}
+          title="Web Analytics"
+          subtitle="First-party session analytics and Google Analytics (GA4) reports"
+        />
+        <PropertyListingComponent properties={[]} />
       </div>
     );
   }
@@ -650,7 +662,7 @@ export default function GoogleAnalyticsComponent({
       <PageHeaderComponent
         sticky={false}
         title="Web Analytics"
-        subtitle="Google Analytics (GA4) reports"
+        subtitle="First-party session analytics and Google Analytics (GA4) reports"
       >
         {selectedProperty && (
           <div className={styles.headerControls}>

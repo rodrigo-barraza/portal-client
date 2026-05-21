@@ -524,4 +524,134 @@ export default class ApiService {
       `/google-analytics/${propertyId}/events?period=${period}`,
     );
   }
+
+  // ── Session Analytics (First-Party) ─────────────────────────
+
+  /**
+   * List distinct projects tracked by sessions-service.
+   */
+  static async getSessionProjects(period = "30d") {
+    return ApiService._request(`/session-analytics/projects?period=${period}`);
+  }
+
+  /**
+   * Get overview stats for a project from sessions-service.
+   */
+  static async getSessionOverview(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/overview?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get paginated session list with full detail (IP, geo, device).
+   */
+  static async getSessionsList(
+    projectId: string,
+    period = "30d",
+    limit = 50,
+    offset = 0,
+    sort = "createdAt",
+    order = "desc",
+  ) {
+    const qs = new URLSearchParams({
+      projectId,
+      period,
+      limit: String(limit),
+      offset: String(offset),
+      sort,
+      order,
+    });
+    return ApiService._request(`/session-analytics/sessions?${qs.toString()}`);
+  }
+
+  /**
+   * Get top pages by view count.
+   */
+  static async getSessionPages(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/pages?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get top referrers.
+   */
+  static async getSessionReferrers(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/referrers?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get geographic breakdown.
+   */
+  static async getSessionGeo(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/geo?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get device/browser/OS breakdown.
+   */
+  static async getSessionDevices(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/devices?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get daily time-series data.
+   */
+  static async getSessionTimeSeries(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/timeseries?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get live/active sessions.
+   */
+  static async getSessionLive(projectId: string, minutes = 5) {
+    return ApiService._request(
+      `/session-analytics/live?projectId=${projectId}&minutes=${minutes}`,
+    );
+  }
+
+  /**
+   * Get top events by category/action.
+   */
+  static async getSessionEvents(projectId: string, period = "30d") {
+    return ApiService._request(
+      `/session-analytics/events?projectId=${projectId}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get chronological event feed with pagination.
+   */
+  static async getSessionEventsFeed(
+    projectId: string,
+    period = "30d",
+    limit = 50,
+    offset = 0,
+  ) {
+    const qs = new URLSearchParams({
+      projectId,
+      period,
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return ApiService._request(`/session-analytics/events/feed?${qs.toString()}`);
+  }
+
+  /**
+   * Get cross-client visitor correlation.
+   */
+  static async getSessionCrossClient(period = "30d") {
+    return ApiService._request(
+      `/session-analytics/cross-client?period=${period}`,
+    );
+  }
 }

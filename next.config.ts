@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   ],
 
   env: {
+
+    // ── Sessions ──────────────────────────────────────────────
+    SESSIONS_SERVICE_URL: secrets.SESSIONS_SERVICE_URL,
+    SESSIONS_SERVICE_PUBLIC_URL: secrets.SESSIONS_SERVICE_PUBLIC_URL,
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT,
     PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL,
     PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL,

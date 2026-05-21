@@ -2,17 +2,17 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { LayoutGrid, Table2, TrendingUp, ArrowRight } from "lucide-react";
+import { LayoutGrid, Table2, TrendingUp, ArrowRight, Activity } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
-import type { GAOverview } from "../types/portal";
+import type { GAOverview, SessionProject } from "../types/portal";
 import styles from "./GoogleAnalyticsComponent.module.css";
 
 /**
  * PropertyListingComponent — multi-property landing page.
- * Shows all GA4 properties in a card grid or list/table view.
- * Each card/row shows a quick overview summary fetched in parallel.
+ * Shows all GA4 properties in a card grid or list/table view,
+ * plus tracked sessions-service projects below.
  */
 interface GAProperty {
   id: string;
@@ -33,11 +33,12 @@ export default function PropertyListingComponent({
 }) {
   const [viewMode, setViewMode] = useState("card");
   const [summaries, setSummaries] = useState<Record<string, GASummary>>({});
+  const [sessionProjects, setSessionProjects] = useState<SessionProject[]>([]);
   const didFetch = useRef(false);
 
-  // Fetch overview + realtime for each property in parallel
+  // Fetch overview + realtime for each property in parallel + session projects
   useEffect(() => {
-    if (didFetch.current || !properties.length) return;
+    if (didFetch.current) return;
     didFetch.current = true;
 
     for (const prop of properties) {
@@ -51,6 +52,15 @@ export default function PropertyListingComponent({
         }));
       });
     }
+
+    // Fetch sessions-service projects
+    ApiService.getSessionProjects("30d")
+      .then((res) => {
+        if (res?.data && Array.isArray(res.data)) {
+          setSessionProjects(res.data);
+        }
+      })
+      .catch(() => {});
   }, [properties]);
 
   return (
@@ -79,6 +89,8 @@ export default function PropertyListingComponent({
         <span className={styles.propertySummary}>
           {properties.length}{" "}
           {properties.length === 1 ? "property" : "properties"}
+          {sessionProjects.length > 0 &&
+            ` · ${sessionProjects.length} session ${sessionProjects.length === 1 ? "project" : "projects"}`}
         </span>
       </div>
 
@@ -158,6 +170,59 @@ export default function PropertyListingComponent({
               </Link>
             );
           })}
+
+          {/* ── Sessions Projects Cards ── */}
+          {sessionProjects.map((proj) => (
+            <Link
+              key={proj.projectId}
+              href={`/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`}
+              className={styles.propertyCard}
+            >
+              <div className={styles.propertyCardHeader}>
+                <div
+                  className={styles.propertyCardIcon}
+                  style={{
+                    background: "rgba(16, 185, 129, 0.08)",
+                    color: "#10b981",
+                  }}
+                >
+                  <Activity size={18} strokeWidth={2} />
+                </div>
+                <div className={styles.propertyCardInfo}>
+                  <span className={styles.propertyCardName}>
+                    {proj.projectId}
+                  </span>
+                  <span className={styles.propertyCardMeta}>
+                    sessions-service
+                  </span>
+                </div>
+                <ArrowRight
+                  size={14}
+                  strokeWidth={2}
+                  className={styles.propertyCardArrow}
+                />
+              </div>
+
+              <div className={styles.propertyCardStats}>
+                <div className={styles.propertyCardStat}>
+                  <span className={styles.propertyCardStatValue}>
+                    {formatNumber(proj.uniqueVisitors)}
+                  </span>
+                  <span className={styles.propertyCardStatLabel}>
+                    Visitors
+                  </span>
+                </div>
+                <div className={styles.propertyCardStat}>
+                  <span className={styles.propertyCardStatValue}>
+                    {formatNumber(proj.sessionCount)}
+                  </span>
+                  <span className={styles.propertyCardStatLabel}>
+                    Sessions
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
 
@@ -209,6 +274,30 @@ export default function PropertyListingComponent({
               </Link>
             );
           })}
+
+          {/* ── Session projects in list view ── */}
+          {sessionProjects.map((proj) => (
+            <Link
+              key={proj.projectId}
+              href={`/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`}
+              className={styles.propertyListRow}
+            >
+              <div className={styles.propertyListName}>
+                <span className={styles.propertyListLabel}>{proj.projectId}</span>
+                <span className={styles.propertyListId}>sessions-service</span>
+              </div>
+              <span className={styles.propertyListValue}>
+                {formatNumber(proj.uniqueVisitors)}
+              </span>
+              <span className={styles.propertyListValue}>—</span>
+              <span className={styles.propertyListValue}>
+                {formatNumber(proj.sessionCount)}
+              </span>
+              <div className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}>
+                —
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </>
