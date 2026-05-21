@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   LoadingIndicatorComponent,
-  TableComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   Users,
@@ -15,10 +14,11 @@ import {
   ChevronRight,
   Zap,
   ArrowLeft,
-  MousePointerClick,
   Smartphone,
   Laptop,
   FileText,
+  Network,
+  Hash,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
 import {
@@ -28,6 +28,31 @@ import {
 import styles from "./SessionExplorerComponent.module.css";
 
 // ── Types ─────────────────────────────────────────────────────
+
+interface IpUser {
+  ip: string;
+  visitorIds: string[];
+  sessionIds: string[];
+  sessionCount: number;
+  totalDuration: number;
+  firstSeen: string;
+  lastSeen: string;
+  projects: string[];
+  lastBrowser: { name: string | null; version: string | null };
+  lastOs: { name: string | null; version: string | null };
+  lastDevice: { type: string; vendor: string | null };
+  lastGeo: { country: string | null; city: string | null; countryCode: string | null };
+  lastFingerprintId: string | null;
+  lastReferrer: string | null;
+  lastViewport: { width: number; height: number } | null;
+}
+
+interface IpDetail extends IpUser {
+  timeline: TimelineEntry[];
+  sessions: SessionRow[];
+  pageViews: Array<{ sessionId: string; url: string; path: string; title: string; timestamp: string }>;
+  events: Array<{ sessionId: string; category: string; action: string; label: string; timestamp: string }>;
+}
 
 interface Visitor {
   visitorId: string;
@@ -65,6 +90,7 @@ interface SessionRow {
 interface TimelineEntry {
   type: "pageview" | "event";
   timestamp: string;
+  sessionId?: string;
   path?: string;
   title?: string;
   url?: string;
@@ -112,12 +138,80 @@ function formatTimestamp(dateStr: string): string {
 function DeviceIcon({ type }: { type: string }) {
   switch (type?.toLowerCase()) {
     case "mobile":
-      return <Smartphone size={12} strokeWidth={2} />;
     case "tablet":
       return <Smartphone size={12} strokeWidth={2} />;
     default:
       return <Laptop size={12} strokeWidth={2} />;
   }
+}
+
+// ── Timeline Renderer (shared) ────────────────────────────────
+
+function TimelineView({ timeline, label }: { timeline: TimelineEntry[]; label?: string }) {
+  if (!timeline || timeline.length === 0) {
+    return <div className={styles.emptyTimeline}>No activity recorded.</div>;
+  }
+
+  return (
+    <div className={styles.timelineSection}>
+      <div className={styles.timelineHeader}>
+        <Clock size={14} strokeWidth={2.2} />
+        <span>{label || "Activity Timeline"}</span>
+        <span className={styles.timelineCount}>
+          {timeline.length} events
+        </span>
+      </div>
+      <div className={styles.timeline}>
+        {timeline.map((entry, i) => (
+          <div
+            key={i}
+            className={`${styles.timelineItem} ${entry.type === "pageview" ? styles.timelinePageview : styles.timelineEvent}`}
+          >
+            <div className={styles.timelineDot}>
+              {entry.type === "pageview" ? (
+                <Eye size={10} strokeWidth={2.5} />
+              ) : (
+                <Zap size={10} strokeWidth={2.5} />
+              )}
+            </div>
+            <div className={styles.timelineConnector} />
+            <div className={styles.timelineContent}>
+              <div className={styles.timelineRow}>
+                <span className={styles.timelineType}>
+                  {entry.type === "pageview" ? "Page View" : "Event"}
+                </span>
+                {entry.sessionId && (
+                  <span className={styles.timelineSessionTag}>
+                    {entry.sessionId.slice(0, 6)}
+                  </span>
+                )}
+                <span className={styles.timelineTime}>
+                  {formatTimestamp(entry.timestamp)}
+                </span>
+              </div>
+              {entry.type === "pageview" ? (
+                <span className={styles.timelineDetail}>
+                  {entry.path || entry.url}
+                  {entry.title && (
+                    <span className={styles.timelineTitle}> — {entry.title}</span>
+                  )}
+                </span>
+              ) : (
+                <span className={styles.timelineDetail}>
+                  <span className={styles.timelineCategory}>{entry.category}</span>
+                  <ChevronRight size={10} strokeWidth={2.5} />
+                  <span className={styles.timelineAction}>{entry.action}</span>
+                  {entry.label && (
+                    <span className={styles.timelineLabel}> · {entry.label}</span>
+                  )}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ── Main Component ────────────────────────────────────────────
@@ -129,8 +223,18 @@ export default function SessionExplorerComponent({
   projectId: string;
   period: string;
 }) {
-  type Tab = "visitors" | "sessions";
-  const [tab, setTab] = useState<Tab>("visitors");
+  type Tab = "ips" | "visitors" | "sessions";
+  const [tab, setTab] = useState<Tab>("ips");
+
+  // ── IPs state ──
+  const [ipUsers, setIpUsers] = useState<IpUser[]>([]);
+  const [ipsTotal, setIpsTotal] = useState(0);
+  const [ipsLoading, setIpsLoading] = useState(true);
+  const [ipsOffset, setIpsOffset] = useState(0);
+
+  // ── IP detail ──
+  const [selectedIp, setSelectedIp] = useState<IpDetail | null>(null);
+  const [ipDetailLoading, setIpDetailLoading] = useState(false);
 
   // ── Visitors state ──
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -150,7 +254,26 @@ export default function SessionExplorerComponent({
 
   const didFetch = useRef(false);
 
-  // ── Load visitors ─────────────────────────────────────────
+  // ── Loaders ───────────────────────────────────────────────
+
+  const loadIps = useCallback(async (offset = 0) => {
+    setIpsLoading(true);
+    try {
+      const res = await ApiService.getSessionIpUsers(projectId, period, 50, offset);
+      const data = res?.data ?? res;
+      setIpUsers(data?.ips || []);
+      setIpsTotal(data?.total || 0);
+      setIpsOffset(offset);
+    } catch { /* silent */ } finally { setIpsLoading(false); }
+  }, [projectId, period]);
+
+  const loadIpDetail = useCallback(async (ip: string) => {
+    setIpDetailLoading(true);
+    try {
+      const res = await ApiService.getSessionIpDetail(ip, projectId, period);
+      setSelectedIp(res?.data ?? res);
+    } catch { /* silent */ } finally { setIpDetailLoading(false); }
+  }, [projectId, period]);
 
   const loadVisitors = useCallback(async (offset = 0) => {
     setVisitorsLoading(true);
@@ -160,14 +283,8 @@ export default function SessionExplorerComponent({
       setVisitors(data?.visitors || []);
       setVisitorsTotal(data?.total || 0);
       setVisitorsOffset(offset);
-    } catch {
-      /* silent */
-    } finally {
-      setVisitorsLoading(false);
-    }
+    } catch { /* silent */ } finally { setVisitorsLoading(false); }
   }, [projectId, period]);
-
-  // ── Load sessions ─────────────────────────────────────────
 
   const loadSessions = useCallback(async (offset = 0) => {
     setSessionsLoading(true);
@@ -177,56 +294,201 @@ export default function SessionExplorerComponent({
       setSessions(data?.sessions || []);
       setSessionsTotal(data?.total || 0);
       setSessionsOffset(offset);
-    } catch {
-      /* silent */
-    } finally {
-      setSessionsLoading(false);
-    }
+    } catch { /* silent */ } finally { setSessionsLoading(false); }
   }, [projectId, period]);
-
-  // ── Load session detail ───────────────────────────────────
 
   const loadDetail = useCallback(async (sessionId: string) => {
     setDetailLoading(true);
     try {
       const res = await ApiService.getSessionDetail(sessionId);
       setSelectedSession(res?.data ?? res);
-    } catch {
-      /* silent */
-    } finally {
-      setDetailLoading(false);
-    }
+    } catch { /* silent */ } finally { setDetailLoading(false); }
   }, []);
 
-  // ── Initial fetch ─────────────────────────────────────────
+  // ── Effects ───────────────────────────────────────────────
 
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
+    loadIps(0);
     loadVisitors(0);
     loadSessions(0);
-  }, [loadVisitors, loadSessions]);
-
-  // ── Refetch on period change ──────────────────────────────
+  }, [loadIps, loadVisitors, loadSessions]);
 
   useEffect(() => {
     didFetch.current = false;
+    loadIps(0);
     loadVisitors(0);
     loadSessions(0);
     setSelectedSession(null);
-  }, [period, loadVisitors, loadSessions]);
+    setSelectedIp(null);
+  }, [period, loadIps, loadVisitors, loadSessions]);
 
-  // ── Session Detail Panel ──────────────────────────────────
+  // ── Back handler ──────────────────────────────────────────
+
+  const handleBack = () => {
+    setSelectedSession(null);
+    setSelectedIp(null);
+  };
+
+  // ══════════════════════════════════════════════════════════
+  // ── IP DETAIL VIEW ────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  if (selectedIp) {
+    const ip = selectedIp;
+    return (
+      <div className={styles.explorer}>
+        <div className={styles.detailHeader}>
+          <button className={styles.backBtn} onClick={handleBack}>
+            <ArrowLeft size={14} strokeWidth={2.2} />
+            Back to list
+          </button>
+          <span className={styles.detailSessionId}>
+            <Network size={14} strokeWidth={2.2} />
+            {ip.ip}
+          </span>
+        </div>
+
+        {ipDetailLoading ? (
+          <LoadingIndicatorComponent size="small" label="Loading IP profile…" />
+        ) : (
+          <>
+            {/* ── IP Summary Stats ── */}
+            <div className={styles.ipSummaryBar}>
+              <div className={styles.ipSummaryStat}>
+                <Hash size={12} strokeWidth={2} />
+                <span>{ip.sessionCount} sessions</span>
+              </div>
+              <div className={styles.ipSummaryStat}>
+                <Users size={12} strokeWidth={2} />
+                <span>{ip.visitorIds?.length || 0} visitor IDs</span>
+              </div>
+              <div className={styles.ipSummaryStat}>
+                <Clock size={12} strokeWidth={2} />
+                <span>{formatElapsedTime(ip.totalDuration / 1000)} total</span>
+              </div>
+              {ip.projects && ip.projects.length > 1 && (
+                <div className={styles.ipSummaryStat}>
+                  <Globe size={12} strokeWidth={2} />
+                  <span>{ip.projects.length} projects</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Metadata ── */}
+            <div className={styles.metaGrid}>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>IP Address</span>
+                <span className={styles.metaValue}>{ip.ip}</span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>Browser</span>
+                <span className={styles.metaValue}>
+                  {ip.lastBrowser?.name || "Unknown"} {ip.lastBrowser?.version || ""}
+                </span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>OS</span>
+                <span className={styles.metaValue}>
+                  {ip.lastOs?.name || "Unknown"} {ip.lastOs?.version || ""}
+                </span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>Device</span>
+                <span className={styles.metaValue}>
+                  <DeviceIcon type={ip.lastDevice?.type} />
+                  {ip.lastDevice?.type || "desktop"}
+                </span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>Location</span>
+                <span className={styles.metaValue}>
+                  {ip.lastGeo?.city && ip.lastGeo.city !== "(not set)" ? `${ip.lastGeo.city}, ` : ""}
+                  {ip.lastGeo?.country || "Unknown"}
+                </span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>First Seen</span>
+                <span className={styles.metaValue}>{ip.firstSeen ? formatTimestamp(ip.firstSeen) : "—"}</span>
+              </div>
+              <div className={styles.metaCard}>
+                <span className={styles.metaLabel}>Last Seen</span>
+                <span className={styles.metaValue}>{ip.lastSeen ? formatTimestamp(ip.lastSeen) : "—"}</span>
+              </div>
+              {ip.lastFingerprintId && (
+                <div className={styles.metaCard}>
+                  <span className={styles.metaLabel}>Fingerprint</span>
+                  <span className={styles.metaValue}>{ip.lastFingerprintId.slice(0, 16)}…</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Visitor IDs linked to this IP ── */}
+            {ip.visitorIds && ip.visitorIds.length > 0 && (
+              <div className={styles.linkedSection}>
+                <div className={styles.linkedHeader}>
+                  <Users size={13} strokeWidth={2.2} />
+                  <span>Linked Visitor IDs</span>
+                  <span className={styles.linkedCount}>{ip.visitorIds.length}</span>
+                </div>
+                <div className={styles.sessionPills}>
+                  {ip.visitorIds.map((vid) => (
+                    <span key={vid} className={styles.visitorPill} title={vid}>
+                      {vid.slice(0, 12)}…
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Sessions under this IP ── */}
+            {ip.sessions && ip.sessions.length > 0 && (
+              <div className={styles.linkedSection}>
+                <div className={styles.linkedHeader}>
+                  <Clock size={13} strokeWidth={2.2} />
+                  <span>Sessions</span>
+                  <span className={styles.linkedCount}>{ip.sessions.length}</span>
+                </div>
+                <div className={styles.sessionPills}>
+                  {ip.sessions.slice(0, 20).map((s) => (
+                    <button
+                      key={s.sessionId}
+                      className={styles.sessionPill}
+                      onClick={() => loadDetail(s.sessionId)}
+                      title={`${s.sessionId} · ${formatElapsedTime(s.duration / 1000)} · ${s.browser?.name || "?"}`}
+                    >
+                      {s.sessionId.slice(0, 8)}…
+                      <span className={styles.pillDuration}>
+                        {formatElapsedTime(s.duration / 1000)}
+                      </span>
+                    </button>
+                  ))}
+                  {ip.sessions.length > 20 && (
+                    <span className={styles.sessionPillMore}>+{ip.sessions.length - 20} more</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Cross-session timeline ── */}
+            <TimelineView timeline={ip.timeline} label="Cross-Session Timeline" />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // ── SESSION DETAIL VIEW ───────────────────────────────────
+  // ══════════════════════════════════════════════════════════
 
   if (selectedSession) {
     const s = selectedSession;
     return (
       <div className={styles.explorer}>
         <div className={styles.detailHeader}>
-          <button
-            className={styles.backBtn}
-            onClick={() => setSelectedSession(null)}
-          >
+          <button className={styles.backBtn} onClick={handleBack}>
             <ArrowLeft size={14} strokeWidth={2.2} />
             Back to list
           </button>
@@ -239,59 +501,51 @@ export default function SessionExplorerComponent({
           <LoadingIndicatorComponent size="small" label="Loading session…" />
         ) : (
           <>
-            {/* ── Session Metadata ── */}
             <div className={styles.metaGrid}>
-              <div className={styles.metaCard}>
-                <span className={styles.metaLabel}>Visitor ID</span>
-                <span className={styles.metaValue}>
-                  {s.visitorId?.slice(0, 12)}…
-                </span>
+              <div className={`${styles.metaCard} ${styles.metaCardHighlight}`}>
+                <span className={styles.metaLabel}>IP Address</span>
+                <button
+                  className={styles.metaValueLink}
+                  onClick={() => loadIpDetail(s.ip)}
+                >
+                  {s.ip}
+                  <ChevronRight size={12} strokeWidth={2.2} />
+                </button>
               </div>
               <div className={styles.metaCard}>
-                <span className={styles.metaLabel}>IP Address</span>
-                <span className={styles.metaValue}>{s.ip}</span>
+                <span className={styles.metaLabel}>Visitor ID</span>
+                <span className={styles.metaValue}>{s.visitorId?.slice(0, 16)}…</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Duration</span>
-                <span className={styles.metaValue}>
-                  {formatElapsedTime(s.duration / 1000)}
-                </span>
+                <span className={styles.metaValue}>{formatElapsedTime(s.duration / 1000)}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Browser</span>
-                <span className={styles.metaValue}>
-                  {s.browser?.name || "Unknown"} {s.browser?.version || ""}
-                </span>
+                <span className={styles.metaValue}>{s.browser?.name || "Unknown"} {s.browser?.version || ""}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>OS</span>
-                <span className={styles.metaValue}>
-                  {s.os?.name || "Unknown"} {s.os?.version || ""}
-                </span>
+                <span className={styles.metaValue}>{s.os?.name || "Unknown"} {s.os?.version || ""}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Device</span>
                 <span className={styles.metaValue}>
                   <DeviceIcon type={s.device?.type} />
-                  {s.device?.type || "desktop"}
-                  {s.device?.vendor ? ` · ${s.device.vendor}` : ""}
+                  {s.device?.type || "desktop"}{s.device?.vendor ? ` · ${s.device.vendor}` : ""}
                 </span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Location</span>
                 <span className={styles.metaValue}>
-                  {s.geo?.city && s.geo.city !== "(not set)"
-                    ? `${s.geo.city}, `
-                    : ""}
+                  {s.geo?.city && s.geo.city !== "(not set)" ? `${s.geo.city}, ` : ""}
                   {s.geo?.country || "Unknown"}
                 </span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Viewport</span>
                 <span className={styles.metaValue}>
-                  {s.viewport
-                    ? `${s.viewport.width} × ${s.viewport.height}`
-                    : "N/A"}
+                  {s.viewport ? `${s.viewport.width} × ${s.viewport.height}` : "N/A"}
                 </span>
               </div>
               {s.referrer && (
@@ -302,15 +556,11 @@ export default function SessionExplorerComponent({
               )}
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Started</span>
-                <span className={styles.metaValue}>
-                  {formatTimestamp(s.createdAt)}
-                </span>
+                <span className={styles.metaValue}>{formatTimestamp(s.createdAt)}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Last Active</span>
-                <span className={styles.metaValue}>
-                  {formatTimestamp(s.updatedAt)}
-                </span>
+                <span className={styles.metaValue}>{formatTimestamp(s.updatedAt)}</span>
               </div>
               {s.locale && (
                 <div className={styles.metaCard}>
@@ -320,7 +570,6 @@ export default function SessionExplorerComponent({
               )}
             </div>
 
-            {/* ── UTM Parameters ── */}
             {s.utm && Object.keys(s.utm).length > 0 && (
               <div className={styles.utmBar}>
                 {Object.entries(s.utm).map(([key, value]) => (
@@ -332,79 +581,8 @@ export default function SessionExplorerComponent({
               </div>
             )}
 
-            {/* ── Timeline ── */}
-            <div className={styles.timelineSection}>
-              <div className={styles.timelineHeader}>
-                <Clock size={14} strokeWidth={2.2} />
-                <span>Activity Timeline</span>
-                <span className={styles.timelineCount}>
-                  {s.timeline?.length || 0} events
-                </span>
-              </div>
+            <TimelineView timeline={s.timeline} />
 
-              {s.timeline && s.timeline.length > 0 ? (
-                <div className={styles.timeline}>
-                  {s.timeline.map((entry, i) => (
-                    <div
-                      key={i}
-                      className={`${styles.timelineItem} ${entry.type === "pageview" ? styles.timelinePageview : styles.timelineEvent}`}
-                    >
-                      <div className={styles.timelineDot}>
-                        {entry.type === "pageview" ? (
-                          <Eye size={10} strokeWidth={2.5} />
-                        ) : (
-                          <Zap size={10} strokeWidth={2.5} />
-                        )}
-                      </div>
-                      <div className={styles.timelineConnector} />
-                      <div className={styles.timelineContent}>
-                        <div className={styles.timelineRow}>
-                          <span className={styles.timelineType}>
-                            {entry.type === "pageview" ? "Page View" : "Event"}
-                          </span>
-                          <span className={styles.timelineTime}>
-                            {formatTimestamp(entry.timestamp)}
-                          </span>
-                        </div>
-                        {entry.type === "pageview" ? (
-                          <span className={styles.timelineDetail}>
-                            {entry.path || entry.url}
-                            {entry.title && (
-                              <span className={styles.timelineTitle}>
-                                {" "}
-                                — {entry.title}
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className={styles.timelineDetail}>
-                            <span className={styles.timelineCategory}>
-                              {entry.category}
-                            </span>
-                            <ChevronRight size={10} strokeWidth={2.5} />
-                            <span className={styles.timelineAction}>
-                              {entry.action}
-                            </span>
-                            {entry.label && (
-                              <span className={styles.timelineLabel}>
-                                {" "}
-                                · {entry.label}
-                              </span>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.emptyTimeline}>
-                  No activity recorded for this session.
-                </div>
-              )}
-            </div>
-
-            {/* ── User Agent ── */}
             {s.userAgent && (
               <div className={styles.userAgentBar}>
                 <FileText size={12} strokeWidth={2} />
@@ -417,12 +595,24 @@ export default function SessionExplorerComponent({
     );
   }
 
-  // ── List View ─────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+  // ── LIST VIEW ─────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
 
   return (
     <div className={styles.explorer}>
       {/* ── Tab Bar ── */}
       <div className={styles.tabBar}>
+        <button
+          className={`${styles.tab} ${tab === "ips" ? styles.tabActive : ""}`}
+          onClick={() => setTab("ips")}
+        >
+          <Network size={13} strokeWidth={2.2} />
+          IPs
+          {ipsTotal > 0 && (
+            <span className={styles.tabBadge}>{formatNumber(ipsTotal)}</span>
+          )}
+        </button>
         <button
           className={`${styles.tab} ${tab === "visitors" ? styles.tabActive : ""}`}
           onClick={() => setTab("visitors")}
@@ -444,6 +634,85 @@ export default function SessionExplorerComponent({
           )}
         </button>
       </div>
+
+      {/* ── IPs Tab ── */}
+      {tab === "ips" && (
+        <>
+          {ipsLoading ? (
+            <LoadingIndicatorComponent size="small" label="Loading IPs…" className="loading-center" />
+          ) : ipUsers.length === 0 ? (
+            <div className={styles.emptyState}>No IP data available.</div>
+          ) : (
+            <>
+              <div className={styles.cardList}>
+                {ipUsers.map((u) => (
+                  <button
+                    key={u.ip}
+                    className={styles.visitorCard}
+                    onClick={() => loadIpDetail(u.ip)}
+                  >
+                    <div className={styles.visitorHeader}>
+                      <div className={styles.visitorId}>
+                        <Network size={12} strokeWidth={2.2} />
+                        {u.ip}
+                      </div>
+                      <span className={styles.visitorSessionCount}>
+                        {u.sessionCount} session{u.sessionCount !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    <div className={styles.visitorMeta}>
+                      {u.visitorIds.length > 0 && (
+                        <span className={styles.visitorMetaItem}>
+                          <Users size={11} strokeWidth={2} />
+                          {u.visitorIds.length} visitor{u.visitorIds.length !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                      <span className={styles.visitorMetaItem}>
+                        <Globe size={11} strokeWidth={2} />
+                        {u.lastBrowser?.name || "Unknown"}
+                      </span>
+                      <span className={styles.visitorMetaItem}>
+                        <Monitor size={11} strokeWidth={2} />
+                        {u.lastOs?.name || "Unknown"}
+                      </span>
+                      <span className={styles.visitorMetaItem}>
+                        <DeviceIcon type={u.lastDevice?.type} />
+                        {u.lastDevice?.type || "desktop"}
+                      </span>
+                      {u.lastGeo?.country && (
+                        <span className={styles.visitorMetaItem}>
+                          <MapPin size={11} strokeWidth={2} />
+                          {u.lastGeo.city && u.lastGeo.city !== "(not set)" ? `${u.lastGeo.city}, ` : ""}
+                          {u.lastGeo.country}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className={styles.visitorFooter}>
+                      <span className={styles.visitorTime}>
+                        <Clock size={11} strokeWidth={2} />
+                        {formatElapsedTime(u.totalDuration / 1000)} total
+                      </span>
+                      <span className={styles.visitorSeen}>
+                        Last seen {formatTimeAgo(u.lastSeen)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {ipsTotal > 50 && (
+                <div className={styles.pagination}>
+                  <button className={styles.pageBtn} disabled={ipsOffset === 0} onClick={() => loadIps(Math.max(0, ipsOffset - 50))}>Previous</button>
+                  <span className={styles.pageInfo}>{ipsOffset + 1}–{Math.min(ipsOffset + 50, ipsTotal)} of {formatNumber(ipsTotal)}</span>
+                  <button className={styles.pageBtn} disabled={ipsOffset + 50 >= ipsTotal} onClick={() => loadIps(ipsOffset + 50)}>Next</button>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
 
       {/* ── Visitors Tab ── */}
       {tab === "visitors" && (
@@ -468,6 +737,15 @@ export default function SessionExplorerComponent({
                     </div>
 
                     <div className={styles.visitorMeta}>
+                      {v.lastIp && (
+                        <button
+                          className={`${styles.visitorMetaItem} ${styles.visitorMetaLink}`}
+                          onClick={() => loadIpDetail(v.lastIp)}
+                        >
+                          <Network size={11} strokeWidth={2} />
+                          {v.lastIp}
+                        </button>
+                      )}
                       <span className={styles.visitorMetaItem}>
                         <Globe size={11} strokeWidth={2} />
                         {v.lastBrowser?.name || "Unknown"}
@@ -483,9 +761,7 @@ export default function SessionExplorerComponent({
                       {v.lastGeo?.country && (
                         <span className={styles.visitorMetaItem}>
                           <MapPin size={11} strokeWidth={2} />
-                          {v.lastGeo.city && v.lastGeo.city !== "(not set)"
-                            ? `${v.lastGeo.city}, `
-                            : ""}
+                          {v.lastGeo.city && v.lastGeo.city !== "(not set)" ? `${v.lastGeo.city}, ` : ""}
                           {v.lastGeo.country}
                         </span>
                       )}
@@ -501,48 +777,25 @@ export default function SessionExplorerComponent({
                       </span>
                     </div>
 
-                    {/* ── Session pills ── */}
                     <div className={styles.sessionPills}>
                       {v.sessionIds.slice(0, 5).map((sid) => (
-                        <button
-                          key={sid}
-                          className={styles.sessionPill}
-                          onClick={() => loadDetail(sid)}
-                          title={sid}
-                        >
+                        <button key={sid} className={styles.sessionPill} onClick={() => loadDetail(sid)} title={sid}>
                           {sid.slice(0, 8)}…
                         </button>
                       ))}
                       {v.sessionIds.length > 5 && (
-                        <span className={styles.sessionPillMore}>
-                          +{v.sessionIds.length - 5} more
-                        </span>
+                        <span className={styles.sessionPillMore}>+{v.sessionIds.length - 5} more</span>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Pagination */}
               {visitorsTotal > 50 && (
                 <div className={styles.pagination}>
-                  <button
-                    className={styles.pageBtn}
-                    disabled={visitorsOffset === 0}
-                    onClick={() => loadVisitors(Math.max(0, visitorsOffset - 50))}
-                  >
-                    Previous
-                  </button>
-                  <span className={styles.pageInfo}>
-                    {visitorsOffset + 1}–{Math.min(visitorsOffset + 50, visitorsTotal)} of {formatNumber(visitorsTotal)}
-                  </span>
-                  <button
-                    className={styles.pageBtn}
-                    disabled={visitorsOffset + 50 >= visitorsTotal}
-                    onClick={() => loadVisitors(visitorsOffset + 50)}
-                  >
-                    Next
-                  </button>
+                  <button className={styles.pageBtn} disabled={visitorsOffset === 0} onClick={() => loadVisitors(Math.max(0, visitorsOffset - 50))}>Previous</button>
+                  <span className={styles.pageInfo}>{visitorsOffset + 1}–{Math.min(visitorsOffset + 50, visitorsTotal)} of {formatNumber(visitorsTotal)}</span>
+                  <button className={styles.pageBtn} disabled={visitorsOffset + 50 >= visitorsTotal} onClick={() => loadVisitors(visitorsOffset + 50)}>Next</button>
                 </div>
               )}
             </>
@@ -562,64 +815,35 @@ export default function SessionExplorerComponent({
               <div className={styles.sessionTable}>
                 <div className={styles.sessionTableHeader}>
                   <span>Session</span>
-                  <span>Visitor</span>
+                  <span>IP</span>
                   <span>Device</span>
                   <span>Location</span>
                   <span>Duration</span>
                   <span>Last Active</span>
                 </div>
                 {sessions.map((s) => (
-                  <button
-                    key={s.sessionId}
-                    className={styles.sessionTableRow}
-                    onClick={() => loadDetail(s.sessionId)}
-                  >
-                    <span className={styles.sessionTableId}>
-                      {s.sessionId.slice(0, 8)}…
-                    </span>
-                    <span className={styles.sessionTableVisitor}>
-                      {s.visitorId?.slice(0, 8) || "—"}…
-                    </span>
+                  <button key={s.sessionId} className={styles.sessionTableRow} onClick={() => loadDetail(s.sessionId)}>
+                    <span className={styles.sessionTableId}>{s.sessionId.slice(0, 8)}…</span>
+                    <span className={styles.sessionTableIp}>{s.ip}</span>
                     <span className={styles.sessionTableDevice}>
                       <DeviceIcon type={s.device?.type} />
                       {s.browser?.name || "?"} / {s.os?.name || "?"}
                     </span>
                     <span className={styles.sessionTableGeo}>
-                      {s.geo?.city && s.geo.city !== "(not set)"
-                        ? `${s.geo.city}, `
-                        : ""}
+                      {s.geo?.city && s.geo.city !== "(not set)" ? `${s.geo.city}, ` : ""}
                       {s.geo?.country || "—"}
                     </span>
-                    <span className={styles.sessionTableDuration}>
-                      {formatElapsedTime(s.duration / 1000)}
-                    </span>
-                    <span className={styles.sessionTableTime}>
-                      {formatTimeAgo(s.updatedAt)}
-                    </span>
+                    <span className={styles.sessionTableDuration}>{formatElapsedTime(s.duration / 1000)}</span>
+                    <span className={styles.sessionTableTime}>{formatTimeAgo(s.updatedAt)}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Pagination */}
               {sessionsTotal > 50 && (
                 <div className={styles.pagination}>
-                  <button
-                    className={styles.pageBtn}
-                    disabled={sessionsOffset === 0}
-                    onClick={() => loadSessions(Math.max(0, sessionsOffset - 50))}
-                  >
-                    Previous
-                  </button>
-                  <span className={styles.pageInfo}>
-                    {sessionsOffset + 1}–{Math.min(sessionsOffset + 50, sessionsTotal)} of {formatNumber(sessionsTotal)}
-                  </span>
-                  <button
-                    className={styles.pageBtn}
-                    disabled={sessionsOffset + 50 >= sessionsTotal}
-                    onClick={() => loadSessions(sessionsOffset + 50)}
-                  >
-                    Next
-                  </button>
+                  <button className={styles.pageBtn} disabled={sessionsOffset === 0} onClick={() => loadSessions(Math.max(0, sessionsOffset - 50))}>Previous</button>
+                  <span className={styles.pageInfo}>{sessionsOffset + 1}–{Math.min(sessionsOffset + 50, sessionsTotal)} of {formatNumber(sessionsTotal)}</span>
+                  <button className={styles.pageBtn} disabled={sessionsOffset + 50 >= sessionsTotal} onClick={() => loadSessions(sessionsOffset + 50)}>Next</button>
                 </div>
               )}
             </>

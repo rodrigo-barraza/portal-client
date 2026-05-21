@@ -681,4 +681,37 @@ export default class ApiService {
     });
     return ApiService._request(`/session-analytics/visitors?${qs.toString()}`);
   }
+
+  /**
+   * Get IP-based pseudo-user listing with session/visitor aggregation.
+   */
+  static async getSessionIpUsers(
+    projectId: string,
+    period = "30d",
+    limit = 50,
+    offset = 0,
+  ) {
+    const qs = new URLSearchParams({
+      projectId,
+      period,
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return ApiService._request(`/session-analytics/ips?${qs.toString()}`);
+  }
+
+  /**
+   * Get single IP detail — all sessions + cross-session timeline.
+   */
+  static async getSessionIpDetail(
+    ip: string,
+    projectId?: string,
+    period = "all",
+  ) {
+    const qs = new URLSearchParams({ period });
+    if (projectId) qs.set("projectId", projectId);
+    return ApiService._request(
+      `/session-analytics/ip/${encodeURIComponent(ip)}?${qs.toString()}`,
+    );
+  }
 }
