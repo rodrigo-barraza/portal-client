@@ -1,0 +1,626 @@
+/* ── Session Explorer ─────────────────────────────────────────── */
+
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Tab Bar ─────────────────────────────────────────────────── */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  padding: 3px;
+  width: fit-content;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-radius: var(--border-radius-sm);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.tabActive {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.tabBadge {
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  background: var(--bg-tertiary);
+  padding: 1px 6px;
+  border-radius: 8px;
+  color: var(--text-muted);
+}
+
+.tabActive .tabBadge {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-color);
+}
+
+/* ── Visitor Cards ───────────────────────────────────────────── */
+
+.cardList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+.visitorCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  animation: fadeIn var(--transition-normal) ease-out both;
+
+  &:hover {
+    border-color: var(--border-subtle);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.visitorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.visitorId {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.visitorSessionCount {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--accent-color);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.visitorMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.visitorMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.visitorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+}
+
+.visitorTime {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.visitorSeen {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ── Session Pills ───────────────────────────────────────────── */
+
+.sessionPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sessionPill {
+  padding: 3px 8px;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--accent-color);
+  }
+}
+
+.sessionPillMore {
+  padding: 3px 8px;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+/* ── Sessions Table ──────────────────────────────────────────── */
+
+.sessionTable {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.sessionTableHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.sessionTableRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--bg-tertiary);
+  }
+}
+
+.sessionTableId {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.sessionTableVisitor {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.sessionTableDevice {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+}
+
+.sessionTableGeo {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.sessionTableDuration {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.sessionTableTime {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ── Detail View ─────────────────────────────────────────────── */
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+}
+
+.detailSessionId {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Meta Grid ───────────────────────────────────────────────── */
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.metaCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.metaLabel {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.metaValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+/* ── UTM Bar ─────────────────────────────────────────────────── */
+
+.utmBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.utmTag {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.utmKey {
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.utmValue {
+  padding: 2px 8px;
+  color: var(--text-secondary);
+}
+
+/* ── Timeline ────────────────────────────────────────────────── */
+
+.timelineSection {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.timelineCount {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.timeline {
+  position: relative;
+  padding: 16px 18px;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 16px;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.timelineDot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timelinePageview .timelineDot {
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+}
+
+.timelineEvent .timelineDot {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.timelineConnector {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timelineItem:last-child .timelineConnector {
+  display: none;
+}
+
+.timelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  padding-top: 2px;
+}
+
+.timelineRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timelineType {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.timelinePageview .timelineType {
+  color: #6366f1;
+}
+
+.timelineEvent .timelineType {
+  color: #f59e0b;
+}
+
+.timelineTime {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.timelineDetail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.timelineTitle {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.timelineCategory {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.timelineAction {
+  color: var(--text-secondary);
+}
+
+.timelineLabel {
+  color: var(--text-muted);
+}
+
+/* ── User Agent Bar ──────────────────────────────────────────── */
+
+.userAgentBar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.userAgentBar svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Empty State ─────────────────────────────────────────────── */
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.emptyTimeline {
+  padding: 24px 18px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Pagination ──────────────────────────────────────────────── */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.pageBtn {
+  padding: 6px 14px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.pageInfo {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* ── Animations ──────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .sessionTableHeader,
+  .sessionTableRow {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .sessionTableGeo,
+  .sessionTableDuration,
+  .sessionTableTime {
+    display: none;
+  }
+
+  .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cardList {
+    grid-template-columns: 1fr;
+  }
+}

@@ -654,4 +654,31 @@ export default class ApiService {
       `/session-analytics/cross-client?period=${period}`,
     );
   }
+
+  /**
+   * Get single session detail with page views, events, and timeline.
+   */
+  static async getSessionDetail(sessionId: string) {
+    return ApiService._request(
+      `/session-analytics/session/${encodeURIComponent(sessionId)}`,
+    );
+  }
+
+  /**
+   * Get distinct visitors with session counts and device metadata.
+   */
+  static async getSessionVisitors(
+    projectId: string,
+    period = "30d",
+    limit = 50,
+    offset = 0,
+  ) {
+    const qs = new URLSearchParams({
+      projectId,
+      period,
+      limit: String(limit),
+      offset: String(offset),
+    });
+    return ApiService._request(`/session-analytics/visitors?${qs.toString()}`);
+  }
 }

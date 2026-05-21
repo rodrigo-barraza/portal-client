@@ -23,6 +23,7 @@ import {
   Laptop,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
+import SessionExplorerComponent from "./SessionExplorerComponent";
 import {
   formatElapsedTime,
   formatNumber,
@@ -740,6 +741,9 @@ export default function SessionAnalyticsComponent({
               </div>
             </div>
           )}
+
+          {/* ── Session Explorer (Visitors + Sessions + Timeline) ── */}
+          <SessionExplorerComponent projectId={projectId} period={period} />
         </>
       )}
     </div>
