@@ -48,6 +48,14 @@ export default class ApiService {
   }
 
   /**
+   * Reload the vault registry — picks up newly added projects
+   * without requiring a portal-service container restart.
+   */
+  static async reloadRegistry() {
+    return ApiService._request("/services/reload", { method: "POST" });
+  }
+
+  /**
    * Restart a containerized service via SSH + Docker Compose.
 
    */
