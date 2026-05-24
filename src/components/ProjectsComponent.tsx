@@ -123,7 +123,7 @@ export default function ProjectsComponent() {
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
-  const [filters, setFilters] = useState<Record<string, any[]>>({
+  const [filters, setFilters] = useState<Record<string, string[]>>({
     status: [],
     visibility: [],
     environment: [],

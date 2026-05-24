@@ -112,7 +112,7 @@ function parseAnsi(text: string) {
         underline ||
         strikethrough
       ) {
-        const style: Record<string, any> = {};
+        const style: Record<string, string | number> = {};
         if (color) style.color = color;
         if (bgColor) style.backgroundColor = bgColor;
         if (bold) style.fontWeight = 700;
@@ -185,7 +185,7 @@ function parseAnsi(text: string) {
       underline ||
       strikethrough
     ) {
-      const style: Record<string, any> = {};
+      const style: Record<string, string | number> = {};
       if (color) style.color = color;
       if (bgColor) style.backgroundColor = bgColor;
       if (bold) style.fontWeight = 700;

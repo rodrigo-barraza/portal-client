@@ -120,7 +120,7 @@ function StatCard({
   delay = 0,
   delta,
 }: {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
   label: string;
   value: string | number;
   sub?: string;
