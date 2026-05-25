@@ -54,13 +54,13 @@
   --log-default: #c8c8cd;
 
   /* ── Category Colors ──────────────────────────────────── */
-  --cat-actions: #f59e0b;
-  --cat-communication: #3b82f6;
-  --cat-containment: #a855f7;
-  --cat-inputs: #10b981;
-  --cat-navigation: #ec4899;
-  --cat-indicators: #06b6d4;
-  --cat-layout: #8b5cf6;
+  --component-category-actions: #f59e0b;
+  --component-category-communication: #3b82f6;
+  --component-category-containment: #a855f7;
+  --component-category-inputs: #10b981;
+  --component-category-navigation: #ec4899;
+  --component-category-indicators: #06b6d4;
+  --component-category-layout: #8b5cf6;
 }
 
 /* ── Dark Mode ─────────────────────────────────────────────── */

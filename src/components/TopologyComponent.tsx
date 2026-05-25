@@ -935,8 +935,8 @@ export default function TopologyComponent() {
       if (e.button !== 0) return;
       const element = e.target as Element;
       if (
-        element.closest("[data-topo-node]") ||
-        element.closest("[data-topo-cluster]")
+        element.closest("[data-topology-node]") ||
+        element.closest("[data-topology-cluster]")
       )
         return;
       setSelectedNode(null); // deselect on background click
@@ -1402,7 +1402,7 @@ export default function TopologyComponent() {
                             stroke: LIBS_CLUSTER_COLOR.stroke,
                             fill: LIBS_CLUSTER_COLOR.fill,
                           }}
-                          data-topo-cluster
+                          data-topology-cluster
                           onMouseDown={(e) =>
                             handleClusterMouseDown(e, "libs", -1)
                           }
@@ -1414,7 +1414,7 @@ export default function TopologyComponent() {
                           width={16}
                           height={16}
                           className={styles.clusterDragHandle}
-                          data-topo-cluster
+                          data-topology-cluster
                           onMouseDown={(e) =>
                             handleClusterMouseDown(e, "libs", -1)
                           }
@@ -1459,7 +1459,7 @@ export default function TopologyComponent() {
                             ry={10}
                             className={`${styles.clusterRect} ${styles.clusterDraggable}`}
                             style={{ stroke: tc.stroke, fill: tc.fill }}
-                            data-topo-cluster
+                            data-topology-cluster
                             onMouseDown={(e) =>
                               handleClusterMouseDown(e, "tier", li)
                             }
@@ -1471,7 +1471,7 @@ export default function TopologyComponent() {
                             width={16}
                             height={16}
                             className={styles.clusterDragHandle}
-                            data-topo-cluster
+                            data-topology-cluster
                             onMouseDown={(e) =>
                               handleClusterMouseDown(e, "tier", li)
                             }
@@ -1525,7 +1525,7 @@ export default function TopologyComponent() {
                             stroke: `color-mix(in srgb, ${tc.color} 35%, transparent)`,
                             fill: `color-mix(in srgb, ${tc.color} 4%, transparent)`,
                           }}
-                          data-topo-cluster
+                          data-topology-cluster
                           onMouseDown={(e) =>
                             handleClusterMouseDown(e, "type", gi)
                           }
@@ -1536,7 +1536,7 @@ export default function TopologyComponent() {
                           width={16}
                           height={16}
                           className={styles.clusterDragHandle}
-                          data-topo-cluster
+                          data-topology-cluster
                           onMouseDown={(e) =>
                             handleClusterMouseDown(e, "type", gi)
                           }
@@ -1589,7 +1589,7 @@ export default function TopologyComponent() {
                       y={pos.y}
                       width={NODE_W}
                       height={NODE_H}
-                      data-topo-node
+                      data-topology-node
                       style={{ overflow: "visible" }}
                     >
                       <div

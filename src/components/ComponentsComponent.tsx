@@ -330,7 +330,7 @@ export default function ComponentsComponent({
                   {formatSize(comp.sizeKb)}
                 </span>
                 <span
-                  className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}
+                  className={`${styles.cardCategory} ${styles[`component-category-${comp.category}`]}`}
                 >
                   {CATEGORIES[comp.category]?.label}
                 </span>
@@ -371,7 +371,7 @@ export default function ComponentsComponent({
               </div>
               <div className={styles.listStats}>
                 <span
-                  className={`${styles.cardCategory} ${styles[`cat_${comp.category}`]}`}
+                  className={`${styles.cardCategory} ${styles[`component-category-${comp.category}`]}`}
                 >
                   {CATEGORIES[comp.category]?.label}
                 </span>

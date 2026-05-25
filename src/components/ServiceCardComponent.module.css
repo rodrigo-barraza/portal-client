@@ -135,7 +135,7 @@
 }
 
 .serviceTypeBadge {
-  color: var(--cat-actions);
+  color: var(--component-category-actions);
   background: rgba(245, 158, 11, 0.1);
 }
 

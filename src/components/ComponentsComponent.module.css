@@ -359,32 +359,32 @@
   letter-spacing: 0.02em;
 }
 
-.cat_actions {
-  color: var(--cat-actions);
+.component-category-actions {
+  color: var(--component-category-actions);
   background: rgba(245, 158, 11, 0.1);
 }
-.cat_communication {
-  color: var(--cat-communication);
+.component-category-communication {
+  color: var(--component-category-communication);
   background: rgba(59, 130, 246, 0.1);
 }
-.cat_containment {
+.component-category-containment {
   color: var(--node-infra);
   background: rgba(168, 85, 247, 0.1);
 }
-.cat_inputs {
-  color: var(--cat-inputs);
+.component-category-inputs {
+  color: var(--component-category-inputs);
   background: rgba(16, 185, 129, 0.1);
 }
-.cat_navigation {
-  color: var(--cat-navigation);
+.component-category-navigation {
+  color: var(--component-category-navigation);
   background: rgba(236, 72, 153, 0.1);
 }
-.cat_indicators {
+.component-category-indicators {
   color: var(--node-service);
   background: rgba(6, 182, 212, 0.1);
 }
-.cat_layout {
-  color: var(--cat-layout);
+.component-category-layout {
+  color: var(--component-category-layout);
   background: rgba(139, 92, 246, 0.1);
 }
 
