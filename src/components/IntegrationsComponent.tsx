@@ -10,6 +10,8 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import {
   BadgeComponent,
@@ -17,6 +19,7 @@ import {
   InputComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
+  TableComponent,
 } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
@@ -50,7 +53,74 @@ export default function IntegrationsComponent() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const didFetch = useRef(false);
+
+  const columns = [
+    {
+      key: "provider",
+      label: "Provider",
+      sortable: true,
+      sortValue: (row: IntegrationItem) => row.provider,
+      render: (row: IntegrationItem) => (
+        <div className={styles.tableProviderCell}>
+          {row.configured ? (
+            <div className={styles.statusDotConfigured} style={{ width: 16, height: 16 }}>
+              <Check size={9} strokeWidth={3} />
+            </div>
+          ) : (
+            <div className={styles.statusDotMissing} style={{ width: 16, height: 16 }}>
+              <X size={9} strokeWidth={3} />
+            </div>
+          )}
+          <span className={styles.tableProviderName}>{row.provider}</span>
+        </div>
+      ),
+    },
+    {
+      key: "envKey",
+      label: "Environment Key",
+      sortable: true,
+      sortValue: (row: IntegrationItem) => row.envKey,
+      render: (row: IntegrationItem) => (
+        <code className={styles.tableEnvKey}>{row.envKey}</code>
+      ),
+    },
+    {
+      key: "maskedKey",
+      label: "Configured Value",
+      sortable: true,
+      sortValue: (row: IntegrationItem) => row.maskedKey || "",
+      render: (row: IntegrationItem) => (
+        row.maskedKey ? (
+          <code className={styles.tableMaskedKey}>{row.maskedKey}</code>
+        ) : (
+          <span className={styles.tableNotConfigured}>Not configured</span>
+        )
+      ),
+    },
+    {
+      key: "docs",
+      label: "Docs",
+      align: "center" as const,
+      render: (row: IntegrationItem) => (
+        row.docs ? (
+          <a
+            href={row.docs}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.docsLink}
+            title="Open provider docs"
+            style={{ margin: "0 auto" }}
+          >
+            <ExternalLink size={13} strokeWidth={2} />
+          </a>
+        ) : (
+          <span className={styles.tableNoDocs}>—</span>
+        )
+      ),
+    },
+  ];
 
   async function loadIntegrations() {
     try {
@@ -113,14 +183,34 @@ export default function IntegrationsComponent() {
             : `${data?.configuredCount ?? 0} of ${data?.totalCount ?? 0} API keys configured`
         }
       >
-        <ButtonComponent
-          variant="secondary"
-          icon={RefreshCw}
-          loading={refreshing}
-          onClick={handleRefresh}
-        >
-          Refresh
-        </ButtonComponent>
+        <div className={styles.headerControls}>
+          {!loading && (
+            <div className={styles.segmentedControl}>
+              <button
+                className={`${styles.segmentBtn} ${viewMode === "card" ? styles.segmentActive : ""}`}
+                onClick={() => setViewMode("card")}
+                title="Card view"
+              >
+                <LayoutGrid size={13} strokeWidth={2.2} />
+              </button>
+              <button
+                className={`${styles.segmentBtn} ${viewMode === "table" ? styles.segmentActive : ""}`}
+                onClick={() => setViewMode("table")}
+                title="Table view"
+              >
+                <Table2 size={13} strokeWidth={2.2} />
+              </button>
+            </div>
+          )}
+          <ButtonComponent
+            variant="secondary"
+            icon={RefreshCw}
+            loading={refreshing}
+            onClick={handleRefresh}
+          >
+            Refresh
+          </ButtonComponent>
+        </div>
       </PageHeaderComponent>
 
       {/* ── Search Bar ── */}
@@ -207,64 +297,73 @@ export default function IntegrationsComponent() {
                   </div>
                 </button>
 
-                {/* ── Integration Cards ── */}
+                {/* ── Integration Cards or Table ── */}
                 {!isCollapsed && (
-                  <div className={styles.integrationCards}>
-                    {cat.integrations.map((item: IntegrationItem) => (
-                      <div
-                        key={item.envKey}
-                        className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}
-                      >
-                        <div className={styles.cardHeader}>
-                          <div className={styles.cardStatus}>
-                            {item.configured ? (
-                              <div className={styles.statusDotConfigured}>
-                                <Check size={10} strokeWidth={3} />
+                  viewMode === "table" ? (
+                    <TableComponent<IntegrationItem>
+                      columns={columns}
+                      data={cat.integrations}
+                      getRowKey={(row: IntegrationItem) => row.envKey}
+                      emptyText="No integrations in this category"
+                    />
+                  ) : (
+                    <div className={styles.integrationCards}>
+                      {cat.integrations.map((item: IntegrationItem) => (
+                        <div
+                          key={item.envKey}
+                          className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}
+                        >
+                          <div className={styles.cardHeader}>
+                            <div className={styles.cardStatus}>
+                              {item.configured ? (
+                                <div className={styles.statusDotConfigured}>
+                                  <Check size={10} strokeWidth={3} />
+                                </div>
+                              ) : (
+                                <div className={styles.statusDotMissing}>
+                                  <X size={10} strokeWidth={3} />
+                                </div>
+                              )}
+                              <span className={styles.providerName}>
+                                {item.provider}
+                              </span>
+                            </div>
+                            {item.docs && (
+                              <a
+                                href={item.docs}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.docsLink}
+                                title="Open provider dashboard"
+                              >
+                                <ExternalLink size={13} strokeWidth={2} />
+                              </a>
+                            )}
+                          </div>
+
+                          <div className={styles.cardBody}>
+                            <div className={styles.keyRow}>
+                              <Key
+                                size={11}
+                                strokeWidth={2}
+                                className={styles.keyIcon}
+                              />
+                              <code className={styles.envKey}>{item.envKey}</code>
+                            </div>
+                            {item.maskedKey ? (
+                              <div className={styles.maskedKey}>
+                                <code>{item.maskedKey}</code>
                               </div>
                             ) : (
-                              <div className={styles.statusDotMissing}>
-                                <X size={10} strokeWidth={3} />
+                              <div className={styles.notConfigured}>
+                                <span>Not configured</span>
                               </div>
                             )}
-                            <span className={styles.providerName}>
-                              {item.provider}
-                            </span>
                           </div>
-                          {item.docs && (
-                            <a
-                              href={item.docs}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.docsLink}
-                              title="Open provider dashboard"
-                            >
-                              <ExternalLink size={13} strokeWidth={2} />
-                            </a>
-                          )}
                         </div>
-
-                        <div className={styles.cardBody}>
-                          <div className={styles.keyRow}>
-                            <Key
-                              size={11}
-                              strokeWidth={2}
-                              className={styles.keyIcon}
-                            />
-                            <code className={styles.envKey}>{item.envKey}</code>
-                          </div>
-                          {item.maskedKey ? (
-                            <div className={styles.maskedKey}>
-                              <code>{item.maskedKey}</code>
-                            </div>
-                          ) : (
-                            <div className={styles.notConfigured}>
-                              <span>Not configured</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             );

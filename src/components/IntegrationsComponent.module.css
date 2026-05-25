@@ -419,3 +419,85 @@
     padding: 16px;
   }
 }
+
+/* ── View Switcher Header Controls ── */
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.segmentedControl {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  padding: 2px;
+}
+
+.segmentBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-radius: var(--border-radius-sm);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+
+  &:hover:not(.segmentActive) {
+    color: var(--text-secondary);
+  }
+}
+
+.segmentActive {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Table Cell Render Customizations ── */
+
+.tableProviderCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableProviderName {
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--text-primary);
+}
+
+.tableEnvKey {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.tableMaskedKey {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.tableNotConfigured {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.tableNoDocs {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+

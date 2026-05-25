@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LayoutGrid, Table2, TrendingUp, ArrowRight, Activity } from "lucide-react";
-import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
+import { LoadingIndicatorComponent, TableComponent } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import type { GAOverview, SessionProject } from "../types/portal";
@@ -26,11 +27,24 @@ interface GASummary {
   loaded: boolean;
 }
 
+interface CombinedPropertyRow {
+  id: string;
+  type: "ga" | "session";
+  label: string;
+  subtitle: string;
+  users: number | null;
+  pageviews: number | null;
+  sessions: number | null;
+  activeNow: number | null;
+  linkHref: string;
+}
+
 export default function PropertyListingComponent({
   properties,
 }: {
   properties: GAProperty[];
 }) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState("card");
   const [summaries, setSummaries] = useState<Record<string, GASummary>>({});
   const [sessionProjects, setSessionProjects] = useState<SessionProject[]>([]);
@@ -62,6 +76,104 @@ export default function PropertyListingComponent({
       })
       .catch(() => {});
   }, [properties]);
+
+  const tableData: CombinedPropertyRow[] = [
+    ...properties.map((prop) => {
+      const s = summaries[prop.id];
+      return {
+        id: prop.id,
+        type: "ga" as const,
+        label: prop.label,
+        subtitle: prop.measurementId || prop.id,
+        users: s?.overview ? s.overview.totalUsers : null,
+        pageviews: s?.overview ? s.overview.pageviews : null,
+        sessions: s?.overview ? s.overview.sessions : null,
+        activeNow: s?.realtime ? s.realtime.activeUsers : null,
+        linkHref: `/web-analytics/${prop.id}`,
+      };
+    }),
+    ...sessionProjects.map((proj) => ({
+      id: proj.projectId,
+      type: "session" as const,
+      label: proj.projectId,
+      subtitle: "sessions-service",
+      users: proj.uniqueVisitors,
+      pageviews: null,
+      sessions: proj.sessionCount,
+      activeNow: null,
+      linkHref: `/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`,
+    })),
+  ];
+
+  const columns = [
+    {
+      key: "label",
+      label: "Property",
+      sortable: true,
+      sortValue: (row: CombinedPropertyRow) => row.label,
+      render: (row: CombinedPropertyRow) => (
+        <div className={styles.propertyListName}>
+          <span className={styles.propertyListLabel}>{row.label}</span>
+          <span className={styles.propertyListId}>{row.subtitle}</span>
+        </div>
+      ),
+    },
+    {
+      key: "users",
+      label: "Users",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: CombinedPropertyRow) => row.users ?? -1,
+      render: (row: CombinedPropertyRow) => (
+        <span className={styles.propertyListValue}>
+          {row.users !== null ? formatNumber(row.users) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "pageviews",
+      label: "Pageviews",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: CombinedPropertyRow) => row.pageviews ?? -1,
+      render: (row: CombinedPropertyRow) => (
+        <span className={styles.propertyListValue}>
+          {row.pageviews !== null ? formatNumber(row.pageviews) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "sessions",
+      label: "Sessions",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: CombinedPropertyRow) => row.sessions ?? -1,
+      render: (row: CombinedPropertyRow) => (
+        <span className={styles.propertyListValue}>
+          {row.sessions !== null ? formatNumber(row.sessions) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "activeNow",
+      label: "Active Now",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: CombinedPropertyRow) => row.activeNow ?? -1,
+      render: (row: CombinedPropertyRow) => (
+        <div className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}>
+          {row.activeNow !== null ? (
+            <>
+              <div className={styles.propertyListRealtimeDot} />
+              {formatNumber(row.activeNow)}
+            </>
+          ) : (
+            "—"
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -228,77 +340,13 @@ export default function PropertyListingComponent({
 
       {/* ── List / Table View ── */}
       {viewMode === "list" && (
-        <div className={styles.propertyList}>
-          <div className={styles.propertyListHeader}>
-            <span className={styles.propertyListHeaderCell}>Property</span>
-            <span className={styles.propertyListHeaderCell}>Users</span>
-            <span className={styles.propertyListHeaderCell}>Pageviews</span>
-            <span className={styles.propertyListHeaderCell}>Sessions</span>
-            <span className={styles.propertyListHeaderCell}>Active Now</span>
-          </div>
-          {properties.map((prop: GAProperty) => {
-            const s = summaries[prop.id];
-            return (
-              <Link
-                key={prop.id}
-                href={`/web-analytics/${prop.id}`}
-                className={styles.propertyListRow}
-              >
-                <div className={styles.propertyListName}>
-                  <span className={styles.propertyListLabel}>{prop.label}</span>
-                  <span className={styles.propertyListId}>
-                    {prop.measurementId || prop.id}
-                  </span>
-                </div>
-                <span className={styles.propertyListValue}>
-                  {s?.overview ? formatNumber(s.overview.totalUsers) : "—"}
-                </span>
-                <span className={styles.propertyListValue}>
-                  {s?.overview ? formatNumber(s.overview.pageviews) : "—"}
-                </span>
-                <span className={styles.propertyListValue}>
-                  {s?.overview ? formatNumber(s.overview.sessions) : "—"}
-                </span>
-                <div
-                  className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}
-                >
-                  {s?.realtime ? (
-                    <>
-                      <div className={styles.propertyListRealtimeDot} />
-                      {formatNumber(s.realtime.activeUsers)}
-                    </>
-                  ) : (
-                    "—"
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-
-          {/* ── Session projects in list view ── */}
-          {sessionProjects.map((proj) => (
-            <Link
-              key={proj.projectId}
-              href={`/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`}
-              className={styles.propertyListRow}
-            >
-              <div className={styles.propertyListName}>
-                <span className={styles.propertyListLabel}>{proj.projectId}</span>
-                <span className={styles.propertyListId}>sessions-service</span>
-              </div>
-              <span className={styles.propertyListValue}>
-                {formatNumber(proj.uniqueVisitors)}
-              </span>
-              <span className={styles.propertyListValue}>—</span>
-              <span className={styles.propertyListValue}>
-                {formatNumber(proj.sessionCount)}
-              </span>
-              <div className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}>
-                —
-              </div>
-            </Link>
-          ))}
-        </div>
+        <TableComponent<CombinedPropertyRow>
+          columns={columns}
+          data={tableData}
+          getRowKey={(row: CombinedPropertyRow) => row.id}
+          onRowClick={(row: CombinedPropertyRow) => router.push(row.linkHref)}
+          emptyText="No properties or projects found"
+        />
       )}
     </>
   );
