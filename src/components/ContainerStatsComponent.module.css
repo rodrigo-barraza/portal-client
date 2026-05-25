@@ -33,13 +33,13 @@
   gap: 14px;
   padding: 18px 20px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
   transition: border-color var(--transition-fast);
 
   &:hover {
-    border-color: var(--border-subtle);
+    border-color: var(--calculated-border-subtle);
   }
 }
 
@@ -278,7 +278,7 @@
   opacity: 0.4;
   cursor: not-allowed;
   color: var(--text-muted) !important;
-  border-color: var(--border-color) !important;
+  border-color: var(--calculated-border-color) !important;
   background: var(--bg-elevated) !important;
 }
 
@@ -359,7 +359,7 @@
   gap: 6px;
   padding: 3px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   width: fit-content;
 }
@@ -392,7 +392,7 @@
 .devicePillActive {
   background: var(--bg-elevated);
   color: var(--text-primary);
-  border-color: var(--border-subtle);
+  border-color: var(--calculated-border-subtle);
   font-weight: 600;
 }
 
@@ -464,7 +464,7 @@
   flex-wrap: wrap;
   gap: 16px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   padding: 10px 16px;
   border-radius: var(--border-radius-sm);
   margin-bottom: 6px;
@@ -500,7 +500,7 @@
   gap: 4px;
   padding: 3px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: calc(var(--border-radius-sm) - 2px);
 }
 
@@ -534,7 +534,7 @@
   background: var(--bg-surface);
   color: var(--text-primary) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
 }
 
 /* ── Container Cards View ──────────────────────────────────────── */
@@ -548,7 +548,7 @@
 
 .containerCard {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 16px;
   display: flex;
@@ -564,7 +564,7 @@
   will-change: transform, border-color, box-shadow;
 
   &:hover {
-    border-color: var(--border-subtle);
+    border-color: var(--calculated-border-subtle);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
   }
@@ -619,7 +619,7 @@
   font-weight: 600;
   color: var(--text-muted);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   padding: 1px 6px;
   border-radius: 4px;
   text-transform: capitalize;

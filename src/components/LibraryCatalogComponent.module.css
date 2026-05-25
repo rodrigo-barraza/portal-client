@@ -22,7 +22,7 @@
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
 }
@@ -38,7 +38,7 @@
   background: var(--bg-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out;
   flex-wrap: wrap;
@@ -66,7 +66,7 @@
   padding: 0 10px 0 30px;
   font-size: var(--font-size-sm);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
   transition:
@@ -78,7 +78,7 @@
 .searchInput:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-subtle);
+  box-shadow: 0 0 0 2px var(--calculated-accent-primary-subtle);
   width: 280px;
 }
 
@@ -109,7 +109,7 @@
   flex-direction: column;
   padding: 16px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   cursor: default;
   transition:
@@ -122,8 +122,8 @@
 .card:hover {
   border-color: var(--card-accent, var(--accent-primary));
   box-shadow:
-    0 0 0 1px var(--card-accent-subtle, var(--accent-primary-subtle)),
-    var(--shadow-md);
+    0 0 0 1px var(--card-accent-subtle, var(--calculated-accent-primary-subtle)),
+    var(--calculated-shadow-md);
   transform: translateY(-1px);
 }
 
@@ -168,7 +168,7 @@
   height: 20px;
   border-radius: var(--border-radius-sm);
   color: var(--color-success);
-  background: var(--color-success-subtle);
+  background: var(--calculated-color-success-subtle);
 }
 
 .cardName {
@@ -200,7 +200,7 @@
   align-items: center;
   gap: 10px;
   padding-top: 10px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--calculated-border-subtle);
 }
 
 .cardStat {

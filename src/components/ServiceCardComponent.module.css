@@ -1,7 +1,7 @@
 .card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-top: 3px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
+  border-top: 3px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 20px;
   display: flex;
@@ -29,7 +29,7 @@
 }
 
 .card.unhealthy {
-  border-color: var(--color-danger-subtle);
+  border-color: var(--calculated-color-danger-subtle);
   border-top-color: var(--color-danger);
 }
 
@@ -121,12 +121,12 @@
 
 .stageProduction {
   color: var(--color-info);
-  background: var(--color-info-subtle);
+  background: var(--calculated-color-info-subtle);
 }
 
 .stageDevelopment {
   color: var(--color-warning);
-  background: var(--color-warning-subtle);
+  background: var(--calculated-color-warning-subtle);
 }
 
 .stageInfra {
@@ -214,7 +214,7 @@
 
 .errorBar {
   padding: 8px 10px;
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
   font-family: var(--font-mono);
@@ -229,7 +229,7 @@
   gap: 6px;
   padding-bottom: 8px;
   margin-bottom: 2px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .actionButton {
@@ -258,7 +258,7 @@
   opacity: 0.6;
   cursor: not-allowed;
   color: var(--text-muted) !important;
-  border-color: var(--border-color) !important;
+  border-color: var(--calculated-border-color) !important;
   background: var(--bg-elevated) !important;
 }
 
@@ -388,7 +388,7 @@
   gap: 8px;
   padding: 8px 10px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 

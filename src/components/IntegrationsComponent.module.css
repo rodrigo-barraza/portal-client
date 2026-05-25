@@ -14,7 +14,7 @@
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   transition:
     border-color var(--transition-fast),
@@ -41,7 +41,7 @@
   background: var(--bg-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   height: var(--input-height);
   animation: fadeIn var(--transition-normal) ease-out;
@@ -86,7 +86,7 @@
     color var(--transition-fast);
 
   &:hover {
-    background: var(--color-danger-subtle);
+    background: var(--calculated-color-danger-subtle);
     color: var(--color-danger);
   }
 }
@@ -110,7 +110,7 @@
   background: var(--bg-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
@@ -170,7 +170,7 @@
   background: var(--bg-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -192,7 +192,7 @@
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--accent-primary-subtle);
+    background: var(--calculated-accent-primary-subtle);
   }
 }
 
@@ -230,17 +230,17 @@
 }
 
 .allConfigured {
-  background: var(--color-success-subtle);
+  background: var(--calculated-color-success-subtle);
   color: var(--color-success);
 }
 
 .partialConfigured {
-  background: var(--color-warning-subtle);
+  background: var(--calculated-color-warning-subtle);
   color: var(--color-warning);
 }
 
 .noneConfigured {
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
   color: var(--color-danger);
 }
 
@@ -250,8 +250,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1px;
-  background: var(--border-color);
-  border-top: 1px solid var(--border-color);
+  background: var(--calculated-border-color);
+  border-top: 1px solid var(--calculated-border-color);
 }
 
 /* ── Single Integration Card ── */
@@ -274,7 +274,7 @@
 }
 
 .integrationCard.unconfigured {
-  border-left: 2px solid var(--border-color);
+  border-left: 2px solid var(--calculated-border-color);
   opacity: 0.7;
 
   &:hover {
@@ -301,7 +301,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--color-success-subtle);
+  background: var(--calculated-color-success-subtle);
   color: var(--color-success);
   flex-shrink: 0;
 }
@@ -338,7 +338,7 @@
 
   &:hover {
     color: var(--accent-primary);
-    background: var(--accent-primary-subtle);
+    background: var(--calculated-accent-primary-subtle);
   }
 }
 
@@ -371,7 +371,7 @@
 .maskedKey {
   padding: 6px 10px;
   background: var(--bg-base);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--calculated-border-subtle);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 
@@ -387,7 +387,7 @@
 .notConfigured {
   padding: 6px 10px;
   background: var(--bg-base);
-  border: 1px dashed var(--border-color);
+  border: 1px dashed var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 
   span {

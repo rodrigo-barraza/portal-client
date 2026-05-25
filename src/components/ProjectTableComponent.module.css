@@ -118,7 +118,7 @@
   &:hover {
     color: var(--text-primary);
     background: var(--bg-elevated);
-    border-color: var(--border-color);
+    border-color: var(--calculated-border-color);
   }
 }
 
@@ -161,7 +161,7 @@
   opacity: 0.4;
   cursor: not-allowed;
   color: var(--text-muted) !important;
-  border-color: var(--border-color) !important;
+  border-color: var(--calculated-border-color) !important;
   background: var(--bg-elevated) !important;
 }
 

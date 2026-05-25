@@ -52,7 +52,7 @@
   gap: 16px;
   padding: 20px 24px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
   position: relative;
@@ -169,13 +169,13 @@
   gap: 14px;
   padding: 18px 20px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
   transition: border-color var(--transition-fast);
 
   &:hover {
-    border-color: var(--border-subtle);
+    border-color: var(--calculated-border-subtle);
   }
 }
 
@@ -224,7 +224,7 @@
 
 .chartPanel {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -235,7 +235,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .chartHeaderIcon {
@@ -302,7 +302,7 @@
 
 .panel {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -313,7 +313,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .panelIcon {
@@ -451,7 +451,7 @@
   gap: 12px;
   padding: 14px 18px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
 }
@@ -506,7 +506,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
@@ -530,7 +530,7 @@
   padding: 10px 14px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   white-space: nowrap;
 }
 
@@ -598,7 +598,7 @@
 
 .sessionDetailRow td {
   padding: 0 !important;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .sessionDetailContent {
@@ -660,7 +660,7 @@
   gap: 12px;
   align-items: center;
   padding: 10px 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   transition: background var(--transition-fast);
   font-size: var(--font-size-sm);
 }
@@ -718,7 +718,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--calculated-border-color);
 }
 
 .paginationInfo {
@@ -738,7 +738,7 @@
   font-weight: 600;
   color: var(--text-secondary);
   background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   transition:
@@ -768,7 +768,7 @@
   color: var(--text-secondary);
   font-size: var(--font-size-base);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   text-align: center;
   padding: 40px;

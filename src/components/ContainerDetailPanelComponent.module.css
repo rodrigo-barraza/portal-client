@@ -35,7 +35,7 @@
   letter-spacing: 0.06em;
   color: var(--text-muted);
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   margin: 0;
 }
 
@@ -108,7 +108,7 @@
   &[data-state="created"] {
     color: var(--text-muted);
     background: var(--bg-elevated);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--calculated-border-color);
   }
 }
 
@@ -126,7 +126,7 @@
   background: var(--bg-surface);
   padding: 2px 6px;
   border-radius: 3px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
 }
 
 /* ── Metrics Grid ─────────────────────────────────────────────── */
@@ -147,7 +147,7 @@
   font-size: var(--font-size-sm);
   padding: 20px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
@@ -163,7 +163,7 @@
   gap: 4px;
   padding: 10px 14px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 

@@ -15,7 +15,7 @@
 
 .deviceCard {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 0;
   overflow: hidden;
@@ -38,7 +38,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
 .deviceInfo {
@@ -133,7 +133,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 24px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
 .hostnameLabel {
@@ -157,7 +157,7 @@
   font-size: 0.8125rem;
   color: var(--text-tertiary);
   line-height: 1.5;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
 /* ── Services Section ── */
@@ -186,7 +186,7 @@
 
   &:hover {
     color: var(--text-secondary);
-    background: var(--accent-primary-subtle);
+    background: var(--calculated-accent-primary-subtle);
   }
 
   &:focus-visible {
@@ -237,11 +237,11 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 24px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--calculated-border-subtle);
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--accent-primary-subtle);
+    background: var(--calculated-accent-primary-subtle);
   }
 }
 
@@ -287,12 +287,12 @@
 
 .stageProduction {
   color: var(--color-info);
-  background: var(--color-info-subtle);
+  background: var(--calculated-color-info-subtle);
 }
 
 .stageDevelopment {
   color: var(--color-warning);
-  background: var(--color-warning-subtle);
+  background: var(--calculated-color-warning-subtle);
 }
 
 .serviceRight {
@@ -403,7 +403,7 @@
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   transition:
     border-color var(--transition-fast),
@@ -413,7 +413,7 @@
   &:hover:not(:disabled) {
     border-color: var(--accent-primary);
     color: var(--accent-primary);
-    background: var(--accent-primary-subtle);
+    background: var(--calculated-accent-primary-subtle);
   }
 }
 

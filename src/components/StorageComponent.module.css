@@ -40,7 +40,7 @@
 
 .breadcrumbItem:hover {
   color: var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 .breadcrumbItem.active {
@@ -64,7 +64,7 @@
 
 .segmentedControl {
   display: flex;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
@@ -89,7 +89,7 @@
 
 .segmentActive {
   color: var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 /* ── Bucket Grid ── */
@@ -102,7 +102,7 @@
 
 .bucketCard {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 0;
   overflow: hidden;
@@ -190,7 +190,7 @@
   padding: 10px 22px;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--calculated-border-subtle);
   font-family: var(--font-mono);
 }
 
@@ -221,7 +221,7 @@
 .skeletonLine {
   height: 14px;
   border-radius: 4px;
-  background: var(--border-color);
+  background: var(--calculated-border-color);
   position: relative;
   overflow: hidden;
   will-change: transform;
@@ -260,7 +260,7 @@
   grid-template-columns: 1fr 100px 100px 120px;
   gap: 12px;
   padding: 8px 20px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
@@ -305,7 +305,7 @@
 
 .objectListContainer {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
@@ -315,7 +315,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -340,7 +340,7 @@
   grid-template-columns: 1fr 100px 160px 80px;
   gap: 12px;
   padding: 8px 20px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
@@ -357,7 +357,7 @@
   gap: 12px;
   padding: 10px 20px;
   align-items: center;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
   transition: background var(--transition-fast);
   animation: fadeIn 200ms ease-out both;
 }
@@ -367,7 +367,7 @@
 }
 
 .objectRow:hover {
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 .folderRow {
@@ -416,7 +416,7 @@
   border-radius: 4px;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--calculated-border-subtle);
 }
 
 .objectSize {
@@ -459,12 +459,12 @@
 
 .actionBtn:hover {
   color: var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 .actionBtn.danger:hover {
   color: var(--color-danger);
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
 }
 
 /* ── Grid View Header ── */
@@ -487,7 +487,7 @@
 
 .gridCard {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
@@ -545,7 +545,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--calculated-border-subtle);
 }
 
 .gridCardName {
@@ -618,7 +618,7 @@
 
 .previewPanel {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   width: 90vw;
   max-width: 800px;
@@ -627,7 +627,7 @@
   display: flex;
   flex-direction: column;
   animation: popoverInUp 250ms ease-out;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--calculated-shadow-lg);
 }
 
 .previewHeader {
@@ -635,7 +635,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   flex-shrink: 0;
 }
 
@@ -737,7 +737,7 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 20px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--calculated-border-color);
   flex-shrink: 0;
 }
 
@@ -778,7 +778,7 @@
   padding: 0 10px 0 32px;
   font-size: 0.8125rem;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
   width: 240px;
@@ -791,7 +791,7 @@
   width: 300px;
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-glow);
+  box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
 }
 
 /* ── Total Size Badge ── */
@@ -827,7 +827,7 @@
 
 .storagePanel {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -838,7 +838,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .storagePanelIcon {
@@ -969,7 +969,7 @@
 /* ── Image / Volume List ──────────────────────────────────────────── */
 
 .imageList {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--calculated-border-color);
   padding: 14px 18px;
   display: flex;
   flex-direction: column;

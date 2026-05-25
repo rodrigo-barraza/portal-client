@@ -47,7 +47,7 @@
 
 .sidebarLink.active {
   color: var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 .sidebarIcon {
@@ -74,7 +74,7 @@
 
 .section {
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 12px;
   padding: 18px 24px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
 .sectionIconWrap {
@@ -95,7 +95,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--border-radius-sm);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
   color: var(--accent-primary);
   flex-shrink: 0;
 }
@@ -131,7 +131,7 @@
   justify-content: space-between;
   gap: 20px;
   padding: 16px 24px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--calculated-border-subtle);
   transition: background var(--transition-fast);
 }
 
@@ -140,7 +140,7 @@
 }
 
 .settingRow:hover {
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 .settingInfo {
@@ -174,7 +174,7 @@
   height: 24px;
   border-radius: 12px;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   cursor: pointer;
   transition:
     background var(--transition-fast),
@@ -201,7 +201,7 @@
 .toggle.active {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 12px var(--accent-primary-glow);
+  box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
 .toggle.active::after {
@@ -224,7 +224,7 @@
   font-weight: 500;
   color: var(--text-primary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   min-width: 140px;
@@ -240,7 +240,7 @@
 .select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-glow);
+  box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
 }
 
 .selectChevron {
@@ -264,7 +264,7 @@
   text-align: center;
   color: var(--text-primary);
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   transition:
     border-color var(--transition-fast),
@@ -278,7 +278,7 @@
 .numberInput:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary-glow);
+  box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
 }
 
 /* ── Unit Suffix (e.g. "px", "s") ── */
@@ -299,7 +299,7 @@
 
 .segmentedControl {
   display: flex;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
@@ -311,7 +311,7 @@
   color: var(--text-tertiary);
   background: transparent;
   border: none;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--calculated-border-color);
   cursor: pointer;
   transition:
     color var(--transition-fast),
@@ -329,7 +329,7 @@
 
 .segmentBtn.active {
   color: var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  background: var(--calculated-accent-primary-subtle);
 }
 
 /* ── Color Swatch ── */
@@ -363,19 +363,19 @@
 /* ── Danger Zone ── */
 
 .dangerSection {
-  border-color: color-mix(in srgb, var(--color-danger) 25%, var(--border-color));
+  border-color: color-mix(in srgb, var(--color-danger) 25%, var(--calculated-border-color));
 }
 
 .dangerSection .sectionHeader {
   border-bottom-color: color-mix(
     in srgb,
     var(--color-danger) 15%,
-    var(--border-subtle)
+    var(--calculated-border-subtle)
   );
 }
 
 .dangerSection .sectionIconWrap {
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
   color: var(--color-danger);
 }
 
@@ -384,7 +384,7 @@
 }
 
 .dangerSection .settingRow:hover {
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
 }
 
 .dangerBtn {
@@ -406,7 +406,7 @@
 }
 
 .dangerBtn:hover {
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
   border-color: var(--color-danger);
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-danger) 20%, transparent);
 }
@@ -416,7 +416,7 @@
 .footer {
   margin-top: 24px;
   padding: 20px 0;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--calculated-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -464,9 +464,9 @@
   font-weight: 600;
   color: var(--text-tertiary);
   background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: 3px;
-  box-shadow: 0 1px 0 var(--border-color);
+  box-shadow: 0 1px 0 var(--calculated-border-color);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

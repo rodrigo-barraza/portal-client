@@ -25,7 +25,7 @@
   display: flex;
   gap: 2px;
   padding: 6px 8px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .tab {
@@ -76,7 +76,7 @@
   letter-spacing: 0.06em;
   color: var(--text-muted);
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
   margin: 0;
 }
 
@@ -200,7 +200,7 @@
   font-size: var(--font-size-sm);
   padding: 20px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
@@ -262,7 +262,7 @@
   width: 100%;
   height: 100%;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   user-select: none;
   transition:
@@ -293,7 +293,7 @@
 
 .miniNodeSelf {
   border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 12px var(--accent-primary-glow);
+  box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
 .miniNodeIconWrap {
@@ -348,7 +348,7 @@
   gap: 4px;
   padding: 10px 14px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
@@ -511,7 +511,7 @@
   gap: 2px;
   padding: 10px 12px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
@@ -549,7 +549,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 4px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--calculated-border-color);
 }
 
 .gaPageRow:last-child {
@@ -577,7 +577,7 @@
 
 .errorBar {
   padding: 8px 10px;
-  background: var(--color-danger-subtle);
+  background: var(--calculated-color-danger-subtle);
   border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
   font-size: var(--font-size-sm);
   font-family: var(--font-mono);
