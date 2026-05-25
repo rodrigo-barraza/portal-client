@@ -45,9 +45,9 @@ import styles from "./ContainerDetailPanelComponent.module.css";
 const MAX_SPARKLINE_POINTS = 60;
 
 function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
-  if (pct > thresholds[1]) return "var(--danger)";
-  if (pct > thresholds[0]) return "var(--warning)";
-  return "var(--success)";
+  if (pct > thresholds[1]) return "var(--color-danger)";
+  if (pct > thresholds[0]) return "var(--color-warning)";
+  return "var(--color-success)";
 }
 
 
@@ -416,7 +416,7 @@ export default function ContainerDetailPanel({
                     <span className={styles.detailLabel}>Swap</span>
                     <span
                       className={styles.detailValue}
-                      style={{ color: "var(--warning)" }}
+                      style={{ color: "var(--color-warning)" }}
                     >
                       {formatBytes(stats.memoryDetail.swap)}
                     </span>
@@ -443,7 +443,7 @@ export default function ContainerDetailPanel({
                     <span className={styles.detailLabel}>Major Faults</span>
                     <span
                       className={styles.detailValue}
-                      style={{ color: "var(--danger)" }}
+                      style={{ color: "var(--color-danger)" }}
                     >
                       {stats.memoryDetail.pgmajfault.toLocaleString()}
                     </span>

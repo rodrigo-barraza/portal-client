@@ -37,18 +37,18 @@ const DEVICE_ICON_MAP = {
  * Accent color per device type — used for the glow & icon tint.
  */
 const DEVICE_COLOR_MAP = {
-  Desktop: "var(--accent-color)",
-  SBC: "var(--success)",
-  NAS: "var(--info)",
+  Desktop: "var(--accent-primary)",
+  SBC: "var(--color-success)",
+  NAS: "var(--color-info)",
 };
 
 /**
  * Color by severity threshold for CPU/memory values.
  */
 function severityColor(pct: number, thresholds = [40, 80]) {
-  if (pct > thresholds[1]) return "var(--danger)";
-  if (pct > thresholds[0]) return "var(--warning)";
-  return "var(--success)";
+  if (pct > thresholds[1]) return "var(--color-danger)";
+  if (pct > thresholds[0]) return "var(--color-warning)";
+  return "var(--color-success)";
 }
 
 export default function DevicesComponent() {
@@ -172,7 +172,7 @@ export default function DevicesComponent() {
 function DeviceCard({ device, delay, containers }: { device: Device, delay: number, containers: Array<Partial<ContainerStats> & { name: string, device?: string }> }) {
   const [containersExpanded, setContainersExpanded] = useState(false);
   const DeviceIcon = DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
-  const accentColor = DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] || "var(--accent-color)";
+  const accentColor = DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] || "var(--accent-primary)";
   const runningCount = containers.filter((c) => c.state === "running").length;
   const allRunning =
     runningCount === containers.length && containers.length > 0;

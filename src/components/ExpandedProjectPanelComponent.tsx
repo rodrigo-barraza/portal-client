@@ -45,9 +45,9 @@ import type { PortalService, ContainerStats, GAOverview, GAPageRow } from "../ty
 
 const MAX_SPARKLINE_POINTS = 60;
 function severityColor(pct: number, thresholds = [40, 80]) {
-  if (pct > thresholds[1]) return "var(--danger)";
-  if (pct > thresholds[0]) return "var(--warning)";
-  return "var(--success)";
+  if (pct > thresholds[1]) return "var(--color-danger)";
+  if (pct > thresholds[0]) return "var(--color-warning)";
+  return "var(--color-success)";
 }
 
 const formatGADuration = (seconds: number) => {

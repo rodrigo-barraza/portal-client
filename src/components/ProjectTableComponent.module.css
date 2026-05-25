@@ -25,12 +25,12 @@
 }
 
 .iconHealthy {
-  color: var(--success);
+  color: var(--color-success);
   filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
 }
 
 .iconUnhealthy {
-  color: var(--danger);
+  color: var(--color-danger);
   filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.4));
 }
 
@@ -42,11 +42,11 @@
 /* ── Row health border ── */
 
 .rowHealthy {
-  border-left: 3px solid var(--success);
+  border-left: 3px solid var(--color-success);
 }
 
 .rowUnhealthy {
-  border-left: 3px solid var(--danger);
+  border-left: 3px solid var(--color-danger);
 }
 
 .rowNeutral {
@@ -117,7 +117,7 @@
 
   &:hover {
     color: var(--text-primary);
-    background: var(--bg-tertiary);
+    background: var(--bg-elevated);
     border-color: var(--border-color);
   }
 }
@@ -162,7 +162,7 @@
   cursor: not-allowed;
   color: var(--text-muted) !important;
   border-color: var(--border-color) !important;
-  background: var(--bg-tertiary) !important;
+  background: var(--bg-elevated) !important;
 }
 
 .stopBtn {

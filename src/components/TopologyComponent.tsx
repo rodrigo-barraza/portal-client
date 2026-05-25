@@ -1649,7 +1649,7 @@ export default function TopologyComponent() {
               <div
                 className={styles.legendDot}
                 style={{
-                  background: "var(--success)",
+                  background: "var(--color-success)",
                   boxShadow: "0 0 6px var(--success-subtle)",
                 }}
               />
@@ -1659,7 +1659,7 @@ export default function TopologyComponent() {
               <div
                 className={styles.legendDot}
                 style={{
-                  background: "var(--danger)",
+                  background: "var(--color-danger)",
                   boxShadow: "0 0 6px var(--danger-subtle)",
                 }}
               />

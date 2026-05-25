@@ -36,7 +36,7 @@
   align-items: flex-start;
   gap: 14px;
   padding: 18px 20px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -102,7 +102,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   transition:
@@ -110,8 +110,8 @@
     color var(--transition-fast);
 
   &:hover:not(:disabled) {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
   }
 }
 
@@ -133,7 +133,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-primary);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -175,7 +175,7 @@
 .segmentedControl {
   display: flex;
   align-items: center;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -207,8 +207,8 @@
 
 .segmentActive {
   color: var(--text-primary);
-  background: var(--accent-subtle);
-  box-shadow: inset 0 0 0 1px var(--accent-color);
+  background: var(--accent-primary-subtle);
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
 .segmentBtnIcon {
@@ -233,8 +233,8 @@
   margin-left: auto;
 
   &:hover {
-    color: var(--danger);
-    border-color: var(--danger);
+    color: var(--color-danger);
+    border-color: var(--color-danger);
   }
 }
 
@@ -299,7 +299,7 @@
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-tertiary);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 9px;
   letter-spacing: 0;

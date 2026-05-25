@@ -23,7 +23,7 @@
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
+    var(--bg-base) 0%,
     rgba(10, 10, 15, 0.8) 60%,
     transparent 100%
   );
@@ -32,7 +32,7 @@
 [data-theme="light"] .header {
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
+    var(--bg-base) 0%,
     rgba(245, 245, 247, 0.85) 60%,
     transparent 100%
   );
@@ -41,7 +41,7 @@
 [data-theme="tropical"] .header {
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
+    var(--bg-base) 0%,
     rgba(12, 26, 26, 0.85) 60%,
     transparent 100%
   );
@@ -50,7 +50,7 @@
 [data-theme="oceanic"] .header {
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
+    var(--bg-base) 0%,
     rgba(6, 13, 24, 0.85) 60%,
     transparent 100%
   );
@@ -59,7 +59,7 @@
 [data-theme="muted"] .header {
   background: linear-gradient(
     to bottom,
-    var(--bg-primary) 0%,
+    var(--bg-base) 0%,
     rgba(221, 222, 227, 0.85) 60%,
     transparent 100%
   );
@@ -102,7 +102,7 @@
 .viewToggle {
   display: flex;
   align-items: center;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -133,12 +133,12 @@
 
 .viewToggleBtn:hover {
   color: var(--text-secondary);
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
 }
 
 .viewToggleActive {
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
 }
 
 .viewToggleActive::after {
@@ -149,7 +149,7 @@
   right: 4px;
   height: 2px;
   border-radius: 1px;
-  background: var(--accent-color);
+  background: var(--accent-primary);
   animation: fadeIn 0.15s ease-out;
 }
 
@@ -161,7 +161,7 @@
   align-items: center;
   width: 34px;
   height: 34px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -178,7 +178,7 @@
 
 .searchExpanded {
   width: 200px;
-  border-color: var(--accent-color);
+  border-color: var(--accent-primary);
 }
 
 .searchIcon {
@@ -226,7 +226,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   color: var(--text-muted);
   transition:
     color 0.15s ease,
@@ -246,7 +246,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   transition:
@@ -256,7 +256,7 @@
 
   &:hover {
     color: var(--text-primary);
-    border-color: var(--accent-color);
+    border-color: var(--accent-primary);
   }
 }
 
@@ -272,7 +272,7 @@
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  background: var(--bg-primary);
+  background: var(--bg-base);
 }
 
 .canvasWrapper.panning {
@@ -400,7 +400,7 @@ g:hover > .clusterDragHandle:hover {
   gap: 4px;
   width: 100%;
   height: 100%;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   cursor: grab;
@@ -437,7 +437,7 @@ g:hover > .clusterDragHandle:hover {
 
 /* Type colors — used by mini-topology in ExpandedProjectPanel */
 .nodeInternal .nodeIconWrap {
-  color: var(--success);
+  color: var(--color-success);
 }
 .nodeInternal.nodeHealthy {
   border-color: rgba(16, 185, 129, 0.1);
@@ -484,7 +484,7 @@ g:hover > .clusterDragHandle:hover {
   border-color: rgba(239, 68, 68, 0.15);
 }
 .nodeDown .nodeIconWrap {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 .nodeDown:hover {
   border-color: rgba(239, 68, 68, 0.35);
@@ -498,8 +498,8 @@ g:hover > .clusterDragHandle:hover {
 }
 
 .nodeSelected {
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 0 16px var(--accent-glow);
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 16px var(--accent-primary-glow);
   z-index: 5;
 }
 
@@ -574,13 +574,13 @@ g:hover > .clusterDragHandle:hover {
 }
 
 .statusHealthy {
-  background: var(--success);
+  background: var(--color-success);
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 
 .statusDown {
-  background: var(--danger);
+  background: var(--color-danger);
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
@@ -598,7 +598,7 @@ g:hover > .clusterDragHandle:hover {
   flex-direction: column;
   gap: 6px;
   padding: 12px 14px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out;
@@ -657,7 +657,7 @@ g:hover > .clusterDragHandle:hover {
 }
 
 .legendToggle:hover {
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
 }
 .legendToggleOff {
   opacity: 0.4;
@@ -670,7 +670,7 @@ g:hover > .clusterDragHandle:hover {
   font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-muted);
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   padding: 0 5px;
   border-radius: 8px;
   margin-left: auto;
@@ -693,7 +693,7 @@ g:hover > .clusterDragHandle:hover {
   position: fixed;
   z-index: 100;
   padding: 10px 14px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   pointer-events: none;
@@ -728,10 +728,10 @@ g:hover > .clusterDragHandle:hover {
   color: var(--text-secondary);
 }
 .tooltipHealthy {
-  color: var(--success);
+  color: var(--color-success);
 }
 .tooltipUnhealthy {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .tooltipDeps {
@@ -775,7 +775,7 @@ g:hover > .clusterDragHandle:hover {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-primary);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -798,7 +798,7 @@ g:hover > .clusterDragHandle:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   color: var(--text-secondary);
   font-size: var(--font-size-md);
   font-weight: 500;
@@ -812,7 +812,7 @@ g:hover > .clusterDragHandle:hover {
   }
   &:hover {
     color: var(--text-primary);
-    background: var(--bg-tertiary);
+    background: var(--bg-elevated);
   }
 }
 

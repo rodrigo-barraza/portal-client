@@ -21,7 +21,7 @@
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
@@ -65,7 +65,7 @@
   height: 32px;
   padding: 0 10px 0 30px;
   font-size: var(--font-size-sm);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
@@ -77,8 +77,8 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-subtle);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-subtle);
   width: 280px;
 }
 
@@ -108,7 +108,7 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   cursor: default;
@@ -120,9 +120,9 @@
 }
 
 .card:hover {
-  border-color: var(--card-accent, var(--accent-color));
+  border-color: var(--card-accent, var(--accent-primary));
   box-shadow:
-    0 0 0 1px var(--card-accent-subtle, var(--accent-subtle)),
+    0 0 0 1px var(--card-accent-subtle, var(--accent-primary-subtle)),
     var(--shadow-md);
   transform: translateY(-1px);
 }
@@ -167,8 +167,8 @@
   width: 20px;
   height: 20px;
   border-radius: var(--border-radius-sm);
-  color: var(--success);
-  background: var(--success-subtle);
+  color: var(--color-success);
+  background: var(--color-success-subtle);
 }
 
 .cardName {

@@ -73,7 +73,7 @@ function DonutChart({
         cy={center}
         r={radius}
         fill="none"
-        stroke="var(--bg-tertiary)"
+        stroke="var(--bg-elevated)"
         strokeWidth={strokeWidth}
       />
       {/* Segments */}

@@ -32,7 +32,7 @@
   align-items: flex-start;
   gap: 14px;
   padding: 18px 20px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -156,23 +156,23 @@
 }
 
 .iconHealthy {
-  color: var(--success);
+  color: var(--color-success);
   filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.4));
 }
 
 .iconUnhealthy {
-  color: var(--danger);
+  color: var(--color-danger);
   filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.4));
 }
 
 /* ── Row health border ── */
 
 .rowHealthy {
-  border-left: 3px solid var(--success);
+  border-left: 3px solid var(--color-success);
 }
 
 .rowUnhealthy {
-  border-left: 3px solid var(--danger);
+  border-left: 3px solid var(--color-danger);
 }
 
 /* ── Inline Metric Cell (CPU / RAM columns) ── */
@@ -201,7 +201,7 @@
 .miniBarTrack {
   width: 100%;
   height: 3px;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -279,7 +279,7 @@
   cursor: not-allowed;
   color: var(--text-muted) !important;
   border-color: var(--border-color) !important;
-  background: var(--bg-tertiary) !important;
+  background: var(--bg-elevated) !important;
 }
 
 .stopBtn {
@@ -358,7 +358,7 @@
   display: flex;
   gap: 6px;
   padding: 3px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   width: fit-content;
@@ -384,13 +384,13 @@
   text-transform: capitalize;
 
   &:hover:not(.devicePillActive) {
-    background: var(--bg-tertiary);
+    background: var(--bg-elevated);
     color: var(--text-primary);
   }
 }
 
 .devicePillActive {
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   color: var(--text-primary);
   border-color: var(--border-subtle);
   font-weight: 600;
@@ -401,7 +401,7 @@
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   padding: 1px 6px;
   border-radius: 10px;
   min-width: 18px;
@@ -463,7 +463,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   padding: 10px 16px;
   border-radius: var(--border-radius-sm);
@@ -499,7 +499,7 @@
   display: flex;
   gap: 4px;
   padding: 3px;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: calc(var(--border-radius-sm) - 2px);
 }
@@ -531,7 +531,7 @@
 }
 
 .toggleBtnActive {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   color: var(--text-primary) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
@@ -547,7 +547,7 @@
 }
 
 .containerCard {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   padding: 16px;
@@ -571,11 +571,11 @@
 }
 
 .cardHealthy {
-  border-left: 3px solid var(--success);
+  border-left: 3px solid var(--color-success);
 }
 
 .cardUnhealthy {
-  border-left: 3px solid var(--danger);
+  border-left: 3px solid var(--color-danger);
 }
 
 .cardActive {
@@ -618,7 +618,7 @@
   font-size: 0.625rem;
   font-weight: 600;
   color: var(--text-muted);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   padding: 1px 6px;
   border-radius: 4px;

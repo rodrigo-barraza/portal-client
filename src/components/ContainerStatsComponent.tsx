@@ -58,9 +58,9 @@ const POLL_INTERVAL = 5_000;
 const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
 
 function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
-  if (pct > thresholds[1]) return "var(--danger)";
-  if (pct > thresholds[0]) return "var(--warning)";
-  return "var(--success)";
+  if (pct > thresholds[1]) return "var(--color-danger)";
+  if (pct > thresholds[0]) return "var(--color-warning)";
+  return "var(--color-success)";
 }
 
 // ── Inline Percent Bar ──────────────────────────────────────────

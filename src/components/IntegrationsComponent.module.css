@@ -13,7 +13,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   transition:
@@ -21,8 +21,8 @@
     color var(--transition-fast);
 
   &:hover:not(:disabled) {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
   }
 }
 
@@ -79,15 +79,15 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   color: var(--text-muted);
   transition:
     background var(--transition-fast),
     color var(--transition-fast);
 
   &:hover {
-    background: var(--danger-subtle);
-    color: var(--danger);
+    background: var(--color-danger-subtle);
+    color: var(--color-danger);
   }
 }
 
@@ -131,7 +131,7 @@
 }
 
 .statConfigured .statValue {
-  color: var(--success);
+  color: var(--color-success);
 }
 
 .statMissing .statValue {
@@ -154,7 +154,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-primary);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -192,7 +192,7 @@
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--accent-subtle);
+    background: var(--accent-primary-subtle);
   }
 }
 
@@ -230,18 +230,18 @@
 }
 
 .allConfigured {
-  background: var(--success-subtle);
-  color: var(--success);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
 }
 
 .partialConfigured {
-  background: var(--warning-subtle);
-  color: var(--warning);
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
 }
 
 .noneConfigured {
-  background: var(--danger-subtle);
-  color: var(--danger);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
 }
 
 /* ── Integration Cards Grid ── */
@@ -258,19 +258,19 @@
 
 .integrationCard {
   padding: 14px 16px;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   display: flex;
   flex-direction: column;
   gap: 10px;
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--bg-tertiary);
+    background: var(--bg-elevated);
   }
 }
 
 .integrationCard.configured {
-  border-left: 2px solid var(--success);
+  border-left: 2px solid var(--color-success);
 }
 
 .integrationCard.unconfigured {
@@ -301,8 +301,8 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--success-subtle);
-  color: var(--success);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
   flex-shrink: 0;
 }
 
@@ -313,7 +313,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -337,8 +337,8 @@
     background var(--transition-fast);
 
   &:hover {
-    color: var(--accent-color);
-    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    background: var(--accent-primary-subtle);
   }
 }
 
@@ -370,7 +370,7 @@
 
 .maskedKey {
   padding: 6px 10px;
-  background: var(--bg-primary);
+  background: var(--bg-base);
   border: 1px solid var(--border-subtle);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -386,7 +386,7 @@
 
 .notConfigured {
   padding: 6px 10px;
-  background: var(--bg-primary);
+  background: var(--bg-base);
   border: 1px dashed var(--border-color);
   border-radius: var(--border-radius-sm);
 
@@ -431,7 +431,7 @@
 .segmentedControl {
   display: flex;
   gap: 2px;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-radius: var(--border-radius-sm);
   padding: 2px;
 }
@@ -458,7 +458,7 @@
 }
 
 .segmentActive {
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   color: var(--text-primary);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }

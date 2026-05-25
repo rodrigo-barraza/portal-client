@@ -33,7 +33,7 @@
   align-items: center;
   gap: 8px;
   padding: 7px 14px;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
@@ -50,15 +50,15 @@
 }
 
 .serviceChip:hover {
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
 }
 
 .serviceChip.active {
-  background: var(--accent-subtle);
+  background: var(--accent-primary-subtle);
   border-color: rgba(99, 102, 241, 0.25);
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .chipStateStopped {
@@ -81,19 +81,19 @@
 }
 
 .chipDotHealthy {
-  background: var(--success);
+  background: var(--color-success);
   box-shadow: 0 0 5px rgba(34, 197, 94, 0.35);
   animation: chipDotPulse 2.5s ease-in-out infinite;
 }
 
 .chipDotUnhealthy {
-  background: var(--danger);
+  background: var(--color-danger);
   box-shadow: 0 0 5px rgba(239, 68, 68, 0.35);
 }
 
 .serviceChip.active .chipDot {
-  background: var(--accent-color);
-  box-shadow: 0 0 6px var(--accent-glow);
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px var(--accent-primary-glow);
   animation: none;
 }
 
@@ -117,7 +117,7 @@
 /* ── Terminal Log Viewer ── */
 
 .terminal {
-  background: var(--bg-primary);
+  background: var(--bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -166,7 +166,7 @@
 }
 
 .terminalDot.connected {
-  background: var(--success);
+  background: var(--color-success);
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.35);
   animation: dotPulse 2.5s ease-in-out infinite;
 }
@@ -214,7 +214,7 @@
 .terminalBtn.active {
   background: rgba(99, 102, 241, 0.12);
   border-color: rgba(99, 102, 241, 0.2);
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .terminalBtn:disabled {
@@ -223,7 +223,7 @@
 }
 
 .restartSpin {
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .restartSpin svg {
@@ -373,7 +373,7 @@
   color: rgba(255, 255, 255, 0.3);
   font-size: 0.8125rem;
   animation: fadeIn var(--transition-normal) ease-out;
-  background: var(--bg-primary);
+  background: var(--bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--border-radius-sm);
 }
@@ -401,7 +401,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent-color);
+  background: var(--accent-primary);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -457,7 +457,7 @@
 .searchInput:focus {
   width: 200px;
   outline: none;
-  border-color: var(--accent-color);
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
 }
 

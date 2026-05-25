@@ -107,8 +107,8 @@ export const NAV_SECTIONS = [
 
 // ── Service status colors ───────────────────────────────────────
 export const SERVICE_STATUS = {
-  healthy: { label: "Healthy", color: "var(--success)" },
-  unhealthy: { label: "Down", color: "var(--danger)" },
+  healthy: { label: "Healthy", color: "var(--color-success)" },
+  unhealthy: { label: "Down", color: "var(--color-danger)" },
   unknown: { label: "Unknown", color: "var(--text-muted)" },
 };
 

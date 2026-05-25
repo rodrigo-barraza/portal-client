@@ -10,10 +10,10 @@
 
 :root {
   /* Indigo accent */
-  --accent-color: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.4);
-  --accent-subtle: rgba(99, 102, 241, 0.1);
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-primary-glow: rgba(99, 102, 241, 0.4);
+  --accent-primary-subtle: rgba(99, 102, 241, 0.1);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
 
   /* Layout overrides */
@@ -67,50 +67,50 @@
 /* Accent overrides — surface/text/semantic tokens come from base.css */
 
 [data-theme="dark"] {
-  --accent-color: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.4);
-  --accent-subtle: rgba(99, 102, 241, 0.1);
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-primary-glow: rgba(99, 102, 241, 0.4);
+  --accent-primary-subtle: rgba(99, 102, 241, 0.1);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 /* ── Light Mode ────────────────────────────────────────────── */
 
 [data-theme="light"] {
-  --accent-color: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-glow: rgba(79, 70, 229, 0.2);
-  --accent-subtle: rgba(79, 70, 229, 0.06);
+  --accent-primary: #4f46e5;
+  --accent-primary-hover: #4338ca;
+  --accent-primary-glow: rgba(79, 70, 229, 0.2);
+  --accent-primary-subtle: rgba(79, 70, 229, 0.06);
   --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.08);
 }
 
 /* ── Muted Mode ───────────────────────────────────────────── */
 
 [data-theme="muted"] {
-  --accent-color: #5550d9;
-  --accent-hover: #4843b8;
-  --accent-glow: rgba(85, 80, 217, 0.18);
-  --accent-subtle: rgba(85, 80, 217, 0.07);
+  --accent-primary: #5550d9;
+  --accent-primary-hover: #4843b8;
+  --accent-primary-glow: rgba(85, 80, 217, 0.18);
+  --accent-primary-subtle: rgba(85, 80, 217, 0.07);
   --shadow-glow: 0 0 20px rgba(85, 80, 217, 0.06);
 }
 
 /* ── Tropical Mode ─────────────────────────────────────────── */
 
 [data-theme="tropical"] {
-  --accent-color: #ff6b6b;
-  --accent-hover: #ff4757;
-  --accent-glow: rgba(255, 107, 107, 0.4);
-  --accent-subtle: rgba(255, 107, 107, 0.12);
+  --accent-primary: #ff6b6b;
+  --accent-primary-hover: #ff4757;
+  --accent-primary-glow: rgba(255, 107, 107, 0.4);
+  --accent-primary-subtle: rgba(255, 107, 107, 0.12);
   --shadow-glow: 0 0 24px rgba(255, 107, 107, 0.18);
 }
 
 /* ── Oceanic Mode ──────────────────────────────────────────── */
 
 [data-theme="oceanic"] {
-  --accent-color: #00b4d8;
-  --accent-hover: #0096c7;
-  --accent-glow: rgba(0, 180, 216, 0.4);
-  --accent-subtle: rgba(0, 180, 216, 0.12);
+  --accent-primary: #00b4d8;
+  --accent-primary-hover: #0096c7;
+  --accent-primary-glow: rgba(0, 180, 216, 0.4);
+  --accent-primary-subtle: rgba(0, 180, 216, 0.12);
   --shadow-glow: 0 0 24px rgba(0, 180, 216, 0.18);
 }
 
@@ -125,12 +125,12 @@ body {
 /* ── Links ──────────────────────────────────────────────────── */
 
 a {
-  color: var(--accent-color);
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 a:hover {
-  color: var(--accent-hover);
+  color: var(--accent-primary-hover);
 }
 
 /* ── Portal Utility Classes ─────────────────────────────────── */

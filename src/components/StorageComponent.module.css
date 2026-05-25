@@ -39,8 +39,8 @@
 }
 
 .breadcrumbItem:hover {
-  color: var(--accent-color);
-  background: var(--accent-subtle);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
 }
 
 .breadcrumbItem.active {
@@ -88,8 +88,8 @@
 }
 
 .segmentActive {
-  color: var(--accent-color);
-  background: var(--accent-subtle);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
 }
 
 /* ── Bucket Grid ── */
@@ -101,7 +101,7 @@
 }
 
 .bucketCard {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   padding: 0;
@@ -115,8 +115,8 @@
 }
 
 .bucketCard:hover {
-  border-color: color-mix(in srgb, var(--accent-color) 40%, transparent);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent-primary) 10%, transparent);
   transform: translateY(-1px);
 }
 
@@ -140,14 +140,14 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--border-radius-sm);
-  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
-  color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
   flex-shrink: 0;
   transition: background var(--transition-fast);
 }
 
 .bucketCard:hover .bucketIconWrap {
-  background: color-mix(in srgb, var(--accent-color) 18%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .bucketName {
@@ -234,9 +234,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--accent-color) 12%, transparent) 40%,
-    color-mix(in srgb, var(--accent-color) 20%, transparent) 50%,
-    color-mix(in srgb, var(--accent-color) 12%, transparent) 60%,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 40%,
+    color-mix(in srgb, var(--accent-primary) 20%, transparent) 50%,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 60%,
     transparent 100%
   );
   transform: translate3d(-100%, 0, 0);
@@ -279,14 +279,14 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--border-radius-sm);
-  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
-  color: var(--accent-color);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
   flex-shrink: 0;
   transition: background var(--transition-fast);
 }
 
 .folderRow:hover .bucketRowIcon {
-  background: color-mix(in srgb, var(--accent-color) 18%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 /* ── Bucket Skeleton Row ── */
@@ -304,7 +304,7 @@
 /* ── Object List (Table View) ── */
 
 .objectListContainer {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -367,7 +367,7 @@
 }
 
 .objectRow:hover {
-  background: var(--accent-subtle);
+  background: var(--accent-primary-subtle);
 }
 
 .folderRow {
@@ -375,7 +375,7 @@
 }
 
 .folderRow:hover {
-  background: color-mix(in srgb, var(--accent-color) 6%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
 }
 
 .objectName {
@@ -395,7 +395,7 @@
 }
 
 .folderRow .objectNameText {
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .objectIcon {
@@ -404,7 +404,7 @@
 }
 
 .folderRow .objectIcon {
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 /* ── Table Thumbnail ── */
@@ -458,13 +458,13 @@
 }
 
 .actionBtn:hover {
-  color: var(--accent-color);
-  background: var(--accent-subtle);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
 }
 
 .actionBtn.danger:hover {
-  color: var(--danger);
-  background: var(--danger-subtle);
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
 }
 
 /* ── Grid View Header ── */
@@ -486,7 +486,7 @@
 }
 
 .gridCard {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -501,8 +501,8 @@
 }
 
 .gridCard:hover {
-  border-color: color-mix(in srgb, var(--accent-color) 40%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-primary) 8%, transparent);
   transform: translateY(-1px);
 }
 
@@ -511,7 +511,7 @@
 }
 
 .gridCardFolder:hover {
-  border-color: var(--accent-color);
+  border-color: var(--accent-primary);
 }
 
 .gridCardThumb {
@@ -526,7 +526,7 @@
 }
 
 .gridCardFolder .gridCardThumb {
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .gridThumbImg {
@@ -558,7 +558,7 @@
 }
 
 .gridCardFolder .gridCardName {
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .gridCardMeta {
@@ -594,11 +594,11 @@
 
 .gridCardActions .actionBtn:hover {
   background: rgba(0, 0, 0, 0.75);
-  color: var(--accent-color);
+  color: var(--accent-primary);
 }
 
 .gridCardActions .actionBtn.danger:hover {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 /* ── Preview Panel ── */
@@ -617,7 +617,7 @@
 }
 
 .previewPanel {
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   width: 90vw;
@@ -777,7 +777,7 @@
   height: 34px;
   padding: 0 10px 0 32px;
   font-size: 0.8125rem;
-  background: var(--bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
@@ -790,8 +790,8 @@
 .searchInput:focus {
   width: 300px;
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px var(--accent-glow);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-glow);
 }
 
 /* ── Total Size Badge ── */
@@ -802,7 +802,7 @@
   font-family: var(--font-mono);
   font-weight: 500;
   padding: 3px 8px;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-radius: var(--border-radius-sm);
 }
 
@@ -826,7 +826,7 @@
 }
 
 .storagePanel {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -954,7 +954,7 @@
 .usageBarTrack {
   width: 100%;
   height: 4px;
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-radius: 2px;
   overflow: hidden;
 }
