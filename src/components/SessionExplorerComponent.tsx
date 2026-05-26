@@ -125,7 +125,7 @@ function formatTimeAgo(dateStr: string): string {
 
 function formatTimestamp(dateStr: string): string {
   const parsedDate = new Date(dateStr);
-  return d.toLocaleString("en-US", {
+  return parsedDate.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -493,7 +493,7 @@ export default function SessionExplorerComponent({
             Back to list
           </button>
           <span className={styles.detailSessionId}>
-            {s.sessionId.slice(0, 8)}…
+            {currentSession.sessionId.slice(0, 8)}…
           </span>
         </div>
 
@@ -506,73 +506,73 @@ export default function SessionExplorerComponent({
                 <span className={styles.metaLabel}>IP Address</span>
                 <button
                   className={styles.metaValueLink}
-                  onClick={() => loadIpDetail(s.ip)}
+                  onClick={() => loadIpDetail(currentSession.ip)}
                 >
-                  {s.ip}
+                  {currentSession.ip}
                   <ChevronRight size={12} strokeWidth={2.2} />
                 </button>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Visitor ID</span>
-                <span className={styles.metaValue}>{s.visitorId?.slice(0, 16)}…</span>
+                <span className={styles.metaValue}>{currentSession.visitorId?.slice(0, 16)}…</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Duration</span>
-                <span className={styles.metaValue}>{formatElapsedTime(s.duration / 1000)}</span>
+                <span className={styles.metaValue}>{formatElapsedTime(currentSession.duration / 1000)}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Browser</span>
-                <span className={styles.metaValue}>{s.browser?.name || "Unknown"} {s.browser?.version || ""}</span>
+                <span className={styles.metaValue}>{currentSession.browser?.name || "Unknown"} {currentSession.browser?.version || ""}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>OS</span>
-                <span className={styles.metaValue}>{s.os?.name || "Unknown"} {s.os?.version || ""}</span>
+                <span className={styles.metaValue}>{currentSession.os?.name || "Unknown"} {currentSession.os?.version || ""}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Device</span>
                 <span className={styles.metaValue}>
-                  <DeviceIcon type={s.device?.type} />
-                  {s.device?.type || "desktop"}{s.device?.vendor ? ` · ${s.device.vendor}` : ""}
+                  <DeviceIcon type={currentSession.device?.type} />
+                  {currentSession.device?.type || "desktop"}{currentSession.device?.vendor ? ` · ${currentSession.device.vendor}` : ""}
                 </span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Location</span>
                 <span className={styles.metaValue}>
-                  {s.geo?.city && s.geo.city !== "(not set)" ? `${s.geo.city}, ` : ""}
-                  {s.geo?.country || "Unknown"}
+                  {currentSession.geo?.city && currentSession.geo.city !== "(not set)" ? `${currentSession.geo.city}, ` : ""}
+                  {currentSession.geo?.country || "Unknown"}
                 </span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Viewport</span>
                 <span className={styles.metaValue}>
-                  {s.viewport ? `${s.viewport.width} × ${s.viewport.height}` : "N/A"}
+                  {currentSession.viewport ? `${currentSession.viewport.width} × ${currentSession.viewport.height}` : "N/A"}
                 </span>
               </div>
-              {s.referrer && (
+              {currentSession.referrer && (
                 <div className={styles.metaCard}>
                   <span className={styles.metaLabel}>Referrer</span>
-                  <span className={styles.metaValue}>{s.referrer}</span>
+                  <span className={styles.metaValue}>{currentSession.referrer}</span>
                 </div>
               )}
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Started</span>
-                <span className={styles.metaValue}>{formatTimestamp(s.createdAt)}</span>
+                <span className={styles.metaValue}>{formatTimestamp(currentSession.createdAt)}</span>
               </div>
               <div className={styles.metaCard}>
                 <span className={styles.metaLabel}>Last Active</span>
-                <span className={styles.metaValue}>{formatTimestamp(s.updatedAt)}</span>
+                <span className={styles.metaValue}>{formatTimestamp(currentSession.updatedAt)}</span>
               </div>
-              {s.locale && (
+              {currentSession.locale && (
                 <div className={styles.metaCard}>
                   <span className={styles.metaLabel}>Locale</span>
-                  <span className={styles.metaValue}>{s.locale}</span>
+                  <span className={styles.metaValue}>{currentSession.locale}</span>
                 </div>
               )}
             </div>
 
-            {s.utm && Object.keys(s.utm).length > 0 && (
+            {currentSession.utm && Object.keys(currentSession.utm).length > 0 && (
               <div className={styles.utmBar}>
-                {Object.entries(s.utm).map(([key, value]) => (
+                {Object.entries(currentSession.utm).map(([key, value]) => (
                   <span key={key} className={styles.utmTag}>
                     <span className={styles.utmKey}>{key}</span>
                     <span className={styles.utmValue}>{value}</span>
@@ -581,12 +581,12 @@ export default function SessionExplorerComponent({
               </div>
             )}
 
-            <TimelineView timeline={s.timeline} />
+            <TimelineView timeline={currentSession.timeline} />
 
-            {s.userAgent && (
+            {currentSession.userAgent && (
               <div className={styles.userAgentBar}>
                 <FileText size={12} strokeWidth={2} />
-                <span>{s.userAgent}</span>
+                <span>{currentSession.userAgent}</span>
               </div>
             )}
           </>

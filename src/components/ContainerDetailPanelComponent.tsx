@@ -65,9 +65,9 @@ function formatNanoseconds(ns: number): string {
   const ms = ns / 1_000_000;
   if (ms < 1000) return `${ms.toFixed(1)}ms`;
   const totalSeconds = ms / 1000;
-  if (s < 60) return `${s.toFixed(1)}s`;
+  if (totalSeconds < 60) return `${totalSeconds.toFixed(1)}s`;
   const totalMinutes = totalSeconds / 60;
-  return `${m.toFixed(1)}m`;
+  return `${totalMinutes.toFixed(1)}m`;
 }
 
 /** Format a Unix timestamp to a localized string */
@@ -135,11 +135,11 @@ export default function ContainerDetailPanel({
             for (const snap of historyArr) {
               const snapObj = snap as Record<string, Record<string, Record<string, number>>>;
               const containerSnapshot = snapObj?.containers?.[container.containerName];
-              if (c) {
-                cpuPoints.push(c.cpu ?? 0);
-                memPoints.push(c.memoryUsed ?? 0);
-                netRxPoints.push(c.netRx ?? 0);
-                netTxPoints.push(c.netTx ?? 0);
+              if (containerSnapshot) {
+                cpuPoints.push(containerSnapshot.cpu ?? 0);
+                memPoints.push(containerSnapshot.memoryUsed ?? 0);
+                netRxPoints.push(containerSnapshot.netRx ?? 0);
+                netTxPoints.push(containerSnapshot.netTx ?? 0);
               }
             }
           }

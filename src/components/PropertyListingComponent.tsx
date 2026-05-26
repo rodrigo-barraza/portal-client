@@ -236,7 +236,7 @@ export default function PropertyListingComponent({
                   />
                 </div>
 
-                {s?.loaded ? (
+                {propertySummary?.loaded ? (
                   <>
                     {propertySummary.overview && (
                       <div className={styles.propertyCardStats}>

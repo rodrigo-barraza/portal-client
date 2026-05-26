@@ -285,7 +285,7 @@ function clusterSize(count: number, maxCols = MAX_COLS) {
   const rows = Math.ceil(count / cols);
   const clusterWidth = cols * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
   const clusterHeight = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
-  return { cols, rows, w, h };
+  return { cols, rows, w: clusterWidth, h: clusterHeight };
 }
 
 // ── Assign positions from layers (grid clusters) ─────────────────
@@ -732,7 +732,7 @@ export default function TopologyComponent() {
   // ── Search filtering ────────────────────────────────────────
   const searchMatches = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
-    if (!q) return null; // null = no filter active
+    if (!normalizedSearch) return null; // null = no filter active
     const matched = new Set();
     for (const svc of allServices) {
       const haystack = [
@@ -1031,13 +1031,13 @@ export default function TopologyComponent() {
 
   const zoomIn = () => {
     const newZoom = Math.min(3, zoom * 1.25);
-    setZoom(n);
-    zoomRef.current = n;
+    setZoom(newZoom);
+    zoomRef.current = newZoom;
   };
   const zoomOut = () => {
     const newZoom = Math.max(0.2, zoom * 0.8);
-    setZoom(n);
-    zoomRef.current = n;
+    setZoom(newZoom);
+    zoomRef.current = newZoom;
   };
 
   // ── Center topology in viewport ─────────────────────────────
@@ -1332,7 +1332,7 @@ export default function TopologyComponent() {
                       className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}${isFaded ? ` ${styles.edgeFaded}` : ""}`}
                     >
                       <path
-                        d={d}
+                        d={edgePathData}
                         stroke="transparent"
                         strokeWidth={12}
                         fill="none"
@@ -1340,7 +1340,7 @@ export default function TopologyComponent() {
                       {/* Glow layer for directional edges */}
                       {showDirectional && (
                         <path
-                          d={d}
+                          d={edgePathData}
                           stroke={dirConfig.color}
                           strokeWidth={6}
                           fill="none"
@@ -1349,7 +1349,7 @@ export default function TopologyComponent() {
                         />
                       )}
                       <path
-                        d={d}
+                        d={edgePathData}
                         stroke={strokeColor}
                         strokeWidth={
                           isActive

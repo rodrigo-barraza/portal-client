@@ -64,7 +64,7 @@ function ansi256ToHex(n: number) {
   }
   // Grayscale 232-255
   const grayscaleValue = (n - 232) * 10 + 8;
-  return `#${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}`;
+  return `#${grayscaleValue.toString(16).padStart(2, "0")}${grayscaleValue.toString(16).padStart(2, "0")}${grayscaleValue.toString(16).padStart(2, "0")}`;
 }
 
 /**
@@ -138,7 +138,7 @@ function parseAnsi(text: string) {
     const codes = match[1] ? match[1].split(";").map(Number) : [0];
     for (let i = 0; i < codes.length; i++) {
       const colorCode = codes[i];
-      if (c === 0) {
+      if (colorCode === 0) {
         color = null;
         bgColor = null;
         bold = false;
@@ -146,27 +146,27 @@ function parseAnsi(text: string) {
         italic = false;
         underline = false;
         strikethrough = false;
-      } else if (c === 1) bold = true;
-      else if (c === 2) dim = true;
-      else if (c === 3) italic = true;
-      else if (c === 4) underline = true;
-      else if (c === 9) strikethrough = true;
-      else if (c === 22) {
+      } else if (colorCode === 1) bold = true;
+      else if (colorCode === 2) dim = true;
+      else if (colorCode === 3) italic = true;
+      else if (colorCode === 4) underline = true;
+      else if (colorCode === 9) strikethrough = true;
+      else if (colorCode === 22) {
         bold = false;
         dim = false;
-      } else if (c === 23) italic = false;
-      else if (c === 24) underline = false;
-      else if (c === 29) strikethrough = false;
-      else if (c === 39) color = null;
-      else if (c === 49) bgColor = null;
-      else if (c >= 30 && c <= 37) color = ANSI_COLORS[c - 30];
-      else if (c >= 40 && c <= 47) bgColor = ANSI_COLORS[c - 40];
-      else if (c >= 90 && c <= 97) color = ANSI_BRIGHT_COLORS[c - 90];
-      else if (c >= 100 && c <= 107) bgColor = ANSI_BRIGHT_COLORS[c - 100];
-      else if (c === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
+      } else if (colorCode === 23) italic = false;
+      else if (colorCode === 24) underline = false;
+      else if (colorCode === 29) strikethrough = false;
+      else if (colorCode === 39) color = null;
+      else if (colorCode === 49) bgColor = null;
+      else if (colorCode >= 30 && colorCode <= 37) color = ANSI_COLORS[colorCode - 30];
+      else if (colorCode >= 40 && colorCode <= 47) bgColor = ANSI_COLORS[colorCode - 40];
+      else if (colorCode >= 90 && colorCode <= 97) color = ANSI_BRIGHT_COLORS[colorCode - 90];
+      else if (colorCode >= 100 && colorCode <= 107) bgColor = ANSI_BRIGHT_COLORS[colorCode - 100];
+      else if (colorCode === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
         color = ansi256ToHex(codes[i + 2]);
         i += 2;
-      } else if (c === 48 && codes[i + 1] === 5 && codes[i + 2] != null) {
+      } else if (colorCode === 48 && codes[i + 1] === 5 && codes[i + 2] != null) {
         bgColor = ansi256ToHex(codes[i + 2]);
         i += 2;
       }

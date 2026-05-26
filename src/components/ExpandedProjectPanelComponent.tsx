@@ -78,16 +78,16 @@ function Sparkline({
     const canvasWidth = canvas.clientWidth;
     const canvasHeight = canvas.clientHeight;
 
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
     context.scale(dpr, dpr);
-    context.clearRect(0, 0, w, h);
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
 
     const effectiveMax = max || Math.max(...data, 0.01);
     const padding = 1;
-    const drawH = h - padding * 2;
-    const step = w / (MAX_SPARKLINE_POINTS - 1);
-    const startX = w - (data.length - 1) * step;
+    const drawH = canvasHeight - padding * 2;
+    const step = canvasWidth / (MAX_SPARKLINE_POINTS - 1);
+    const startX = canvasWidth - (data.length - 1) * step;
 
     context.beginPath();
     for (let i = 0; i < data.length; i++) {
@@ -105,10 +105,10 @@ function Sparkline({
 
     if (fillColor) {
       const lastX = startX + (data.length - 1) * step;
-      context.lineTo(lastX, h);
-      context.lineTo(startX, h);
+      context.lineTo(lastX, canvasHeight);
+      context.lineTo(startX, canvasHeight);
       context.closePath();
-      const grad = context.createLinearGradient(0, 0, 0, h);
+      const grad = context.createLinearGradient(0, 0, 0, canvasHeight);
       grad.addColorStop(0, fillColor);
       grad.addColorStop(1, "transparent");
       context.fillStyle = grad;
@@ -794,7 +794,7 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
               className={isSelfEdge ? styles.miniEdgeFlowing : ""}
             >
               <path
-                d={d}
+                d={miniEdgePathData}
                 stroke={
                   isSelfEdge
                     ? "url(#mini-prism-gradient)"
