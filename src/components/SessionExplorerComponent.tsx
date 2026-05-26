@@ -340,7 +340,7 @@ export default function SessionExplorerComponent({
     return (
       <div className={styles.explorer}>
         <div className={styles.detailHeader}>
-          <button className={styles.backBtn} onClick={handleBack}>
+          <button className={styles.backButton} onClick={handleBack}>
             <ArrowLeft size={14} strokeWidth={2.2} />
             Back to list
           </button>
@@ -488,7 +488,7 @@ export default function SessionExplorerComponent({
     return (
       <div className={styles.explorer}>
         <div className={styles.detailHeader}>
-          <button className={styles.backBtn} onClick={handleBack}>
+          <button className={styles.backButton} onClick={handleBack}>
             <ArrowLeft size={14} strokeWidth={2.2} />
             Back to list
           </button>
@@ -704,9 +704,9 @@ export default function SessionExplorerComponent({
 
               {ipsTotal > 50 && (
                 <div className={styles.pagination}>
-                  <button className={styles.pageBtn} disabled={ipsOffset === 0} onClick={() => loadIps(Math.max(0, ipsOffset - 50))}>Previous</button>
+                  <button className={styles.pageButton} disabled={ipsOffset === 0} onClick={() => loadIps(Math.max(0, ipsOffset - 50))}>Previous</button>
                   <span className={styles.pageInfo}>{ipsOffset + 1}–{Math.min(ipsOffset + 50, ipsTotal)} of {formatNumber(ipsTotal)}</span>
-                  <button className={styles.pageBtn} disabled={ipsOffset + 50 >= ipsTotal} onClick={() => loadIps(ipsOffset + 50)}>Next</button>
+                  <button className={styles.pageButton} disabled={ipsOffset + 50 >= ipsTotal} onClick={() => loadIps(ipsOffset + 50)}>Next</button>
                 </div>
               )}
             </>
@@ -793,9 +793,9 @@ export default function SessionExplorerComponent({
 
               {visitorsTotal > 50 && (
                 <div className={styles.pagination}>
-                  <button className={styles.pageBtn} disabled={visitorsOffset === 0} onClick={() => loadVisitors(Math.max(0, visitorsOffset - 50))}>Previous</button>
+                  <button className={styles.pageButton} disabled={visitorsOffset === 0} onClick={() => loadVisitors(Math.max(0, visitorsOffset - 50))}>Previous</button>
                   <span className={styles.pageInfo}>{visitorsOffset + 1}–{Math.min(visitorsOffset + 50, visitorsTotal)} of {formatNumber(visitorsTotal)}</span>
-                  <button className={styles.pageBtn} disabled={visitorsOffset + 50 >= visitorsTotal} onClick={() => loadVisitors(visitorsOffset + 50)}>Next</button>
+                  <button className={styles.pageButton} disabled={visitorsOffset + 50 >= visitorsTotal} onClick={() => loadVisitors(visitorsOffset + 50)}>Next</button>
                 </div>
               )}
             </>
@@ -841,9 +841,9 @@ export default function SessionExplorerComponent({
 
               {sessionsTotal > 50 && (
                 <div className={styles.pagination}>
-                  <button className={styles.pageBtn} disabled={sessionsOffset === 0} onClick={() => loadSessions(Math.max(0, sessionsOffset - 50))}>Previous</button>
+                  <button className={styles.pageButton} disabled={sessionsOffset === 0} onClick={() => loadSessions(Math.max(0, sessionsOffset - 50))}>Previous</button>
                   <span className={styles.pageInfo}>{sessionsOffset + 1}–{Math.min(sessionsOffset + 50, sessionsTotal)} of {formatNumber(sessionsTotal)}</span>
-                  <button className={styles.pageBtn} disabled={sessionsOffset + 50 >= sessionsTotal} onClick={() => loadSessions(sessionsOffset + 50)}>Next</button>
+                  <button className={styles.pageButton} disabled={sessionsOffset + 50 >= sessionsTotal} onClick={() => loadSessions(sessionsOffset + 50)}>Next</button>
                 </div>
               )}
             </>

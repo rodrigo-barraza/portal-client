@@ -374,7 +374,7 @@ export default function ProjectsComponent() {
 
           {hasActiveFilter && (
             <button
-              className={styles.clearBtn}
+              className={styles.clearButton}
               onClick={() =>
                 setFilters({
                   status: [],
@@ -400,7 +400,7 @@ export default function ProjectsComponent() {
           <div className={styles.sortGroup}>
             <div className={styles.segmentedControl}>
               <button
-                className={`${styles.segmentBtn} ${styles.segmentBtnIcon} ${
+                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
                   viewMode === "card" ? styles.segmentActive : ""
                 }`}
                 onClick={() => setViewMode("card")}
@@ -409,7 +409,7 @@ export default function ProjectsComponent() {
                 <LayoutGrid size={12} strokeWidth={2.2} />
               </button>
               <button
-                className={`${styles.segmentBtn} ${styles.segmentBtnIcon} ${
+                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
                   viewMode === "table" ? styles.segmentActive : ""
                 }`}
                 onClick={() => setViewMode("table")}

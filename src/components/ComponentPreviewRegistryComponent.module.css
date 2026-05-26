@@ -29,7 +29,7 @@
   padding: 16px 12px;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px dashed var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   font-style: italic;

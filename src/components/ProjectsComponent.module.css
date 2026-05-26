@@ -36,7 +36,7 @@
   align-items: flex-start;
   gap: 14px;
   padding: 18px 20px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -94,7 +94,7 @@
   gap: 16px;
 }
 
-.refreshBtn {
+.refreshButton {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -102,7 +102,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   transition:
@@ -145,7 +145,7 @@
   gap: 16px;
   padding: 10px 14px;
   margin-bottom: 20px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--calculated-border-color);
@@ -175,13 +175,13 @@
 .segmentedControl {
   display: flex;
   align-items: center;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
 
-.segmentBtn {
+.segmentButton {
   padding: 5px 10px;
   font-size: var(--font-size-xs);
   font-weight: 500;
@@ -218,7 +218,7 @@
   justify-content: center;
 }
 
-.clearBtn {
+.clearButton {
   padding: 5px 10px;
   font-size: var(--font-size-xs);
   font-weight: 500;
@@ -299,7 +299,7 @@
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-tertiary);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: 9px;
   letter-spacing: 0;

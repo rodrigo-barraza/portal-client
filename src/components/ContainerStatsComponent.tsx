@@ -97,7 +97,7 @@ function ActionCell({
     <div className={styles.actionRow}>
       {isHealthy ? (
         <button
-          className={`${styles.actionBtn} ${styles.stopBtn} ${stopping ? styles.actionBtnLoading : ""}`}
+          className={`${styles.actionButton} ${styles.stopButton} ${stopping ? styles.actionBtnLoading : ""}`}
           disabled={stopping || restarting || rollingBack}
           onClick={async (e) => {
             e.stopPropagation();
@@ -114,7 +114,7 @@ function ActionCell({
         </button>
       ) : (
         <button
-          className={`${styles.actionBtn} ${styles.startBtn} ${starting ? styles.actionBtnLoading : ""}`}
+          className={`${styles.actionButton} ${styles.startButton} ${starting ? styles.actionBtnLoading : ""}`}
           disabled={starting || restarting || rollingBack}
           onClick={async (e) => {
             e.stopPropagation();
@@ -133,7 +133,7 @@ function ActionCell({
 
       <Link
         href={`/logs?container=${service.dockerProject || service.id}`}
-        className={`${styles.actionBtn} ${styles.logsBtn}`}
+        className={`${styles.actionButton} ${styles.logsButton}`}
         title="Logs"
         onClick={(e) => e.stopPropagation()}
       >
@@ -142,7 +142,7 @@ function ActionCell({
 
       {rollbackAvailable && (
         <button
-          className={`${styles.actionBtn} ${styles.rollbackBtn} ${rollingBack ? styles.actionBtnLoading : ""}`}
+          className={`${styles.actionButton} ${styles.rollbackButton} ${rollingBack ? styles.actionBtnLoading : ""}`}
           disabled={rollingBack || restarting || stopping || starting}
           onClick={async (e) => {
             e.stopPropagation();
@@ -160,7 +160,7 @@ function ActionCell({
       )}
 
       <button
-        className={`${styles.actionBtn} ${styles.restartBtn} ${restarting ? styles.actionBtnLoading : ""}`}
+        className={`${styles.actionButton} ${styles.restartButton} ${restarting ? styles.actionBtnLoading : ""}`}
         disabled={restarting || stopping || starting || rollingBack}
         onClick={async (e) => {
           e.stopPropagation();
@@ -979,14 +979,14 @@ export default function ContainerStatsComponent() {
         {/* ── View Mode Switcher ──────────────────────────────────── */}
         <div className={styles.viewModeToggle}>
           <button
-            className={`${styles.toggleBtn} ${viewMode === "table" ? styles.toggleBtnActive : ""}`}
+            className={`${styles.toggleButton} ${viewMode === "table" ? styles.toggleBtnActive : ""}`}
             onClick={() => handleToggleViewMode("table")}
             title="Table View"
           >
             <List size={14} strokeWidth={2.4} />
           </button>
           <button
-            className={`${styles.toggleBtn} ${viewMode === "cards" ? styles.toggleBtnActive : ""}`}
+            className={`${styles.toggleButton} ${viewMode === "cards" ? styles.toggleBtnActive : ""}`}
             onClick={() => handleToggleViewMode("cards")}
             title="Cards View"
           >

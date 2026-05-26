@@ -42,10 +42,10 @@
 
 .sidebarLink:hover {
   color: var(--text-secondary);
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
 }
 
-.sidebarLink.active {
+.sidebarLink.isActiveState {
   color: var(--accent-primary);
   background: var(--calculated-accent-primary-subtle);
 }
@@ -55,7 +55,7 @@
   opacity: 0.7;
 }
 
-.sidebarLink.active .sidebarIcon {
+.sidebarLink.isActiveState .sidebarIcon {
   opacity: 1;
 }
 
@@ -73,7 +73,7 @@
 /* ── Section Card ── */
 
 .section {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -173,7 +173,7 @@
   width: 42px;
   height: 24px;
   border-radius: 12px;
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border: 1px solid var(--calculated-border-color);
   cursor: pointer;
   transition:
@@ -198,15 +198,15 @@
   will-change: transform;
 }
 
-.toggle.active {
+.toggle.isActiveState {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
-.toggle.active::after {
+.toggle.isActiveState::after {
   transform: translateX(18px);
-  background: var(--bg-surface);
+  background: var(--background-surface);
 }
 
 /* ── Select Dropdown ── */
@@ -223,7 +223,7 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-primary);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
@@ -263,7 +263,7 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
   color: var(--text-primary);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   transition:
@@ -304,7 +304,7 @@
   overflow: hidden;
 }
 
-.segmentBtn {
+.segmentButton {
   padding: 6px 14px;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -318,16 +318,16 @@
     background var(--transition-fast);
 }
 
-.segmentBtn:last-child {
+.segmentButton:last-child {
   border-right: none;
 }
 
-.segmentBtn:hover {
+.segmentButton:hover {
   color: var(--text-secondary);
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
 }
 
-.segmentBtn.active {
+.segmentButton.isActiveState {
   color: var(--accent-primary);
   background: var(--calculated-accent-primary-subtle);
 }
@@ -355,7 +355,7 @@
   transform: scale(1.1);
 }
 
-.colorSwatch.active {
+.colorSwatch.isActiveState {
   border-color: var(--text-primary);
   box-shadow: 0 0 10px color-mix(in srgb, var(--swatch-color) 40%, transparent);
 }
@@ -387,7 +387,7 @@
   background: var(--calculated-color-danger-subtle);
 }
 
-.dangerBtn {
+.dangerButton {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -405,7 +405,7 @@
     box-shadow var(--transition-fast);
 }
 
-.dangerBtn:hover {
+.dangerButton:hover {
   background: var(--calculated-color-danger-subtle);
   border-color: var(--color-danger);
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-danger) 20%, transparent);
@@ -463,7 +463,7 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-tertiary);
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border: 1px solid var(--calculated-border-color);
   border-radius: 3px;
   box-shadow: 0 1px 0 var(--calculated-border-color);

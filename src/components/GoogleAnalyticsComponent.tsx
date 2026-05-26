@@ -221,7 +221,7 @@ function DonutChart({
         cy={center}
         r={radius}
         fill="none"
-        stroke="var(--bg-elevated)"
+        stroke="var(--background-elevated)"
         strokeWidth={strokeWidth}
       />
       {segments.map((seg, i) => {
@@ -693,7 +693,7 @@ export default function GoogleAnalyticsComponent({
         <div className={styles.backBar}>
           <Link
             href="/web-analytics"
-            className={styles.backBtn}
+            className={styles.backButton}
           >
             <ArrowLeft size={12} strokeWidth={2.2} />
             All Properties

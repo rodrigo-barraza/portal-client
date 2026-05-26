@@ -187,14 +187,14 @@ export default function IntegrationsComponent() {
           {!loading && (
             <div className={styles.segmentedControl}>
               <button
-                className={`${styles.segmentBtn} ${viewMode === "card" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${viewMode === "card" ? styles.segmentActive : ""}`}
                 onClick={() => setViewMode("card")}
                 title="Card view"
               >
                 <LayoutGrid size={13} strokeWidth={2.2} />
               </button>
               <button
-                className={`${styles.segmentBtn} ${viewMode === "table" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${viewMode === "table" ? styles.segmentActive : ""}`}
                 onClick={() => setViewMode("table")}
                 title="Table view"
               >

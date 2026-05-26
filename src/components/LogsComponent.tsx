@@ -568,7 +568,7 @@ export default function LogsComponent() {
 
             const chipClass = [
               styles.serviceChip,
-              activeContainer === container.name ? styles.active : "",
+              activeContainer === container.name ? styles.isActiveState : "",
               !isRunning ? styles.chipStateStopped : "",
             ]
               .filter(Boolean)
@@ -628,7 +628,7 @@ export default function LogsComponent() {
               )}
 
               <button
-                className={`${styles.terminalBtn} ${showSearch ? styles.active : ""}`}
+                className={`${styles.terminalButton} ${showSearch ? styles.isActiveState : ""}`}
                 onClick={() => {
                   setShowSearch((v) => !v);
                   if (showSearch) setSearch("");
@@ -644,7 +644,7 @@ export default function LogsComponent() {
               </button>
 
               <button
-                className={`${styles.terminalBtn} ${paused ? styles.active : ""}`}
+                className={`${styles.terminalButton} ${paused ? styles.isActiveState : ""}`}
                 onClick={() => (paused ? handleResume() : setPaused(true))}
                 title={paused ? "Resume" : "Pause"}
               >
@@ -658,7 +658,7 @@ export default function LogsComponent() {
               <span className={styles.separator} />
 
               <button
-                className={styles.terminalBtn}
+                className={styles.terminalButton}
                 onClick={scrollToBottom}
                 title="Scroll to bottom"
               >
@@ -666,7 +666,7 @@ export default function LogsComponent() {
               </button>
 
               <button
-                className={styles.terminalBtn}
+                className={styles.terminalButton}
                 onClick={handleClear}
                 title="Clear"
               >
@@ -676,7 +676,7 @@ export default function LogsComponent() {
               <span className={styles.separator} />
 
               <button
-                className={`${styles.terminalBtn} ${restarting ? styles.restartSpin : ""}`}
+                className={`${styles.terminalButton} ${restarting ? styles.restartSpin : ""}`}
                 onClick={handleRestart}
                 disabled={restarting}
                 title="Restart container"

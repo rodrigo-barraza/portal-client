@@ -230,21 +230,21 @@ export default function ComponentsComponent({
         {/* View toggle */}
         <div className={styles.viewToggle}>
           <button
-            className={`${styles.viewBtn} ${showPreviews ? styles.viewBtnActive : ""}`}
+            className={`${styles.viewButton} ${showPreviews ? styles.viewBtnActive : ""}`}
             onClick={() => setShowPreviews((v) => !v)}
             title={showPreviews ? "Hide previews" : "Show previews"}
           >
             {showPreviews ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
           <button
-            className={`${styles.viewBtn} ${viewMode === "grid" ? styles.viewBtnActive : ""}`}
+            className={`${styles.viewButton} ${viewMode === "grid" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("grid")}
             title="Grid view"
           >
             <LayoutGrid size={14} />
           </button>
           <button
-            className={`${styles.viewBtn} ${viewMode === "list" ? styles.viewBtnActive : ""}`}
+            className={`${styles.viewButton} ${viewMode === "list" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("list")}
             title="List view"
           >

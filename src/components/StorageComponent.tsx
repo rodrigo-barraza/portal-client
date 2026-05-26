@@ -73,7 +73,7 @@ function DonutChart({
         cy={center}
         r={radius}
         fill="none"
-        stroke="var(--bg-elevated)"
+        stroke="var(--background-elevated)"
         strokeWidth={strokeWidth}
       />
       {/* Segments */}
@@ -772,7 +772,7 @@ export default function StorageComponent() {
                     <ChevronRight size={12} className={styles.breadcrumbSep} />
                   )}
                   <button
-                    className={`${styles.breadcrumbItem} ${isLast ? styles.active : ""}`}
+                    className={`${styles.breadcrumbItem} ${isLast ? styles.isActiveState : ""}`}
                     onClick={() => {
                       if (seg.prefix === null) {
                         setView("buckets");
@@ -796,14 +796,14 @@ export default function StorageComponent() {
           <div className={styles.viewToggle}>
             <div className={styles.segmentedControl}>
               <button
-                className={`${styles.segmentBtn} ${objectViewMode === "table" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${objectViewMode === "table" ? styles.segmentActive : ""}`}
                 onClick={() => setObjectViewMode("table")}
                 title="Table view"
               >
                 <Table2 size={13} strokeWidth={2.2} />
               </button>
               <button
-                className={`${styles.segmentBtn} ${objectViewMode === "grid" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${objectViewMode === "grid" ? styles.segmentActive : ""}`}
                 onClick={() => setObjectViewMode("grid")}
                 title="Grid view"
               >
@@ -821,14 +821,14 @@ export default function StorageComponent() {
           <div className={styles.bucketViewBar}>
             <div className={styles.segmentedControl}>
               <button
-                className={`${styles.segmentBtn} ${bucketViewMode === "cards" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${bucketViewMode === "cards" ? styles.segmentActive : ""}`}
                 onClick={() => setBucketViewMode("cards")}
                 title="Card view"
               >
                 <LayoutGrid size={13} strokeWidth={2.2} />
               </button>
               <button
-                className={`${styles.segmentBtn} ${bucketViewMode === "table" ? styles.segmentActive : ""}`}
+                className={`${styles.segmentButton} ${bucketViewMode === "table" ? styles.segmentActive : ""}`}
                 onClick={() => setBucketViewMode("table")}
                 title="Table view"
               >
@@ -1103,7 +1103,7 @@ function ObjectTableView({
             <div className={styles.objectActions}>
               {canPreview && (
                 <button
-                  className={styles.actionBtn}
+                  className={styles.actionButton}
                   title="Preview"
                   onClick={() => openPreview(object)}
                 >
@@ -1111,7 +1111,7 @@ function ObjectTableView({
                 </button>
               )}
               <a
-                className={styles.actionBtn}
+                className={styles.actionButton}
                 title="Download"
                 href={ApiService.buildStorageDownloadUrl(
                   activeBucket,
@@ -1123,7 +1123,7 @@ function ObjectTableView({
                 <Download size={15} />
               </a>
               <button
-                className={`${styles.actionBtn} ${styles.danger}`}
+                className={`${styles.actionButton} ${styles.danger}`}
                 title="Delete"
                 onClick={() => handleDelete(object)}
               >
@@ -1337,7 +1337,7 @@ function ObjectGridView({
               </div>
               <div className={styles.gridCardActions}>
                 <a
-                  className={styles.actionBtn}
+                  className={styles.actionButton}
                   title="Download"
                   href={ApiService.buildStorageDownloadUrl(
                     activeBucket,
@@ -1349,7 +1349,7 @@ function ObjectGridView({
                   <Download size={14} />
                 </a>
                 <button
-                  className={`${styles.actionBtn} ${styles.danger}`}
+                  className={`${styles.actionButton} ${styles.danger}`}
                   title="Delete"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1410,7 +1410,7 @@ function PreviewOverlay({
       <div className={styles.previewPanel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.previewHeader}>
           <span className={styles.previewTitle}>{filename}</span>
-          <button className={styles.previewCloseBtn} onClick={onClose}>
+          <button className={styles.previewCloseButton} onClick={onClose}>
             <X size={18} />
           </button>
         </div>

@@ -139,7 +139,7 @@ export default function SettingsComponent() {
           {SECTIONS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              className={`${styles.sidebarLink} ${activeSection === id ? styles.active : ""}`}
+              className={`${styles.sidebarLink} ${activeSection === id ? styles.isActiveState : ""}`}
               onClick={() => scrollToSection(id)}
             >
               <Icon size={15} strokeWidth={2} className={styles.sidebarIcon} />
@@ -220,7 +220,7 @@ export default function SettingsComponent() {
                     {ACCENT_COLORS.map((c) => (
                       <button
                         key={c.id}
-                        className={`${styles.colorSwatch} ${settings.accentColor === c.id ? styles.active : ""}`}
+                        className={`${styles.colorSwatch} ${settings.accentColor === c.id ? styles.isActiveState : ""}`}
                         style={{
                           background: c.value,
                           "--swatch-color": c.value,
@@ -246,7 +246,7 @@ export default function SettingsComponent() {
                     {["compact", "default", "large"].map((size) => (
                       <button
                         key={size}
-                        className={`${styles.segmentBtn} ${settings.fontScale === size ? styles.active : ""}`}
+                        className={`${styles.segmentButton} ${settings.fontScale === size ? styles.isActiveState : ""}`}
                         onClick={() => updateSetting("fontScale", size)}
                       >
                         {size.charAt(0).toUpperCase() + size.slice(1)}
@@ -266,7 +266,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.animationsEnabled ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.animationsEnabled ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "animationsEnabled",
@@ -289,7 +289,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.reducedMotion ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.reducedMotion ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting("reducedMotion", !settings.reducedMotion)
                     }
@@ -330,7 +330,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <div className={styles.segmentedControl}>
                     <button
-                      className={`${styles.segmentBtn} ${settings.defaultView === "card" ? styles.active : ""}`}
+                      className={`${styles.segmentButton} ${settings.defaultView === "card" ? styles.isActiveState : ""}`}
                       onClick={() => updateSetting("defaultView", "card")}
                     >
                       <LayoutGrid
@@ -341,7 +341,7 @@ export default function SettingsComponent() {
                       Cards
                     </button>
                     <button
-                      className={`${styles.segmentBtn} ${settings.defaultView === "table" ? styles.active : ""}`}
+                      className={`${styles.segmentButton} ${settings.defaultView === "table" ? styles.isActiveState : ""}`}
                       onClick={() => updateSetting("defaultView", "table")}
                     >
                       <Table2
@@ -401,7 +401,7 @@ export default function SettingsComponent() {
                     {["compact", "comfortable", "spacious"].map((d: string) => (
                       <button
                         key={d}
-                        className={`${styles.segmentBtn} ${settings.cardDensity === d ? styles.active : ""}`}
+                        className={`${styles.segmentButton} ${settings.cardDensity === d ? styles.isActiveState : ""}`}
                         onClick={() => updateSetting("cardDensity", d)}
                       >
                         {d.charAt(0).toUpperCase() + d.slice(1)}
@@ -421,7 +421,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.showSystemSummary ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.showSystemSummary ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "showSystemSummary",
@@ -446,7 +446,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.showInfrastructure ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.showInfrastructure ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "showInfrastructure",
@@ -489,7 +489,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.autoRefreshEnabled ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.autoRefreshEnabled ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "autoRefreshEnabled",
@@ -572,7 +572,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.showResponseTimes ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.showResponseTimes ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "showResponseTimes",
@@ -677,7 +677,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.browserNotifications ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.browserNotifications ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "browserNotifications",
@@ -700,7 +700,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.downAlerts ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.downAlerts ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting("downAlerts", !settings.downAlerts)
                     }
@@ -722,7 +722,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.performanceAlerts ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.performanceAlerts ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "performanceAlerts",
@@ -745,7 +745,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.notificationSound ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.notificationSound ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "notificationSound",
@@ -788,7 +788,7 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <button
-                    className={`${styles.toggle} ${settings.telemetryEnabled ? styles.active : ""}`}
+                    className={`${styles.toggle} ${settings.telemetryEnabled ? styles.isActiveState : ""}`}
                     onClick={() =>
                       updateSetting(
                         "telemetryEnabled",
@@ -844,7 +844,7 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button className={styles.dangerBtn} onClick={resetSettings}>
+                  <button className={styles.dangerButton} onClick={resetSettings}>
                     <RefreshCw size={12} strokeWidth={2.5} />
                     Reset
                   </button>
@@ -860,7 +860,7 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button className={styles.dangerBtn} onClick={clearLocalData}>
+                  <button className={styles.dangerButton} onClick={clearLocalData}>
                     <Trash2 size={12} strokeWidth={2.5} />
                     Clear
                   </button>

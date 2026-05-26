@@ -32,7 +32,7 @@
   align-items: flex-start;
   gap: 14px;
   padding: 18px 20px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   animation: fadeIn var(--transition-normal) ease-out both;
@@ -201,7 +201,7 @@
 .miniBarTrack {
   width: 100%;
   height: 3px;
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -255,7 +255,7 @@
   gap: 4px;
 }
 
-.actionBtn {
+.actionButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -279,10 +279,10 @@
   cursor: not-allowed;
   color: var(--text-muted) !important;
   border-color: var(--calculated-border-color) !important;
-  background: var(--bg-elevated) !important;
+  background: var(--background-elevated) !important;
 }
 
-.stopBtn {
+.stopButton {
   border: 1px solid rgba(239, 68, 68, 0.2);
   background: rgba(239, 68, 68, 0.06);
   color: var(--status-stopped);
@@ -294,7 +294,7 @@
   }
 }
 
-.startBtn {
+.startButton {
   border: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.06);
   color: var(--status-running);
@@ -306,7 +306,7 @@
   }
 }
 
-.logsBtn {
+.logsButton {
   border: 1px solid rgba(148, 163, 184, 0.15);
   background: rgba(148, 163, 184, 0.04);
   color: var(--status-unknown);
@@ -319,7 +319,7 @@
   }
 }
 
-.restartBtn {
+.restartButton {
   border: 1px solid rgba(251, 191, 36, 0.2);
   background: rgba(251, 191, 36, 0.06);
   color: var(--status-paused);
@@ -331,7 +331,7 @@
   }
 }
 
-.rollbackBtn {
+.rollbackButton {
   border: 1px solid rgba(139, 92, 246, 0.2);
   background: rgba(139, 92, 246, 0.06);
   color: var(--status-building);
@@ -358,7 +358,7 @@
   display: flex;
   gap: 6px;
   padding: 3px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   width: fit-content;
@@ -384,13 +384,13 @@
   text-transform: capitalize;
 
   &:hover:not(.devicePillActive) {
-    background: var(--bg-elevated);
+    background: var(--background-elevated);
     color: var(--text-primary);
   }
 }
 
 .devicePillActive {
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   color: var(--text-primary);
   border-color: var(--calculated-border-subtle);
   font-weight: 600;
@@ -401,7 +401,7 @@
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   padding: 1px 6px;
   border-radius: 10px;
   min-width: 18px;
@@ -449,7 +449,7 @@
     flex-shrink: 0;
   }
 
-  .actionBtn {
+  .actionButton {
     width: 32px;
     height: 32px;
   }
@@ -463,7 +463,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   padding: 10px 16px;
   border-radius: var(--border-radius-sm);
@@ -499,12 +499,12 @@
   display: flex;
   gap: 4px;
   padding: 3px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: calc(var(--border-radius-sm) - 2px);
 }
 
-.toggleBtn {
+.toggleButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -531,7 +531,7 @@
 }
 
 .toggleBtnActive {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   color: var(--text-primary) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--calculated-border-color);
@@ -547,7 +547,7 @@
 }
 
 .containerCard {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 16px;
@@ -618,7 +618,7 @@
   font-size: 0.625rem;
   font-weight: 600;
   color: var(--text-muted);
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   padding: 1px 6px;
   border-radius: 4px;

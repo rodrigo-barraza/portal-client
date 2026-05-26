@@ -184,14 +184,14 @@ export default function PropertyListingComponent({
         </div>
         <div className={styles.segmentedControl}>
           <button
-            className={`${styles.segmentBtn} ${viewMode === "card" ? styles.segmentActive : ""}`}
+            className={`${styles.segmentButton} ${viewMode === "card" ? styles.segmentActive : ""}`}
             onClick={() => setViewMode("card")}
             title="Card view"
           >
             <LayoutGrid size={12} strokeWidth={2.2} />
           </button>
           <button
-            className={`${styles.segmentBtn} ${viewMode === "list" ? styles.segmentActive : ""}`}
+            className={`${styles.segmentButton} ${viewMode === "list" ? styles.segmentActive : ""}`}
             onClick={() => setViewMode("list")}
             title="List view"
           >

@@ -43,7 +43,7 @@
   background: var(--calculated-accent-primary-subtle);
 }
 
-.breadcrumbItem.active {
+.breadcrumbItem.isActiveState {
   color: var(--text-primary);
   pointer-events: none;
 }
@@ -69,7 +69,7 @@
   overflow: hidden;
 }
 
-.segmentBtn {
+.segmentButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@
     background var(--transition-fast);
 }
 
-.segmentBtn:hover:not(.segmentActive) {
+.segmentButton:hover:not(.segmentActive) {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.04);
 }
@@ -101,7 +101,7 @@
 }
 
 .bucketCard {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 0;
@@ -304,7 +304,7 @@
 /* ── Object List (Table View) ── */
 
 .objectListContainer {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -439,7 +439,7 @@
   gap: 4px;
 }
 
-.actionBtn {
+.actionButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,16 +453,16 @@
   opacity: 0;
 }
 
-.objectRow:hover .actionBtn {
+.objectRow:hover .actionButton {
   opacity: 1;
 }
 
-.actionBtn:hover {
+.actionButton:hover {
   color: var(--accent-primary);
   background: var(--calculated-accent-primary-subtle);
 }
 
-.actionBtn.danger:hover {
+.actionButton.danger:hover {
   color: var(--color-danger);
   background: var(--calculated-color-danger-subtle);
 }
@@ -486,7 +486,7 @@
 }
 
 .gridCard {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -581,7 +581,7 @@
   opacity: 1;
 }
 
-.gridCardActions .actionBtn {
+.gridCardActions .actionButton {
   opacity: 1;
   width: 26px;
   height: 26px;
@@ -592,12 +592,12 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-.gridCardActions .actionBtn:hover {
+.gridCardActions .actionButton:hover {
   background: rgba(0, 0, 0, 0.75);
   color: var(--accent-primary);
 }
 
-.gridCardActions .actionBtn.danger:hover {
+.gridCardActions .actionButton.danger:hover {
   color: var(--color-danger);
 }
 
@@ -617,7 +617,7 @@
 }
 
 .previewPanel {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   width: 90vw;
@@ -648,7 +648,7 @@
   text-overflow: ellipsis;
 }
 
-.previewCloseBtn {
+.previewCloseButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -662,7 +662,7 @@
     background var(--transition-fast);
 }
 
-.previewCloseBtn:hover {
+.previewCloseButton:hover {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -777,7 +777,7 @@
   height: 34px;
   padding: 0 10px 0 32px;
   font-size: 0.8125rem;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
@@ -802,7 +802,7 @@
   font-family: var(--font-mono);
   font-weight: 500;
   padding: 3px 8px;
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border-radius: var(--border-radius-sm);
 }
 
@@ -826,7 +826,7 @@
 }
 
 .storagePanel {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
@@ -954,7 +954,7 @@
 .usageBarTrack {
   width: 100%;
   height: 4px;
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border-radius: 2px;
   overflow: hidden;
 }

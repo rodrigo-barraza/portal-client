@@ -1,5 +1,5 @@
 .card {
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-top: 3px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
@@ -149,7 +149,7 @@
 
 .visibilityInternal {
   color: var(--text-muted);
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -259,7 +259,7 @@
   cursor: not-allowed;
   color: var(--text-muted) !important;
   border-color: var(--calculated-border-color) !important;
-  background: var(--bg-elevated) !important;
+  background: var(--background-elevated) !important;
 }
 
 /* Stop — red */
@@ -387,7 +387,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 10px;
-  background: var(--bg-surface);
+  background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
@@ -438,7 +438,7 @@
 .barTrack {
   width: 100%;
   height: 3px;
-  background: var(--bg-elevated);
+  background: var(--background-elevated);
   border-radius: 2px;
   overflow: hidden;
 }

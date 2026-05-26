@@ -1123,7 +1123,7 @@ export default function TopologyComponent() {
             {/* View mode segmented toggle */}
             <div className={styles.viewToggle}>
               <button
-                className={`${styles.viewToggleBtn}${viewMode === "tier" ? ` ${styles.viewToggleActive}` : ""}`}
+                className={`${styles.viewToggleButton}${viewMode === "tier" ? ` ${styles.viewToggleActive}` : ""}`}
                 onClick={() => handleViewModeChange("tier")}
                 title="Group by deploy tier"
               >
@@ -1131,7 +1131,7 @@ export default function TopologyComponent() {
                 <span>By Tier</span>
               </button>
               <button
-                className={`${styles.viewToggleBtn}${viewMode === "type" ? ` ${styles.viewToggleActive}` : ""}`}
+                className={`${styles.viewToggleButton}${viewMode === "type" ? ` ${styles.viewToggleActive}` : ""}`}
                 onClick={() => handleViewModeChange("type")}
                 title="Group by project type"
               >
@@ -1793,18 +1793,18 @@ export default function TopologyComponent() {
 
           {/* Zoom */}
           <div className={styles.zoomControls}>
-            <button className={styles.zoomBtn} onClick={zoomIn} title="Zoom in">
+            <button className={styles.zoomButton} onClick={zoomIn} title="Zoom in">
               <ZoomIn size={15} strokeWidth={1.8} />
             </button>
             <button
-              className={styles.zoomBtn}
+              className={styles.zoomButton}
               onClick={zoomOut}
               title="Zoom out"
             >
               <ZoomOut size={15} strokeWidth={1.8} />
             </button>
             <button
-              className={styles.zoomBtn}
+              className={styles.zoomButton}
               onClick={zoomFit}
               title="Fit to view"
             >
