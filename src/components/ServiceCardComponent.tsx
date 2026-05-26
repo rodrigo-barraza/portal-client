@@ -69,13 +69,13 @@ function Sparkline({
     const context = canvas.getContext("2d");
     if (!context) return;
     const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
 
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     context.scale(dpr, dpr);
-    context.clearRect(0, 0, w, h);
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
 
     const effectiveMax = max || Math.max(...data, 0.01);
     const padding = 1;

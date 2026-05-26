@@ -36,8 +36,8 @@ export default class ApiService {
 
    */
   static async getServices(refresh = false) {
-    const qs = refresh ? "?refresh=true" : "";
-    return ApiService._request(`/services${qs}`);
+    const queryString = refresh ? "?refresh=true" : "";
+    return ApiService._request(`/services${queryString}`);
   }
 
   /**
@@ -154,8 +154,8 @@ export default class ApiService {
    * Get auto-detected ecosystem dependencies (imports, API calls, repo sizes).
    */
   static async getProjectAnalysis(refresh = false) {
-    const qs = refresh ? "?refresh=true" : "";
-    return ApiService._request(`/services/analysis${qs}`);
+    const queryString = refresh ? "?refresh=true" : "";
+    return ApiService._request(`/services/analysis${queryString}`);
   }
 
   /**
@@ -194,8 +194,8 @@ export default class ApiService {
 
    */
   static async getContainerStats(deviceId?: string) {
-    const qs = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/containers${qs}`);
+    const queryString = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/containers${queryString}`);
   }
 
   /**
@@ -204,8 +204,8 @@ export default class ApiService {
 
    */
   static async getContainerStatsHistory(deviceId?: string) {
-    const qs = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/containers/history${qs}`);
+    const queryString = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/containers/history${queryString}`);
   }
 
   /**
@@ -223,12 +223,12 @@ export default class ApiService {
     device?: string;
     limit?: number;
   } = {}) {
-    const qs = new URLSearchParams();
-    qs.set("range", range);
-    if (container) qs.set("container", container);
-    if (device) qs.set("device", device);
-    if (limit !== 120) qs.set("limit", String(limit));
-    return ApiService._request(`/stats/containers/metrics?${qs.toString()}`);
+    const queryString = new URLSearchParams();
+    queryString.set("range", range);
+    if (container) queryString.set("container", container);
+    if (device) queryString.set("device", device);
+    if (limit !== 120) queryString.set("limit", String(limit));
+    return ApiService._request(`/stats/containers/metrics?${queryString.toString()}`);
   }
 
   /**
@@ -236,8 +236,8 @@ export default class ApiService {
 
    */
   static async getSystemInfo(deviceId?: string) {
-    const qs = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/system${qs}`);
+    const queryString = deviceId ? `?device=${deviceId}` : "";
+    return ApiService._request(`/stats/system${queryString}`);
   }
 
   /**
@@ -349,10 +349,10 @@ export default class ApiService {
     bucketName: string,
     { prefix = "", recursive = false }: { prefix?: string; recursive?: boolean } = {},
   ) {
-    const qs = new URLSearchParams();
-    if (prefix) qs.set("prefix", prefix);
-    if (recursive) qs.set("recursive", "true");
-    const query = qs.toString();
+    const queryString = new URLSearchParams();
+    if (prefix) queryString.set("prefix", prefix);
+    if (recursive) queryString.set("recursive", "true");
+    const query = queryString.toString();
     return ApiService._request(
       `/object-store/buckets/${bucketName}${query ? `?${query}` : ""}`,
     );
@@ -379,8 +379,8 @@ export default class ApiService {
     objectName: string,
     { inline = false }: { inline?: boolean } = {},
   ) {
-    const qs = inline ? "?inline=true" : "";
-    return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${qs}`;
+    const queryString = inline ? "?inline=true" : "";
+    return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${queryString}`;
   }
 
   /**
@@ -562,7 +562,7 @@ export default class ApiService {
     sort = "createdAt",
     order = "desc",
   ) {
-    const qs = new URLSearchParams({
+    const queryString = new URLSearchParams({
       projectId,
       period,
       limit: String(limit),
@@ -570,7 +570,7 @@ export default class ApiService {
       sort,
       order,
     });
-    return ApiService._request(`/session-analytics/sessions?${qs.toString()}`);
+    return ApiService._request(`/session-analytics/sessions?${queryString.toString()}`);
   }
 
   /**
@@ -645,13 +645,13 @@ export default class ApiService {
     limit = 50,
     offset = 0,
   ) {
-    const qs = new URLSearchParams({
+    const queryString = new URLSearchParams({
       projectId,
       period,
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/events/feed?${qs.toString()}`);
+    return ApiService._request(`/session-analytics/events/feed?${queryString.toString()}`);
   }
 
   /**
@@ -681,13 +681,13 @@ export default class ApiService {
     limit = 50,
     offset = 0,
   ) {
-    const qs = new URLSearchParams({
+    const queryString = new URLSearchParams({
       projectId,
       period,
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/visitors?${qs.toString()}`);
+    return ApiService._request(`/session-analytics/visitors?${queryString.toString()}`);
   }
 
   /**
@@ -699,13 +699,13 @@ export default class ApiService {
     limit = 50,
     offset = 0,
   ) {
-    const qs = new URLSearchParams({
+    const queryString = new URLSearchParams({
       projectId,
       period,
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/ips?${qs.toString()}`);
+    return ApiService._request(`/session-analytics/ips?${queryString.toString()}`);
   }
 
   /**
@@ -716,10 +716,10 @@ export default class ApiService {
     projectId?: string,
     period = "all",
   ) {
-    const qs = new URLSearchParams({ period });
-    if (projectId) qs.set("projectId", projectId);
+    const queryString = new URLSearchParams({ period });
+    if (projectId) queryString.set("projectId", projectId);
     return ApiService._request(
-      `/session-analytics/ip/${encodeURIComponent(ip)}?${qs.toString()}`,
+      `/session-analytics/ip/${encodeURIComponent(ip)}?${queryString.toString()}`,
     );
   }
 }

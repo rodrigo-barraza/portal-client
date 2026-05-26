@@ -124,7 +124,7 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 function formatTimestamp(dateStr: string): string {
-  const d = new Date(dateStr);
+  const parsedDate = new Date(dateStr);
   return d.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -484,7 +484,7 @@ export default function SessionExplorerComponent({
   // ══════════════════════════════════════════════════════════
 
   if (selectedSession) {
-    const s = selectedSession;
+    const currentSession = selectedSession;
     return (
       <div className={styles.explorer}>
         <div className={styles.detailHeader}>

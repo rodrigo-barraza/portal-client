@@ -283,8 +283,8 @@ function clusterSize(count: number, maxCols = MAX_COLS) {
   if (count === 0) return { cols: 0, rows: 0, w: 0, h: 0 };
   const cols = Math.min(count, maxCols);
   const rows = Math.ceil(count / cols);
-  const w = cols * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
-  const h = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
+  const clusterWidth = cols * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
+  const clusterHeight = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
   return { cols, rows, w, h };
 }
 
@@ -731,7 +731,7 @@ export default function TopologyComponent() {
 
   // ── Search filtering ────────────────────────────────────────
   const searchMatches = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const normalizedSearch = searchQuery.trim().toLowerCase();
     if (!q) return null; // null = no filter active
     const matched = new Set();
     for (const svc of allServices) {
@@ -745,7 +745,7 @@ export default function TopologyComponent() {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
-      if (haystack.includes(q)) matched.add(svc.id);
+      if (haystack.includes(normalizedSearch)) matched.add(svc.id);
     }
     return matched;
   }, [searchQuery, allServices]);
@@ -1030,12 +1030,12 @@ export default function TopologyComponent() {
   }, [handleMouseMove, handleMouseUp, handleWheel]);
 
   const zoomIn = () => {
-    const n = Math.min(3, zoom * 1.25);
+    const newZoom = Math.min(3, zoom * 1.25);
     setZoom(n);
     zoomRef.current = n;
   };
   const zoomOut = () => {
-    const n = Math.max(0.2, zoom * 0.8);
+    const newZoom = Math.max(0.2, zoom * 0.8);
     setZoom(n);
     zoomRef.current = n;
   };
@@ -1297,7 +1297,7 @@ export default function TopologyComponent() {
                     (!searchMatches.has(edge.source) ||
                       !searchMatches.has(edge.target));
                   const isFaded = isFadedBySelection || isFadedBySearch;
-                  const d = edgePath(anchor);
+                  const edgePathData = edgePath(anchor);
 
                   // Edge type styling
                   const etc =

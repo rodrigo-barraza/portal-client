@@ -156,11 +156,11 @@ export default function IntegrationsComponent() {
   const filteredCategories = data?.categories
     ?.map((cat: IntegrationCategory) => {
       const filtered = cat.integrations.filter((item: IntegrationItem) => {
-        const q = searchQuery.toLowerCase();
+        const normalizedSearch = searchQuery.toLowerCase();
         return (
-          item.provider.toLowerCase().includes(q) ||
-          item.envKey.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q)
+          item.provider.toLowerCase().includes(normalizedSearch) ||
+          item.envKey.toLowerCase().includes(normalizedSearch) ||
+          item.category.toLowerCase().includes(normalizedSearch)
         );
       });
       return {

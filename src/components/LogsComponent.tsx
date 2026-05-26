@@ -63,7 +63,7 @@ function ansi256ToHex(n: number) {
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }
   // Grayscale 232-255
-  const v = (n - 232) * 10 + 8;
+  const grayscaleValue = (n - 232) * 10 + 8;
   return `#${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}${v.toString(16).padStart(2, "0")}`;
 }
 
@@ -137,7 +137,7 @@ function parseAnsi(text: string) {
     // Parse SGR parameters
     const codes = match[1] ? match[1].split(";").map(Number) : [0];
     for (let i = 0; i < codes.length; i++) {
-      const c = codes[i];
+      const colorCode = codes[i];
       if (c === 0) {
         color = null;
         bgColor = null;

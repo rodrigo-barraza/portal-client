@@ -70,12 +70,12 @@ export default function LibraryCatalogComponent({
   // Search filtering
   const filtered = useMemo(() => {
     if (!search.trim()) return items;
-    const q = search.toLowerCase();
+    const normalizedSearch = search.toLowerCase();
     return items.filter(
       (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q) ||
-        humanize(c.name).toLowerCase().includes(q),
+        c.name.toLowerCase().includes(normalizedSearch) ||
+        c.description?.toLowerCase().includes(normalizedSearch) ||
+        humanize(c.name).toLowerCase().includes(normalizedSearch),
     );
   }, [items, search]);
 

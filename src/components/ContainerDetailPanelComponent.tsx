@@ -64,9 +64,9 @@ function formatNanoseconds(ns: number): string {
   if (!ns || ns === 0) return "0s";
   const ms = ns / 1_000_000;
   if (ms < 1000) return `${ms.toFixed(1)}ms`;
-  const s = ms / 1000;
+  const totalSeconds = ms / 1000;
   if (s < 60) return `${s.toFixed(1)}s`;
-  const m = s / 60;
+  const totalMinutes = totalSeconds / 60;
   return `${m.toFixed(1)}m`;
 }
 
@@ -134,7 +134,7 @@ export default function ContainerDetailPanel({
             const historyArr = Array.isArray(deviceHistory) ? deviceHistory : [];
             for (const snap of historyArr) {
               const snapObj = snap as Record<string, Record<string, Record<string, number>>>;
-              const c = snapObj?.containers?.[container.containerName];
+              const containerSnapshot = snapObj?.containers?.[container.containerName];
               if (c) {
                 cpuPoints.push(c.cpu ?? 0);
                 memPoints.push(c.memoryUsed ?? 0);

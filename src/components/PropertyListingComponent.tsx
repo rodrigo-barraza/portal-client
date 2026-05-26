@@ -69,9 +69,9 @@ export default function PropertyListingComponent({
 
     // Fetch sessions-service projects
     ApiService.getSessionProjects("30d")
-      .then((res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          setSessionProjects(res.data);
+      .then((projectsResponse) => {
+        if (projectsResponse?.data && Array.isArray(projectsResponse.data)) {
+          setSessionProjects(projectsResponse.data);
         }
       })
       .catch(() => {});
@@ -79,16 +79,16 @@ export default function PropertyListingComponent({
 
   const tableData: CombinedPropertyRow[] = [
     ...properties.map((prop) => {
-      const s = summaries[prop.id];
+      const propertySummary = summaries[prop.id];
       return {
         id: prop.id,
         type: "ga" as const,
         label: prop.label,
         subtitle: prop.measurementId || prop.id,
-        users: s?.overview ? s.overview.totalUsers : null,
-        pageviews: s?.overview ? s.overview.pageviews : null,
-        sessions: s?.overview ? s.overview.sessions : null,
-        activeNow: s?.realtime ? s.realtime.activeUsers : null,
+        users: propertySummary?.overview ? propertySummary.overview.totalUsers : null,
+        pageviews: propertySummary?.overview ? propertySummary.overview.pageviews : null,
+        sessions: propertySummary?.overview ? propertySummary.overview.sessions : null,
+        activeNow: propertySummary?.realtime ? propertySummary.realtime.activeUsers : null,
         linkHref: `/web-analytics/${prop.id}`,
       };
     }),
@@ -210,7 +210,7 @@ export default function PropertyListingComponent({
       {viewMode === "card" && (
         <div className={styles.propertyGrid}>
           {properties.map((prop: GAProperty) => {
-            const s = summaries[prop.id];
+            const propertySummary = summaries[prop.id];
             return (
               <Link
                 key={prop.id}
@@ -238,11 +238,11 @@ export default function PropertyListingComponent({
 
                 {s?.loaded ? (
                   <>
-                    {s.overview && (
+                    {propertySummary.overview && (
                       <div className={styles.propertyCardStats}>
                         <div className={styles.propertyCardStat}>
                           <span className={styles.propertyCardStatValue}>
-                            {formatNumber(s.overview.totalUsers)}
+                            {formatNumber(propertySummary.overview.totalUsers)}
                           </span>
                           <span className={styles.propertyCardStatLabel}>
                             Users
@@ -250,7 +250,7 @@ export default function PropertyListingComponent({
                         </div>
                         <div className={styles.propertyCardStat}>
                           <span className={styles.propertyCardStatValue}>
-                            {formatNumber(s.overview.pageviews)}
+                            {formatNumber(propertySummary.overview.pageviews)}
                           </span>
                           <span className={styles.propertyCardStatLabel}>
                             Pageviews
@@ -258,7 +258,7 @@ export default function PropertyListingComponent({
                         </div>
                         <div className={styles.propertyCardStat}>
                           <span className={styles.propertyCardStatValue}>
-                            {formatNumber(s.overview.sessions)}
+                            {formatNumber(propertySummary.overview.sessions)}
                           </span>
                           <span className={styles.propertyCardStatLabel}>
                             Sessions
@@ -266,11 +266,11 @@ export default function PropertyListingComponent({
                         </div>
                       </div>
                     )}
-                    {s.realtime && (
+                    {propertySummary.realtime && (
                       <div className={styles.propertyCardRealtime}>
                         <div className={styles.propertyCardRealtimeDot} />
                         <span className={styles.propertyCardRealtimeValue}>
-                          {formatNumber(s.realtime.activeUsers)}
+                          {formatNumber(propertySummary.realtime.activeUsers)}
                         </span>
                         <span>active now</span>
                       </div>

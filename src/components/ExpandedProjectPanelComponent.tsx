@@ -75,8 +75,8 @@ function Sparkline({
     const context = canvas.getContext("2d");
     if (!context) return;
     const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
 
     canvas.width = w * dpr;
     canvas.height = h * dpr;
@@ -787,7 +787,7 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
           const isOpt = edge.criticality === "optional";
           const isSelfEdge =
             edge.source === service.id || edge.target === service.id;
-          const d = miniEdgePath(anchor);
+          const miniEdgePathData = miniEdgePath(anchor);
           return (
             <g
               key={`${edge.source}-${edge.target}-${i}`}

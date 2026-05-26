@@ -442,18 +442,18 @@ export default function StorageComponent() {
 
   const filteredObjects = useMemo(() => {
     if (!search) return objects;
-    const q = search.toLowerCase();
+    const normalizedSearch = search.toLowerCase();
     return objects.filter((object) => {
       const name = displayName(object.name, prefix).toLowerCase();
-      return name.includes(q);
+      return name.includes(normalizedSearch);
     });
   }, [objects, search, prefix]);
 
   const filteredPrefixes = useMemo(() => {
     if (!search) return prefixes;
-    const q = search.toLowerCase();
+    const normalizedSearch = search.toLowerCase();
     return prefixes.filter((p) =>
-      folderLabel(p, prefix).toLowerCase().includes(q),
+      folderLabel(p, prefix).toLowerCase().includes(normalizedSearch),
     );
   }, [prefixes, search, prefix]);
 
