@@ -16,14 +16,9 @@ import {
   Unplug,
 } from "lucide-react";
 import {
-  AddressBadgeComponent,
+  BadgeComponent,
   ChartLineComponent,
-  DeviceBadgeComponent,
   LoadingIndicatorComponent,
-  PortBadgeComponent,
-  ResponseTimeBadgeComponent,
-  StatusBadgeComponent,
-  VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -176,12 +171,13 @@ export default function ContainerDetailPanel({
         <div className={styles.fieldGrid}>
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Health</span>
-            <StatusBadgeComponent healthy={container.healthy} />
+            <BadgeComponent type="status" healthy={container.healthy} />
           </div>
           {container.visibility && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Visibility</span>
-              <VisibilityBadgeComponent
+              <BadgeComponent
+                type="visibility"
                 visibility={container.visibility}
                 icons={{ Globe, Lock }}
               />
@@ -190,7 +186,8 @@ export default function ContainerDetailPanel({
           {container.responseTimeMs != null && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Response</span>
-              <ResponseTimeBadgeComponent
+              <BadgeComponent
+                type="responseTime"
                 ms={container.responseTimeMs}
                 formatter={formatDuration}
               />
@@ -199,7 +196,8 @@ export default function ContainerDetailPanel({
           {container.device && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Device</span>
-              <DeviceBadgeComponent
+              <BadgeComponent
+                type="device"
                 device={container.device}
                 icons={{ Server }}
               />
@@ -266,13 +264,13 @@ export default function ContainerDetailPanel({
             {container.port && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Port</span>
-                <PortBadgeComponent port={container.port} />
+                <BadgeComponent type="port" port={container.port} />
               </div>
             )}
             {container.url && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Address</span>
-                <AddressBadgeComponent address={container.url} link />
+                <BadgeComponent type="address" address={container.url} link />
               </div>
             )}
           </div>

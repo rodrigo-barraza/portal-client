@@ -14,17 +14,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import {
-  AddressBadgeComponent,
   BadgeComponent,
-  DateTimeBadgeComponent,
-  DeviceBadgeComponent,
-  DomainBadgeComponent,
   LoadingIndicatorComponent,
-  PortBadgeComponent,
-  RepositoryBadgeComponent,
-  ResponseTimeBadgeComponent,
-  StatusBadgeComponent,
-  VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -214,7 +205,8 @@ function ProjectTab({ service }: { service: PortalService }) {
           {service.repo && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Repository</span>
-              <RepositoryBadgeComponent
+              <BadgeComponent
+                type="repository"
                 repo={service.repo}
                 icons={{ Github: GitFork }}
               />
@@ -223,7 +215,7 @@ function ProjectTab({ service }: { service: PortalService }) {
           {service.domain && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Domain</span>
-              <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
+              <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
             </div>
           )}
         </div>
@@ -287,7 +279,7 @@ function ProjectTab({ service }: { service: PortalService }) {
             {service.checkedAt && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Last Checked</span>
-                <DateTimeBadgeComponent date={service.checkedAt} highlightNew />
+                <BadgeComponent type="dateTime" date={service.checkedAt} highlightNew />
               </div>
             )}
           </div>
@@ -309,7 +301,7 @@ function ContainerTab({ service, stats }: { service: PortalService; stats?: Cont
           <div className={styles.fieldGrid}>
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Status</span>
-              <StatusBadgeComponent healthy={service.healthy} />
+              <BadgeComponent type="status" healthy={service.healthy} />
             </div>
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Environment</span>
@@ -324,7 +316,8 @@ function ContainerTab({ service, stats }: { service: PortalService; stats?: Cont
             {service.visibility && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Visibility</span>
-                <VisibilityBadgeComponent
+                <BadgeComponent
+                  type="visibility"
                   visibility={service.visibility}
                   icons={{ Globe, Lock }}
                 />
@@ -333,7 +326,8 @@ function ContainerTab({ service, stats }: { service: PortalService; stats?: Cont
             {service.responseTimeMs != null && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Response</span>
-                <ResponseTimeBadgeComponent
+                <BadgeComponent
+                  type="responseTime"
                   ms={service.responseTimeMs}
                   formatter={formatDuration}
                 />
@@ -342,7 +336,8 @@ function ContainerTab({ service, stats }: { service: PortalService; stats?: Cont
             {service.device && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Device</span>
-                <DeviceBadgeComponent
+                <BadgeComponent
+                  type="device"
                   device={service.device}
                   icons={{ Server }}
                 />
@@ -357,13 +352,13 @@ function ContainerTab({ service, stats }: { service: PortalService; stats?: Cont
             {service.port && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Port</span>
-                <PortBadgeComponent port={service.port} />
+                <BadgeComponent type="port" port={service.port} />
               </div>
             )}
             {service.url && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Address</span>
-                <AddressBadgeComponent address={service.url} link />
+                <BadgeComponent type="address" address={service.url} link />
               </div>
             )}
           </div>

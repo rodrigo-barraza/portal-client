@@ -19,19 +19,12 @@ import {
   Undo2,
 } from "lucide-react";
 import {
-  AddressBadgeComponent,
-  DateTimeBadgeComponent,
-  DeviceBadgeComponent,
-  DomainBadgeComponent,
+  BadgeComponent,
   DrawerComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
-  PortBadgeComponent,
-  ResponseTimeBadgeComponent,
   ChartLineComponent,
-  StatusBadgeComponent,
   TableComponent,
-  VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -241,7 +234,7 @@ function buildColumns({
       key: "status",
       label: "Status",
       sortable: true,
-      render: (row: ContainerRow) => <StatusBadgeComponent healthy={row.healthy} />,
+      render: (row: ContainerRow) => <BadgeComponent type="status" healthy={row.healthy} />,
       sortValue: (row: ContainerRow) => (row.healthy ? 1 : 0),
     },
     {
@@ -370,7 +363,7 @@ function buildColumns({
         const created = row._stats?.created;
         if (!created) return <span className={styles.dimText}>—</span>;
         return (
-          <DateTimeBadgeComponent date={created * 1000} showIcon={false} />
+          <BadgeComponent type="dateTime" date={created * 1000} showIcon={false} />
         );
       },
       sortValue: (row: ContainerRow) => row._stats?.created ?? Infinity,
@@ -381,7 +374,8 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) =>
         row.visibility ? (
-          <VisibilityBadgeComponent
+          <BadgeComponent
+            type="visibility"
             visibility={row.visibility}
             icons={{ Globe, Lock }}
           />
@@ -393,7 +387,7 @@ function buildColumns({
       label: "Port",
       sortable: true,
       render: (row: ContainerRow) =>
-        row.port ? <PortBadgeComponent port={row.port} /> : null,
+        row.port ? <BadgeComponent type="port" port={row.port} /> : null,
       sortValue: (row: ContainerRow) => row.port || 0,
     },
     {
@@ -402,7 +396,7 @@ function buildColumns({
       sortable: true,
       description: "Internal IP and port (socket address)",
       render: (row: ContainerRow) =>
-        row.url ? <AddressBadgeComponent address={row.url} link /> : null,
+        row.url ? <BadgeComponent type="address" address={row.url} link /> : null,
       sortValue: (row: ContainerRow) => row.url || "",
     },
     {
@@ -413,7 +407,7 @@ function buildColumns({
       render: (row: ContainerRow) => {
         const root = getRootDomain(row.domain);
         return root ? (
-          <DomainBadgeComponent domain={row.domain} icons={{ Globe }} />
+          <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />
         ) : null;
       },
       sortValue: (row: ContainerRow) => getRootDomain(row.domain),
@@ -424,7 +418,8 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) =>
         row.responseTimeMs != null ? (
-          <ResponseTimeBadgeComponent
+          <BadgeComponent
+            type="responseTime"
             ms={row.responseTimeMs}
             formatter={formatDuration}
           />
@@ -437,7 +432,7 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) =>
         row.device ? (
-          <DeviceBadgeComponent device={row.device} icons={{ Server }} />
+          <BadgeComponent type="device" device={row.device} icons={{ Server }} />
         ) : null,
       sortValue: (row: ContainerRow) => row.device || "",
     },
@@ -1153,7 +1148,7 @@ export default function ContainerStatsComponent() {
                   <span className={styles.cardName}>{row.containerName}</span>
                 </div>
                 <div className={styles.cardBadgeSection}>
-                  <StatusBadgeComponent healthy={row.healthy} />
+                  <BadgeComponent type="status" healthy={row.healthy} />
                   {row.device && (
                     <span className={styles.cardDevicePill}>{row.device}</span>
                   )}
@@ -1161,15 +1156,16 @@ export default function ContainerStatsComponent() {
               </div>
 
               <div className={styles.cardMeta}>
-                {row.port && <PortBadgeComponent port={row.port} />}
+                {row.port && <BadgeComponent type="port" port={row.port} />}
                 {row.visibility && (
-                  <VisibilityBadgeComponent
+                  <BadgeComponent
+                    type="visibility"
                     visibility={row.visibility}
                     icons={{ Globe, Lock }}
                   />
                 )}
                 {row.domain && (
-                  <DomainBadgeComponent domain={row.domain} icons={{ Globe }} />
+                  <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />
                 )}
               </div>
 
@@ -1225,7 +1221,7 @@ export default function ContainerStatsComponent() {
                   {row._stats?.created ? (
                     <>
                       <span className={styles.uptimeLabel}>Uptime:</span>
-                      <DateTimeBadgeComponent date={row._stats.created * 1000} showIcon={false} />
+                      <BadgeComponent type="dateTime" date={row._stats.created * 1000} showIcon={false} />
                     </>
                   ) : (
                     "—"

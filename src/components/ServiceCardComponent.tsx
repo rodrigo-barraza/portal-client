@@ -17,16 +17,7 @@ import {
   Undo2,
 } from "lucide-react";
 import {
-  AddressBadgeComponent,
   BadgeComponent,
-  DateTimeBadgeComponent,
-  DeviceBadgeComponent,
-  DomainBadgeComponent,
-  PortBadgeComponent,
-  RepositoryBadgeComponent,
-  ResponseTimeBadgeComponent,
-  StatusBadgeComponent,
-  VisibilityBadgeComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -305,7 +296,7 @@ export default function ServiceCardComponent({
           {isNonDeployed ? (
             <BadgeComponent variant="info">Not Deployed</BadgeComponent>
           ) : (
-            <StatusBadgeComponent healthy={isHealthy} />
+            <BadgeComponent type="status" healthy={isHealthy} />
           )}
         </div>
 
@@ -480,7 +471,8 @@ export default function ServiceCardComponent({
         {service.visibility && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Visibility</span>
-            <VisibilityBadgeComponent
+            <BadgeComponent
+              type="visibility"
               visibility={service.visibility}
               icons={{ Globe, Lock }}
             />
@@ -490,7 +482,8 @@ export default function ServiceCardComponent({
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Response</span>
-            <ResponseTimeBadgeComponent
+            <BadgeComponent
+              type="responseTime"
               ms={service.responseTimeMs}
               formatter={formatDuration}
             />
@@ -500,7 +493,7 @@ export default function ServiceCardComponent({
         {service.device && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Device</span>
-            <DeviceBadgeComponent device={service.device} icons={{ Server }} />
+            <BadgeComponent type="device" device={service.device} icons={{ Server }} />
           </div>
         )}
 
@@ -591,28 +584,29 @@ export default function ServiceCardComponent({
         {service.port && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Port</span>
-            <PortBadgeComponent port={service.port} />
+            <BadgeComponent type="port" port={service.port} />
           </div>
         )}
 
         {service.url && !isInfra && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Address</span>
-            <AddressBadgeComponent address={service.url} link />
+            <BadgeComponent type="address" address={service.url} link />
           </div>
         )}
 
         {service.domain && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Domain</span>
-            <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
+            <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
           </div>
         )}
 
         {service.repo && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Repository</span>
-            <RepositoryBadgeComponent
+            <BadgeComponent
+              type="repository"
               repo={service.repo}
               icons={{ Github: GitFork }}
             />
@@ -622,7 +616,7 @@ export default function ServiceCardComponent({
         {service.checkedAt && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Checked</span>
-            <DateTimeBadgeComponent date={service.checkedAt} highlightNew />
+            <BadgeComponent type="dateTime" date={service.checkedAt} highlightNew />
           </div>
         )}
       </div>

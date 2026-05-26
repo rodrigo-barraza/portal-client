@@ -42,7 +42,6 @@ import {
   CloseButtonComponent,
   CollapsibleBlockComponent,
   CopyButtonComponent,
-  CountBadgeComponent,
   DatePickerComponent,
   DividerComponent,
   EmptyStateComponent,
@@ -55,7 +54,6 @@ import {
   MultiSelectComponent,
   PaginationComponent,
   RadioComponent,
-  ResponseTimeBadgeComponent,
   SearchInputComponent,
   SelectComponent,
   SliderComponent,
@@ -69,7 +67,6 @@ import {
   ToolbarComponent,
   TooltipComponent,
   TopAppBarComponent,
-  VisibilityBadgeComponent,
   BottomAppBarComponent,
   NavigationRailComponent,
   IconButtonComponent,
@@ -180,9 +177,9 @@ const PREVIEWS = {
 
   CountBadgeComponent: () => (
     <PreviewRow>
-      <CountBadgeComponent count={3} />
-      <CountBadgeComponent count={42} state="new" />
-      <CountBadgeComponent count="99+" rainbow />
+      <BadgeComponent type="count" count={3} />
+      <BadgeComponent type="count" count={42} state="new" />
+      <BadgeComponent type="count" count="99+" rainbow />
     </PreviewRow>
   ),
 
@@ -421,9 +418,9 @@ const PREVIEWS = {
 
   ResponseTimeBadgeComponent: () => (
     <PreviewRow>
-      <ResponseTimeBadgeComponent ms={42} />
-      <ResponseTimeBadgeComponent ms={180} />
-      <ResponseTimeBadgeComponent ms={1250} />
+      <BadgeComponent type="responseTime" ms={42} />
+      <BadgeComponent type="responseTime" ms={180} />
+      <BadgeComponent type="responseTime" ms={1250} />
     </PreviewRow>
   ),
 
@@ -650,8 +647,8 @@ const PREVIEWS = {
 
   VisibilityBadgeComponent: () => (
     <PreviewRow>
-      <VisibilityBadgeComponent visibility="external" icons={{ Globe, Lock }} />
-      <VisibilityBadgeComponent visibility="internal" icons={{ Globe, Lock }} />
+      <BadgeComponent type="visibility" visibility="external" icons={{ Globe, Lock }} />
+      <BadgeComponent type="visibility" visibility="internal" icons={{ Globe, Lock }} />
     </PreviewRow>
   ),
 

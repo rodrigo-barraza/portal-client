@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import {
   BadgeComponent,
-  DomainBadgeComponent,
   DrawerComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
@@ -209,7 +208,7 @@ function buildColumns(
       sortable: true,
       render: (service: PortalService) =>
         service.domain ? (
-          <DomainBadgeComponent domain={service.domain} icons={{ Globe }} />
+          <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
         ) : (
           <span className={styles.mutedCell}>—</span>
         ),
