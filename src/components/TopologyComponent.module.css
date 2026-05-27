@@ -65,6 +65,51 @@
   );
 }
 
+[data-theme="punk"] .header {
+  background: linear-gradient(
+    to bottom,
+    var(--background-base) 0%,
+    rgba(14, 10, 16, 0.85) 60%,
+    transparent 100%
+  );
+}
+
+[data-theme="ember"] .header {
+  background: linear-gradient(
+    to bottom,
+    var(--background-base) 0%,
+    rgba(18, 12, 8, 0.85) 60%,
+    transparent 100%
+  );
+}
+
+[data-theme="arctic"] .header {
+  background: linear-gradient(
+    to bottom,
+    var(--background-base) 0%,
+    rgba(10, 14, 20, 0.85) 60%,
+    transparent 100%
+  );
+}
+
+[data-theme="forest"] .header {
+  background: linear-gradient(
+    to bottom,
+    var(--background-base) 0%,
+    rgba(8, 14, 8, 0.85) 60%,
+    transparent 100%
+  );
+}
+
+[data-theme="mono"] .header {
+  background: linear-gradient(
+    to bottom,
+    var(--background-base) 0%,
+    rgba(16, 16, 16, 0.85) 60%,
+    transparent 100%
+  );
+}
+
 .headerInner {
   display: flex;
   align-items: flex-start;

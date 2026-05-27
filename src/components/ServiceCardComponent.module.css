@@ -14,7 +14,7 @@
     box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--calculated-border-medium);
   }
 }
 

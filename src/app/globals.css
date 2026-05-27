@@ -114,6 +114,62 @@
   --calculated-shadow-glow: 0 0 24px rgba(0, 180, 216, 0.18);
 }
 
+/* ── Punk Mode ─────────────────────────────────────────────── */
+
+[data-theme="punk"] {
+  --accent-primary: #ff2d9b;
+  --calculated-accent-primary-hover: #e6187f;
+  --calculated-accent-primary-glow: rgba(255, 45, 155, 0.45);
+  --calculated-accent-primary-subtle: rgba(255, 45, 155, 0.12);
+  --calculated-shadow-glow: 0 0 24px rgba(255, 45, 155, 0.22);
+}
+
+/* ── Ember Mode ───────────────────────────────────────────── */
+
+[data-theme="ember"] {
+  --accent-primary: #f59e0b;
+  --calculated-accent-primary-hover: #d97706;
+  --calculated-accent-primary-glow: rgba(245, 158, 11, 0.4);
+  --calculated-accent-primary-subtle: rgba(245, 158, 11, 0.12);
+  --calculated-shadow-glow: 0 0 24px rgba(245, 158, 11, 0.18);
+}
+
+/* ── Arctic Mode ──────────────────────────────────────────── */
+
+[data-theme="arctic"] {
+  --accent-primary: #94cce0;
+  --calculated-accent-primary-hover: #7ab8cc;
+  --calculated-accent-primary-glow: rgba(148, 204, 224, 0.35);
+  --calculated-accent-primary-subtle: rgba(148, 204, 224, 0.1);
+  --calculated-shadow-glow: 0 0 24px rgba(148, 204, 224, 0.15);
+}
+
+/* ── Forest Mode ──────────────────────────────────────────── */
+
+[data-theme="forest"] {
+  --accent-primary: #4ade80;
+  --calculated-accent-primary-hover: #22c55e;
+  --calculated-accent-primary-glow: rgba(74, 222, 128, 0.35);
+  --calculated-accent-primary-subtle: rgba(74, 222, 128, 0.1);
+  --calculated-shadow-glow: 0 0 24px rgba(74, 222, 128, 0.15);
+}
+
+/* ── Mono Mode ────────────────────────────────────────────── */
+
+[data-theme="mono"] {
+  --accent-primary: #a0a0a0;
+  --calculated-accent-primary-hover: #888888;
+  --calculated-accent-primary-glow: rgba(160, 160, 160, 0.3);
+  --calculated-accent-primary-subtle: rgba(160, 160, 160, 0.08);
+  --calculated-shadow-glow: 0 0 20px rgba(160, 160, 160, 0.1);
+}
+
+/* Grayscale filter for Mono Mode */
+html[data-theme="mono"] {
+  filter: grayscale(1) contrast(1.05);
+  -webkit-filter: grayscale(1) contrast(1.05);
+}
+
 /* ── Body Overrides ────────────────────────────────────────── */
 
 body {
