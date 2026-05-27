@@ -154,8 +154,8 @@ export default function ComponentsComponent({
   // ── Category counts ──────────────────────────────────────────
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: components.length };
-    for (const comp of components) {
-      counts[comp.category] = (counts[comp.category] || 0) + 1;
+    for (const catalogItem of components) {
+      counts[catalogItem.category] = (counts[catalogItem.category] || 0) + 1;
     }
     return counts;
   }, [components]);

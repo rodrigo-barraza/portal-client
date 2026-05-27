@@ -55,14 +55,14 @@ export default function PropertyListingComponent({
     if (didFetch.current) return;
     didFetch.current = true;
 
-    for (const prop of properties) {
+    for (const property of properties) {
       Promise.all([
-        ApiService.getGAOverview(prop.id, "30d").catch(() => null),
-        ApiService.getGARealtime(prop.id).catch(() => null),
+        ApiService.getGAOverview(property.id, "30d").catch(() => null),
+        ApiService.getGARealtime(property.id).catch(() => null),
       ]).then(([overview, realtime]) => {
         setSummaries((prev) => ({
           ...prev,
-          [prop.id]: { overview, realtime, loaded: true },
+          [property.id]: { overview, realtime, loaded: true },
         }));
       });
     }

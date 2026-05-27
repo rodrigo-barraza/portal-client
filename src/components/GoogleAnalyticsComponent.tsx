@@ -97,7 +97,7 @@ const formatPercent = (value: number | null | undefined) => {
 
 function DeltaBadge({ value }: { value?: number | null }) {
   if (value == null || !isFinite(value)) return null;
-  const pct = (value * 100).toFixed(1);
+  const percentage = (value * 100).toFixed(1);
   const isUp = value >= 0;
   const Icon = isUp ? ArrowUpRight : ArrowDownRight;
   return (
@@ -106,7 +106,7 @@ function DeltaBadge({ value }: { value?: number | null }) {
     >
       <Icon size={12} strokeWidth={2.5} />
       {isUp ? "+" : ""}
-      {pct}%
+      {percentage}%
     </span>
   );
 }
@@ -163,7 +163,7 @@ function HorizontalBar({
   color: string;
   suffix?: string;
 }) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className={styles.barRow}>
       <div className={styles.barInfo}>
@@ -176,7 +176,7 @@ function HorizontalBar({
       <div className={styles.barTrack}>
         <div
           className={styles.barFill}
-          style={{ width: `${pct}%`, background: color }}
+          style={{ width: `${percentage}%`, background: color }}
         />
       </div>
     </div>
@@ -204,9 +204,9 @@ function DonutChart({
   // Pre-compute cumulative offsets to avoid mutating during render
   const cumulativeValues: number[] = [];
   let running = 0;
-  for (const seg of segments) {
+  for (const segment of segments) {
     cumulativeValues.push(running);
-    running += seg.value;
+    running += segment.value;
   }
 
   return (
@@ -224,9 +224,9 @@ function DonutChart({
         stroke="var(--background-elevated)"
         strokeWidth={strokeWidth}
       />
-      {segments.map((seg, i) => {
-        const pct = total > 0 ? seg.value / total : 0;
-        const dashLength = pct * circumference;
+      {segments.map((segment, i) => {
+        const percentage = total > 0 ? segment.value / total : 0;
+        const dashLength = percentage * circumference;
         const dashOffset =
           total > 0 ? -(cumulativeValues[i] / total) * circumference : 0;
 
@@ -237,7 +237,7 @@ function DonutChart({
             cy={center}
             r={radius}
             fill="none"
-            stroke={seg.color}
+            stroke={segment.color}
             strokeWidth={strokeWidth}
             strokeDasharray={`${dashLength} ${circumference - dashLength}`}
             strokeDashoffset={dashOffset}

@@ -77,11 +77,11 @@ function DonutChart({
         strokeWidth={strokeWidth}
       />
       {/* Segments */}
-      {segments.map((seg, i) => {
-        const pct = total > 0 ? seg.value / total : 0;
-        const dashLength = pct * circumference;
+      {segments.map((segment, i) => {
+        const percentage = total > 0 ? segment.value / total : 0;
+        const dashLength = percentage * circumference;
         const dashOffset = -(accumulated / total) * circumference;
-        accumulated += seg.value;
+        accumulated += segment.value;
 
         return (
           <circle
@@ -90,7 +90,7 @@ function DonutChart({
             cy={center}
             r={radius}
             fill="none"
-            stroke={seg.color}
+            stroke={segment.color}
             strokeWidth={strokeWidth}
             strokeDasharray={`${dashLength} ${circumference - dashLength}`}
             strokeDashoffset={dashOffset}
@@ -136,7 +136,7 @@ function UsageBar({
   label: string;
   sublabel?: string;
 }) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
 
   return (
     <div className={styles.usageBarRow}>
@@ -152,7 +152,7 @@ function UsageBar({
       <div className={styles.usageBarTrack}>
         <div
           className={styles.usageBarFill}
-          style={{ width: `${pct}%`, background: color }}
+          style={{ width: `${percentage}%`, background: color }}
         />
       </div>
     </div>
@@ -614,14 +614,14 @@ export default function StorageComponent() {
                       strokeWidth={16}
                     />
                     <div className={styles.storageLegend}>
-                      {bucketSegments.map((seg, i) => (
+                      {bucketSegments.map((segment, i) => (
                         <div key={i} className={styles.legendItem}>
                           <UsageBar
-                            value={seg.value}
+                            value={segment.value}
                             max={maxBucketSize}
-                            color={seg.color}
-                            label={seg.label}
-                            sublabel={`${seg.objectCount.toLocaleString()} objects`}
+                            color={segment.color}
+                            label={segment.label}
+                            sublabel={`${segment.objectCount.toLocaleString()} objects`}
                           />
                         </div>
                       ))}

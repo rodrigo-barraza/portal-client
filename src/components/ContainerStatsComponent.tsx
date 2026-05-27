@@ -284,23 +284,23 @@ function buildColumns({
       label: "RAM",
       sortable: true,
       render: (row: ContainerRow) => {
-        const mem = row._stats?.memory;
-        if (!mem) return <span className={styles.dimText}>—</span>;
+        const memoryStats = row._stats?.memory;
+        if (!memoryStats) return <span className={styles.dimText}>—</span>;
         const hostRam = hostRamByDevice[row.device || ""] || 0;
         const isCapped =
-          mem.limit > 0 && hostRam > 0 && mem.limit < hostRam * 0.99;
-        const pct = isCapped ? (mem.used / mem.limit) * 100 : mem.percent;
-        const color = severityColor(pct, [60, 85]);
+          memoryStats.limit > 0 && hostRam > 0 && memoryStats.limit < hostRam * 0.99;
+        const percentage = isCapped ? (memoryStats.used / memoryStats.limit) * 100 : memoryStats.percent;
+        const color = severityColor(percentage, [60, 85]);
         return (
           <div className={styles.metricCell}>
             <span className={styles.metricValue} style={{ color }}>
-              {formatBytes(mem.used)}
+              {formatBytes(memoryStats.used)}
               <span className={styles.metricLimit}>
                 {" "}
-                / {isCapped ? formatBytes(mem.limit) : "∞"}
+                / {isCapped ? formatBytes(memoryStats.limit) : "∞"}
               </span>
             </span>
-            <MiniBar percent={pct} color={color} />
+            <MiniBar percent={percentage} color={color} />
           </div>
         );
       },
@@ -500,18 +500,18 @@ export default function ContainerStatsComponent() {
       const services = servicesRes?.services || [];
 
       const projectByDocker: Record<string, PortalService> = {};
-      for (const svc of services) {
-        if (svc.dockerProject) {
-          projectByDocker[svc.dockerProject] = svc;
+      for (const service of services) {
+        if (service.dockerProject) {
+          projectByDocker[service.dockerProject] = service;
         }
       }
 
       // Merge container data with project metadata + stats
       const rows: ContainerRow[] = containers.map((c: Record<string, unknown>) => {
-        const svc = projectByDocker[c.name as string] || null;
+        const matchedService = projectByDocker[c.name as string] || null;
         
         let type: "client" | "service" | "bot";
-        const rawType = (svc?.projectType || "").toLowerCase();
+        const rawType = (matchedService?.projectType || "").toLowerCase();
         const nameLower = (c.name as string).toLowerCase();
         if (rawType === "client" || nameLower.includes("client")) {
           type = "client";
@@ -523,18 +523,18 @@ export default function ContainerStatsComponent() {
 
         return {
           // Container identity
-          id: svc?.id || `${(c.device as string) || "unknown"}-${c.name}`,
+          id: matchedService?.id || `${(c.device as string) || "unknown"}-${c.name}`,
           containerName: c.name as string,
           // Project registry fields
-          healthy: svc?.healthy ?? c.state === "running",
-          registered: !!svc,
-          visibility: svc?.visibility || null,
-          port: svc?.port || null,
-          url: svc?.url || null,
-          domain: svc?.domain || null,
-          responseTimeMs: svc?.responseTimeMs ?? null,
-          device: (c.device as string) || svc?.device || null,
-          restartable: svc?.restartable ?? false,
+          healthy: matchedService?.healthy ?? c.state === "running",
+          registered: !!matchedService,
+          visibility: matchedService?.visibility || null,
+          port: matchedService?.port || null,
+          url: matchedService?.url || null,
+          domain: matchedService?.domain || null,
+          responseTimeMs: matchedService?.responseTimeMs ?? null,
+          device: (c.device as string) || matchedService?.device || null,
+          restartable: matchedService?.restartable ?? false,
           controllable: true,
           dockerProject: c.name as string,
           projectType: type,

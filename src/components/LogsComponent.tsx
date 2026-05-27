@@ -91,7 +91,7 @@ function parseAnsi(text: string) {
   let color = null;
   let bgColor = null;
   let bold = false;
-  let dim = false;
+  let isDimmed = false;
   let italic = false;
   let underline = false;
   let strikethrough = false;
@@ -107,7 +107,7 @@ function parseAnsi(text: string) {
         color ||
         bgColor ||
         bold ||
-        dim ||
+        isDimmed ||
         italic ||
         underline ||
         strikethrough
@@ -116,7 +116,7 @@ function parseAnsi(text: string) {
         if (color) style.color = color;
         if (bgColor) style.backgroundColor = bgColor;
         if (bold) style.fontWeight = 700;
-        if (dim) style.opacity = 0.6;
+        if (isDimmed) style.opacity = 0.6;
         if (italic) style.fontStyle = "italic";
         if (underline) style.textDecoration = "underline";
         if (strikethrough)
@@ -142,18 +142,18 @@ function parseAnsi(text: string) {
         color = null;
         bgColor = null;
         bold = false;
-        dim = false;
+        isDimmed = false;
         italic = false;
         underline = false;
         strikethrough = false;
       } else if (colorCode === 1) bold = true;
-      else if (colorCode === 2) dim = true;
+      else if (colorCode === 2) isDimmed = true;
       else if (colorCode === 3) italic = true;
       else if (colorCode === 4) underline = true;
       else if (colorCode === 9) strikethrough = true;
       else if (colorCode === 22) {
         bold = false;
-        dim = false;
+        isDimmed = false;
       } else if (colorCode === 23) italic = false;
       else if (colorCode === 24) underline = false;
       else if (colorCode === 29) strikethrough = false;
@@ -180,7 +180,7 @@ function parseAnsi(text: string) {
       color ||
       bgColor ||
       bold ||
-      dim ||
+      isDimmed ||
       italic ||
       underline ||
       strikethrough
@@ -189,7 +189,7 @@ function parseAnsi(text: string) {
       if (color) style.color = color;
       if (bgColor) style.backgroundColor = bgColor;
       if (bold) style.fontWeight = 700;
-      if (dim) style.opacity = 0.6;
+      if (isDimmed) style.opacity = 0.6;
       if (italic) style.fontStyle = "italic";
       if (underline) style.textDecoration = "underline";
       if (strikethrough)
