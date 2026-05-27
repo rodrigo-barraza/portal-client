@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
+  Clock,
   Container,
   Cpu,
   Globe,
@@ -924,6 +925,18 @@ export default function ContainerStatsComponent() {
     0,
   );
 
+  const rowsWithResponseTime = filteredRows.filter(
+    (row) => row.responseTimeMs !== null,
+  );
+  const averageResponseTime =
+    rowsWithResponseTime.length > 0
+      ? rowsWithResponseTime.reduce(
+          (sum, row) => sum + (row.responseTimeMs ?? 0),
+          0,
+        ) / rowsWithResponseTime.length
+      : 0;
+
+
   // Use actual host RAM from systemInfo instead of summing per-container cgroup limits.
   // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
   const totalMemLimit = useMemo((): number => {
@@ -1206,6 +1219,28 @@ export default function ContainerStatsComponent() {
               <span className={styles.statCardLabel}>Network I/O</span>
               <span className={styles.statCardSub}>
                 ↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div
+              className={styles.statCardIcon}
+              style={{ color: "#f97316", background: "rgba(249,115,22,0.08)" }}
+            >
+              <Clock size={18} strokeWidth={2} />
+            </div>
+            <div className={styles.statCardContent}>
+              <span className={styles.statCardValue}>
+                {averageResponseTime > 0
+                  ? formatDuration(averageResponseTime)
+                  : "—"}
+              </span>
+              <span className={styles.statCardLabel}>Avg Response</span>
+              <span className={styles.statCardSub}>
+                {rowsWithResponseTime.length > 0
+                  ? `Based on ${rowsWithResponseTime.length} active service${rowsWithResponseTime.length === 1 ? "" : "s"}`
+                  : "No services with active responses"}
               </span>
             </div>
           </div>
