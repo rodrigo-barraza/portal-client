@@ -272,6 +272,89 @@ export default function ProjectsComponent() {
 
   return (
     <div className={styles.services}>
+      {/* ── Filter + Sort Bar ── */}
+      {!loading && (
+        <div className={styles.sortBar}>
+          {/* ── Filters ── */}
+          <div className={styles.sortBarIcon}>
+            <ArrowUpDown size={13} strokeWidth={2.2} />
+            <span>Filter</span>
+          </div>
+
+          {Object.entries(filterOptions).map(([dimension, config]) => (
+            <MultiSelectComponent
+              key={dimension}
+              label={config.label}
+              value={filters[dimension] as string[]}
+              options={config.values}
+              onChange={(values: string[]) => setFilter(dimension, values)}
+              allLabel="All"
+            />
+          ))}
+
+          {hasActiveFilter && (
+            <button
+              className={styles.clearButton}
+              onClick={() =>
+                setFilters({
+                  status: [],
+                  visibility: [],
+                  environment: [],
+                  projectType: [],
+                  device: [],
+                })
+              }
+            >
+              Clear
+            </button>
+          )}
+
+          {/* ── Divider ── */}
+          <div className={styles.barDivider} />
+
+          {/* ── View Mode Toggle ── */}
+          <div className={styles.sortBarIcon}>
+            <span>View</span>
+          </div>
+
+          <div className={styles.sortGroup}>
+            <div className={styles.segmentedControl}>
+              <button
+                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
+                  viewMode === "card" ? styles.segmentActive : ""
+                }`}
+                onClick={() => setViewMode("card")}
+                title="Card view"
+              >
+                <LayoutGrid size={12} strokeWidth={2.2} />
+              </button>
+              <button
+                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
+                  viewMode === "table" ? styles.segmentActive : ""
+                }`}
+                onClick={() => setViewMode("table")}
+                title="Table view"
+              >
+                <Table2 size={12} strokeWidth={2.2} />
+              </button>
+            </div>
+          </div>
+
+          {/* ── Divider ── */}
+          <div className={styles.barDivider} />
+
+          {/* ── Refresh Button ── */}
+          <ButtonComponent
+            variant="secondary"
+            icon={RefreshCw}
+            loading={refreshing}
+            onClick={handleRefresh}
+          >
+            Check All
+          </ButtonComponent>
+        </div>
+      )}
+
       <PageHeaderComponent
         sticky={false}
         title="Projects"
@@ -280,16 +363,7 @@ export default function ProjectsComponent() {
             ? "Checking project health…"
             : `${healthyCount} of ${allDeployed.length} services healthy · ${allItems.length} total projects`
         }
-      >
-        <ButtonComponent
-          variant="secondary"
-          icon={RefreshCw}
-          loading={refreshing}
-          onClick={handleRefresh}
-        >
-          Check All
-        </ButtonComponent>
-      </PageHeaderComponent>
+      />
 
       {/* ── Project Summary Cards ───────────────────────────────── */}
       {!loading && (
@@ -383,75 +457,7 @@ export default function ProjectsComponent() {
         </div>
       )}
 
-      {/* ── Filter + Sort Bar ── */}
-      {!loading && (
-        <div className={styles.sortBar}>
-          {/* ── Filters ── */}
-          <div className={styles.sortBarIcon}>
-            <ArrowUpDown size={13} strokeWidth={2.2} />
-            <span>Filter</span>
-          </div>
 
-          {Object.entries(filterOptions).map(([dimension, config]) => (
-            <MultiSelectComponent
-              key={dimension}
-              label={config.label}
-              value={filters[dimension] as string[]}
-              options={config.values}
-              onChange={(values: string[]) => setFilter(dimension, values)}
-              allLabel="All"
-            />
-          ))}
-
-          {hasActiveFilter && (
-            <button
-              className={styles.clearButton}
-              onClick={() =>
-                setFilters({
-                  status: [],
-                  visibility: [],
-                  environment: [],
-                  projectType: [],
-                  device: [],
-                })
-              }
-            >
-              Clear
-            </button>
-          )}
-
-          {/* ── Divider ── */}
-          <div className={styles.barDivider} />
-
-          {/* ── View Mode Toggle ── */}
-          <div className={styles.sortBarIcon}>
-            <span>View</span>
-          </div>
-
-          <div className={styles.sortGroup}>
-            <div className={styles.segmentedControl}>
-              <button
-                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
-                  viewMode === "card" ? styles.segmentActive : ""
-                }`}
-                onClick={() => setViewMode("card")}
-                title="Card view"
-              >
-                <LayoutGrid size={12} strokeWidth={2.2} />
-              </button>
-              <button
-                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
-                  viewMode === "table" ? styles.segmentActive : ""
-                }`}
-                onClick={() => setViewMode("table")}
-                title="Table view"
-              >
-                <Table2 size={12} strokeWidth={2.2} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <LoadingIndicatorComponent
