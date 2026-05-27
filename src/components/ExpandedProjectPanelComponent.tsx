@@ -32,7 +32,12 @@ import {
 } from "../constants";
 import ApiService from "../services/ApiService";
 import styles from "./ExpandedProjectPanelComponent.module.css";
-import type { PortalService, ContainerStats, GAOverview, GAPageRow } from "../types/portal";
+import type {
+  PortalService,
+  ContainerStats,
+  GAOverview,
+  GAPageRow,
+} from "../types/portal";
 
 const MAX_SPARKLINE_POINTS = 60;
 function severityColor(pct: number, thresholds = [40, 80]) {
@@ -215,7 +220,11 @@ function ProjectTab({ service }: { service: PortalService }) {
           {service.domain && (
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Domain</span>
-              <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
+              <BadgeComponent
+                type="domain"
+                domain={service.domain}
+                icons={{ Globe }}
+              />
             </div>
           )}
         </div>
@@ -279,7 +288,11 @@ function ProjectTab({ service }: { service: PortalService }) {
             {service.checkedAt && (
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>Last Checked</span>
-                <BadgeComponent type="dateTime" date={service.checkedAt} highlightNew />
+                <BadgeComponent
+                  type="dateTime"
+                  date={service.checkedAt}
+                  highlightNew
+                />
               </div>
             )}
           </div>
@@ -291,7 +304,13 @@ function ProjectTab({ service }: { service: PortalService }) {
 
 // ── Tab: Container ────────────────────────────────────────────────
 
-function ContainerTab({ service, stats }: { service: PortalService; stats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } } }) {
+function ContainerTab({
+  service,
+  stats,
+}: {
+  service: PortalService;
+  stats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } };
+}) {
   return (
     <div className={styles.containerTab}>
       {/* ── Left: Container info ── */}
@@ -545,8 +564,11 @@ const TIER_LABELS = [
   "Tier 2 — Bots",
 ];
 
-function getIcon(svc: PortalService) {
-  return (svc.projectType && SERVICE_TYPE_ICONS[svc.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
+function getIcon(portalService: PortalService) {
+  return (
+    (portalService.projectType && SERVICE_TYPE_ICONS[portalService.projectType as string]) ||
+    DEFAULT_SERVICE_TYPE_ICON
+  );
 }
 
 type MiniPortSide = "top" | "bottom" | "left" | "right";
@@ -591,8 +613,12 @@ function computeMiniEdgeAnchors(
 
   // When the vertical gap between nodes is minimal (they're roughly side-by-side),
   // prefer horizontal ports to avoid edges crossing through node bodies
-  const verticalOverlap = !(sp.y + MINI_NODE_H < tp.y || tp.y + MINI_NODE_H < sp.y);
-  const horizontalOverlap = !(sp.x + MINI_NODE_W < tp.x || tp.x + MINI_NODE_W < sp.x);
+  const verticalOverlap = !(
+    sp.y + MINI_NODE_H < tp.y || tp.y + MINI_NODE_H < sp.y
+  );
+  const horizontalOverlap = !(
+    sp.x + MINI_NODE_W < tp.x || tp.x + MINI_NODE_W < sp.x
+  );
 
   if (verticalOverlap && !horizontalOverlap) {
     // Nodes are side-by-side vertically — use left/right ports
@@ -619,7 +645,10 @@ function computeMiniEdgeAnchors(
 }
 
 // Control point offset — extends outward from the port face
-function miniCtrlOffset(side: MiniPortSide, dist: number): { dx: number; dy: number } {
+function miniCtrlOffset(
+  side: MiniPortSide,
+  dist: number,
+): { dx: number; dy: number } {
   const magnitude = Math.max(dist * 0.4, 40);
   switch (side) {
     case "top":
@@ -641,7 +670,13 @@ function miniEdgePath(anchor: MiniPortResult): string {
   return `M ${x1} ${y1} C ${x1 + c1.dx} ${y1 + c1.dy}, ${x2 + c2.dx} ${y2 + c2.dy}, ${x2} ${y2}`;
 }
 
-function TopologyTab({ service, allServices }: { service: PortalService; allServices: PortalService[] }) {
+function TopologyTab({
+  service,
+  allServices,
+}: {
+  service: PortalService;
+  allServices: PortalService[];
+}) {
   const deps = service.dependsOn || [];
 
   if (deps.length === 0 && allServices.length === 0) {
@@ -656,13 +691,13 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
   // Build full edge list from all services
   const allEdges = [];
   const idSet = new Set(allServices.map((s) => s.id));
-  for (const svc of allServices) {
-    for (const dep of svc.dependsOn || []) {
+  for (const currentService of allServices) {
+    for (const dep of currentService.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
       const criticality =
         typeof dep === "string" ? "required" : dep.criticality || "required";
       if (idSet.has(depId))
-        allEdges.push({ source: depId, target: svc.id, criticality });
+        allEdges.push({ source: depId, target: currentService.id, criticality });
     }
   }
 
@@ -706,12 +741,14 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
 
   // Layout by deployTier
   const tiers: PortalService[][] = [[], [], []];
-  for (const svc of graphServices) {
-    const tier = Math.min(Math.max(svc.deployTier as number ?? 2, 0), 2);
-    tiers[tier].push(svc);
+  for (const currentService of graphServices) {
+    const tier = Math.min(Math.max((currentService.deployTier as number) ?? 2, 0), 2);
+    tiers[tier].push(currentService);
   }
   for (const tier of tiers)
-    tier.sort((a: PortalService, b: PortalService) => a.name.localeCompare(b.name));
+    tier.sort((a: PortalService, b: PortalService) =>
+      a.name.localeCompare(b.name),
+    );
 
   const GAP_X = 20;
   const GAP_Y = 72;
@@ -723,13 +760,13 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
   const maxW = Math.max(...layerWidths, 0);
 
   let usedTierCount = 0;
-  tiers.forEach((layer, _li) => {
+  tiers.forEach((layer, _tierIndex) => {
     if (!layer.length) return;
     const totalW = layer.length * (MINI_NODE_W + GAP_X) - GAP_X;
     const offsetX = LABEL_W + (maxW - totalW) / 2;
-    layer.forEach((svc, si) => {
-      positions[svc.id] = {
-        x: offsetX + si * (MINI_NODE_W + GAP_X),
+    layer.forEach((currentService, serviceIndex) => {
+      positions[currentService.id] = {
+        x: offsetX + serviceIndex * (MINI_NODE_W + GAP_X),
         y: usedTierCount * (MINI_NODE_H + GAP_Y),
       };
     });
@@ -811,35 +848,35 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
         })}
 
         {/* Tier labels */}
-        {tiers.map((layer, li) => {
-          if (!layer.length || tierYPositions[li] == null) return null;
+        {tiers.map((layer, tierIndex) => {
+          if (!layer.length || tierYPositions[tierIndex] == null) return null;
           return (
             <text
-              key={`tier-${li}`}
+              key={`tier-${tierIndex}`}
               x={0}
-              y={tierYPositions[li]}
+              y={tierYPositions[tierIndex]}
               className={styles.miniTierLabel}
               dominantBaseline="middle"
             >
-              {TIER_LABELS[li] || `Tier ${li}`}
+              {TIER_LABELS[tierIndex] || `Tier ${tierIndex}`}
             </text>
           );
         })}
 
         {/* Nodes */}
-        {graphServices.map((svc: PortalService) => {
-          const pos = positions[svc.id];
+        {graphServices.map((currentService: PortalService) => {
+          const pos = positions[currentService.id];
           if (!pos) return null;
-          const Icon = getIcon(svc);
-          const isSelf = svc.id === service.id;
-          const typeClass = svc.isInfrastructure
+          const Icon = getIcon(currentService);
+          const isSelf = currentService.id === service.id;
+          const typeClass = currentService.isInfrastructure
             ? styles.miniNodeInfra
-            : svc.visibility === "external"
+            : currentService.visibility === "external"
               ? styles.miniNodeExternal
               : styles.miniNodeInternal;
           return (
             <foreignObject
-              key={svc.id}
+              key={currentService.id}
               x={pos.x}
               y={pos.y}
               width={MINI_NODE_W}
@@ -850,12 +887,12 @@ function TopologyTab({ service, allServices }: { service: PortalService; allServ
                 className={`${styles.miniNodeCard} ${typeClass} ${isSelf ? styles.miniNodeSelf : ""}`}
               >
                 <div
-                  className={`${styles.miniStatusDot} ${svc.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`}
+                  className={`${styles.miniStatusDot} ${currentService.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`}
                 />
                 <div className={styles.miniNodeIconWrap}>
                   <Icon size={14} strokeWidth={1.5} />
                 </div>
-                <span className={styles.miniNodeName}>{svc.name}</span>
+                <span className={styles.miniNodeName}>{currentService.name}</span>
               </div>
             </foreignObject>
           );
@@ -871,7 +908,9 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
   const propertyId = service.analyticsPropertyId;
   const [overview, setOverview] = useState<GAOverview | null>(null);
   const [pages, setPages] = useState<{ pages: GAPageRow[] } | null>(null);
-  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(null);
+  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const didFetch = useRef(false);
 

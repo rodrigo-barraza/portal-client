@@ -31,7 +31,6 @@ import {
 import ApiService from "../services/ApiService";
 import type {
   PortalService,
-  DependsOnEntry,
   DependencyRef,
   NodePosition,
   TopologyEdge,
@@ -166,7 +165,9 @@ const EDGE_DIRECTION_CONFIG = {
 
 // ── Icon resolver (by projectType) ──────────────────────────────
 function getIcon(service: Pick<PortalService, "projectType">) {
-  return SERVICE_TYPE_ICONS[service.projectType || ""] || DEFAULT_SERVICE_TYPE_ICON;
+  return (
+    SERVICE_TYPE_ICONS[service.projectType || ""] || DEFAULT_SERVICE_TYPE_ICON
+  );
 }
 
 // ── Tier labels ─────────────────────────────────────────────────
@@ -228,15 +229,15 @@ function layoutTypeNodes(groups: { type: string; members: PortalService[] }[]) {
   for (let i = 0; i < groups.length; i += TYPE_COLS) {
     let rowMaxH = 0;
     for (let c = 0; c < TYPE_COLS && i + c < groups.length; c++) {
-      const gi = i + c;
-      const { columnCount, h } = sizes[gi];
+      const groupIndex = i + c;
+      const { columnCount, h } = sizes[groupIndex];
       const colX = c === 0 ? 0 : colWidths[0] + TYPE_GROUP_GAP_X;
-      const clusterX = colX + (colWidths[c] - sizes[gi].w) / 2;
+      const clusterX = colX + (colWidths[c] - sizes[groupIndex].w) / 2;
       const clusterY = rowY + LABEL_H;
 
-      groups[gi].members.forEach((service, si) => {
-        const column2 = si % columnCount;
-        const row2 = Math.floor(si / columnCount);
+      groups[groupIndex].members.forEach((service, serviceIndex) => {
+        const column2 = serviceIndex % columnCount;
+        const row2 = Math.floor(serviceIndex / columnCount);
         positions[service.id] = {
           x: clusterX + CLUSTER_PAD + column2 * (NODE_W + CLUSTER_GAP_X),
           y: clusterY + CLUSTER_PAD + row2 * (NODE_H + CLUSTER_GAP_Y),
@@ -263,19 +264,16 @@ function computeLayers(services: PortalService[]) {
   }
 
   // Sort each tier alphabetically for consistent ordering
-  for (const tier of tiers)
-    tier.sort((a, b) => a.name.localeCompare(b.name));
+  for (const tier of tiers) tier.sort((a, b) => a.name.localeCompare(b.name));
 
   return tiers;
 }
 
 // ── Extract non-tiered projects (Library, Kit, Tool) ────────────
 function computeLibraries(services: PortalService[]) {
-  return (
-    services
-      .filter((service) => NON_TIERED_TYPES.has(service.projectType || ""))
-      .sort((a, b) => a.name.localeCompare(b.name))
-  );
+  return services
+    .filter((service) => NON_TIERED_TYPES.has(service.projectType || ""))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // ── Compute cluster dimensions for a given layer ────────────────
@@ -283,8 +281,10 @@ function clusterSize(count: number, maxCols = MAX_COLS) {
   if (count === 0) return { columnCount: 0, rows: 0, w: 0, h: 0 };
   const columnCount = Math.min(count, maxCols);
   const rows = Math.ceil(count / columnCount);
-  const clusterWidth = columnCount * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
-  const clusterHeight = rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
+  const clusterWidth =
+    columnCount * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
+  const clusterHeight =
+    rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
   return { columnCount, rows, w: clusterWidth, h: clusterHeight };
 }
 
@@ -300,9 +300,9 @@ function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
   if (libs.length > 0) {
     libsColumnW = libSize.w + LIBS_GAP;
 
-    libs.forEach((service, si) => {
-      const column = si % LIBS_MAX_COLS;
-      const row = Math.floor(si / LIBS_MAX_COLS);
+    libs.forEach((service, serviceIndex) => {
+      const column = serviceIndex % LIBS_MAX_COLS;
+      const row = Math.floor(serviceIndex / LIBS_MAX_COLS);
       positions[service.id] = {
         x: CLUSTER_PAD + column * (NODE_W + CLUSTER_GAP_X),
         y: LABEL_H + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
@@ -314,24 +314,24 @@ function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
   const sizes = layers.map((l) => clusterSize(l.length));
   const maxW = Math.max(...sizes.map((s) => s.w), 0);
 
-  let curY = 0;
+  let currentY = 0;
 
-  layers.forEach((layer, li) => {
+  layers.forEach((layer, layerIndex) => {
     if (!layer.length) return;
-    const { columnCount, w, h } = sizes[li];
+    const { columnCount, w, h } = sizes[layerIndex];
     const clusterX = libsColumnW + (maxW - w) / 2;
-    const clusterY = curY + LABEL_H;
+    const clusterY = currentY + LABEL_H;
 
-    layer.forEach((service, si) => {
-      const column = si % columnCount;
-      const row = Math.floor(si / columnCount);
+    layer.forEach((service, serviceIndex) => {
+      const column = serviceIndex % columnCount;
+      const row = Math.floor(serviceIndex / columnCount);
       positions[service.id] = {
         x: clusterX + CLUSTER_PAD + column * (NODE_W + CLUSTER_GAP_X),
         y: clusterY + CLUSTER_PAD + row * (NODE_H + CLUSTER_GAP_Y),
       };
     });
 
-    curY = clusterY + h + TIER_SPACING;
+    currentY = clusterY + h + TIER_SPACING;
   });
 
   return { positions, libsColumnW };
@@ -342,14 +342,17 @@ function collectEdges(services: PortalService[]): TopologyEdge[] {
   const idSet = new Set(services.map((s) => s.id));
   // Build projectType lookup so edge type comes from the canonical registry classification
   const typeMap = new Map<string, string>();
-  for (const service of services) typeMap.set(service.id, service.projectType || "");
+  for (const service of services)
+    typeMap.set(service.id, service.projectType || "");
 
   const edges: TopologyEdge[] = [];
   for (const service of services) {
     for (const dep of service.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
       const criticality =
-        typeof dep === "string" ? "required" : (dep as DependencyRef).criticality || "required";
+        typeof dep === "string"
+          ? "required"
+          : (dep as DependencyRef).criticality || "required";
       const targetType = typeMap.get(depId) || "";
       const type: EdgeType = PROJECT_TYPE_TO_EDGE[targetType] || "api";
       if (idSet.has(depId))
@@ -458,10 +461,13 @@ function edgePath(anchor: PortResult): string {
 // ── Main Component ───────────────────────────────────────────────
 export default function TopologyComponent() {
   const [allServices, setAllServices] = useState<PortalService[]>([]);
-  const [tierColors, setTierColors] = useState<Record<number, DeployTierColor>>(DEPLOY_TIER_COLORS);
+  const [tierColors, setTierColors] =
+    useState<Record<number, DeployTierColor>>(DEPLOY_TIER_COLORS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [analysisData, setAnalysisData] = useState<ProjectAnalysis | null>(null);
+  const [analysisData, setAnalysisData] = useState<ProjectAnalysis | null>(
+    null,
+  );
   const [repoSizes, setRepoSizes] = useState<
     Record<string, { sizeKB: number; sizeBytes: number }>
   >({});
@@ -491,15 +497,31 @@ export default function TopologyComponent() {
     setEdgeVisibility((prev) => ({ ...prev, [type]: !prev[type] }));
   }, []);
 
+  // Project type visibility toggles
+  const [typeVisibility, setTypeVisibility] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    for (const key of Object.keys(SERVICE_TYPE_COLORS)) init[key] = true;
+    return init;
+  });
+  const toggleTypeVisibility = useCallback((type: string) => {
+    setTypeVisibility((prev) => ({ ...prev, [type]: !prev[type] }));
+  }, []);
+
   // Draggable node positions (overrides layout)
-  const [posOverrides, setPosOverrides] = useState<Record<string, NodePosition>>({});
+  const [posOverrides, setPosOverrides] = useState<
+    Record<string, NodePosition>
+  >({});
 
   // Pan / zoom
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  const [dragging, setDragging] = useState<{ nodeId: string; offsetX: number; offsetY: number } | null>(null);
+  const [dragging, setDragging] = useState<{
+    nodeId: string;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -525,7 +547,10 @@ export default function TopologyComponent() {
    * newly detected imports/API calls that aren't already present.
    * If analysis found nothing for a project, deps are unchanged.
    */
-  function mergeAnalysisDeps(services: PortalService[], analysis: ProjectAnalysis | null): PortalService[] {
+  function mergeAnalysisDeps(
+    services: PortalService[],
+    analysis: ProjectAnalysis | null,
+  ): PortalService[] {
     if (!analysis?.dependencies) return services;
 
     return services.map((service) => {
@@ -570,7 +595,10 @@ export default function TopologyComponent() {
       }
 
       if (newDeps.length === 0) return service;
-      return { ...service, dependsOn: [...(service.dependsOn || []), ...newDeps] };
+      return {
+        ...service,
+        dependsOn: [...(service.dependsOn || []), ...newDeps],
+      };
     });
   }
 
@@ -581,11 +609,17 @@ export default function TopologyComponent() {
         ApiService.getProjectAnalysis(refresh).catch(() => null),
       ]);
 
-      let svcs: PortalService[] = ((servicesRes as Record<string, unknown>).services as PortalService[] || []).map((s) => ({
+      let svcs: PortalService[] = (
+        ((servicesRes as Record<string, unknown>)
+          .services as PortalService[]) || []
+      ).map((s) => ({
         ...s,
         isInfrastructure: false,
       }));
-      const infra: PortalService[] = ((servicesRes as Record<string, unknown>).infrastructure as PortalService[] || []).map((s) => ({
+      const infra: PortalService[] = (
+        ((servicesRes as Record<string, unknown>)
+          .infrastructure as PortalService[]) || []
+      ).map((s) => ({
         ...s,
         isInfrastructure: true,
       }));
@@ -594,12 +628,18 @@ export default function TopologyComponent() {
       if (analysisRes) {
         svcs = mergeAnalysisDeps(svcs, analysisRes as ProjectAnalysis);
         setAnalysisData(analysisRes as ProjectAnalysis);
-        if ((analysisRes as ProjectAnalysis).repoSizes) setRepoSizes((analysisRes as ProjectAnalysis).repoSizes!);
+        if ((analysisRes as ProjectAnalysis).repoSizes)
+          setRepoSizes((analysisRes as ProjectAnalysis).repoSizes!);
       }
 
       setAllServices([...svcs, ...infra]);
       if ((servicesRes as Record<string, unknown>).deployTierColors)
-        setTierColors((servicesRes as Record<string, unknown>).deployTierColors as Record<number, DeployTierColor>);
+        setTierColors(
+          (servicesRes as Record<string, unknown>).deployTierColors as Record<
+            number,
+            DeployTierColor
+          >,
+        );
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
@@ -622,15 +662,23 @@ export default function TopologyComponent() {
   };
 
   // ── Computed layout ─────────────────────────────────────────
-  const layers = useMemo(() => computeLayers(allServices), [allServices]);
-  const libs = useMemo(() => computeLibraries(allServices), [allServices]);
+  const filteredServices = useMemo(
+    () =>
+      allServices.filter(
+        (s) => typeVisibility[s.projectType || "Other"] ?? true,
+      ),
+    [allServices, typeVisibility],
+  );
+
+  const layers = useMemo(() => computeLayers(filteredServices), [filteredServices]);
+  const libs = useMemo(() => computeLibraries(filteredServices), [filteredServices]);
   const { positions: tierBasePositions } = useMemo(
     () => layoutNodes(layers, libs),
     [layers, libs],
   );
   const typeGroups = useMemo(
-    () => computeTypeGroups(allServices),
-    [allServices],
+    () => computeTypeGroups(filteredServices),
+    [filteredServices],
   );
   const typeBasePositions = useMemo(
     () => layoutTypeNodes(typeGroups),
@@ -641,7 +689,7 @@ export default function TopologyComponent() {
   const basePositions =
     viewMode === "tier" ? tierBasePositions : typeBasePositions;
 
-  const allEdges = useMemo(() => collectEdges(allServices), [allServices]);
+  const allEdges = useMemo(() => collectEdges(filteredServices), [filteredServices]);
   const edges = useMemo(
     () => allEdges.filter((e) => edgeVisibility[e.type]),
     [allEdges, edgeVisibility],
@@ -727,14 +775,14 @@ export default function TopologyComponent() {
     };
   }, [libs, positions]);
 
-  const healthyCount = allServices.filter((s) => s.healthy).length;
+  const healthyCount = filteredServices.filter((s) => s.healthy).length;
 
   // ── Search filtering ────────────────────────────────────────
   const searchMatches = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
     if (!normalizedSearch) return null; // null = no filter active
     const matched = new Set();
-    for (const service of allServices) {
+    for (const service of filteredServices) {
       const haystack = [
         service.name,
         service.device,
@@ -905,9 +953,7 @@ export default function TopologyComponent() {
       if (clusterType === "libs") {
         memberIds = libs.map((s) => s.id);
       } else if (clusterType === "type") {
-        memberIds = (typeGroups[clusterIndex]?.members || []).map(
-          (s) => s.id,
-        );
+        memberIds = (typeGroups[clusterIndex]?.members || []).map((s) => s.id);
       } else {
         memberIds = (layers[clusterIndex] || []).map((s) => s.id);
       }
@@ -1088,11 +1134,14 @@ export default function TopologyComponent() {
   }, [allServices, centerOnContent]);
 
   // ── Tooltip ─────────────────────────────────────────────────
-  const handleNodeEnter = useCallback((e: React.MouseEvent, service: PortalService) => {
-    setHoveredNode(service.id);
-    setTooltipPos({ x: e.clientX, y: e.clientY });
-    setTooltipData(service);
-  }, []);
+  const handleNodeEnter = useCallback(
+    (e: React.MouseEvent, service: PortalService) => {
+      setHoveredNode(service.id);
+      setTooltipPos({ x: e.clientX, y: e.clientY });
+      setTooltipData(service);
+    },
+    [],
+  );
 
   const handleNodeMove = useCallback(
     (e: React.MouseEvent) => {
@@ -1116,7 +1165,7 @@ export default function TopologyComponent() {
             <p className={styles.subtitle}>
               {loading
                 ? "Loading…"
-                : `${allServices.length} services · ${healthyCount} healthy`}
+                : `${filteredServices.length} services · ${healthyCount} healthy`}
             </p>
           </div>
           <div className={styles.headerActions}>
@@ -1385,7 +1434,9 @@ export default function TopologyComponent() {
                         className={
                           (selectedNode ? styles.tierLabelFaded : "") +
                             (searchVisibleTiers &&
-                            !libs.some((s: { id: string }) => searchMatches?.has(s.id))
+                            !libs.some((s: { id: string }) =>
+                              searchMatches?.has(s.id),
+                            )
                               ? ` ${styles.tierLabelFaded}`
                               : "") || undefined
                         }
@@ -1434,58 +1485,61 @@ export default function TopologyComponent() {
                     )}
 
                     {/* Tier cluster backgrounds + labels */}
-                    {dynamicClusterRects.map((cr, li) => {
-                      if (!cr) return null;
+                    {dynamicClusterRects.map((clusterRect, tierIndex) => {
+                      if (!clusterRect) return null;
                       const typeConfig =
-                        tierColors[li] ||
-                        DEPLOY_TIER_COLORS[li] ||
+                        tierColors[tierIndex] ||
+                        DEPLOY_TIER_COLORS[tierIndex] ||
                         DEPLOY_TIER_COLORS[0];
                       return (
                         <g
-                          key={`cluster-${li}`}
+                          key={`cluster-${tierIndex}`}
                           className={
                             (selectedNode ? styles.tierLabelFaded : "") +
-                              (searchVisibleTiers && !searchVisibleTiers.has(li)
+                              (searchVisibleTiers && !searchVisibleTiers.has(tierIndex)
                                 ? ` ${styles.tierLabelFaded}`
                                 : "") || undefined
                           }
                         >
                           <rect
-                            x={cr.x}
-                            y={cr.y}
-                            width={cr.w}
-                            height={cr.h}
+                            x={clusterRect.x}
+                            y={clusterRect.y}
+                            width={clusterRect.w}
+                            height={clusterRect.h}
                             rx={10}
                             ry={10}
                             className={`${styles.clusterRect} ${styles.clusterDraggable}`}
-                            style={{ stroke: typeConfig.stroke, fill: typeConfig.fill }}
+                            style={{
+                              stroke: typeConfig.stroke,
+                              fill: typeConfig.fill,
+                            }}
                             data-topology-cluster
                             onMouseDown={(e) =>
-                              handleClusterMouseDown(e, "tier", li)
+                              handleClusterMouseDown(e, "tier", tierIndex)
                             }
                           />
                           {/* Drag handle icon */}
                           <foreignObject
-                            x={cr.x + 8}
-                            y={cr.y + 6}
+                            x={clusterRect.x + 8}
+                            y={clusterRect.y + 6}
                             width={16}
                             height={16}
                             className={styles.clusterDragHandle}
                             data-topology-cluster
                             onMouseDown={(e) =>
-                              handleClusterMouseDown(e, "tier", li)
+                              handleClusterMouseDown(e, "tier", tierIndex)
                             }
                           >
                             <Move size={12} strokeWidth={1.5} />
                           </foreignObject>
                           <text
-                            x={cr.x + cr.w / 2}
-                            y={cr.y - 10}
+                            x={clusterRect.x + clusterRect.w / 2}
+                            y={clusterRect.y - 10}
                             className={styles.tierLabel}
                             textAnchor="middle"
                             dominantBaseline="auto"
                           >
-                            {TIER_LABELS[li] || `Tier ${li}`}
+                            {TIER_LABELS[tierIndex] || `Tier ${tierIndex}`}
                           </text>
                         </g>
                       );
@@ -1495,9 +1549,9 @@ export default function TopologyComponent() {
 
                 {/* ── Type-view clusters ── */}
                 {viewMode === "type" &&
-                  typeClusterRects.map((cr, gi) => {
-                    if (!cr) return null;
-                    const group = typeGroups[gi];
+                  typeClusterRects.map((clusterRect, groupIndex) => {
+                    if (!clusterRect) return null;
+                    const group = typeGroups[groupIndex];
                     const typeConfig =
                       SERVICE_TYPE_COLORS[group.type] ||
                       SERVICE_TYPE_COLORS.Service;
@@ -1514,10 +1568,10 @@ export default function TopologyComponent() {
                         }
                       >
                         <rect
-                          x={cr.x}
-                          y={cr.y}
-                          width={cr.w}
-                          height={cr.h}
+                          x={clusterRect.x}
+                          y={clusterRect.y}
+                          width={clusterRect.w}
+                          height={clusterRect.h}
                           rx={10}
                           ry={10}
                           className={`${styles.clusterRect} ${styles.clusterDraggable}`}
@@ -1527,25 +1581,25 @@ export default function TopologyComponent() {
                           }}
                           data-topology-cluster
                           onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "type", gi)
+                            handleClusterMouseDown(e, "type", groupIndex)
                           }
                         />
                         <foreignObject
-                          x={cr.x + 8}
-                          y={cr.y + 6}
+                          x={clusterRect.x + 8}
+                          y={clusterRect.y + 6}
                           width={16}
                           height={16}
                           className={styles.clusterDragHandle}
                           data-topology-cluster
                           onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "type", gi)
+                            handleClusterMouseDown(e, "type", groupIndex)
                           }
                         >
                           <Move size={12} strokeWidth={1.5} />
                         </foreignObject>
                         <text
-                          x={cr.x + cr.w / 2}
-                          y={cr.y - 10}
+                          x={clusterRect.x + clusterRect.w / 2}
+                          y={clusterRect.y - 10}
                           className={styles.tierLabel}
                           textAnchor="middle"
                           dominantBaseline="auto"
@@ -1562,7 +1616,7 @@ export default function TopologyComponent() {
                   })}
 
                 {/* ── Nodes ── */}
-                {allServices.map((service: PortalService) => {
+                {filteredServices.map((service: PortalService) => {
                   const position = positions[service.id];
                   if (!position) return null;
                   const Icon = getIcon(service);
@@ -1614,7 +1668,9 @@ export default function TopologyComponent() {
                               : undefined
                           }
                         />
-                        {!NON_TIERED_TYPES.has(service.projectType as string) && (
+                        {!NON_TIERED_TYPES.has(
+                          service.projectType as string,
+                        ) && (
                           <div
                             className={`${styles.statusDot} ${service.healthy ? styles.statusHealthy : styles.statusDown}`}
                           />
@@ -1632,7 +1688,9 @@ export default function TopologyComponent() {
                             {formatSize(repoSizes[service.id].sizeKB)}
                           </span>
                         ) : service.device ? (
-                          <span className={styles.nodeHost}>{service.device}</span>
+                          <span className={styles.nodeHost}>
+                            {service.device}
+                          </span>
                         ) : null}
                       </div>
                     </foreignObject>
@@ -1666,18 +1724,40 @@ export default function TopologyComponent() {
               <span>Down</span>
             </div>
             <div className={styles.legendSep} />
-            {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => (
-              <div key={type} className={styles.legendItem}>
+            {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => {
+              const visible = typeVisibility[type] ?? true;
+              return (
                 <div
-                  className={styles.legendDot}
-                  style={{
-                    background: colors.color,
-                    boxShadow: `0 0 6px ${colors.subtle}`,
-                  }}
-                />
-                <span>{type}</span>
-              </div>
-            ))}
+                  key={type}
+                  className={`${styles.legendItem} ${styles.legendToggle}${!visible ? ` ${styles.legendToggleOff}` : ""}`}
+                  onClick={() => toggleTypeVisibility(type)}
+                  title={`${visible ? "Hide" : "Show"} ${type}s`}
+                >
+                  <div
+                    className={styles.legendDot}
+                    style={{
+                      background: colors.color,
+                      boxShadow: `0 0 6px ${colors.subtle}`,
+                      opacity: visible ? 1 : 0.3,
+                    }}
+                  />
+                  <span>{type}</span>
+                  {visible ? (
+                    <Eye
+                      size={11}
+                      strokeWidth={1.5}
+                      className={styles.legendEyeIcon}
+                    />
+                  ) : (
+                    <EyeOff
+                      size={11}
+                      strokeWidth={1.5}
+                      className={styles.legendEyeIcon}
+                    />
+                  )}
+                </div>
+              );
+            })}
             <div className={styles.legendSep} />
             <div className={styles.legendTitle}>Connections</div>
             {(
@@ -1793,7 +1873,11 @@ export default function TopologyComponent() {
 
           {/* Zoom */}
           <div className={styles.zoomControls}>
-            <button className={styles.zoomButton} onClick={zoomIn} title="Zoom in">
+            <button
+              className={styles.zoomButton}
+              onClick={zoomIn}
+              title="Zoom in"
+            >
               <ZoomIn size={15} strokeWidth={1.8} />
             </button>
             <button
@@ -1952,9 +2036,7 @@ export default function TopologyComponent() {
                           </span>
                           <span className={styles.tooltipDepList}>
                             {required
-                              .map((d) =>
-                                typeof d === "string" ? d : d.name,
-                              )
+                              .map((d) => (typeof d === "string" ? d : d.name))
                               .join(", ")}
                           </span>
                         </>
@@ -1970,9 +2052,7 @@ export default function TopologyComponent() {
                             className={`${styles.tooltipDepList} ${styles.tooltipDepListOptional}`}
                           >
                             {optional
-                              .map((d) =>
-                                typeof d === "string" ? d : d.name,
-                              )
+                              .map((d) => (typeof d === "string" ? d : d.name))
                               .join(", ")}
                           </span>
                         </>

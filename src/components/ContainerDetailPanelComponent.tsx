@@ -39,13 +39,14 @@ import styles from "./ContainerDetailPanelComponent.module.css";
 
 const MAX_SPARKLINE_POINTS = 60;
 
-function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
+function severityColor(
+  pct: number,
+  thresholds: [number, number] = [40, 80],
+): string {
   if (pct > thresholds[1]) return "var(--color-danger)";
   if (pct > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
 }
-
-
 
 function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
@@ -112,10 +113,18 @@ export default function ContainerDetailPanel({
         const containerData = metricsRes?.containers?.[container.containerName];
         if (containerData?.points?.length >= 2) {
           setHistory({
-            cpu: containerData.points.map((p: ContainerMetricsPoint) => p.cpu ?? 0),
-            mem: containerData.points.map((p: ContainerMetricsPoint) => p.mem ?? 0),
-            netRx: containerData.points.map((p: ContainerMetricsPoint) => p.netRx ?? 0),
-            netTx: containerData.points.map((p: ContainerMetricsPoint) => p.netTx ?? 0),
+            cpu: containerData.points.map(
+              (p: ContainerMetricsPoint) => p.cpu ?? 0,
+            ),
+            mem: containerData.points.map(
+              (p: ContainerMetricsPoint) => p.mem ?? 0,
+            ),
+            netRx: containerData.points.map(
+              (p: ContainerMetricsPoint) => p.netRx ?? 0,
+            ),
+            netTx: containerData.points.map(
+              (p: ContainerMetricsPoint) => p.netTx ?? 0,
+            ),
           });
           return;
         }
@@ -131,10 +140,16 @@ export default function ContainerDetailPanel({
 
           // Ring buffer returns per-device history; flatten all devices
           for (const deviceHistory of Object.values(res.history) as unknown[]) {
-            const historyArr = Array.isArray(deviceHistory) ? deviceHistory : [];
-            for (const snap of historyArr) {
-              const snapObj = snap as Record<string, Record<string, Record<string, number>>>;
-              const containerSnapshot = snapObj?.containers?.[container.containerName];
+            const historyEntries = Array.isArray(deviceHistory)
+              ? deviceHistory
+              : [];
+            for (const snap of historyEntries) {
+              const snapshotRecord = snap as Record<
+                string,
+                Record<string, Record<string, number>>
+              >;
+              const containerSnapshot =
+                snapshotRecord?.containers?.[container.containerName];
               if (containerSnapshot) {
                 cpuPoints.push(containerSnapshot.cpu ?? 0);
                 memPoints.push(containerSnapshot.memoryUsed ?? 0);
@@ -508,7 +523,8 @@ export default function ContainerDetailPanel({
                           <span className={styles.ioDir}>Dropped</span>
                           <span className={styles.ioValue}>
                             {(
-                              (stats.network.rxDropped ?? 0) + (stats.network.txDropped ?? 0)
+                              (stats.network.rxDropped ?? 0) +
+                              (stats.network.txDropped ?? 0)
                             ).toLocaleString()}
                           </span>
                         </span>
@@ -519,7 +535,8 @@ export default function ContainerDetailPanel({
                           <span className={styles.ioDir}>Errors</span>
                           <span className={styles.ioValueDanger}>
                             {(
-                              (stats.network.rxErrors ?? 0) + (stats.network.txErrors ?? 0)
+                              (stats.network.rxErrors ?? 0) +
+                              (stats.network.txErrors ?? 0)
                             ).toLocaleString()}
                           </span>
                         </span>
@@ -578,8 +595,8 @@ export default function ContainerDetailPanel({
                       <div key={name} className={styles.interfaceRow}>
                         <span className={styles.interfaceName}>{name}</span>
                         <span className={styles.ioCompactDetail}>
-                          ↓ {formatBytes((iface as NetworkInterface).rxBytes)} · ↑{" "}
-                          {formatBytes((iface as NetworkInterface).txBytes)}
+                          ↓ {formatBytes((iface as NetworkInterface).rxBytes)} ·
+                          ↑ {formatBytes((iface as NetworkInterface).txBytes)}
                         </span>
                       </div>
                     ),

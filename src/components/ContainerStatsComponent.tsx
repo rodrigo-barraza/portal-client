@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import {
   Container,
   Cpu,
@@ -20,11 +19,13 @@ import {
 } from "lucide-react";
 import {
   BadgeComponent,
+  ButtonComponent,
   DrawerComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
   ChartLineComponent,
   TableComponent,
+  SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -50,7 +51,10 @@ import styles from "./ContainerStatsComponent.module.css";
 const POLL_INTERVAL = 5_000;
 const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
 
-function severityColor(pct: number, thresholds: [number, number] = [40, 80]): string {
+function severityColor(
+  pct: number,
+  thresholds: [number, number] = [40, 80],
+): string {
   if (pct > thresholds[1]) return "var(--color-danger)";
   if (pct > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
@@ -96,89 +100,107 @@ function ActionCell({
   return (
     <div className={styles.actionRow}>
       {isHealthy ? (
-        <button
-          className={`${styles.actionButton} ${styles.stopButton} ${stopping ? styles.actionBtnLoading : ""}`}
+        <ButtonComponent
+          variant="destructive"
+          size="small"
+          icon={Square}
+          iconSize={9}
+          loading={stopping}
           disabled={stopping || restarting || rollingBack}
-          onClick={async (e) => {
-            e.stopPropagation();
-            setStopping(true);
-            try {
-              await onStop?.(service.id, service);
-            } finally {
-              setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
-            }
-          }}
           title="Stop"
-        >
-          <Square size={9} strokeWidth={2.6} />
-        </button>
-      ) : (
-        <button
-          className={`${styles.actionButton} ${styles.startButton} ${starting ? styles.actionBtnLoading : ""}`}
-          disabled={starting || restarting || rollingBack}
-          onClick={async (e) => {
-            e.stopPropagation();
-            setStarting(true);
-            try {
-              await onStart?.(service.id, service);
-            } finally {
-              setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
-            }
+          className={styles.actionButton}
+          onClick={(event: React.MouseEvent<HTMLElement>) => {
+            event.stopPropagation();
+            setStopping(true);
+            (async () => {
+              try {
+                await onStop?.(service.id, service);
+              } finally {
+                setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
+              }
+            })();
           }}
+        />
+      ) : (
+        <ButtonComponent
+          variant="tonal"
+          size="small"
+          icon={Play}
+          iconSize={9}
+          loading={starting}
+          disabled={starting || restarting || rollingBack}
           title="Start"
-        >
-          <Play size={9} strokeWidth={2.6} fill="currentColor" />
-        </button>
+          className={styles.actionButton}
+          onClick={(event: React.MouseEvent<HTMLElement>) => {
+            event.stopPropagation();
+            setStarting(true);
+            (async () => {
+              try {
+                await onStart?.(service.id, service);
+              } finally {
+                setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
+              }
+            })();
+          }}
+        />
       )}
 
-      <Link
+      <ButtonComponent
+        variant="secondary"
+        size="small"
+        icon={ScrollText}
+        iconSize={9}
         href={`/logs?container=${service.dockerProject || service.id}`}
-        className={`${styles.actionButton} ${styles.logsButton}`}
         title="Logs"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ScrollText size={9} strokeWidth={2.6} />
-      </Link>
+        className={styles.actionButton}
+        onClick={(event: React.MouseEvent<HTMLElement>) => event.stopPropagation()}
+      />
 
       {rollbackAvailable && (
-        <button
-          className={`${styles.actionButton} ${styles.rollbackButton} ${rollingBack ? styles.actionBtnLoading : ""}`}
+        <ButtonComponent
+          variant="secondary"
+          size="small"
+          icon={Undo2}
+          iconSize={9}
+          loading={rollingBack}
           disabled={rollingBack || restarting || stopping || starting}
-          onClick={async (e) => {
-            e.stopPropagation();
-            setRollingBack(true);
-            try {
-              await onRollback?.(service.id, service);
-            } finally {
-              setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
-            }
-          }}
           title="Rollback to previous build"
-        >
-          <Undo2 size={9} strokeWidth={2.6} />
-        </button>
+          className={styles.actionButton}
+          onClick={(event: React.MouseEvent<HTMLElement>) => {
+            event.stopPropagation();
+            setRollingBack(true);
+            (async () => {
+              try {
+                await onRollback?.(service.id, service);
+              } finally {
+                setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
+              }
+            })();
+          }}
+        />
       )}
 
-      <button
-        className={`${styles.actionButton} ${styles.restartButton} ${restarting ? styles.actionBtnLoading : ""}`}
+      <ButtonComponent
+        variant="secondary"
+        size="small"
+        icon={RotateCcw}
+        iconSize={9}
+        loading={restarting}
         disabled={restarting || stopping || starting || rollingBack}
-        onClick={async (e) => {
-          e.stopPropagation();
-          setRestarting(true);
-          try {
-            await onRestart?.(service.id, service);
-          } finally {
-            setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
-          }
-        }}
         title="Restart"
-      >
-        <RotateCcw
-          size={9}
-          strokeWidth={2.6}
-          className={restarting ? styles.spin : ""}
-        />
-      </button>
+        className={styles.actionButton}
+        onClick={(event: React.MouseEvent<HTMLElement>) => {
+          event.stopPropagation();
+          setRestarting(true);
+          (async () => {
+            try {
+              await onRestart?.(service.id, service);
+            } finally {
+              setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
+            }
+          })();
+        }}
+      />
     </div>
   );
 }
@@ -234,7 +256,9 @@ function buildColumns({
       key: "status",
       label: "Status",
       sortable: true,
-      render: (row: ContainerRow) => <BadgeComponent type="status" healthy={row.healthy} />,
+      render: (row: ContainerRow) => (
+        <BadgeComponent type="status" healthy={row.healthy} />
+      ),
       sortValue: (row: ContainerRow) => (row.healthy ? 1 : 0),
     },
     {
@@ -242,15 +266,15 @@ function buildColumns({
       label: "CPU",
       sortable: true,
       render: (row: ContainerRow) => {
-        const cpuPct = row._stats?.cpu?.percent;
-        if (cpuPct == null) return <span className={styles.dimText}>—</span>;
-        const color = severityColor(cpuPct);
+        const cpuPercent = row._stats?.cpu?.percent;
+        if (cpuPercent == null) return <span className={styles.dimText}>—</span>;
+        const color = severityColor(cpuPercent);
         return (
           <div className={styles.metricCell}>
             <span className={styles.metricValue} style={{ color }}>
-              {formatPercent(cpuPct, "adaptive")}
+              {formatPercent(cpuPercent, "adaptive")}
             </span>
-            <MiniBar percent={cpuPct} color={color} />
+            <MiniBar percent={cpuPercent} color={color} />
           </div>
         );
       },
@@ -288,8 +312,12 @@ function buildColumns({
         if (!memoryStats) return <span className={styles.dimText}>—</span>;
         const hostRam = hostRamByDevice[row.device || ""] || 0;
         const isCapped =
-          memoryStats.limit > 0 && hostRam > 0 && memoryStats.limit < hostRam * 0.99;
-        const percentage = isCapped ? (memoryStats.used / memoryStats.limit) * 100 : memoryStats.percent;
+          memoryStats.limit > 0 &&
+          hostRam > 0 &&
+          memoryStats.limit < hostRam * 0.99;
+        const percentage = isCapped
+          ? (memoryStats.used / memoryStats.limit) * 100
+          : memoryStats.percent;
         const color = severityColor(percentage, [60, 85]);
         return (
           <div className={styles.metricCell}>
@@ -363,7 +391,11 @@ function buildColumns({
         const created = row._stats?.created;
         if (!created) return <span className={styles.dimText}>—</span>;
         return (
-          <BadgeComponent type="dateTime" date={created * 1000} showIcon={false} />
+          <BadgeComponent
+            type="dateTime"
+            date={created * 1000}
+            showIcon={false}
+          />
         );
       },
       sortValue: (row: ContainerRow) => row._stats?.created ?? Infinity,
@@ -396,7 +428,9 @@ function buildColumns({
       sortable: true,
       description: "Internal IP and port (socket address)",
       render: (row: ContainerRow) =>
-        row.url ? <BadgeComponent type="address" address={row.url} link /> : null,
+        row.url ? (
+          <BadgeComponent type="address" address={row.url} link />
+        ) : null,
       sortValue: (row: ContainerRow) => row.url || "",
     },
     {
@@ -432,7 +466,11 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) =>
         row.device ? (
-          <BadgeComponent type="device" device={row.device} icons={{ Server }} />
+          <BadgeComponent
+            type="device"
+            device={row.device}
+            icons={{ Server }}
+          />
         ) : null,
       sortValue: (row: ContainerRow) => row.device || "",
     },
@@ -460,14 +498,22 @@ function buildColumns({
 export default function ContainerStatsComponent() {
   const [containerRows, setContainerRows] = useState<ContainerRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | SystemInfo[] | null>(null);
-  const [containerStats, setContainerStats] = useState<Record<string, Partial<ContainerStats>>>({});
+  const [systemInfo, setSystemInfo] = useState<
+    SystemInfo | SystemInfo[] | null
+  >(null);
+  const [containerStats, setContainerStats] = useState<
+    Record<string, Partial<ContainerStats>>
+  >({});
   const [cpuHistory, setCpuHistory] = useState<number[]>([]);
   const [memHistory, setMemHistory] = useState<number[]>([]);
-  const [selectedContainer, setSelectedContainer] = useState<ContainerRow | null>(null);
+  const [selectedContainer, setSelectedContainer] =
+    useState<ContainerRow | null>(null);
   const [activeDevice, setActiveDevice] = useState<string | null>(null);
-  const [activeType, setActiveType] = useState<"client" | "service" | "bot" | null>(null);
+  const [activeType, setActiveType] = useState<
+    "client" | "service" | "bot" | null
+  >(null);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Load view preference from localStorage on mount
   useEffect(() => {
@@ -507,63 +553,65 @@ export default function ContainerStatsComponent() {
       }
 
       // Merge container data with project metadata + stats
-      const rows: ContainerRow[] = containers.map((c: Record<string, unknown>) => {
-        const matchedService = projectByDocker[c.name as string] || null;
-        
-        let type: "client" | "service" | "bot";
-        const rawType = (matchedService?.projectType || "").toLowerCase();
-        const nameLower = (c.name as string).toLowerCase();
-        if (rawType === "client" || nameLower.includes("client")) {
-          type = "client";
-        } else if (rawType === "bot" || nameLower.includes("bot")) {
-          type = "bot";
-        } else {
-          type = "service";
-        }
+      const rows: ContainerRow[] = containers.map(
+        (c: Record<string, unknown>) => {
+          const matchedService = projectByDocker[c.name as string] || null;
 
-        return {
-          // Container identity
-          id: matchedService?.id || `${(c.device as string) || "unknown"}-${c.name}`,
-          containerName: c.name as string,
-          // Project registry fields
-          healthy: matchedService?.healthy ?? c.state === "running",
-          registered: !!matchedService,
-          visibility: matchedService?.visibility || null,
-          port: matchedService?.port || null,
-          url: matchedService?.url || null,
-          domain: matchedService?.domain || null,
-          responseTimeMs: matchedService?.responseTimeMs ?? null,
-          device: (c.device as string) || matchedService?.device || null,
-          restartable: matchedService?.restartable ?? false,
-          controllable: true,
-          dockerProject: c.name as string,
-          projectType: type,
-          // Per-container Docker stats (for table columns + drawer)
-          _stats: {
-            cpu: c.cpu,
-            cpuThrottling: c.cpuThrottling,
-            memory: c.memory,
-            memoryDetail: c.memoryDetail,
-            network: c.network,
-            blockIO: c.blockIO,
-            pids: c.pids,
-            // Container metadata
-            image: c.image,
-            state: c.state,
-            status: c.status,
-            created: c.created,
-            command: c.command,
-            ports: c.ports,
-            mounts: c.mounts,
-            labels: c.labels,
-          },
-        };
-      });
+          let type: "client" | "service" | "bot";
+          const rawType = (matchedService?.projectType || "").toLowerCase();
+          const nameLower = (c.name as string).toLowerCase();
+          if (rawType === "client" || nameLower.includes("client")) {
+            type = "client";
+          } else if (rawType === "bot" || nameLower.includes("bot")) {
+            type = "bot";
+          } else {
+            type = "service";
+          }
+
+          return {
+            // Container identity
+            id:
+              matchedService?.id ||
+              `${(c.device as string) || "unknown"}-${c.name}`,
+            containerName: c.name as string,
+            // Project registry fields
+            healthy: matchedService?.healthy ?? c.state === "running",
+            registered: !!matchedService,
+            visibility: matchedService?.visibility || null,
+            port: matchedService?.port || null,
+            url: matchedService?.url || null,
+            domain: matchedService?.domain || null,
+            responseTimeMs: matchedService?.responseTimeMs ?? null,
+            device: (c.device as string) || matchedService?.device || null,
+            restartable: matchedService?.restartable ?? false,
+            controllable: true,
+            dockerProject: c.name as string,
+            projectType: type,
+            // Per-container Docker stats (for table columns + drawer)
+            _stats: {
+              cpu: c.cpu,
+              cpuThrottling: c.cpuThrottling,
+              memory: c.memory,
+              memoryDetail: c.memoryDetail,
+              network: c.network,
+              blockIO: c.blockIO,
+              pids: c.pids,
+              // Container metadata
+              image: c.image,
+              state: c.state,
+              status: c.status,
+              created: c.created,
+              command: c.command,
+              ports: c.ports,
+              mounts: c.mounts,
+              labels: c.labels,
+            },
+          };
+        },
+      );
 
       // Sort by name
-      rows.sort((a, b) =>
-        a.containerName.localeCompare(b.containerName),
-      );
+      rows.sort((a, b) => a.containerName.localeCompare(b.containerName));
 
       setContainerRows(rows);
 
@@ -582,11 +630,13 @@ export default function ContainerStatsComponent() {
 
       // Accumulate sparkline history for CPU and memory
       const totalCpu = containers.reduce(
-        (sum: number, c: Partial<ContainerStats>) => sum + (c.cpu?.percent || 0),
+        (sum: number, c: Partial<ContainerStats>) =>
+          sum + (c.cpu?.percent || 0),
         0,
       );
       const totalMem = containers.reduce(
-        (sum: number, c: Partial<ContainerStats>) => sum + (c.memory?.used || 0),
+        (sum: number, c: Partial<ContainerStats>) =>
+          sum + (c.memory?.used || 0),
         0,
       );
       setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
@@ -643,17 +693,24 @@ export default function ContainerStatsComponent() {
     // immediately visible instead of building from zero on each visit.
     (async () => {
       try {
-        const res = await ApiService.getContainerMetrics({ range: "1h", limit: HISTORY_MAX });
+        const res = await ApiService.getContainerMetrics({
+          range: "1h",
+          limit: HISTORY_MAX,
+        });
         if (!res?.containers) return;
 
         // Build per-container history from persistent data
-        const seededHistory: Record<string, { cpu: number[]; mem: number[] }> = {};
+        const seededHistory: Record<string, { cpu: number[]; mem: number[] }> =
+          {};
         let totalCpuPoints: number[] = [];
         let totalMemPoints: number[] = [];
 
         // Find the longest series length across all containers
         let maxLen = 0;
-        for (const [_name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
+        for (const [_name, data] of Object.entries(res.containers) as [
+          string,
+          ContainerMetricsData,
+        ][]) {
           if (data.points?.length > maxLen) maxLen = data.points.length;
         }
 
@@ -661,12 +718,15 @@ export default function ContainerStatsComponent() {
         totalCpuPoints = new Array(maxLen).fill(0);
         totalMemPoints = new Array(maxLen).fill(0);
 
-        for (const [_name, data] of Object.entries(res.containers) as [string, ContainerMetricsData][]) {
+        for (const [_name, data] of Object.entries(res.containers) as [
+          string,
+          ContainerMetricsData,
+        ][]) {
           if (!data.points || data.points.length === 0) continue;
 
-          const cpuArr = data.points.map((p) => p.cpu);
-          const memArr = data.points.map((p) => p.mem);
-          seededHistory[_name] = { cpu: cpuArr, mem: memArr };
+          const cpuPoints = data.points.map((p) => p.cpu);
+          const memoryPoints = data.points.map((p) => p.mem);
+          seededHistory[_name] = { cpu: cpuPoints, mem: memoryPoints };
 
           // Accumulate totals — right-align shorter series
           const offset = maxLen - data.points.length;
@@ -755,28 +815,29 @@ export default function ContainerStatsComponent() {
   };
 
   // Check rollback availability for all restartable containers
-  const checkRollbackAvailability = useCallback(async (rows: ContainerRow[]) => {
-    const restartableIds = rows
-      .filter((r) => r.restartable)
-      .map((r) => r.id);
+  const checkRollbackAvailability = useCallback(
+    async (rows: ContainerRow[]) => {
+      const restartableIds = rows.filter((r) => r.restartable).map((r) => r.id);
 
-    if (restartableIds.length === 0) return;
+      if (restartableIds.length === 0) return;
 
-    const results = await Promise.allSettled(
-      restartableIds.map(async (id) => {
-        const res = await ApiService.getRollbackStatus(id);
-        return { id, available: res.available === true };
-      }),
-    );
+      const results = await Promise.allSettled(
+        restartableIds.map(async (id) => {
+          const res = await ApiService.getRollbackStatus(id);
+          return { id, available: res.available === true };
+        }),
+      );
 
-    const map: Record<string, boolean> = {};
-    for (const result of results) {
-      if (result.status === "fulfilled") {
-        map[result.value.id] = result.value.available;
+      const map: Record<string, boolean> = {};
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          map[result.value.id] = result.value.available;
+        }
       }
-    }
-    setRollbackMap(map);
-  }, []);
+      setRollbackMap(map);
+    },
+    [],
+  );
 
   // ── Derive unique device IDs for filter pills ─────────────────
   const deviceIds = useMemo(() => {
@@ -787,7 +848,7 @@ export default function ContainerStatsComponent() {
     return [...ids].sort();
   }, [containerRows]);
 
-  // ── Filter rows by active device and container type ───────────
+  // ── Filter rows by active device, container type, and search query ──
   const filteredRows = useMemo(() => {
     let rows = containerRows;
     if (activeDevice) {
@@ -796,8 +857,31 @@ export default function ContainerStatsComponent() {
     if (activeType) {
       rows = rows.filter((r) => r.projectType === activeType);
     }
+    if (searchQuery.trim()) {
+      const normalizedQuery = searchQuery.toLowerCase().trim();
+      rows = rows.filter((r) => {
+        const nameMatch = r.containerName
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const deviceMatch = r.device
+          ? r.device.toLowerCase().includes(normalizedQuery)
+          : false;
+        const typeMatch = r.projectType
+          ? r.projectType.toLowerCase().includes(normalizedQuery)
+          : false;
+        const portMatch = r.port
+          ? String(r.port).includes(normalizedQuery)
+          : false;
+        const domainMatch = r.domain
+          ? r.domain.toLowerCase().includes(normalizedQuery)
+          : false;
+        return (
+          nameMatch || deviceMatch || typeMatch || portMatch || domainMatch
+        );
+      });
+    }
     return rows;
-  }, [containerRows, activeDevice, activeType]);
+  }, [containerRows, activeDevice, activeType, searchQuery]);
 
   const columns = buildColumns({
     onRestart: handleRestart,
@@ -819,18 +903,17 @@ export default function ContainerStatsComponent() {
 
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
-    if (!activeDevice && !activeType) return Object.values(containerStats);
+    if (!activeDevice && !activeType && !searchQuery.trim())
+      return Object.values(containerStats);
     return filteredRows
       .map((r) => containerStats[r.containerName])
       .filter(Boolean);
-  }, [containerStats, activeDevice, activeType, filteredRows]);
+  }, [containerStats, activeDevice, activeType, searchQuery, filteredRows]);
 
   const avgCpuUsage =
     filteredStats.length > 0
-      ? filteredStats.reduce(
-          (sum, c) => sum + (c.cpu?.percent || 0),
-          0,
-        ) / filteredStats.length
+      ? filteredStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0) /
+        filteredStats.length
       : 0;
   const totalCpuUsage = filteredStats.reduce(
     (sum, c) => sum + (c.cpu?.percent || 0),
@@ -845,7 +928,9 @@ export default function ContainerStatsComponent() {
   // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
   const totalMemLimit = useMemo((): number => {
     if (systemInfo) {
-      const devices: SystemInfo[] = Array.isArray(systemInfo) ? systemInfo : [systemInfo];
+      const devices: SystemInfo[] = Array.isArray(systemInfo)
+        ? systemInfo
+        : [systemInfo];
       if (activeDevice) {
         const match = devices.find((d) => d.deviceId === activeDevice);
         return match?.totalMemory || 0;
@@ -859,7 +944,10 @@ export default function ContainerStatsComponent() {
       const limit = row._stats?.memory?.limit || 0;
       perDevice[dev] = Math.max(perDevice[dev] || 0, limit);
     }
-    return (Object.values(perDevice) as number[]).reduce((sum, v) => sum + v, 0);
+    return (Object.values(perDevice) as number[]).reduce(
+      (sum, v) => sum + v,
+      0,
+    );
   }, [systemInfo, activeDevice, filteredRows]);
 
   const memPercent =
@@ -913,6 +1001,16 @@ export default function ContainerStatsComponent() {
       {/* ── Filters & View Toggle ────────────────────────────────── */}
       <div className={styles.filtersBar}>
         <div className={styles.filtersContainer}>
+          {/* ── Search Input ───────────────────────────────────────── */}
+          <div className={styles.searchWrapper}>
+            <SearchInputComponent
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search containers..."
+              compact
+            />
+          </div>
+
           {/* ── Device Filter Pills ────────────────────────────────── */}
           {deviceIds.length > 1 && (
             <div className={styles.filterGroup}>
@@ -932,7 +1030,9 @@ export default function ContainerStatsComponent() {
                     key={deviceId}
                     className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
                     onClick={() =>
-                      setActiveDevice(activeDevice === deviceId ? null : deviceId)
+                      setActiveDevice(
+                        activeDevice === deviceId ? null : deviceId,
+                      )
                     }
                   >
                     {deviceId}
@@ -1165,7 +1265,11 @@ export default function ContainerStatsComponent() {
                   />
                 )}
                 {row.domain && (
-                  <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />
+                  <BadgeComponent
+                    type="domain"
+                    domain={row.domain}
+                    icons={{ Globe }}
+                  />
                 )}
               </div>
 
@@ -1202,14 +1306,16 @@ export default function ContainerStatsComponent() {
                     <MiniBar
                       percent={
                         row._stats.memory.limit > 0
-                          ? (row._stats.memory.used / row._stats.memory.limit) * 100
+                          ? (row._stats.memory.used / row._stats.memory.limit) *
+                            100
                           : row._stats.memory.percent
                       }
                       color={severityColor(
                         row._stats.memory.limit > 0
-                          ? (row._stats.memory.used / row._stats.memory.limit) * 100
+                          ? (row._stats.memory.used / row._stats.memory.limit) *
+                              100
                           : row._stats.memory.percent,
-                        [60, 85]
+                        [60, 85],
                       )}
                     />
                   )}
@@ -1221,7 +1327,11 @@ export default function ContainerStatsComponent() {
                   {row._stats?.created ? (
                     <>
                       <span className={styles.uptimeLabel}>Uptime:</span>
-                      <BadgeComponent type="dateTime" date={row._stats.created * 1000} showIcon={false} />
+                      <BadgeComponent
+                        type="dateTime"
+                        date={row._stats.created * 1000}
+                        showIcon={false}
+                      />
                     </>
                   ) : (
                     "—"

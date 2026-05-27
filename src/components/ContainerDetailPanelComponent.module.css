@@ -1,11 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════
    ContainerDetailPanel — Drawer content for container rows
+   High-contrast, polished information display
    ══════════════════════════════════════════════════════════════════ */
 
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   animation: panelSlideIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -25,16 +26,16 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .sectionTitle {
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  padding-bottom: 4px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--calculated-border-color);
   margin: 0;
 }
@@ -42,21 +43,22 @@
 .fieldGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px 16px;
+  gap: 2px 16px;
 }
 
 .field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 3px 0;
+  gap: 12px;
+  padding: 5px 0;
   min-width: 0;
 }
 
 .fieldLabel {
   font-size: var(--font-size-sm);
-  color: var(--text-tertiary);
+  font-weight: 500;
+  color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -64,7 +66,7 @@
 .fieldValueMono {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -77,36 +79,36 @@
 
 .stateBadge {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 4px;
   white-space: nowrap;
 
   &[data-state="running"] {
     color: var(--color-success);
-    background: rgba(16, 185, 129, 0.08);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
   }
 
   &[data-state="exited"],
   &[data-state="dead"] {
     color: var(--color-danger);
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
   }
 
   &[data-state="paused"] {
     color: var(--color-warning);
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
   }
 
   &[data-state="restarting"],
   &[data-state="created"] {
-    color: var(--text-muted);
+    color: var(--text-secondary);
     background: var(--background-elevated);
     border: 1px solid var(--calculated-border-color);
   }
@@ -116,16 +118,16 @@
 
 .commandText {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-muted);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 300px;
   text-align: right;
   background: var(--background-surface);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 4px;
   border: 1px solid var(--calculated-border-color);
 }
 
@@ -142,17 +144,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  color: var(--text-muted);
+  gap: 8px;
+  color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  padding: 20px;
+  padding: 24px;
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
 }
 
 .emptyIcon {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 /* ── Metric Card ──────────────────────────────────────────────── */
@@ -160,52 +162,57 @@
 .metricCard {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 12px 14px;
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
+  transition: border-color 180ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+  }
 }
 
 .metricCardHeader {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .metricCardIcon {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
 .metricCardTitle {
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .metricCardValue {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .metricCardDim {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
-  color: var(--text-muted);
-  font-weight: 400;
+  color: var(--text-secondary);
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .metricRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 /* ── Percent Bar ──────────────────────────────────────────────── */
@@ -222,54 +229,52 @@
   height: 100%;
   border-radius: 2px;
   transform-origin: left;
-  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-
 
 /* ── I/O Stats ────────────────────────────────────────────────── */
 
 .ioStats {
   display: flex;
-  gap: 16px;
-  padding-top: 2px;
+  gap: 20px;
+  padding-top: 4px;
 }
 
 .ioStatsWarn {
   display: flex;
-  gap: 16px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(239, 68, 68, 0.12);
-  margin-top: 2px;
+  gap: 20px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(239, 68, 68, 0.15);
+  margin-top: 4px;
 }
 
 .ioStat {
   display: flex;
   align-items: baseline;
-  gap: 5px;
+  gap: 6px;
 }
 
 .ioDir {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
 }
 
 .ioValue {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .ioValueDanger {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--color-danger);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ── Detail Grid (Memory Breakdown) ───────────────────────────── */
@@ -277,8 +282,8 @@
 .detailGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  padding-top: 2px;
+  gap: 6px 16px;
+  padding-top: 4px;
 }
 
 .detailItem {
@@ -289,9 +294,9 @@
 }
 
 .detailLabel {
-  font-size: 0.625rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -299,8 +304,8 @@
 .detailValue {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* ── Network Interfaces ───────────────────────────────────────── */
@@ -308,32 +313,32 @@
 .interfaceList {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding-top: 2px;
+  gap: 4px;
+  padding-top: 4px;
 }
 
 .interfaceRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 2px 0;
+  gap: 10px;
+  padding: 3px 0;
 }
 
 .interfaceName {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-primary);
   background: var(--background-elevated);
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .ioCompactDetail {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -342,18 +347,18 @@
 .portList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-top: 2px;
+  gap: 3px;
+  padding-top: 4px;
 }
 
 .portRow {
-  padding: 2px 0;
+  padding: 3px 0;
 }
 
 .portMapping {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -362,35 +367,35 @@
 .mountList {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding-top: 2px;
+  gap: 4px;
+  padding-top: 4px;
 }
 
 .mountRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 0;
+  gap: 8px;
+  padding: 3px 0;
   min-width: 0;
 }
 
 .mountType {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: var(--background-elevated);
-  padding: 1px 4px;
-  border-radius: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
 .mountPath {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -400,9 +405,9 @@
 
 .mountMode {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -411,8 +416,8 @@
 .labelList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-top: 2px;
+  gap: 3px;
+  padding-top: 4px;
   max-height: 200px;
   overflow-y: auto;
 }
@@ -420,16 +425,16 @@
 .labelRow {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 2px 0;
+  gap: 10px;
+  padding: 3px 0;
   min-width: 0;
 }
 
 .labelKey {
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  color: var(--text-muted);
-  font-weight: 600;
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -439,8 +444,8 @@
 
 .labelValue {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;

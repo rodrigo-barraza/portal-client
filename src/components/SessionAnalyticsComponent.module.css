@@ -707,8 +707,12 @@
     grid-template-columns: 1fr 1fr;
     gap: 4px;
   }
-  .eventTimestamp { display: none; }
-  .eventSessionId { display: none; }
+  .eventTimestamp {
+    display: none;
+  }
+  .eventSessionId {
+    display: none;
+  }
 }
 
 /* ── Pagination ──────────────────────────────────────────────── */

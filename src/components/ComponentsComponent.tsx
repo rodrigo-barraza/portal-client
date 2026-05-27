@@ -20,7 +20,10 @@ import { getPreview } from "./ComponentPreviewRegistryComponent";
 import styles from "./ComponentsComponent.module.css";
 
 // ── Error boundary for individual preview isolation ─────────────
-class PreviewErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class PreviewErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };

@@ -4,4 +4,14 @@ import prettierConfig from "eslint-config-prettier";
 import globals from "globals";
 import { createServiceEslintConfig } from "@rodrigo-barraza/utilities-library/eslint";
 
-export default createServiceEslintConfig({ js, tseslint, prettierConfig, globals });
+export default [
+  ...createServiceEslintConfig({
+    js,
+    tseslint,
+    prettierConfig,
+    globals,
+  }),
+  {
+    ignores: [".next/"],
+  },
+];

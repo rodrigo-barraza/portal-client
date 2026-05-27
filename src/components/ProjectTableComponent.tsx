@@ -79,8 +79,11 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
  */
 function buildColumns(
   projectSizes: Record<string, { sizeBytes: number; sizeKB: number }> = {},
-  projectLanguages: Record<string, { primary: string; breakdown: { language: string; percent: number }[] }> = {},
-  excludeColumns = new Set<string>()
+  projectLanguages: Record<
+    string,
+    { primary: string; breakdown: { language: string; percent: number }[] }
+  > = {},
+  excludeColumns = new Set<string>(),
 ) {
   return [
     {
@@ -88,10 +91,14 @@ function buildColumns(
       label: "Project",
       sortable: true,
       render: (service: PortalService) => {
-        const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType as string);
+        const isNonDeployed = NON_DEPLOYED_TYPES.has(
+          service.projectType as string,
+        );
         const isHealthy = isNonDeployed ? true : service.healthy;
         const TypeIcon =
-          (service.projectType && SERVICE_TYPE_ICONS[service.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
+          (service.projectType &&
+            SERVICE_TYPE_ICONS[service.projectType as string]) ||
+          DEFAULT_SERVICE_TYPE_ICON;
         const iconClass = isNonDeployed
           ? styles.iconNeutral
           : isHealthy
@@ -189,7 +196,8 @@ function buildColumns(
           </BadgeComponent>
         );
       },
-      sortValue: (row: PortalService) => (typeof row.deployTier === "number" ? row.deployTier : 99),
+      sortValue: (row: PortalService) =>
+        typeof row.deployTier === "number" ? row.deployTier : 99,
     },
     {
       key: "description",
@@ -208,7 +216,11 @@ function buildColumns(
       sortable: true,
       render: (service: PortalService) =>
         service.domain ? (
-          <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
+          <BadgeComponent
+            type="domain"
+            domain={service.domain}
+            icons={{ Globe }}
+          />
         ) : (
           <span className={styles.mutedCell}>—</span>
         ),
@@ -250,11 +262,16 @@ function buildColumns(
       description: "Primary language detected by GitHub Linguist",
       render: (service: PortalService) => {
         const langData = projectLanguages[service.id];
-        if (!langData?.primary) return <span className={styles.mutedCell}>—</span>;
-        const color = LANGUAGE_COLORS[langData.primary] || DEFAULT_LANGUAGE_COLOR;
+        if (!langData?.primary)
+          return <span className={styles.mutedCell}>—</span>;
+        const color =
+          LANGUAGE_COLORS[langData.primary] || DEFAULT_LANGUAGE_COLOR;
         const topLangs = langData.breakdown
           .slice(0, 3)
-          .map((l: { language: string; percent: number }) => `${l.language} ${l.percent}%`)
+          .map(
+            (l: { language: string; percent: number }) =>
+              `${l.language} ${l.percent}%`,
+          )
           .join(", ");
         return (
           <span className={styles.languageCell} title={topLangs}>
@@ -266,7 +283,8 @@ function buildColumns(
           </span>
         );
       },
-      sortValue: (row: PortalService) => projectLanguages[row.id]?.primary || "",
+      sortValue: (row: PortalService) =>
+        projectLanguages[row.id]?.primary || "",
     },
     {
       key: "dependencies",
@@ -341,7 +359,10 @@ interface ProjectTableProps {
   services: PortalService[];
   allServices?: PortalService[];
   projectSizes?: Record<string, { sizeBytes: number; sizeKB: number }>;
-  projectLanguages?: Record<string, { primary: string; breakdown: { language: string; percent: number }[] }>;
+  projectLanguages?: Record<
+    string,
+    { primary: string; breakdown: { language: string; percent: number }[] }
+  >;
   containerStats?: Record<string, ContainerStats>;
   excludeColumns?: string[];
   sortKey?: string;
@@ -364,10 +385,13 @@ export default function ProjectTableComponent({
   title,
   subtitle,
 }: ProjectTableProps) {
-  const [selectedProject, setSelectedProject] = useState<PortalService | null>(null);
+  const [selectedProject, setSelectedProject] = useState<PortalService | null>(
+    null,
+  );
 
   const excludeSet = useMemo(
-    () => (excludeColumns ? new Set<string>(excludeColumns) : new Set<string>()),
+    () =>
+      excludeColumns ? new Set<string>(excludeColumns) : new Set<string>(),
     [excludeColumns],
   );
 
@@ -377,7 +401,8 @@ export default function ProjectTableComponent({
   )();
 
   const getRowClassName = useCallback((row: PortalService) => {
-    if (NON_DEPLOYED_TYPES.has(row.projectType as string)) return styles.rowNeutral;
+    if (NON_DEPLOYED_TYPES.has(row.projectType as string))
+      return styles.rowNeutral;
     return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
   }, []);
 
@@ -408,7 +433,9 @@ export default function ProjectTableComponent({
         getRowKey={(row: PortalService) => row.id}
         sortKey={sortKey}
         sortDir={sortDir}
-        onSort={(key: string, dir: "asc" | "desc") => onSort && onSort(key, dir)}
+        onSort={(key: string, dir: "asc" | "desc") =>
+          onSort && onSort(key, dir)
+        }
         emptyText="No projects match the selected filters"
         getRowClassName={getRowClassName}
         onRowClick={handleRowClick}

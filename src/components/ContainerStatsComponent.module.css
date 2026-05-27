@@ -256,91 +256,13 @@
 }
 
 .actionButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 26px !important;
+  min-width: 26px !important;
   width: 26px;
   height: 26px;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
-
-  &:active:not(:disabled) {
-    transform: scale(0.9);
-  }
-}
-
-.actionBtnLoading {
-  opacity: 0.4;
-  cursor: not-allowed;
-  color: var(--text-muted) !important;
-  border-color: var(--calculated-border-color) !important;
-  background: var(--background-elevated) !important;
-}
-
-.stopButton {
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  background: rgba(239, 68, 68, 0.06);
-  color: var(--status-stopped);
-
-  &:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.14);
-    border-color: rgba(239, 68, 68, 0.35);
-    color: var(--status-stopped-hover);
-  }
-}
-
-.startButton {
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.06);
-  color: var(--status-running);
-
-  &:hover:not(:disabled) {
-    background: rgba(16, 185, 129, 0.14);
-    border-color: rgba(16, 185, 129, 0.35);
-    color: var(--status-running-hover);
-  }
-}
-
-.logsButton {
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  background: rgba(148, 163, 184, 0.04);
-  color: var(--status-unknown);
-  text-decoration: none;
-
-  &:hover {
-    background: rgba(148, 163, 184, 0.12);
-    border-color: rgba(148, 163, 184, 0.3);
-    color: var(--status-unknown-hover);
-  }
-}
-
-.restartButton {
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  background: rgba(251, 191, 36, 0.06);
-  color: var(--status-paused);
-
-  &:hover:not(:disabled) {
-    background: rgba(251, 191, 36, 0.14);
-    border-color: rgba(251, 191, 36, 0.35);
-    color: var(--status-paused-hover);
-  }
-}
-
-.rollbackButton {
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  background: rgba(139, 92, 246, 0.06);
-  color: var(--status-building);
-
-  &:hover:not(:disabled) {
-    background: rgba(139, 92, 246, 0.14);
-    border-color: rgba(139, 92, 246, 0.35);
-    color: var(--status-building-hover);
-  }
+  padding: 0 !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-size: 0 !important;
 }
 
 /* ── Empty State ── */
@@ -450,8 +372,10 @@
   }
 
   .actionButton {
-    width: 32px;
-    height: 32px;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
   }
 }
 
@@ -475,6 +399,17 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+}
+
+.searchWrapper {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .searchWrapper {
+    width: 100%;
+  }
 }
 
 .filterGroup {

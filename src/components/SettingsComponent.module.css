@@ -363,7 +363,11 @@
 /* ── Danger Zone ── */
 
 .dangerSection {
-  border-color: color-mix(in srgb, var(--color-danger) 25%, var(--calculated-border-color));
+  border-color: color-mix(
+    in srgb,
+    var(--color-danger) 25%,
+    var(--calculated-border-color)
+  );
 }
 
 .dangerSection .sectionHeader {

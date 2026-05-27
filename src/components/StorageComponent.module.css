@@ -116,7 +116,8 @@
 
 .bucketCard:hover {
   border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  box-shadow: 0 0 24px
+    color-mix(in srgb, var(--accent-primary) 10%, transparent);
   transform: translateY(-1px);
 }
 

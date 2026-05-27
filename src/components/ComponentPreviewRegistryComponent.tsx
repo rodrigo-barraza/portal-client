@@ -76,7 +76,13 @@ import {
 import styles from "./ComponentPreviewRegistryComponent.module.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
-function PreviewRow({ children, gap = 8 }: { children: ReactNode, gap?: number }) {
+function PreviewRow({
+  children,
+  gap = 8,
+}: {
+  children: ReactNode;
+  gap?: number;
+}) {
   return (
     <div className={styles.previewRow} style={{ gap }}>
       {children}
@@ -84,7 +90,13 @@ function PreviewRow({ children, gap = 8 }: { children: ReactNode, gap?: number }
   );
 }
 
-function PreviewStack({ children, gap = 8 }: { children: ReactNode, gap?: number }) {
+function PreviewStack({
+  children,
+  gap = 8,
+}: {
+  children: ReactNode;
+  gap?: number;
+}) {
   return (
     <div className={styles.previewStack} style={{ gap }}>
       {children}
@@ -647,8 +659,16 @@ const PREVIEWS = {
 
   VisibilityBadgeComponent: () => (
     <PreviewRow>
-      <BadgeComponent type="visibility" visibility="external" icons={{ Globe, Lock }} />
-      <BadgeComponent type="visibility" visibility="internal" icons={{ Globe, Lock }} />
+      <BadgeComponent
+        type="visibility"
+        visibility="external"
+        icons={{ Globe, Lock }}
+      />
+      <BadgeComponent
+        type="visibility"
+        visibility="internal"
+        icons={{ Globe, Lock }}
+      />
     </PreviewRow>
   ),
 

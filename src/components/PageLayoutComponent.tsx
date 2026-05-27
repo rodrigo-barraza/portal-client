@@ -17,10 +17,16 @@ export default function PageLayoutComponent({
   children,
   mainStyle,
   mainClassName,
+  title,
+  subtitle,
+  onBack,
 }: {
   children: ReactNode;
   mainStyle?: CSSProperties;
   mainClassName?: string;
+  title?: string | ReactNode;
+  subtitle?: string | ReactNode;
+  onBack?: () => void;
 }) {
   const pathname = usePathname();
   const { theme, themes, setTheme, mounted } = useTheme();
@@ -39,6 +45,9 @@ export default function PageLayoutComponent({
       storageKey="portal-nav-collapsed"
       mainStyle={mainStyle}
       mainClassName={mainClassName}
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
     >
       {children}
     </LibraryPageLayout>

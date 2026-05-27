@@ -103,9 +103,15 @@ export default function SettingsComponent() {
     }
   }, [settings]);
 
-  const updateSetting = useCallback((key: string, value: string | number | boolean) => {
-    setSettings((prev: typeof DEFAULT_SETTINGS) => ({ ...prev, [key]: value }));
-  }, []);
+  const updateSetting = useCallback(
+    (key: string, value: string | number | boolean) => {
+      setSettings((prev: typeof DEFAULT_SETTINGS) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
 
   const scrollToSection = useCallback((id: string) => {
     setActiveSection(id);
@@ -152,7 +158,9 @@ export default function SettingsComponent() {
         <div className={styles.sectionsContainer}>
           {/* ═══ Appearance ═══ */}
           <section
-            ref={(element) => { sectionRefs.current.appearance = element; }}
+            ref={(element) => {
+              sectionRefs.current.appearance = element;
+            }}
             className={styles.section}
             id="settings-appearance"
           >
@@ -221,10 +229,12 @@ export default function SettingsComponent() {
                       <button
                         key={c.id}
                         className={`${styles.colorSwatch} ${settings.accentColor === c.id ? styles.isActiveState : ""}`}
-                        style={{
-                          background: c.value,
-                          "--swatch-color": c.value,
-                        } as React.CSSProperties}
+                        style={
+                          {
+                            background: c.value,
+                            "--swatch-color": c.value,
+                          } as React.CSSProperties
+                        }
                         onClick={() => updateSetting("accentColor", c.id)}
                         title={c.id}
                       />
@@ -303,7 +313,9 @@ export default function SettingsComponent() {
 
           {/* ═══ Dashboard ═══ */}
           <section
-            ref={(element) => { sectionRefs.current.dashboard = element; }}
+            ref={(element) => {
+              sectionRefs.current.dashboard = element;
+            }}
             className={styles.section}
             id="settings-dashboard"
           >
@@ -463,7 +475,9 @@ export default function SettingsComponent() {
 
           {/* ═══ Monitoring ═══ */}
           <section
-            ref={(element) => { sectionRefs.current.monitoring = element; }}
+            ref={(element) => {
+              sectionRefs.current.monitoring = element;
+            }}
             className={styles.section}
             id="settings-monitoring"
           >
@@ -649,7 +663,9 @@ export default function SettingsComponent() {
 
           {/* ═══ Notifications ═══ */}
           <section
-            ref={(element) => { sectionRefs.current.notifications = element; }}
+            ref={(element) => {
+              sectionRefs.current.notifications = element;
+            }}
             className={styles.section}
             id="settings-notifications"
           >
@@ -762,7 +778,9 @@ export default function SettingsComponent() {
 
           {/* ═══ Data & Privacy ═══ */}
           <section
-            ref={(element) => { sectionRefs.current.data = element; }}
+            ref={(element) => {
+              sectionRefs.current.data = element;
+            }}
             className={`${styles.section} ${styles.dangerSection}`}
             id="settings-data"
           >
@@ -844,7 +862,10 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button className={styles.dangerButton} onClick={resetSettings}>
+                  <button
+                    className={styles.dangerButton}
+                    onClick={resetSettings}
+                  >
                     <RefreshCw size={12} strokeWidth={2.5} />
                     Reset
                   </button>
@@ -860,7 +881,10 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button className={styles.dangerButton} onClick={clearLocalData}>
+                  <button
+                    className={styles.dangerButton}
+                    onClick={clearLocalData}
+                  >
                     <Trash2 size={12} strokeWidth={2.5} />
                     Clear
                   </button>

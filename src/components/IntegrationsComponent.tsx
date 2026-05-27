@@ -52,7 +52,9 @@ export default function IntegrationsComponent() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+  const [collapsedCategories, setCollapsedCategories] = useState<
+    Record<string, boolean>
+  >({});
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const didFetch = useRef(false);
 
@@ -65,11 +67,17 @@ export default function IntegrationsComponent() {
       render: (row: IntegrationItem) => (
         <div className={styles.tableProviderCell}>
           {row.configured ? (
-            <div className={styles.statusDotConfigured} style={{ width: 16, height: 16 }}>
+            <div
+              className={styles.statusDotConfigured}
+              style={{ width: 16, height: 16 }}
+            >
               <Check size={9} strokeWidth={3} />
             </div>
           ) : (
-            <div className={styles.statusDotMissing} style={{ width: 16, height: 16 }}>
+            <div
+              className={styles.statusDotMissing}
+              style={{ width: 16, height: 16 }}
+            >
               <X size={9} strokeWidth={3} />
             </div>
           )}
@@ -91,19 +99,18 @@ export default function IntegrationsComponent() {
       label: "Configured Value",
       sortable: true,
       sortValue: (row: IntegrationItem) => row.maskedKey || "",
-      render: (row: IntegrationItem) => (
+      render: (row: IntegrationItem) =>
         row.maskedKey ? (
           <code className={styles.tableMaskedKey}>{row.maskedKey}</code>
         ) : (
           <span className={styles.tableNotConfigured}>Not configured</span>
-        )
-      ),
+        ),
     },
     {
       key: "docs",
       label: "Docs",
       align: "center" as const,
-      render: (row: IntegrationItem) => (
+      render: (row: IntegrationItem) =>
         row.docs ? (
           <a
             href={row.docs}
@@ -117,8 +124,7 @@ export default function IntegrationsComponent() {
           </a>
         ) : (
           <span className={styles.tableNoDocs}>—</span>
-        )
-      ),
+        ),
     },
   ];
 
@@ -166,7 +172,8 @@ export default function IntegrationsComponent() {
       return {
         ...cat,
         integrations: filtered,
-        configuredCount: filtered.filter((i: IntegrationItem) => i.configured).length,
+        configuredCount: filtered.filter((i: IntegrationItem) => i.configured)
+          .length,
         totalCount: filtered.length,
       };
     })
@@ -221,7 +228,9 @@ export default function IntegrationsComponent() {
             size="sm"
             placeholder="Search providers, keys…"
             value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchQuery(e.target.value)
+            }
           />
           {searchQuery && (
             <button
@@ -262,112 +271,121 @@ export default function IntegrationsComponent() {
         />
       ) : (
         <div className={styles.categoryList}>
-          {filteredCategories?.map((cat: IntegrationCategory, catIndex: number) => {
-            const isCollapsed = collapsedCategories[cat.category];
-            return (
-              <div
-                key={cat.category}
-                className={styles.categoryGroup}
-                style={{ animationDelay: `${catIndex * 50}ms` }}
-              >
-                {/* ── Category Header ── */}
-                <button
-                  className={styles.categoryHeader}
-                  onClick={() => toggleCategory(cat.category)}
+          {filteredCategories?.map(
+            (cat: IntegrationCategory, catIndex: number) => {
+              const isCollapsed = collapsedCategories[cat.category];
+              return (
+                <div
+                  key={cat.category}
+                  className={styles.categoryGroup}
+                  style={{ animationDelay: `${catIndex * 50}ms` }}
                 >
-                  <div className={styles.categoryLeft}>
-                    {isCollapsed ? (
-                      <ChevronRight size={14} strokeWidth={2.5} />
-                    ) : (
-                      <ChevronDown size={14} strokeWidth={2.5} />
-                    )}
-                    <span className={styles.categoryName}>{cat.category}</span>
-                  </div>
-                  <div className={styles.categoryBadges}>
-                    <span className={styles.categoryCount}>
-                      {cat.configuredCount}/{cat.totalCount}
-                    </span>
-                    {cat.configuredCount === cat.totalCount ? (
-                      <BadgeComponent variant="success">All Set</BadgeComponent>
-                    ) : cat.configuredCount === 0 ? (
-                      <BadgeComponent variant="error">None</BadgeComponent>
-                    ) : (
-                      <BadgeComponent variant="warning">Partial</BadgeComponent>
-                    )}
-                  </div>
-                </button>
+                  {/* ── Category Header ── */}
+                  <button
+                    className={styles.categoryHeader}
+                    onClick={() => toggleCategory(cat.category)}
+                  >
+                    <div className={styles.categoryLeft}>
+                      {isCollapsed ? (
+                        <ChevronRight size={14} strokeWidth={2.5} />
+                      ) : (
+                        <ChevronDown size={14} strokeWidth={2.5} />
+                      )}
+                      <span className={styles.categoryName}>
+                        {cat.category}
+                      </span>
+                    </div>
+                    <div className={styles.categoryBadges}>
+                      <span className={styles.categoryCount}>
+                        {cat.configuredCount}/{cat.totalCount}
+                      </span>
+                      {cat.configuredCount === cat.totalCount ? (
+                        <BadgeComponent variant="success">
+                          All Set
+                        </BadgeComponent>
+                      ) : cat.configuredCount === 0 ? (
+                        <BadgeComponent variant="error">None</BadgeComponent>
+                      ) : (
+                        <BadgeComponent variant="warning">
+                          Partial
+                        </BadgeComponent>
+                      )}
+                    </div>
+                  </button>
 
-                {/* ── Integration Cards or Table ── */}
-                {!isCollapsed && (
-                  viewMode === "table" ? (
-                    <TableComponent<IntegrationItem>
-                      columns={columns}
-                      data={cat.integrations}
-                      getRowKey={(row: IntegrationItem) => row.envKey}
-                      emptyText="No integrations in this category"
-                    />
-                  ) : (
-                    <div className={styles.integrationCards}>
-                      {cat.integrations.map((item: IntegrationItem) => (
-                        <div
-                          key={item.envKey}
-                          className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}
-                        >
-                          <div className={styles.cardHeader}>
-                            <div className={styles.cardStatus}>
-                              {item.configured ? (
-                                <div className={styles.statusDotConfigured}>
-                                  <Check size={10} strokeWidth={3} />
+                  {/* ── Integration Cards or Table ── */}
+                  {!isCollapsed &&
+                    (viewMode === "table" ? (
+                      <TableComponent<IntegrationItem>
+                        columns={columns}
+                        data={cat.integrations}
+                        getRowKey={(row: IntegrationItem) => row.envKey}
+                        emptyText="No integrations in this category"
+                      />
+                    ) : (
+                      <div className={styles.integrationCards}>
+                        {cat.integrations.map((item: IntegrationItem) => (
+                          <div
+                            key={item.envKey}
+                            className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}
+                          >
+                            <div className={styles.cardHeader}>
+                              <div className={styles.cardStatus}>
+                                {item.configured ? (
+                                  <div className={styles.statusDotConfigured}>
+                                    <Check size={10} strokeWidth={3} />
+                                  </div>
+                                ) : (
+                                  <div className={styles.statusDotMissing}>
+                                    <X size={10} strokeWidth={3} />
+                                  </div>
+                                )}
+                                <span className={styles.providerName}>
+                                  {item.provider}
+                                </span>
+                              </div>
+                              {item.docs && (
+                                <a
+                                  href={item.docs}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.docsLink}
+                                  title="Open provider dashboard"
+                                >
+                                  <ExternalLink size={13} strokeWidth={2} />
+                                </a>
+                              )}
+                            </div>
+
+                            <div className={styles.cardBody}>
+                              <div className={styles.keyRow}>
+                                <Key
+                                  size={11}
+                                  strokeWidth={2}
+                                  className={styles.keyIcon}
+                                />
+                                <code className={styles.envKey}>
+                                  {item.envKey}
+                                </code>
+                              </div>
+                              {item.maskedKey ? (
+                                <div className={styles.maskedKey}>
+                                  <code>{item.maskedKey}</code>
                                 </div>
                               ) : (
-                                <div className={styles.statusDotMissing}>
-                                  <X size={10} strokeWidth={3} />
+                                <div className={styles.notConfigured}>
+                                  <span>Not configured</span>
                                 </div>
                               )}
-                              <span className={styles.providerName}>
-                                {item.provider}
-                              </span>
                             </div>
-                            {item.docs && (
-                              <a
-                                href={item.docs}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.docsLink}
-                                title="Open provider dashboard"
-                              >
-                                <ExternalLink size={13} strokeWidth={2} />
-                              </a>
-                            )}
                           </div>
-
-                          <div className={styles.cardBody}>
-                            <div className={styles.keyRow}>
-                              <Key
-                                size={11}
-                                strokeWidth={2}
-                                className={styles.keyIcon}
-                              />
-                              <code className={styles.envKey}>{item.envKey}</code>
-                            </div>
-                            {item.maskedKey ? (
-                              <div className={styles.maskedKey}>
-                                <code>{item.maskedKey}</code>
-                              </div>
-                            ) : (
-                              <div className={styles.notConfigured}>
-                                <span>Not configured</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                )}
-              </div>
-            );
-          })}
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              );
+            },
+          )}
 
           {filteredCategories?.length === 0 && (
             <div className={styles.emptyState}>

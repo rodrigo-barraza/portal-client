@@ -62,7 +62,12 @@ const STATIC_FILTER_OPTIONS = {
 };
 
 /** Compare two services by the chosen sort key. */
-function compareBySortKey(a: PortalService, b: PortalService, sortKey: string, sortDir: string) {
+function compareBySortKey(
+  a: PortalService,
+  b: PortalService,
+  sortKey: string,
+  sortDir: string,
+) {
   const dir = sortDir === "asc" ? 1 : -1;
   switch (sortKey) {
     case "name":
@@ -97,9 +102,15 @@ function compareBySortKey(a: PortalService, b: PortalService, sortKey: string, s
  */
 function buildFilterOptions(items: PortalService[]) {
   const types: string[] = [
-    ...new Set<string>(items.map((s: PortalService) => s.projectType as string).filter(Boolean)),
+    ...new Set<string>(
+      items.map((s: PortalService) => s.projectType as string).filter(Boolean),
+    ),
   ].sort();
-  const hosts: string[] = [...new Set<string>(items.map((s: PortalService) => s.device as string).filter(Boolean))].sort();
+  const hosts: string[] = [
+    ...new Set<string>(
+      items.map((s: PortalService) => s.device as string).filter(Boolean),
+    ),
+  ].sort();
 
   return {
     ...STATIC_FILTER_OPTIONS,
@@ -118,8 +129,15 @@ export default function ProjectsComponent() {
   const [services, setServices] = useState<PortalService[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [projectSizes, setProjectSizes] = useState<Record<string, { sizeBytes: number; sizeKB: number }>>({});
-  const [projectLanguages, setProjectLanguages] = useState<Record<string, { primary: string; breakdown: { language: string; percent: number }[] }>>({});
+  const [projectSizes, setProjectSizes] = useState<
+    Record<string, { sizeBytes: number; sizeKB: number }>
+  >({});
+  const [projectLanguages, setProjectLanguages] = useState<
+    Record<
+      string,
+      { primary: string; breakdown: { language: string; percent: number }[] }
+    >
+  >({});
   const didFetch = useRef(false);
 
   // ── Filter state ────────────────────────────────────────────────
@@ -142,7 +160,9 @@ export default function ProjectsComponent() {
     try {
       const res = await ApiService.getServices(refresh);
       setServices(
-        (res.services || []).filter((s: PortalService) => s.projectType !== "Infrastructure"),
+        (res.services || []).filter(
+          (s: PortalService) => s.projectType !== "Infrastructure",
+        ),
       );
     } catch (error) {
       console.error("Services fetch failed:", error);
@@ -204,17 +224,28 @@ export default function ProjectsComponent() {
         )
           return false;
       }
-      if (filters.visibility.length && !filters.visibility.includes(s.visibility as string))
+      if (
+        filters.visibility.length &&
+        !filters.visibility.includes(s.visibility as string)
+      )
         return false;
-      if (filters.environment.length && !filters.environment.includes(s.environment as string))
+      if (
+        filters.environment.length &&
+        !filters.environment.includes(s.environment as string)
+      )
         return false;
-      if (filters.projectType.length && !filters.projectType.includes(s.projectType as string))
+      if (
+        filters.projectType.length &&
+        !filters.projectType.includes(s.projectType as string)
+      )
         return false;
       if (filters.device.length && !filters.device.includes(s.device as string))
         return false;
       return true;
     })
-    .sort((a: PortalService, b: PortalService) => compareBySortKey(a, b, sortKey, sortDir));
+    .sort((a: PortalService, b: PortalService) =>
+      compareBySortKey(a, b, sortKey, sortDir),
+    );
 
   // ── Split into deployed services vs libraries/toolkits ──────────
   const deployedItems = filtered.filter(isDeployedProject);

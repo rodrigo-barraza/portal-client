@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo, type CSSProperties } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  type CSSProperties,
+} from "react";
 import {
   RefreshCw,
   Monitor,
@@ -55,7 +62,9 @@ export default function DevicesComponent() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [containers, setContainers] = useState<Array<Partial<ContainerStats> & { name: string, device?: string }>>([]);
+  const [containers, setContainers] = useState<
+    Array<Partial<ContainerStats> & { name: string; device?: string }>
+  >([]);
   const didFetch = useRef(false);
 
   async function loadDevices() {
@@ -100,7 +109,10 @@ export default function DevicesComponent() {
 
   // Group containers by device name
   const containersByDevice = useMemo(() => {
-    const map: Record<string, Array<Partial<ContainerStats> & { name: string, device?: string }>> = {};
+    const map: Record<
+      string,
+      Array<Partial<ContainerStats> & { name: string; device?: string }>
+    > = {};
     for (const c of containers) {
       const deviceId = c.device || "unknown";
       if (!map[deviceId]) map[deviceId] = [];
@@ -169,10 +181,23 @@ export default function DevicesComponent() {
 
 // ── Device Card ───────────────────────────────────────────────────
 
-function DeviceCard({ device, delay, containers }: { device: Device, delay: number, containers: Array<Partial<ContainerStats> & { name: string, device?: string }> }) {
+function DeviceCard({
+  device,
+  delay,
+  containers,
+}: {
+  device: Device;
+  delay: number;
+  containers: Array<
+    Partial<ContainerStats> & { name: string; device?: string }
+  >;
+}) {
   const [containersExpanded, setContainersExpanded] = useState(false);
-  const DeviceIcon = DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
-  const accentColor = DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] || "var(--accent-primary)";
+  const DeviceIcon =
+    DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
+  const accentColor =
+    DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] ||
+    "var(--accent-primary)";
   const runningCount = containers.filter((c) => c.state === "running").length;
   const allRunning =
     runningCount === containers.length && containers.length > 0;
@@ -180,10 +205,12 @@ function DeviceCard({ device, delay, containers }: { device: Device, delay: numb
   return (
     <div
       className={styles.deviceCard}
-      style={{
-        "--device-accent": accentColor,
-        animationDelay: `${delay}ms`,
-      } as CSSProperties}
+      style={
+        {
+          "--device-accent": accentColor,
+          animationDelay: `${delay}ms`,
+        } as CSSProperties
+      }
     >
       {/* ── Device Header ── */}
       <div className={styles.deviceHeader}>
@@ -253,7 +280,11 @@ function DeviceCard({ device, delay, containers }: { device: Device, delay: numb
 
 // ── Container Row ─────────────────────────────────────────────────
 
-function ContainerRow({ container }: { container: Partial<ContainerStats> & { name: string, device?: string } }) {
+function ContainerRow({
+  container,
+}: {
+  container: Partial<ContainerStats> & { name: string; device?: string };
+}) {
   const isRunning = container.state === "running";
 
   return (
@@ -282,7 +313,11 @@ function ContainerRow({ container }: { container: Partial<ContainerStats> & { na
           <div className={styles.metricBadges}>
             <span
               className={styles.metricBadge}
-              style={{ "--metric-color": severityColor(container.cpu.percent) } as CSSProperties}
+              style={
+                {
+                  "--metric-color": severityColor(container.cpu.percent),
+                } as CSSProperties
+              }
               title={`CPU: ${formatPercent(container.cpu.percent, "adaptive")} · ${container.cpu.cores} core${container.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
@@ -293,12 +328,14 @@ function ContainerRow({ container }: { container: Partial<ContainerStats> & { na
             {container.memory && (
               <span
                 className={styles.metricBadge}
-                style={{
-                  "--metric-color": severityColor(
-                    container.memory.percent,
-                    [60, 85],
-                  ),
-                } as CSSProperties}
+                style={
+                  {
+                    "--metric-color": severityColor(
+                      container.memory.percent,
+                      [60, 85],
+                    ),
+                  } as CSSProperties
+                }
                 title={`RAM: ${formatBytes(container.memory.used)} / ${formatBytes(container.memory.limit)} (${formatPercent(container.memory.percent, "adaptive")})`}
               >
                 <MemoryStick size={10} strokeWidth={2.4} />

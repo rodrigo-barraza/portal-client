@@ -18,7 +18,11 @@ export const metadata = {
     "Central developer portal for observability, service health, and analytics across all services.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

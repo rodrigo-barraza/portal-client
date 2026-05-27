@@ -9,7 +9,11 @@
 // ============================================================
 
 import type { LucideIcon } from "lucide-react";
-import type { ServiceTypeColor, DeployTierColor, PortalService } from "../types/portal";
+import type {
+  ServiceTypeColor,
+  DeployTierColor,
+  PortalService,
+} from "../types/portal";
 
 import {
   BookOpen,
@@ -41,7 +45,9 @@ export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
  * Resolve the icon for a given service entry.
  * Falls back to Globe for unknown types.
  */
-export function getServiceIcon(service: Pick<PortalService, "projectType">): LucideIcon {
+export function getServiceIcon(
+  service: Pick<PortalService, "projectType">,
+): LucideIcon {
   return SERVICE_TYPE_ICONS[service.projectType || ""] || Globe;
 }
 

@@ -80,7 +80,10 @@ export default function LibraryCatalogComponent({
   }, [items, search]);
 
   const testedCount = items.filter((c) => c.hasTests).length;
-  const totalSize = items.reduce((sum: number, c: CatalogItem) => sum + c.sizeKb, 0);
+  const totalSize = items.reduce(
+    (sum: number, c: CatalogItem) => sum + c.sizeKb,
+    0,
+  );
 
   return (
     <div className={styles.catalog}>
@@ -129,11 +132,13 @@ export default function LibraryCatalogComponent({
           <div
             key={item.name}
             className={styles.card}
-            style={{
-              animationDelay: `${Math.min(i * 30, 600)}ms`,
-              "--card-accent": accentColor,
-              "--card-accent-subtle": accentSubtle,
-            } as React.CSSProperties}
+            style={
+              {
+                animationDelay: `${Math.min(i * 30, 600)}ms`,
+                "--card-accent": accentColor,
+                "--card-accent-subtle": accentSubtle,
+              } as React.CSSProperties
+            }
           >
             <div className={styles.cardHeader}>
               <div

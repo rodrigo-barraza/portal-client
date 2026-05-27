@@ -3,8 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LayoutGrid, Table2, TrendingUp, ArrowRight, Activity } from "lucide-react";
-import { LoadingIndicatorComponent, TableComponent } from "@rodrigo-barraza/components-library";
+import {
+  LayoutGrid,
+  Table2,
+  TrendingUp,
+  ArrowRight,
+  Activity,
+} from "lucide-react";
+import {
+  LoadingIndicatorComponent,
+  TableComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import type { GAOverview, SessionProject } from "../types/portal";
@@ -85,10 +94,18 @@ export default function PropertyListingComponent({
         type: "ga" as const,
         label: prop.label,
         subtitle: prop.measurementId || prop.id,
-        users: propertySummary?.overview ? propertySummary.overview.totalUsers : null,
-        pageviews: propertySummary?.overview ? propertySummary.overview.pageviews : null,
-        sessions: propertySummary?.overview ? propertySummary.overview.sessions : null,
-        activeNow: propertySummary?.realtime ? propertySummary.realtime.activeUsers : null,
+        users: propertySummary?.overview
+          ? propertySummary.overview.totalUsers
+          : null,
+        pageviews: propertySummary?.overview
+          ? propertySummary.overview.pageviews
+          : null,
+        sessions: propertySummary?.overview
+          ? propertySummary.overview.sessions
+          : null,
+        activeNow: propertySummary?.realtime
+          ? propertySummary.realtime.activeUsers
+          : null,
         linkHref: `/web-analytics/${prop.id}`,
       };
     }),
@@ -161,7 +178,9 @@ export default function PropertyListingComponent({
       align: "left" as const,
       sortValue: (row: CombinedPropertyRow) => row.activeNow ?? -1,
       render: (row: CombinedPropertyRow) => (
-        <div className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}>
+        <div
+          className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}
+        >
           {row.activeNow !== null ? (
             <>
               <div className={styles.propertyListRealtimeDot} />
@@ -320,17 +339,13 @@ export default function PropertyListingComponent({
                   <span className={styles.propertyCardStatValue}>
                     {formatNumber(proj.uniqueVisitors)}
                   </span>
-                  <span className={styles.propertyCardStatLabel}>
-                    Visitors
-                  </span>
+                  <span className={styles.propertyCardStatLabel}>Visitors</span>
                 </div>
                 <div className={styles.propertyCardStat}>
                   <span className={styles.propertyCardStatValue}>
                     {formatNumber(proj.sessionCount)}
                   </span>
-                  <span className={styles.propertyCardStatLabel}>
-                    Sessions
-                  </span>
+                  <span className={styles.propertyCardStatLabel}>Sessions</span>
                 </div>
               </div>
             </Link>

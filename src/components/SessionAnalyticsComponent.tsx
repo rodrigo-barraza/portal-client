@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import Link from "next/link";
 import {
   ChartLineComponent,
@@ -224,7 +230,9 @@ export default function SessionAnalyticsComponent({
   const [referrers, setReferrers] = useState<SessionReferrerRow[] | null>(null);
   const [geo, setGeo] = useState<SessionGeoRow[] | null>(null);
   const [devices, setDevices] = useState<SessionDeviceBreakdown | null>(null);
-  const [timeSeries, setTimeSeries] = useState<SessionTimeSeriesPoint[] | null>(null);
+  const [timeSeries, setTimeSeries] = useState<SessionTimeSeriesPoint[] | null>(
+    null,
+  );
   const [events, setEvents] = useState<SessionTopEvent[] | null>(null);
   const [live, setLive] = useState<SessionLiveResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -405,7 +413,9 @@ export default function SessionAnalyticsComponent({
           <div className={styles.realtimePulseRing} />
         </div>
         <div className={styles.realtimeInfo}>
-          <span className={styles.realtimeLabel}>Active Sessions Right Now</span>
+          <span className={styles.realtimeLabel}>
+            Active Sessions Right Now
+          </span>
           <span className={styles.realtimeCount}>
             {live ? formatNumber(live.activeSessions) : "—"}
           </span>
@@ -474,12 +484,17 @@ export default function SessionAnalyticsComponent({
                   {(
                     [
                       { key: "pageViews", color: SPARKLINE_COLORS.pageViews },
-                      { key: "uniqueVisitors", color: SPARKLINE_COLORS.uniqueVisitors },
+                      {
+                        key: "uniqueVisitors",
+                        color: SPARKLINE_COLORS.uniqueVisitors,
+                      },
                       { key: "sessions", color: SPARKLINE_COLORS.sessions },
                     ] as const
                   ).map((metric) => {
                     const values = timeSeries.map(
-                      (d) => (d as unknown as Record<string, number>)[metric.key] || 0,
+                      (d) =>
+                        (d as unknown as Record<string, number>)[metric.key] ||
+                        0,
                     );
                     const max = Math.max(...values, 1);
                     return (
@@ -606,9 +621,7 @@ export default function SessionAnalyticsComponent({
                   className={styles.panelIcon}
                 />
                 <span className={styles.panelTitle}>Top Locations</span>
-                <span className={styles.panelMeta}>
-                  {geo.length} locations
-                </span>
+                <span className={styles.panelMeta}>{geo.length} locations</span>
               </div>
               <div className={styles.panelBody}>
                 <div className={styles.barList}>

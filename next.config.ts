@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
   ],
 
   env: {
-
     // ── Sessions ──────────────────────────────────────────────
     SESSIONS_SERVICE_URL: secrets.SESSIONS_SERVICE_URL,
     SESSIONS_SERVICE_PUBLIC_URL: secrets.SESSIONS_SERVICE_PUBLIC_URL,

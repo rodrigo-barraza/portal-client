@@ -159,14 +159,22 @@ function parseAnsi(text: string) {
       else if (colorCode === 29) strikethrough = false;
       else if (colorCode === 39) color = null;
       else if (colorCode === 49) bgColor = null;
-      else if (colorCode >= 30 && colorCode <= 37) color = ANSI_COLORS[colorCode - 30];
-      else if (colorCode >= 40 && colorCode <= 47) bgColor = ANSI_COLORS[colorCode - 40];
-      else if (colorCode >= 90 && colorCode <= 97) color = ANSI_BRIGHT_COLORS[colorCode - 90];
-      else if (colorCode >= 100 && colorCode <= 107) bgColor = ANSI_BRIGHT_COLORS[colorCode - 100];
+      else if (colorCode >= 30 && colorCode <= 37)
+        color = ANSI_COLORS[colorCode - 30];
+      else if (colorCode >= 40 && colorCode <= 47)
+        bgColor = ANSI_COLORS[colorCode - 40];
+      else if (colorCode >= 90 && colorCode <= 97)
+        color = ANSI_BRIGHT_COLORS[colorCode - 90];
+      else if (colorCode >= 100 && colorCode <= 107)
+        bgColor = ANSI_BRIGHT_COLORS[colorCode - 100];
       else if (colorCode === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
         color = ansi256ToHex(codes[i + 2]);
         i += 2;
-      } else if (colorCode === 48 && codes[i + 1] === 5 && codes[i + 2] != null) {
+      } else if (
+        colorCode === 48 &&
+        codes[i + 1] === 5 &&
+        codes[i + 2] != null
+      ) {
         bgColor = ansi256ToHex(codes[i + 2]);
         i += 2;
       }
@@ -536,13 +544,16 @@ export default function LogsComponent() {
       <div className={styles.serviceList}>
         {(() => {
           // Group by device, running containers first
-          const sorted = [...containers].sort((a: LoggableContainer, b: LoggableContainer) => {
-            if (a.device !== b.device) return a.device.localeCompare(b.device);
-            // Running containers first within each device
-            if (a.state === "running" && b.state !== "running") return -1;
-            if (a.state !== "running" && b.state === "running") return 1;
-            return a.name.localeCompare(b.name);
-          });
+          const sorted = [...containers].sort(
+            (a: LoggableContainer, b: LoggableContainer) => {
+              if (a.device !== b.device)
+                return a.device.localeCompare(b.device);
+              // Running containers first within each device
+              if (a.state === "running" && b.state !== "running") return -1;
+              if (a.state !== "running" && b.state === "running") return 1;
+              return a.name.localeCompare(b.name);
+            },
+          );
 
           const groups = [];
           let lastDevice = null;

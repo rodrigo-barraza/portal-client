@@ -302,12 +302,16 @@ export default function StorageComponent() {
   const [search, setSearch] = useState("");
 
   // Preview state
-  const [previewObject, setPreviewObject] = useState<StorageObject | null>(null);
+  const [previewObject, setPreviewObject] = useState<StorageObject | null>(
+    null,
+  );
   const [previewStat, setPreviewStat] = useState<StorageObject | null>(null);
 
   // Storage overview state
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [storageSummary, setStorageSummary] = useState<StorageSummary | null>(null);
+  const [storageSummary, setStorageSummary] = useState<StorageSummary | null>(
+    null,
+  );
   const [overviewLoading, setOverviewLoading] = useState(true);
 
   // ── Progressive bucket streaming ────────────────────────────
@@ -318,29 +322,31 @@ export default function StorageComponent() {
     setSkeletonCount(0);
 
     streamRef.current?.close();
-    streamRef.current = ApiService.streamStorageBuckets((event: BucketStreamEvent) => {
-      switch (event.type) {
-        case "init":
-          setTotalExpected(event.totalBuckets || 0);
-          setSkeletonCount(event.totalBuckets || 0);
-          break;
-        case "bucket":
-          if (event.bucket) setBuckets((prev) => [...prev, event.bucket!]);
-          setSkeletonCount((prev) => Math.max(0, prev - 1));
-          break;
-        case "done":
-          setStreaming(false);
-          setRefreshing(false);
-          setSkeletonCount(0);
-          break;
-        case "error":
-          console.error("Bucket stream error:", event.message);
-          setStreaming(false);
-          setRefreshing(false);
-          setSkeletonCount(0);
-          break;
-      }
-    });
+    streamRef.current = ApiService.streamStorageBuckets(
+      (event: BucketStreamEvent) => {
+        switch (event.type) {
+          case "init":
+            setTotalExpected(event.totalBuckets || 0);
+            setSkeletonCount(event.totalBuckets || 0);
+            break;
+          case "bucket":
+            if (event.bucket) setBuckets((prev) => [...prev, event.bucket!]);
+            setSkeletonCount((prev) => Math.max(0, prev - 1));
+            break;
+          case "done":
+            setStreaming(false);
+            setRefreshing(false);
+            setSkeletonCount(0);
+            break;
+          case "error":
+            console.error("Bucket stream error:", event.message);
+            setStreaming(false);
+            setRefreshing(false);
+            setSkeletonCount(0);
+            break;
+        }
+      },
+    );
   }, []);
 
   // ── Fetch storage overview data ──────────────────────────────
@@ -460,7 +466,9 @@ export default function StorageComponent() {
   // ── Breadcrumb path segments ─────────────────────────────────
 
   const breadcrumbSegments = useMemo(() => {
-    const segments: { label: string; prefix: string | null }[] = [{ label: "Buckets", prefix: null }];
+    const segments: { label: string; prefix: string | null }[] = [
+      { label: "Buckets", prefix: null },
+    ];
     if (activeBucket) {
       segments.push({ label: activeBucket, prefix: "" });
       if (prefix) {
@@ -520,17 +528,15 @@ export default function StorageComponent() {
   // ── Bucket donut segments ─────────────────────────────────────
   const bucketSegments = useMemo(() => {
     if (!storageSummary?.buckets) return [];
-    return (
-      storageSummary.buckets
-        .filter((b) => b.totalSize > 0)
-        .sort((a, b) => b.totalSize - a.totalSize)
-        .map((b, i) => ({
-          value: b.totalSize,
-          color: BUCKET_COLORS[i % BUCKET_COLORS.length],
-          label: b.name,
-          objectCount: b.objectCount,
-        }))
-    );
+    return storageSummary.buckets
+      .filter((b) => b.totalSize > 0)
+      .sort((a, b) => b.totalSize - a.totalSize)
+      .map((b, i) => ({
+        value: b.totalSize,
+        color: BUCKET_COLORS[i % BUCKET_COLORS.length],
+        label: b.name,
+        objectCount: b.objectCount,
+      }));
   }, [storageSummary]);
 
   const maxBucketSize =
@@ -686,7 +692,7 @@ export default function StorageComponent() {
                   </div>
 
                   {/* ── Top Images ── */}
-                  {((systemInfo.disk.images.items?.length) ?? 0) > 0 && (
+                  {(systemInfo.disk.images.items?.length ?? 0) > 0 && (
                     <div className={styles.imageList}>
                       <div className={styles.imageListHeader}>
                         <Package size={12} strokeWidth={2.2} />
@@ -718,7 +724,7 @@ export default function StorageComponent() {
                   )}
 
                   {/* ── Volumes ── */}
-                  {((systemInfo.disk.volumes.items?.length) ?? 0) > 0 && (
+                  {(systemInfo.disk.volumes.items?.length ?? 0) > 0 && (
                     <div className={styles.imageList}>
                       <div className={styles.imageListHeader}>
                         <HardDrive size={12} strokeWidth={2.2} />
@@ -739,7 +745,10 @@ export default function StorageComponent() {
                                 strokeWidth={1.8}
                                 className={styles.imageIcon}
                               />
-                              <span className={styles.imageName} title={vol.name}>
+                              <span
+                                className={styles.imageName}
+                                title={vol.name}
+                              >
                                 {name}
                               </span>
                               <span className={styles.imageSize}>
@@ -1463,7 +1472,9 @@ function PreviewOverlay({
                 <span className={styles.previewMetaLabel}>Modified</span>
                 <span className={styles.previewMetaValue}>
                   {new Date(
-                    stat?.lastModified || object.lastModified || new Date().toISOString(),
+                    stat?.lastModified ||
+                      object.lastModified ||
+                      new Date().toISOString(),
                   ).toLocaleString()}
                 </span>
               </>

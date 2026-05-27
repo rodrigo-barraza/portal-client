@@ -270,13 +270,21 @@ function DonutChart({
 
 // ── Sparkline Chart (using ChartLineComponent) ───────────────
 
-function SparklineChart({ series, metrics }: { series: GATimeSeriesPoint[]; metrics: SparklineMetric[] }) {
+function SparklineChart({
+  series,
+  metrics,
+}: {
+  series: GATimeSeriesPoint[];
+  metrics: SparklineMetric[];
+}) {
   if (!series || series.length === 0) return null;
 
   return (
     <div className={styles.sparklineStack}>
       {metrics.map((metric) => {
-        const values = series.map((d) => (d as unknown as Record<string, number>)[metric.key] || 0);
+        const values = series.map(
+          (d) => (d as unknown as Record<string, number>)[metric.key] || 0,
+        );
         const max = Math.max(...values, 1);
         return (
           <ChartLineComponent
@@ -303,20 +311,37 @@ export default function GoogleAnalyticsComponent({
   propertyId?: string;
 } = {}) {
   const [properties, setProperties] = useState<GAProperty[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<GAProperty | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<GAProperty | null>(
+    null,
+  );
   const [period, setPeriod] = useState("30d");
 
-  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(null);
+  const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(
+    null,
+  );
   const [overview, setOverview] = useState<GAOverview | null>(null);
   const [pages, setPages] = useState<{ pages: GAPageRow[] } | null>(null);
   const [sources, setSources] = useState<{ sources: GASource[] } | null>(null);
-  const [geography, setGeography] = useState<{ locations: GALocation[] } | null>(null);
+  const [geography, setGeography] = useState<{
+    locations: GALocation[];
+  } | null>(null);
   const [devices, setDevices] = useState<GADevices | null>(null);
-  const [timeSeries, setTimeSeries] = useState<{ series: GATimeSeriesPoint[] } | null>(null);
-  const [channels, setChannels] = useState<{ channels: GAChannel[] } | null>(null);
-  const [landingPages, setLandingPages] = useState<{ pages: GALandingPageRow[] } | null>(null);
-  const [heatmap, setHeatmap] = useState<{ maxUsers: number, cells: GAHeatmapCell[] } | null>(null);
-  const [newVsReturning, setNewVsReturning] = useState<{ segments: GANewVsReturningSegment[] } | null>(null);
+  const [timeSeries, setTimeSeries] = useState<{
+    series: GATimeSeriesPoint[];
+  } | null>(null);
+  const [channels, setChannels] = useState<{ channels: GAChannel[] } | null>(
+    null,
+  );
+  const [landingPages, setLandingPages] = useState<{
+    pages: GALandingPageRow[];
+  } | null>(null);
+  const [heatmap, setHeatmap] = useState<{
+    maxUsers: number;
+    cells: GAHeatmapCell[];
+  } | null>(null);
+  const [newVsReturning, setNewVsReturning] = useState<{
+    segments: GANewVsReturningSegment[];
+  } | null>(null);
   const [events, setEvents] = useState<{ events: GAEvent[] } | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -354,54 +379,57 @@ export default function GoogleAnalyticsComponent({
 
   // ── Load Reports ──────────────────────────────────────────
 
-  const loadReports = useCallback(async (property: GAProperty | null, p: string) => {
-    if (!property) return;
-    setReportsLoading(true);
+  const loadReports = useCallback(
+    async (property: GAProperty | null, p: string) => {
+      if (!property) return;
+      setReportsLoading(true);
 
-    try {
-      const [
-        overviewRes,
-        pagesRes,
-        sourcesRes,
-        geoRes,
-        devicesRes,
-        tsRes,
-        channelsRes,
-        landingRes,
-        heatmapRes,
-        nvrRes,
-        eventsRes,
-      ] = await Promise.all([
-        ApiService.getGAOverview(property.id, p).catch(() => null),
-        ApiService.getGAPages(property.id, p).catch(() => null),
-        ApiService.getGASources(property.id, p).catch(() => null),
-        ApiService.getGAGeography(property.id, p).catch(() => null),
-        ApiService.getGADevices(property.id, p).catch(() => null),
-        ApiService.getGATimeSeries(property.id, p).catch(() => null),
-        ApiService.getGAChannels(property.id, p).catch(() => null),
-        ApiService.getGALandingPages(property.id, p).catch(() => null),
-        ApiService.getGAHeatmap(property.id, p).catch(() => null),
-        ApiService.getGANewVsReturning(property.id, p).catch(() => null),
-        ApiService.getGAEvents(property.id, p).catch(() => null),
-      ]);
+      try {
+        const [
+          overviewRes,
+          pagesRes,
+          sourcesRes,
+          geoRes,
+          devicesRes,
+          tsRes,
+          channelsRes,
+          landingRes,
+          heatmapRes,
+          nvrRes,
+          eventsRes,
+        ] = await Promise.all([
+          ApiService.getGAOverview(property.id, p).catch(() => null),
+          ApiService.getGAPages(property.id, p).catch(() => null),
+          ApiService.getGASources(property.id, p).catch(() => null),
+          ApiService.getGAGeography(property.id, p).catch(() => null),
+          ApiService.getGADevices(property.id, p).catch(() => null),
+          ApiService.getGATimeSeries(property.id, p).catch(() => null),
+          ApiService.getGAChannels(property.id, p).catch(() => null),
+          ApiService.getGALandingPages(property.id, p).catch(() => null),
+          ApiService.getGAHeatmap(property.id, p).catch(() => null),
+          ApiService.getGANewVsReturning(property.id, p).catch(() => null),
+          ApiService.getGAEvents(property.id, p).catch(() => null),
+        ]);
 
-      setOverview(overviewRes);
-      setPages(pagesRes);
-      setSources(sourcesRes);
-      setGeography(geoRes);
-      setDevices(devicesRes);
-      setTimeSeries(tsRes);
-      setChannels(channelsRes);
-      setLandingPages(landingRes);
-      setHeatmap(heatmapRes);
-      setNewVsReturning(nvrRes);
-      setEvents(eventsRes);
-    } catch (error) {
-      console.error("GA reports fetch failed:", error);
-    } finally {
-      setReportsLoading(false);
-    }
-  }, []);
+        setOverview(overviewRes);
+        setPages(pagesRes);
+        setSources(sourcesRes);
+        setGeography(geoRes);
+        setDevices(devicesRes);
+        setTimeSeries(tsRes);
+        setChannels(channelsRes);
+        setLandingPages(landingRes);
+        setHeatmap(heatmapRes);
+        setNewVsReturning(nvrRes);
+        setEvents(eventsRes);
+      } catch (error) {
+        console.error("GA reports fetch failed:", error);
+      } finally {
+        setReportsLoading(false);
+      }
+    },
+    [],
+  );
 
   // ── Load Realtime ─────────────────────────────────────────
 
@@ -632,12 +660,8 @@ export default function GoogleAnalyticsComponent({
         />
         <div className={styles.emptyState}>
           <BarChart3 size={40} strokeWidth={1.5} className={styles.emptyIcon} />
-          <span className={styles.emptyTitle}>
-            Analytics Error
-          </span>
-          <span className={styles.emptyDetail}>
-            {`Error: ${error}`}
-          </span>
+          <span className={styles.emptyTitle}>Analytics Error</span>
+          <span className={styles.emptyDetail}>{`Error: ${error}`}</span>
         </div>
       </div>
     );
@@ -683,18 +707,13 @@ export default function GoogleAnalyticsComponent({
 
       {/* ── Property Listing (no property selected) ────────────── */}
       {!selectedProperty && !propertyId && (
-        <PropertyListingComponent
-          properties={properties}
-        />
+        <PropertyListingComponent properties={properties} />
       )}
 
       {/* ── Back bar + selected property header ────────────────── */}
       {selectedProperty && properties.length > 1 && (
         <div className={styles.backBar}>
-          <Link
-            href="/web-analytics"
-            className={styles.backButton}
-          >
+          <Link href="/web-analytics" className={styles.backButton}>
             <ArrowLeft size={12} strokeWidth={2.2} />
             All Properties
           </Link>
@@ -850,7 +869,9 @@ export default function GoogleAnalyticsComponent({
                   title="Landing Pages"
                   columns={landingColumns}
                   data={landingPages!.pages}
-                  getRowKey={(row: GALandingPageRow, i: number) => row.landingPage || i}
+                  getRowKey={(row: GALandingPageRow, i: number) =>
+                    row.landingPage || i
+                  }
                   emptyText="No landing page data"
                   mini
                 />
@@ -984,24 +1005,20 @@ export default function GoogleAnalyticsComponent({
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {geography!.locations
-                          .slice(0, 10)
-                          .map((l, i) => (
-                            <HorizontalBar
-                              key={`${l.country}-${l.city}`}
-                              label={
-                                l.city && l.city !== "(not set)"
-                                  ? `${l.city}, ${l.country}`
-                                  : l.country
-                              }
-                              value={l.users}
-                              max={maxGeoUsers}
-                              color={
-                                CHART_COLORS[(i + 4) % CHART_COLORS.length]
-                              }
-                              suffix=" users"
-                            />
-                          ))}
+                        {geography!.locations.slice(0, 10).map((l, i) => (
+                          <HorizontalBar
+                            key={`${l.country}-${l.city}`}
+                            label={
+                              l.city && l.city !== "(not set)"
+                                ? `${l.city}, ${l.country}`
+                                : l.country
+                            }
+                            value={l.users}
+                            max={maxGeoUsers}
+                            color={CHART_COLORS[(i + 4) % CHART_COLORS.length]}
+                            suffix=" users"
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -1060,18 +1077,22 @@ export default function GoogleAnalyticsComponent({
                           centerLabel="Sessions"
                         />
                         <div className={styles.donutLegend}>
-                          {devices.categories.map((d: GADeviceCategory, i: number) => (
-                            <HorizontalBar
-                              key={d.category}
-                              label={d.category}
-                              value={d.sessions}
-                              max={Math.max(
-                                ...devices.categories.map((c: GADeviceCategory) => c.sessions),
-                              )}
-                              color={CHART_COLORS[i % CHART_COLORS.length]}
-                              suffix=" sessions"
-                            />
-                          ))}
+                          {devices.categories.map(
+                            (d: GADeviceCategory, i: number) => (
+                              <HorizontalBar
+                                key={d.category}
+                                label={d.category}
+                                value={d.sessions}
+                                max={Math.max(
+                                  ...devices.categories.map(
+                                    (c: GADeviceCategory) => c.sessions,
+                                  ),
+                                )}
+                                color={CHART_COLORS[i % CHART_COLORS.length]}
+                                suffix=" sessions"
+                              />
+                            ),
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1103,7 +1124,9 @@ export default function GoogleAnalyticsComponent({
                                 label={b.browser}
                                 value={b.sessions}
                                 max={Math.max(
-                                  ...devices.browsers.map((br: GABrowser) => br.sessions),
+                                  ...devices.browsers.map(
+                                    (br: GABrowser) => br.sessions,
+                                  ),
                                 )}
                                 color={
                                   CHART_COLORS[(i + 3) % CHART_COLORS.length]
@@ -1183,26 +1206,28 @@ export default function GoogleAnalyticsComponent({
                         centerLabel="Users"
                       />
                       <div className={styles.donutLegend}>
-                        {newVsReturning?.segments?.map((s: GANewVsReturningSegment, i: number) => (
-                          <HorizontalBar
-                            key={s.segment}
-                            label={
-                              s.segment === "new"
-                                ? "New Users"
-                                : s.segment === "returning"
-                                  ? "Returning Users"
-                                  : s.segment
-                            }
-                            value={s.users}
-                            max={Math.max(
-                              ...(newVsReturning.segments || []).map(
-                                (sg: GANewVsReturningSegment) => sg.users,
-                              ),
-                            )}
-                            color={i === 0 ? "#6366f1" : "#10b981"}
-                            suffix=" users"
-                          />
-                        ))}
+                        {newVsReturning?.segments?.map(
+                          (s: GANewVsReturningSegment, i: number) => (
+                            <HorizontalBar
+                              key={s.segment}
+                              label={
+                                s.segment === "new"
+                                  ? "New Users"
+                                  : s.segment === "returning"
+                                    ? "Returning Users"
+                                    : s.segment
+                              }
+                              value={s.users}
+                              max={Math.max(
+                                ...(newVsReturning.segments || []).map(
+                                  (sg: GANewVsReturningSegment) => sg.users,
+                                ),
+                              )}
+                              color={i === 0 ? "#6366f1" : "#10b981"}
+                              suffix=" users"
+                            />
+                          ),
+                        )}
                       </div>
                     </div>
                   </div>

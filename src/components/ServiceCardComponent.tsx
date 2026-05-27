@@ -16,9 +16,7 @@ import {
   Square,
   Undo2,
 } from "lucide-react";
-import {
-  BadgeComponent,
-} from "@rodrigo-barraza/components-library";
+import { BadgeComponent } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
   formatDuration,
@@ -143,7 +141,9 @@ export default function ServiceCardComponent({
   onRollback,
 }: {
   service: PortalService;
-  containerStats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } };
+  containerStats?: ContainerStats & {
+    spark?: { cpu?: number[]; mem?: number[] };
+  };
   onRestart?: (id: string) => Promise<void>;
   onStop?: (id: string) => Promise<void>;
   onStart?: (id: string) => Promise<void>;
@@ -165,7 +165,9 @@ export default function ServiceCardComponent({
   const isInfra = service.isInfrastructure;
 
   const TypeIcon =
-    (service.projectType && SERVICE_TYPE_ICONS[service.projectType as string]) || DEFAULT_SERVICE_TYPE_ICON;
+    (service.projectType &&
+      SERVICE_TYPE_ICONS[service.projectType as string]) ||
+    DEFAULT_SERVICE_TYPE_ICON;
 
   // Lazily check rollback availability for restartable services
   useEffect(() => {
@@ -493,7 +495,11 @@ export default function ServiceCardComponent({
         {service.device && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Device</span>
-            <BadgeComponent type="device" device={service.device} icons={{ Server }} />
+            <BadgeComponent
+              type="device"
+              device={service.device}
+              icons={{ Server }}
+            />
           </div>
         )}
 
@@ -540,14 +546,15 @@ export default function ServiceCardComponent({
                 </span>
               </div>
             )}
-            {service.metadata.bucketNames && service.metadata.bucketNames.length > 0 && (
-              <div className={styles.detail}>
-                <span className={styles.detailLabel}>Bucket Names</span>
-                <span className={`${styles.detailValue} ${styles.mono}`}>
-                  {service.metadata.bucketNames.join(", ")}
-                </span>
-              </div>
-            )}
+            {service.metadata.bucketNames &&
+              service.metadata.bucketNames.length > 0 && (
+                <div className={styles.detail}>
+                  <span className={styles.detailLabel}>Bucket Names</span>
+                  <span className={`${styles.detailValue} ${styles.mono}`}>
+                    {service.metadata.bucketNames.join(", ")}
+                  </span>
+                </div>
+              )}
           </>
         )}
 
@@ -598,7 +605,11 @@ export default function ServiceCardComponent({
         {service.domain && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Domain</span>
-            <BadgeComponent type="domain" domain={service.domain} icons={{ Globe }} />
+            <BadgeComponent
+              type="domain"
+              domain={service.domain}
+              icons={{ Globe }}
+            />
           </div>
         )}
 
@@ -616,7 +627,11 @@ export default function ServiceCardComponent({
         {service.checkedAt && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Checked</span>
-            <BadgeComponent type="dateTime" date={service.checkedAt} highlightNew />
+            <BadgeComponent
+              type="dateTime"
+              date={service.checkedAt}
+              highlightNew
+            />
           </div>
         )}
       </div>

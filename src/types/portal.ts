@@ -6,7 +6,6 @@
 // component-local state shapes used across the UI.
 // ============================================================
 
-
 // ─── Project Type Taxonomy ──────────────────────────────────
 
 /** Canonical project type classification from the vault-service registry. */
@@ -567,7 +566,11 @@ export interface SessionRecord {
   fingerprintId: string | null;
   userAgent: string;
   locale: string | null;
-  browser: { name: string | null; version: string | null; major: string | null };
+  browser: {
+    name: string | null;
+    version: string | null;
+    major: string | null;
+  };
   os: { name: string | null; version: string | null };
   device: { type: string; vendor: string | null; model: string | null };
   engine: { name: string | null; version: string | null };

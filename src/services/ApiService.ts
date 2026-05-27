@@ -17,7 +17,11 @@ export default class ApiService {
     endpoint: string,
     { method = "GET", body }: { method?: string; body?: unknown } = {},
   ) {
-    return request(method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH", endpoint, body);
+    return request(
+      method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+      endpoint,
+      body,
+    );
   }
 
   // ── Root ──────────────────────────────────────────────────────
@@ -228,7 +232,9 @@ export default class ApiService {
     if (container) queryString.set("container", container);
     if (device) queryString.set("device", device);
     if (limit !== 120) queryString.set("limit", String(limit));
-    return ApiService._request(`/stats/containers/metrics?${queryString.toString()}`);
+    return ApiService._request(
+      `/stats/containers/metrics?${queryString.toString()}`,
+    );
   }
 
   /**
@@ -273,7 +279,11 @@ export default class ApiService {
    */
   static buildLogStreamUrl(
     containerName: string,
-    { tail = 200, follow = true, device }: { tail?: number; follow?: boolean; device?: string } = {},
+    {
+      tail = 200,
+      follow = true,
+      device,
+    }: { tail?: number; follow?: boolean; device?: string } = {},
   ) {
     let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
     if (device) url += `&device=${encodeURIComponent(device)}`;
@@ -347,7 +357,10 @@ export default class ApiService {
    */
   static async getStorageObjects(
     bucketName: string,
-    { prefix = "", recursive = false }: { prefix?: string; recursive?: boolean } = {},
+    {
+      prefix = "",
+      recursive = false,
+    }: { prefix?: string; recursive?: boolean } = {},
   ) {
     const queryString = new URLSearchParams();
     if (prefix) queryString.set("prefix", prefix);
@@ -570,7 +583,9 @@ export default class ApiService {
       sort,
       order,
     });
-    return ApiService._request(`/session-analytics/sessions?${queryString.toString()}`);
+    return ApiService._request(
+      `/session-analytics/sessions?${queryString.toString()}`,
+    );
   }
 
   /**
@@ -651,7 +666,9 @@ export default class ApiService {
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/events/feed?${queryString.toString()}`);
+    return ApiService._request(
+      `/session-analytics/events/feed?${queryString.toString()}`,
+    );
   }
 
   /**
@@ -687,7 +704,9 @@ export default class ApiService {
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/visitors?${queryString.toString()}`);
+    return ApiService._request(
+      `/session-analytics/visitors?${queryString.toString()}`,
+    );
   }
 
   /**
@@ -705,7 +724,9 @@ export default class ApiService {
       limit: String(limit),
       offset: String(offset),
     });
-    return ApiService._request(`/session-analytics/ips?${queryString.toString()}`);
+    return ApiService._request(
+      `/session-analytics/ips?${queryString.toString()}`,
+    );
   }
 
   /**

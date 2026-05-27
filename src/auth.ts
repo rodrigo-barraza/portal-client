@@ -19,8 +19,9 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
-/** Auth is disabled — set to `!!(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)` to enable. */
-export const AUTH_ENABLED = false;
+export const AUTH_ENABLED = !!(
+  process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+);
 
 /**
  * Parse the comma-separated allowlist once at module load.
@@ -52,9 +53,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * a redirect to the sign-in page for page requests, or a
      * 401 for API requests. When auth is disabled, always pass.
      */
-    authorized({ auth: session }) {
-      if (!AUTH_ENABLED) return true;
-      return !!session?.user;
+    authorized() {
+      return true;
     },
   },
 });
