@@ -23,6 +23,7 @@ import {
   ButtonComponent,
   DrawerComponent,
   LoadingIndicatorComponent,
+  MultiSelectComponent,
   PageHeaderComponent,
   ChartLineComponent,
   TableComponent,
@@ -509,10 +510,8 @@ export default function ContainerStatsComponent() {
   const [memHistory, setMemHistory] = useState<number[]>([]);
   const [selectedContainer, setSelectedContainer] =
     useState<ContainerRow | null>(null);
-  const [activeDevice, setActiveDevice] = useState<string | null>(null);
-  const [activeType, setActiveType] = useState<
-    "client" | "service" | "bot" | null
-  >(null);
+  const [activeDevices, setActiveDevices] = useState<string[]>([]);
+  const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -852,11 +851,11 @@ export default function ContainerStatsComponent() {
   // ── Filter rows by active device, container type, and search query ──
   const filteredRows = useMemo(() => {
     let rows = containerRows;
-    if (activeDevice) {
-      rows = rows.filter((r) => r.device === activeDevice);
+    if (activeDevices.length > 0) {
+      rows = rows.filter((r) => r.device && activeDevices.includes(r.device));
     }
-    if (activeType) {
-      rows = rows.filter((r) => r.projectType === activeType);
+    if (activeTypes.length > 0) {
+      rows = rows.filter((r) => r.projectType && activeTypes.includes(r.projectType));
     }
     if (searchQuery.trim()) {
       const normalizedQuery = searchQuery.toLowerCase().trim();
@@ -882,7 +881,7 @@ export default function ContainerStatsComponent() {
       });
     }
     return rows;
-  }, [containerRows, activeDevice, activeType, searchQuery]);
+  }, [containerRows, activeDevices, activeTypes, searchQuery]);
 
   const columns = buildColumns({
     onRestart: handleRestart,
@@ -904,12 +903,12 @@ export default function ContainerStatsComponent() {
 
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
-    if (!activeDevice && !activeType && !searchQuery.trim())
+    if (activeDevices.length === 0 && activeTypes.length === 0 && !searchQuery.trim())
       return Object.values(containerStats);
     return filteredRows
       .map((r) => containerStats[r.containerName])
       .filter(Boolean);
-  }, [containerStats, activeDevice, activeType, searchQuery, filteredRows]);
+  }, [containerStats, activeDevices, activeTypes, searchQuery, filteredRows]);
 
   const avgCpuUsage =
     filteredStats.length > 0
@@ -944,9 +943,10 @@ export default function ContainerStatsComponent() {
       const devices: SystemInfo[] = Array.isArray(systemInfo)
         ? systemInfo
         : [systemInfo];
-      if (activeDevice) {
-        const match = devices.find((d) => d.deviceId === activeDevice);
-        return match?.totalMemory || 0;
+      if (activeDevices.length > 0) {
+        return devices
+          .filter((d) => activeDevices.includes(d.deviceId))
+          .reduce((sum, d) => sum + (d.totalMemory || 0), 0);
       }
       return devices.reduce((sum, d) => sum + (d.totalMemory || 0), 0);
     }
@@ -961,7 +961,7 @@ export default function ContainerStatsComponent() {
       (sum, v) => sum + v,
       0,
     );
-  }, [systemInfo, activeDevice, filteredRows]);
+  }, [systemInfo, activeDevices, filteredRows]);
 
   const memPercent =
     totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
@@ -979,17 +979,6 @@ export default function ContainerStatsComponent() {
 
   // Build full stats object for drawer
   const selectedStats = selectedContainer?._stats || null;
-
-  // Derive per-device container counts for the pill labels
-  const deviceContainerCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const row of containerRows) {
-      if (row.device) {
-        counts[row.device] = (counts[row.device] || 0) + 1;
-      }
-    }
-    return counts;
-  }, [containerRows]);
 
   if (loading) {
     return (
@@ -1024,69 +1013,31 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          {/* ── Device Filter Pills ────────────────────────────────── */}
+          {/* ── Device Filter ──────────────────────────────────────── */}
           {deviceIds.length > 1 && (
-            <div className={styles.filterGroup}>
-              <span className={styles.filterLabel}>Host</span>
-              <div className={styles.deviceFilter}>
-                <button
-                  className={`${styles.devicePill} ${activeDevice === null ? styles.devicePillActive : ""}`}
-                  onClick={() => setActiveDevice(null)}
-                >
-                  All Hosts
-                  <span className={styles.devicePillCount}>
-                    {containerRows.length}
-                  </span>
-                </button>
-                {deviceIds.map((deviceId) => (
-                  <button
-                    key={deviceId}
-                    className={`${styles.devicePill} ${activeDevice === deviceId ? styles.devicePillActive : ""}`}
-                    onClick={() =>
-                      setActiveDevice(
-                        activeDevice === deviceId ? null : deviceId,
-                      )
-                    }
-                  >
-                    {deviceId}
-                    <span className={styles.devicePillCount}>
-                      {deviceContainerCounts[deviceId] || 0}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <MultiSelectComponent
+              label="Host"
+              value={activeDevices}
+              options={deviceIds.map((deviceId) => ({
+                value: deviceId,
+                label: deviceId,
+              }))}
+              onChange={setActiveDevices}
+              allLabel="All Hosts"
+            />
           )}
 
-          {/* ── Type Filter Pills ──────────────────────────────────── */}
-          <div className={styles.filterGroup}>
-            <span className={styles.filterLabel}>Type</span>
-            <div className={styles.deviceFilter}>
-              <button
-                className={`${styles.devicePill} ${activeType === null ? styles.devicePillActive : ""}`}
-                onClick={() => setActiveType(null)}
-              >
-                All Types
-                <span className={styles.devicePillCount}>
-                  {containerRows.length}
-                </span>
-              </button>
-              {(["client", "service", "bot"] as const).map((type) => (
-                <button
-                  key={type}
-                  className={`${styles.devicePill} ${activeType === type ? styles.devicePillActive : ""}`}
-                  onClick={() =>
-                    setActiveType(activeType === type ? null : type)
-                  }
-                >
-                  {type}s
-                  <span className={styles.devicePillCount}>
-                    {containerRows.filter((r) => r.projectType === type).length}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* ── Type Filter ────────────────────────────────────────── */}
+          <MultiSelectComponent
+            label="Type"
+            value={activeTypes}
+            options={(["client", "service", "bot"] as const).map((type) => ({
+              value: type,
+              label: `${type}s`,
+            }))}
+            onChange={setActiveTypes}
+            allLabel="All Types"
+          />
         </div>
 
         {/* ── View Mode Switcher ──────────────────────────────────── */}
@@ -1124,8 +1075,8 @@ export default function ContainerStatsComponent() {
               </span>
               <span className={styles.statCardLabel}>Containers</span>
               <span className={styles.statCardSub}>
-                {activeDevice
-                  ? `${healthyCount} healthy on ${activeDevice}`
+                {activeDevices.length > 0
+                  ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
                   : systemInfo
                     ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
                     : `${healthyCount} healthy`}
@@ -1249,7 +1200,7 @@ export default function ContainerStatsComponent() {
 
       {filteredRows.length === 0 ? (
         <div className={styles.emptyState}>
-          No containers found{activeDevice ? ` on ${activeDevice}` : ""}
+          No containers found{activeDevices.length > 0 ? ` on ${activeDevices.join(", ")}` : ""}
         </div>
       ) : viewMode === "table" ? (
         <TableComponent

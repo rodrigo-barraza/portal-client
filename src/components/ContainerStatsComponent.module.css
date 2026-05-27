@@ -280,67 +280,6 @@
   font-size: var(--font-size-base);
 }
 
-/* ── Device Filter Pills ── */
-
-.deviceFilter {
-  display: flex;
-  gap: 6px;
-  padding: 3px;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  width: fit-content;
-}
-
-.devicePill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: calc(var(--border-radius-sm) - 2px);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-  white-space: nowrap;
-  text-transform: capitalize;
-
-  &:hover:not(.devicePillActive) {
-    background: var(--background-elevated);
-    color: var(--text-primary);
-  }
-}
-
-.devicePillActive {
-  background: var(--background-elevated);
-  color: var(--text-primary);
-  border-color: var(--calculated-border-subtle);
-  font-weight: 600;
-}
-
-.devicePillCount {
-  font-size: 0.625rem;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  background: var(--background-surface);
-  padding: 1px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
-  line-height: 1.4;
-}
-
-.devicePillActive .devicePillCount {
-  color: var(--text-secondary);
-  background: rgba(99, 102, 241, 0.12);
-}
 
 /* ── Animations ── */
 
@@ -362,21 +301,6 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .deviceFilter {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    width: 100%;
-  }
-
-  .deviceFilter::-webkit-scrollbar {
-    display: none;
-  }
-
-  .devicePill {
-    flex-shrink: 0;
-  }
-
   .actionButton {
     width: 32px !important;
     height: 32px !important;
@@ -418,21 +342,6 @@
   }
 }
 
-.filterGroup {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filterLabel {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  user-select: none;
-  min-width: 36px;
-}
 
 /* ── View Mode Switcher Toggle ── */
 
