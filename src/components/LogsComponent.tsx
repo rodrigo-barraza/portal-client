@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ScrollText,
@@ -11,6 +11,7 @@ import {
   Search,
   X,
   RotateCw,
+  ChevronDown,
 } from "lucide-react";
 import {
   PageHeaderComponent,
@@ -287,6 +288,8 @@ export default function LogsComponent() {
   const [showSearch, setShowSearch] = useState(false);
   const [bufferedCount, setBufferedCount] = useState(0);
   const [restarting, setRestarting] = useState(false);
+  const [containerDropdownOpen, setContainerDropdownOpen] = useState(false);
+  const [containerSearchQuery, setContainerSearchQuery] = useState("");
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -294,6 +297,8 @@ export default function LogsComponent() {
   const didFetch = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const didAutoConnect = useRef(false);
+  const containerDropdownRef = useRef<HTMLDivElement>(null);
+  const containerSearchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
 
   // ── Fetch containers on mount ────────────────────────────────
@@ -433,6 +438,78 @@ export default function LogsComponent() {
     };
   }, []);
 
+  // ── Close container dropdown on outside click ───────────────
+  useEffect(() => {
+    if (!containerDropdownOpen) return;
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        containerDropdownRef.current &&
+        !containerDropdownRef.current.contains(event.target as Node)
+      ) {
+        setContainerDropdownOpen(false);
+        setContainerSearchQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [containerDropdownOpen]);
+
+  // ── Close container dropdown on Escape ──────────────────────
+  useEffect(() => {
+    if (!containerDropdownOpen) return;
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setContainerDropdownOpen(false);
+        setContainerSearchQuery("");
+      }
+    };
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => document.removeEventListener("keydown", handleEscapeKey);
+  }, [containerDropdownOpen]);
+
+  // ── Auto-focus search input when dropdown opens ─────────────
+  useEffect(() => {
+    if (containerDropdownOpen) {
+      setTimeout(() => containerSearchInputRef.current?.focus(), 50);
+    }
+  }, [containerDropdownOpen]);
+
+  // ── Filtered + grouped container list for dropdown ──────────
+  const filteredContainerGroups = useMemo(() => {
+    const normalizedQuery = containerSearchQuery.toLowerCase().trim();
+    const matchingContainers = normalizedQuery
+      ? containers.filter((container) =>
+          container.name.toLowerCase().includes(normalizedQuery),
+        )
+      : containers;
+
+    const sortedContainers = [...matchingContainers].sort(
+      (a: LoggableContainer, b: LoggableContainer) => {
+        if (a.device !== b.device) return a.device.localeCompare(b.device);
+        if (a.state === "running" && b.state !== "running") return -1;
+        if (a.state !== "running" && b.state === "running") return 1;
+        return a.name.localeCompare(b.name);
+      },
+    );
+
+    const groups: { device: string; deviceName: string; containers: LoggableContainer[] }[] = [];
+    let currentGroup: (typeof groups)[number] | null = null;
+
+    for (const container of sortedContainers) {
+      if (!currentGroup || currentGroup.device !== container.device) {
+        currentGroup = {
+          device: container.device,
+          deviceName: container.deviceName || container.device,
+          containers: [],
+        };
+        groups.push(currentGroup);
+      }
+      currentGroup.containers.push(container);
+    }
+
+    return groups;
+  }, [containers, containerSearchQuery]);
+
   // ── Re-wire the onmessage handler when `paused` changes ─────
   useEffect(() => {
     const es = eventSourceRef.current;
@@ -540,69 +617,111 @@ export default function LogsComponent() {
         }
       />
 
-      {/* ── Container Chips ── */}
-      <div className={styles.serviceList}>
-        {(() => {
-          // Group by device, running containers first
-          const sorted = [...containers].sort(
-            (a: LoggableContainer, b: LoggableContainer) => {
-              if (a.device !== b.device)
-                return a.device.localeCompare(b.device);
-              // Running containers first within each device
-              if (a.state === "running" && b.state !== "running") return -1;
-              if (a.state !== "running" && b.state === "running") return 1;
-              return a.name.localeCompare(b.name);
-            },
-          );
-
-          const groups = [];
-          let lastDevice = null;
-          for (const container of sorted) {
-            if (container.device !== lastDevice) {
-              groups.push(
+      {/* ── Container Selector Dropdown ── */}
+      <div className={styles.containerDropdown} ref={containerDropdownRef}>
+        <button
+          type="button"
+          className={`${styles.containerDropdownTrigger} ${containerDropdownOpen ? styles.containerDropdownTriggerOpen : ""}`}
+          onClick={() => setContainerDropdownOpen((previous) => !previous)}
+        >
+          <span className={styles.containerDropdownTriggerContent}>
+            {activeContainer ? (
+              <>
                 <span
-                  key={`device-${container.device}`}
-                  className={styles.deviceLabel}
-                >
-                  {container.deviceName || container.device}
-                </span>,
-              );
-              lastDevice = container.device;
-            }
-            const isRunning = container.state === "running";
-            const dotClass = [
-              styles.chipDot,
-              isRunning ? styles.chipDotHealthy : styles.chipDotUnhealthy,
-            ]
-              .filter(Boolean)
-              .join(" ");
-
-            const chipClass = [
-              styles.serviceChip,
-              activeContainer === container.name ? styles.isActiveState : "",
-              !isRunning ? styles.chipStateStopped : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-
-            groups.push(
-              <button
-                key={`${container.device}-${container.name}`}
-                className={chipClass}
-                onClick={() =>
-                  connectToContainer(container.name, container.device)
-                }
-              >
-                <span className={dotClass} />
-                {container.name}
-                <span className={styles.chipDevice}>
-                  {container.deviceName}
+                  className={`${styles.containerDropdownStatusDot} ${
+                    containers.find((c) => c.name === activeContainer)?.state === "running"
+                      ? styles.containerDropdownStatusDotHealthy
+                      : styles.containerDropdownStatusDotUnhealthy
+                  }`}
+                />
+                <span className={styles.containerDropdownTriggerLabel}>
+                  {activeContainer}
                 </span>
-              </button>,
-            );
-          }
-          return groups;
-        })()}
+              </>
+            ) : (
+              <span className={styles.containerDropdownTriggerPlaceholder}>
+                Select a container…
+              </span>
+            )}
+          </span>
+          <ChevronDown
+            size={14}
+            className={`${styles.containerDropdownChevron} ${containerDropdownOpen ? styles.containerDropdownChevronOpen : ""}`}
+          />
+        </button>
+
+        {containerDropdownOpen && (
+          <div className={styles.containerDropdownMenu}>
+            <div className={styles.containerDropdownSearchWrapper}>
+              <Search size={13} className={styles.containerDropdownSearchIcon} />
+              <input
+                ref={containerSearchInputRef}
+                type="text"
+                className={styles.containerDropdownSearchInput}
+                placeholder="Search containers…"
+                value={containerSearchQuery}
+                onChange={(event) => setContainerSearchQuery(event.target.value)}
+              />
+              {containerSearchQuery && (
+                <button
+                  type="button"
+                  className={styles.containerDropdownSearchClear}
+                  onClick={() => setContainerSearchQuery("")}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <div className={styles.containerDropdownOptionsList}>
+              {filteredContainerGroups.length === 0 && (
+                <div className={styles.containerDropdownEmptyState}>
+                  No containers match &ldquo;{containerSearchQuery}&rdquo;
+                </div>
+              )}
+
+              {filteredContainerGroups.map((group) => (
+                <div key={group.device}>
+                  <span className={styles.containerDropdownDeviceLabel}>
+                    {group.deviceName}
+                  </span>
+                  {group.containers.map((container) => {
+                    const isRunning = container.state === "running";
+                    const isSelected = activeContainer === container.name;
+                    return (
+                      <button
+                        key={`${container.device}-${container.name}`}
+                        type="button"
+                        className={`${styles.containerDropdownOption} ${isSelected ? styles.containerDropdownOptionSelected : ""} ${!isRunning ? styles.containerDropdownOptionStopped : ""}`}
+                        onClick={() => {
+                          connectToContainer(container.name, container.device);
+                          setContainerDropdownOpen(false);
+                          setContainerSearchQuery("");
+                        }}
+                      >
+                        <span
+                          className={`${styles.containerDropdownStatusDot} ${
+                            isRunning
+                              ? styles.containerDropdownStatusDotHealthy
+                              : styles.containerDropdownStatusDotUnhealthy
+                          }`}
+                        />
+                        <span className={styles.containerDropdownOptionLabel}>
+                          {container.name}
+                        </span>
+                        {container.deviceName && (
+                          <span className={styles.containerDropdownOptionDevice}>
+                            {container.deviceName}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Terminal Viewer ── */}
