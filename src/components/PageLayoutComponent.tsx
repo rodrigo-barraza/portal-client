@@ -18,14 +18,12 @@ export default function PageLayoutComponent({
   mainStyle,
   mainClassName,
   title,
-  subtitle,
   onBack,
 }: {
   children: ReactNode;
   mainStyle?: CSSProperties;
   mainClassName?: string;
   title?: string | ReactNode;
-  subtitle?: string | ReactNode;
   onBack?: () => void;
 }) {
   const pathname = usePathname();
@@ -46,7 +44,6 @@ export default function PageLayoutComponent({
       mainStyle={mainStyle}
       mainClassName={mainClassName}
       title={title}
-      subtitle={subtitle}
       onBack={onBack}
     >
       {children}
