@@ -33,16 +33,6 @@ export default class ApiService {
     return ApiService._request("/");
   }
 
-  // ── Workspaces ────────────────────────────────────────────────
-
-  static async getWorkspaceAgents() {
-    return ApiService._request("/workspaces/agents");
-  }
-
-  static getWorkspaceAgentDownloadUrl() {
-    return `${PORTAL_SERVICE_URL}/workspaces/download/agent`;
-  }
-
   // ── Projects ──────────────────────────────────────────────────
 
   /**

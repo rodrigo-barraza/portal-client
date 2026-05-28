@@ -10,7 +10,7 @@ import {
   Gauge,
   Trash2,
   Table2,
-  HardDrive,
+
 } from "lucide-react";
 import {
   PageHeaderComponent,
@@ -22,14 +22,14 @@ import {
   ButtonComponent,
 } from "@rodrigo-barraza/components-library";
 import styles from "./SettingsComponent.module.css";
-import WorkspaceSettingsSectionComponent from "./WorkspaceSettingsSectionComponent";
+
 
 // ── Section Definitions ──────────────────────────────────────────
 const SECTIONS = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "dashboard", label: "Dashboard", icon: LayoutGrid },
   { id: "monitoring", label: "Monitoring", icon: Gauge },
-  { id: "workspaces", label: "Workspaces", icon: HardDrive },
+
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "data", label: "Data & Privacy", icon: Shield },
 ];
@@ -591,29 +591,7 @@ export default function SettingsComponent() {
             </div>
           </section>
 
-          {/* ═══ Workspaces ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.workspaces = element;
-            }}
-            className={styles.section}
-            id="settings-workspaces"
-          >
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionIconWrap}>
-                <HardDrive size={17} strokeWidth={2} />
-              </div>
-              <div className={styles.sectionTitleGroup}>
-                <h2 className={styles.sectionTitle}>Workspaces</h2>
-                <p className={styles.sectionDescription}>
-                  Connect local machines and manage workspace agents
-                </p>
-              </div>
-            </div>
-            <div className={styles.sectionBody}>
-              <WorkspaceSettingsSectionComponent />
-            </div>
-          </section>
+
 
           {/* ═══ Notifications ═══ */}
           <section
