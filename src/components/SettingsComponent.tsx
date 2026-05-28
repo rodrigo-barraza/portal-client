@@ -9,20 +9,27 @@ import {
   Shield,
   Gauge,
   Trash2,
-  ChevronDown,
   Table2,
+  HardDrive,
 } from "lucide-react";
 import {
   PageHeaderComponent,
   useTheme,
+  SwitchComponent,
+  SelectComponent,
+  InputComponent,
+  SegmentedControlComponent,
+  ButtonComponent,
 } from "@rodrigo-barraza/components-library";
 import styles from "./SettingsComponent.module.css";
+import WorkspaceSettingsSectionComponent from "./WorkspaceSettingsSectionComponent";
 
 // ── Section Definitions ──────────────────────────────────────────
 const SECTIONS = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "dashboard", label: "Dashboard", icon: LayoutGrid },
   { id: "monitoring", label: "Monitoring", icon: Gauge },
+  { id: "workspaces", label: "Workspaces", icon: HardDrive },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "data", label: "Data & Privacy", icon: Shield },
 ];
@@ -185,33 +192,24 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.selectWrap}>
-                    <select
-                      className={styles.select}
-                      value={theme}
-                      onChange={(e) => {
-                        // Cycle to the target theme
-                        let current = theme;
-                        const target = e.target.value;
-                        const themes = ["dark", "light", "tropical", "oceanic"];
-                        while (current !== target) {
-                          toggleTheme();
-                          const index = themes.indexOf(current);
-                          current = themes[(index + 1) % themes.length];
-                        }
-                      }}
-                    >
-                      <option value="dark">Dark</option>
-                      <option value="light">Light</option>
-                      <option value="tropical">Tropical</option>
-                      <option value="oceanic">Oceanic</option>
-                    </select>
-                    <ChevronDown
-                      size={13}
-                      strokeWidth={2.5}
-                      className={styles.selectChevron}
-                    />
-                  </div>
+                  <SelectComponent
+                    value={theme}
+                    onChange={(selectedValue: string) => {
+                      let current = theme;
+                      const themes = ["dark", "light", "tropical", "oceanic"];
+                      while (current !== selectedValue) {
+                        toggleTheme();
+                        const index = themes.indexOf(current);
+                        current = themes[(index + 1) % themes.length];
+                      }
+                    }}
+                    options={[
+                      { value: "dark", label: "Dark" },
+                      { value: "light", label: "Light" },
+                      { value: "tropical", label: "Tropical" },
+                      { value: "oceanic", label: "Oceanic" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -252,17 +250,15 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.segmentedControl}>
-                    {["compact", "default", "large"].map((size) => (
-                      <button
-                        key={size}
-                        className={`${styles.segmentButton} ${settings.fontScale === size ? styles.isActiveState : ""}`}
-                        onClick={() => updateSetting("fontScale", size)}
-                      >
-                        {size.charAt(0).toUpperCase() + size.slice(1)}
-                      </button>
-                    ))}
-                  </div>
+                  <SegmentedControlComponent
+                    value={settings.fontScale}
+                    onChange={(value: string) => updateSetting("fontScale", value)}
+                    segments={[
+                      { value: "compact", label: "Compact" },
+                      { value: "default", label: "Default" },
+                      { value: "large", label: "Large" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -275,16 +271,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.animationsEnabled ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "animationsEnabled",
-                        !settings.animationsEnabled,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.animationsEnabled}
+                  <SwitchComponent
+                    checked={settings.animationsEnabled}
+                    onChange={(checked: boolean) => updateSetting("animationsEnabled", checked)}
                   />
                 </div>
               </div>
@@ -298,13 +287,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.reducedMotion ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting("reducedMotion", !settings.reducedMotion)
-                    }
-                    role="switch"
-                    aria-checked={settings.reducedMotion}
+                  <SwitchComponent
+                    checked={settings.reducedMotion}
+                    onChange={(checked: boolean) => updateSetting("reducedMotion", checked)}
                   />
                 </div>
               </div>
@@ -340,30 +325,14 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.segmentedControl}>
-                    <button
-                      className={`${styles.segmentButton} ${settings.defaultView === "card" ? styles.isActiveState : ""}`}
-                      onClick={() => updateSetting("defaultView", "card")}
-                    >
-                      <LayoutGrid
-                        size={12}
-                        strokeWidth={2.2}
-                        style={{ marginRight: 4 }}
-                      />
-                      Cards
-                    </button>
-                    <button
-                      className={`${styles.segmentButton} ${settings.defaultView === "table" ? styles.isActiveState : ""}`}
-                      onClick={() => updateSetting("defaultView", "table")}
-                    >
-                      <Table2
-                        size={12}
-                        strokeWidth={2.2}
-                        style={{ marginRight: 4 }}
-                      />
-                      Table
-                    </button>
-                  </div>
+                  <SegmentedControlComponent
+                    value={settings.defaultView}
+                    onChange={(value: string) => updateSetting("defaultView", value)}
+                    segments={[
+                      { value: "card", label: "Cards", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
+                      { value: "table", label: "Table", icon: <Table2 size={12} strokeWidth={2.2} /> },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -376,27 +345,18 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.selectWrap}>
-                    <select
-                      className={styles.select}
-                      value={settings.defaultPage}
-                      onChange={(e) =>
-                        updateSetting("defaultPage", e.target.value)
-                      }
-                    >
-                      <option value="/projects">Projects</option>
-                      <option value="/containers">Containers</option>
-                      <option value="/devices">Devices</option>
-                      <option value="/topology">Topology</option>
-                      <option value="/logs">Logs</option>
-                      <option value="/object-store">Object Store</option>
-                    </select>
-                    <ChevronDown
-                      size={13}
-                      strokeWidth={2.5}
-                      className={styles.selectChevron}
-                    />
-                  </div>
+                  <SelectComponent
+                    value={settings.defaultPage}
+                    onChange={(value: string) => updateSetting("defaultPage", value)}
+                    options={[
+                      { value: "/projects", label: "Projects" },
+                      { value: "/containers", label: "Containers" },
+                      { value: "/devices", label: "Devices" },
+                      { value: "/topology", label: "Topology" },
+                      { value: "/logs", label: "Logs" },
+                      { value: "/object-store", label: "Object Store" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -409,17 +369,15 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.segmentedControl}>
-                    {["compact", "comfortable", "spacious"].map((d: string) => (
-                      <button
-                        key={d}
-                        className={`${styles.segmentButton} ${settings.cardDensity === d ? styles.isActiveState : ""}`}
-                        onClick={() => updateSetting("cardDensity", d)}
-                      >
-                        {d.charAt(0).toUpperCase() + d.slice(1)}
-                      </button>
-                    ))}
-                  </div>
+                  <SegmentedControlComponent
+                    value={settings.cardDensity}
+                    onChange={(value: string) => updateSetting("cardDensity", value)}
+                    segments={[
+                      { value: "compact", label: "Compact" },
+                      { value: "comfortable", label: "Comfortable" },
+                      { value: "spacious", label: "Spacious" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -432,16 +390,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.showSystemSummary ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "showSystemSummary",
-                        !settings.showSystemSummary,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.showSystemSummary}
+                  <SwitchComponent
+                    checked={settings.showSystemSummary}
+                    onChange={(checked: boolean) => updateSetting("showSystemSummary", checked)}
                   />
                 </div>
               </div>
@@ -457,16 +408,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.showInfrastructure ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "showInfrastructure",
-                        !settings.showInfrastructure,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.showInfrastructure}
+                  <SwitchComponent
+                    checked={settings.showInfrastructure}
+                    onChange={(checked: boolean) => updateSetting("showInfrastructure", checked)}
                   />
                 </div>
               </div>
@@ -502,16 +446,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.autoRefreshEnabled ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "autoRefreshEnabled",
-                        !settings.autoRefreshEnabled,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.autoRefreshEnabled}
+                  <SwitchComponent
+                    checked={settings.autoRefreshEnabled}
+                    onChange={(checked: boolean) => updateSetting("autoRefreshEnabled", checked)}
                   />
                 </div>
               </div>
@@ -528,18 +465,18 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.unitGroup}>
-                    <input
+                    <InputComponent
                       type="number"
-                      className={styles.numberInput}
                       value={settings.healthCheckInterval}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateSetting(
                           "healthCheckInterval",
-                          Math.max(5, Number(e.target.value)),
+                          Math.max(5, Number((event.target as HTMLInputElement).value)),
                         )
                       }
                       min={5}
                       max={300}
+                      size="sm"
                     />
                     <span className={styles.unitLabel}>sec</span>
                   </div>
@@ -558,18 +495,18 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.unitGroup}>
-                    <input
+                    <InputComponent
                       type="number"
-                      className={styles.numberInput}
                       value={settings.containerPollingInterval}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateSetting(
                           "containerPollingInterval",
-                          Math.max(1, Number(e.target.value)),
+                          Math.max(1, Number((event.target as HTMLInputElement).value)),
                         )
                       }
                       min={1}
                       max={60}
+                      size="sm"
                     />
                     <span className={styles.unitLabel}>sec</span>
                   </div>
@@ -585,16 +522,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.showResponseTimes ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "showResponseTimes",
-                        !settings.showResponseTimes,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.showResponseTimes}
+                  <SwitchComponent
+                    checked={settings.showResponseTimes}
+                    onChange={(checked) => updateSetting("showResponseTimes", checked)}
                   />
                 </div>
               </div>
@@ -611,18 +541,18 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.unitGroup}>
-                    <input
+                    <InputComponent
                       type="number"
-                      className={styles.numberInput}
                       value={settings.alertThresholdCpu}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateSetting(
                           "alertThresholdCpu",
-                          Math.max(10, Math.min(100, Number(e.target.value))),
+                          Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
                         )
                       }
                       min={10}
                       max={100}
+                      size="sm"
                     />
                     <span className={styles.unitLabel}>%</span>
                   </div>
@@ -641,23 +571,47 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.unitGroup}>
-                    <input
+                    <InputComponent
                       type="number"
-                      className={styles.numberInput}
                       value={settings.alertThresholdMemory}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateSetting(
                           "alertThresholdMemory",
-                          Math.max(10, Math.min(100, Number(e.target.value))),
+                          Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
                         )
                       }
                       min={10}
                       max={100}
+                      size="sm"
                     />
                     <span className={styles.unitLabel}>%</span>
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* ═══ Workspaces ═══ */}
+          <section
+            ref={(element) => {
+              sectionRefs.current.workspaces = element;
+            }}
+            className={styles.section}
+            id="settings-workspaces"
+          >
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionIconWrap}>
+                <HardDrive size={17} strokeWidth={2} />
+              </div>
+              <div className={styles.sectionTitleGroup}>
+                <h2 className={styles.sectionTitle}>Workspaces</h2>
+                <p className={styles.sectionDescription}>
+                  Connect local machines and manage workspace agents
+                </p>
+              </div>
+            </div>
+            <div className={styles.sectionBody}>
+              <WorkspaceSettingsSectionComponent />
             </div>
           </section>
 
@@ -692,16 +646,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.browserNotifications ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "browserNotifications",
-                        !settings.browserNotifications,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.browserNotifications}
+                  <SwitchComponent
+                    checked={settings.browserNotifications}
+                    onChange={(checked) => updateSetting("browserNotifications", checked)}
                   />
                 </div>
               </div>
@@ -715,13 +662,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.downAlerts ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting("downAlerts", !settings.downAlerts)
-                    }
-                    role="switch"
-                    aria-checked={settings.downAlerts}
+                  <SwitchComponent
+                    checked={settings.downAlerts}
+                    onChange={(checked) => updateSetting("downAlerts", checked)}
                   />
                 </div>
               </div>
@@ -737,16 +680,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.performanceAlerts ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "performanceAlerts",
-                        !settings.performanceAlerts,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.performanceAlerts}
+                  <SwitchComponent
+                    checked={settings.performanceAlerts}
+                    onChange={(checked) => updateSetting("performanceAlerts", checked)}
                   />
                 </div>
               </div>
@@ -760,16 +696,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.notificationSound ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "notificationSound",
-                        !settings.notificationSound,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.notificationSound}
+                  <SwitchComponent
+                    checked={settings.notificationSound}
+                    onChange={(checked) => updateSetting("notificationSound", checked)}
                   />
                 </div>
               </div>
@@ -805,16 +734,9 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={`${styles.toggle} ${settings.telemetryEnabled ? styles.isActiveState : ""}`}
-                    onClick={() =>
-                      updateSetting(
-                        "telemetryEnabled",
-                        !settings.telemetryEnabled,
-                      )
-                    }
-                    role="switch"
-                    aria-checked={settings.telemetryEnabled}
+                  <SwitchComponent
+                    checked={settings.telemetryEnabled}
+                    onChange={(checked) => updateSetting("telemetryEnabled", checked)}
                   />
                 </div>
               </div>
@@ -828,26 +750,17 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.selectWrap}>
-                    <select
-                      className={styles.select}
-                      value={settings.retainLogs}
-                      onChange={(e) =>
-                        updateSetting("retainLogs", e.target.value)
-                      }
-                    >
-                      <option value="7d">7 days</option>
-                      <option value="14d">14 days</option>
-                      <option value="30d">30 days</option>
-                      <option value="90d">90 days</option>
-                      <option value="forever">Forever</option>
-                    </select>
-                    <ChevronDown
-                      size={13}
-                      strokeWidth={2.5}
-                      className={styles.selectChevron}
-                    />
-                  </div>
+                  <SelectComponent
+                    value={settings.retainLogs}
+                    onChange={(value) => updateSetting("retainLogs", value)}
+                    options={[
+                      { value: "7d", label: "7 days" },
+                      { value: "14d", label: "14 days" },
+                      { value: "30d", label: "30 days" },
+                      { value: "90d", label: "90 days" },
+                      { value: "forever", label: "Forever" },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -862,13 +775,15 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={styles.dangerButton}
+                  <ButtonComponent
+                    variant="outlined"
+                    size="small"
+                    icon={RefreshCw}
                     onClick={resetSettings}
+                    className={styles.dangerButton}
                   >
-                    <RefreshCw size={12} strokeWidth={2.5} />
                     Reset
-                  </button>
+                  </ButtonComponent>
                 </div>
               </div>
 
@@ -881,13 +796,15 @@ export default function SettingsComponent() {
                   </span>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    className={styles.dangerButton}
+                  <ButtonComponent
+                    variant="outlined"
+                    size="small"
+                    icon={Trash2}
                     onClick={clearLocalData}
+                    className={styles.dangerButton}
                   >
-                    <Trash2 size={12} strokeWidth={2.5} />
                     Clear
-                  </button>
+                  </ButtonComponent>
                 </div>
               </div>
             </div>

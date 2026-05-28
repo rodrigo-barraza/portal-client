@@ -13,6 +13,7 @@ import {
 import {
   LoadingIndicatorComponent,
   TableComponent,
+  SegmentedControlComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
@@ -201,22 +202,15 @@ export default function PropertyListingComponent({
         <div className={styles.toolbarLabel}>
           <span>View</span>
         </div>
-        <div className={styles.segmentedControl}>
-          <button
-            className={`${styles.segmentButton} ${viewMode === "card" ? styles.segmentActive : ""}`}
-            onClick={() => setViewMode("card")}
-            title="Card view"
-          >
-            <LayoutGrid size={12} strokeWidth={2.2} />
-          </button>
-          <button
-            className={`${styles.segmentButton} ${viewMode === "list" ? styles.segmentActive : ""}`}
-            onClick={() => setViewMode("list")}
-            title="List view"
-          >
-            <Table2 size={12} strokeWidth={2.2} />
-          </button>
-        </div>
+        <SegmentedControlComponent
+          value={viewMode}
+          onChange={(value: string) => setViewMode(value)}
+          segments={[
+            { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
+            { value: "list", icon: <Table2 size={12} strokeWidth={2.2} /> },
+          ]}
+          compact
+        />
         <span className={styles.propertySummary}>
           {properties.length}{" "}
           {properties.length === 1 ? "property" : "properties"}

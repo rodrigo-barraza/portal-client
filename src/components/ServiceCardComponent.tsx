@@ -16,7 +16,7 @@ import {
   Square,
   Undo2,
 } from "lucide-react";
-import { BadgeComponent } from "@rodrigo-barraza/components-library";
+import { BadgeComponent, ButtonComponent } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
   formatDuration,
@@ -195,8 +195,11 @@ export default function ServiceCardComponent({
         {service.restartable && (
           <div className={styles.actionRow}>
             {isHealthy ? (
-              <button
-                className={`${styles.actionButton} ${styles.stopButton} ${stopping ? styles.actionButtonLoading : ""}`}
+              <ButtonComponent
+                variant="outlined"
+                size="small"
+                icon={Square}
+                loading={stopping}
                 disabled={stopping || restarting || rollingBack}
                 onClick={async () => {
                   setStopping(true);
@@ -206,17 +209,16 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
                   }
                 }}
+                className={`${styles.actionButton} ${styles.stopButton}`}
               >
-                <Square
-                  size={10}
-                  strokeWidth={2.6}
-                  className={stopping ? styles.pulse : ""}
-                />
                 {stopping ? "Stopping…" : "Stop"}
-              </button>
+              </ButtonComponent>
             ) : (
-              <button
-                className={`${styles.actionButton} ${styles.startButton} ${starting ? styles.actionButtonLoading : ""}`}
+              <ButtonComponent
+                variant="outlined"
+                size="small"
+                icon={Play}
+                loading={starting}
                 disabled={starting || restarting || rollingBack}
                 onClick={async () => {
                   setStarting(true);
@@ -226,15 +228,10 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
                   }
                 }}
+                className={`${styles.actionButton} ${styles.startButton}`}
               >
-                <Play
-                  size={10}
-                  strokeWidth={2.6}
-                  fill="currentColor"
-                  className={starting ? styles.pulse : ""}
-                />
                 {starting ? "Starting…" : "Start"}
-              </button>
+              </ButtonComponent>
             )}
 
             <Link
@@ -246,8 +243,11 @@ export default function ServiceCardComponent({
             </Link>
 
             {rollbackAvailable && (
-              <button
-                className={`${styles.actionButton} ${styles.rollbackButton} ${rollingBack ? styles.actionButtonLoading : ""}`}
+              <ButtonComponent
+                variant="outlined"
+                size="small"
+                icon={Undo2}
+                loading={rollingBack}
                 disabled={rollingBack || restarting || stopping || starting}
                 onClick={async () => {
                   setRollingBack(true);
@@ -260,18 +260,17 @@ export default function ServiceCardComponent({
                     );
                   }
                 }}
+                className={`${styles.actionButton} ${styles.rollbackButton}`}
               >
-                <Undo2
-                  size={10}
-                  strokeWidth={2.6}
-                  className={rollingBack ? styles.pulse : ""}
-                />
                 {rollingBack ? "Rolling back…" : "Rollback"}
-              </button>
+              </ButtonComponent>
             )}
 
-            <button
-              className={`${styles.actionButton} ${styles.restartButton} ${restarting ? styles.actionButtonLoading : ""}`}
+            <ButtonComponent
+              variant="outlined"
+              size="small"
+              icon={RotateCcw}
+              loading={restarting}
               disabled={restarting || stopping || starting || rollingBack}
               onClick={async () => {
                 setRestarting(true);
@@ -281,14 +280,10 @@ export default function ServiceCardComponent({
                   setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
                 }
               }}
+              className={`${styles.actionButton} ${styles.restartButton}`}
             >
-              <RotateCcw
-                size={10}
-                strokeWidth={2.6}
-                className={restarting ? styles.spin : ""}
-              />
               {restarting ? "Restarting…" : "Restart"}
-            </button>
+            </ButtonComponent>
           </div>
         )}
 

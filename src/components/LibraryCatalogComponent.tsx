@@ -10,7 +10,10 @@
 
 import { useState, useMemo } from "react";
 import { Search, FlaskConical, Package, FileCode2 } from "lucide-react";
-import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import {
+  PageHeaderComponent,
+  SearchInputComponent,
+} from "@rodrigo-barraza/components-library";
 import styles from "./LibraryCatalogComponent.module.css";
 
 /** Human-readable name from export name. */
@@ -108,17 +111,13 @@ export default function LibraryCatalogComponent({
 
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
-        <div className={styles.searchWrapper}>
-          <Search size={14} className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder={`Search ${type}s…`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-            id={`${type}-search`}
-          />
-        </div>
+        <SearchInputComponent
+          value={search}
+          onChange={(value: string) => setSearch(value)}
+          placeholder={`Search ${type}s…`}
+          compact
+          id={`${type}-search`}
+        />
         <div className={styles.countLabel}>
           {filtered.length} {type}
           {filtered.length !== 1 ? "s" : ""}

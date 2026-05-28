@@ -29,6 +29,9 @@ import {
   ButtonComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
+  SearchInputComponent,
+  SegmentedControlComponent,
+  IconButtonComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
@@ -803,22 +806,15 @@ export default function StorageComponent() {
 
           {/* ── View Mode Toggle ── */}
           <div className={styles.viewToggle}>
-            <div className={styles.segmentedControl}>
-              <button
-                className={`${styles.segmentButton} ${objectViewMode === "table" ? styles.segmentActive : ""}`}
-                onClick={() => setObjectViewMode("table")}
-                title="Table view"
-              >
-                <Table2 size={13} strokeWidth={2.2} />
-              </button>
-              <button
-                className={`${styles.segmentButton} ${objectViewMode === "grid" ? styles.segmentActive : ""}`}
-                onClick={() => setObjectViewMode("grid")}
-                title="Grid view"
-              >
-                <LayoutGrid size={13} strokeWidth={2.2} />
-              </button>
-            </div>
+            <SegmentedControlComponent
+              value={objectViewMode}
+              onChange={(value: string) => setObjectViewMode(value as "table" | "grid")}
+              segments={[
+                { value: "table", icon: <Table2 size={13} strokeWidth={2.2} /> },
+                { value: "grid", icon: <LayoutGrid size={13} strokeWidth={2.2} /> },
+              ]}
+              compact
+            />
           </div>
         </div>
       )}
@@ -828,22 +824,15 @@ export default function StorageComponent() {
         <>
           {/* ── Bucket View Mode Toggle ── */}
           <div className={styles.bucketViewBar}>
-            <div className={styles.segmentedControl}>
-              <button
-                className={`${styles.segmentButton} ${bucketViewMode === "cards" ? styles.segmentActive : ""}`}
-                onClick={() => setBucketViewMode("cards")}
-                title="Card view"
-              >
-                <LayoutGrid size={13} strokeWidth={2.2} />
-              </button>
-              <button
-                className={`${styles.segmentButton} ${bucketViewMode === "table" ? styles.segmentActive : ""}`}
-                onClick={() => setBucketViewMode("table")}
-                title="Table view"
-              >
-                <Table2 size={13} strokeWidth={2.2} />
-              </button>
-            </div>
+            <SegmentedControlComponent
+              value={bucketViewMode}
+              onChange={(value: string) => setBucketViewMode(value as "cards" | "table")}
+              segments={[
+                { value: "cards", icon: <LayoutGrid size={13} strokeWidth={2.2} /> },
+                { value: "table", icon: <Table2 size={13} strokeWidth={2.2} /> },
+              ]}
+              compact
+            />
           </div>
 
           {!streaming && buckets.length === 0 ? (
@@ -1031,16 +1020,12 @@ function ObjectTableView({
           <span className={styles.totalSize}>
             {(prefixes.length + objects.length).toLocaleString()} items
           </span>
-          <div className={styles.searchWrap}>
-            <Search size={14} className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              type="text"
-              placeholder="Filter objects…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInputComponent
+            value={search}
+            onChange={(value: string) => setSearch(value)}
+            placeholder="Filter objects…"
+            compact
+          />
         </div>
       </div>
 
@@ -1111,13 +1096,11 @@ function ObjectTableView({
             </span>
             <div className={styles.objectActions}>
               {canPreview && (
-                <button
-                  className={styles.actionButton}
-                  title="Preview"
+                <IconButtonComponent
+                  icon={<Eye size={15} />}
+                  tooltip="Preview"
                   onClick={() => openPreview(object)}
-                >
-                  <Eye size={15} />
-                </button>
+                />
               )}
               <a
                 className={styles.actionButton}
@@ -1131,13 +1114,12 @@ function ObjectTableView({
               >
                 <Download size={15} />
               </a>
-              <button
-                className={`${styles.actionButton} ${styles.danger}`}
-                title="Delete"
+              <IconButtonComponent
+                icon={<Trash2 size={15} />}
+                tooltip="Delete"
+                variant="destructive"
                 onClick={() => handleDelete(object)}
-              >
-                <Trash2 size={15} />
-              </button>
+              />
             </div>
           </div>
         );
@@ -1273,16 +1255,12 @@ function ObjectGridView({
           <span className={styles.totalSize}>
             {(prefixes.length + objects.length).toLocaleString()} items
           </span>
-          <div className={styles.searchWrap}>
-            <Search size={14} className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              type="text"
-              placeholder="Filter objects…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInputComponent
+            value={search}
+            onChange={(value: string) => setSearch(value)}
+            placeholder="Filter objects…"
+            compact
+          />
         </div>
       </div>
 

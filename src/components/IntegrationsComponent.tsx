@@ -20,6 +20,8 @@ import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
   TableComponent,
+  SegmentedControlComponent,
+  SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
 
 import ApiService from "../services/ApiService";
@@ -192,22 +194,15 @@ export default function IntegrationsComponent() {
       >
         <div className={styles.headerControls}>
           {!loading && (
-            <div className={styles.segmentedControl}>
-              <button
-                className={`${styles.segmentButton} ${viewMode === "card" ? styles.segmentActive : ""}`}
-                onClick={() => setViewMode("card")}
-                title="Card view"
-              >
-                <LayoutGrid size={13} strokeWidth={2.2} />
-              </button>
-              <button
-                className={`${styles.segmentButton} ${viewMode === "table" ? styles.segmentActive : ""}`}
-                onClick={() => setViewMode("table")}
-                title="Table view"
-              >
-                <Table2 size={13} strokeWidth={2.2} />
-              </button>
-            </div>
+            <SegmentedControlComponent
+              value={viewMode}
+              onChange={(value: string) => setViewMode(value as "card" | "table")}
+              segments={[
+                { value: "card", icon: <LayoutGrid size={13} strokeWidth={2.2} /> },
+                { value: "table", icon: <Table2 size={13} strokeWidth={2.2} /> },
+              ]}
+              compact
+            />
           )}
           <ButtonComponent
             variant="secondary"
@@ -223,23 +218,12 @@ export default function IntegrationsComponent() {
       {/* ── Search Bar ── */}
       {!loading && (
         <div className={styles.searchBar}>
-          <InputComponent
-            icon={Search}
-            size="sm"
-            placeholder="Search providers, keys…"
+          <SearchInputComponent
             value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchQuery(e.target.value)
-            }
+            onChange={(value: string) => setSearchQuery(value)}
+            placeholder="Search providers, keys…"
+            compact
           />
-          {searchQuery && (
-            <button
-              className={styles.clearSearch}
-              onClick={() => setSearchQuery("")}
-            >
-              <X size={12} strokeWidth={2.5} />
-            </button>
-          )}
         </div>
       )}
 

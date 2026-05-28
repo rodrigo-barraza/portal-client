@@ -21,6 +21,9 @@ import {
 import {
   ButtonComponent,
   LoadingIndicatorComponent,
+  SearchInputComponent,
+  SegmentedControlComponent,
+  IconButtonComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   SERVICE_TYPE_ICONS,
@@ -1170,57 +1173,20 @@ export default function TopologyComponent() {
           </div>
           <div className={styles.headerActions}>
             {/* View mode segmented toggle */}
-            <div className={styles.viewToggle}>
-              <button
-                className={`${styles.viewToggleButton}${viewMode === "tier" ? ` ${styles.viewToggleActive}` : ""}`}
-                onClick={() => handleViewModeChange("tier")}
-                title="Group by deploy tier"
-              >
-                <Layers size={14} strokeWidth={1.8} />
-                <span>By Tier</span>
-              </button>
-              <button
-                className={`${styles.viewToggleButton}${viewMode === "type" ? ` ${styles.viewToggleActive}` : ""}`}
-                onClick={() => handleViewModeChange("type")}
-                title="Group by project type"
-              >
-                <Grid3X3 size={14} strokeWidth={1.8} />
-                <span>By Type</span>
-              </button>
-            </div>
-            <div
-              className={`${styles.searchWrapper}${searchFocused || searchQuery ? ` ${styles.searchExpanded}` : ""}`}
-            >
-              <Search size={14} strokeWidth={2} className={styles.searchIcon} />
-              <input
-                ref={searchRef}
-                type="text"
-                className={styles.searchInput}
-                placeholder="Filter nodes…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === "Escape") {
-                    setSearchQuery("");
-                    searchRef.current?.blur();
-                  }
-                }}
-              />
-              {searchQuery && (
-                <button
-                  className={styles.searchClear}
-                  onClick={() => {
-                    setSearchQuery("");
-                    searchRef.current?.focus();
-                  }}
-                  tabIndex={-1}
-                >
-                  <X size={12} strokeWidth={2.5} />
-                </button>
-              )}
-            </div>
+            <SegmentedControlComponent
+              value={viewMode}
+              onChange={(value) => handleViewModeChange(value as "tier" | "type")}
+              segments={[
+                { value: "tier", label: "By Tier", icon: <Layers size={14} strokeWidth={1.8} /> },
+                { value: "type", label: "By Type", icon: <Grid3X3 size={14} strokeWidth={1.8} /> },
+              ]}
+            />
+            <SearchInputComponent
+              value={searchQuery}
+              onChange={(value) => setSearchQuery(value)}
+              placeholder="Filter nodes…"
+              compact
+            />
             <ButtonComponent
               variant="secondary"
               icon={RefreshCw}
@@ -1873,27 +1839,24 @@ export default function TopologyComponent() {
 
           {/* Zoom */}
           <div className={styles.zoomControls}>
-            <button
-              className={styles.zoomButton}
+            <IconButtonComponent
+              icon={<ZoomIn size={15} strokeWidth={1.8} />}
               onClick={zoomIn}
-              title="Zoom in"
-            >
-              <ZoomIn size={15} strokeWidth={1.8} />
-            </button>
-            <button
+              tooltip="Zoom in"
               className={styles.zoomButton}
+            />
+            <IconButtonComponent
+              icon={<ZoomOut size={15} strokeWidth={1.8} />}
               onClick={zoomOut}
-              title="Zoom out"
-            >
-              <ZoomOut size={15} strokeWidth={1.8} />
-            </button>
-            <button
+              tooltip="Zoom out"
               className={styles.zoomButton}
+            />
+            <IconButtonComponent
+              icon={<Maximize2 size={14} strokeWidth={1.8} />}
               onClick={zoomFit}
-              title="Fit to view"
-            >
-              <Maximize2 size={14} strokeWidth={1.8} />
-            </button>
+              tooltip="Fit to view"
+              className={styles.zoomButton}
+            />
           </div>
 
           {/* Tooltip */}

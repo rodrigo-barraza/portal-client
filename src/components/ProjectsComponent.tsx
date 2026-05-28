@@ -18,6 +18,7 @@ import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
   MultiSelectComponent,
+  SegmentedControlComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
@@ -318,26 +319,15 @@ export default function ProjectsComponent() {
           </div>
 
           <div className={styles.sortGroup}>
-            <div className={styles.segmentedControl}>
-              <button
-                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
-                  viewMode === "card" ? styles.segmentActive : ""
-                }`}
-                onClick={() => setViewMode("card")}
-                title="Card view"
-              >
-                <LayoutGrid size={12} strokeWidth={2.2} />
-              </button>
-              <button
-                className={`${styles.segmentButton} ${styles.segmentBtnIcon} ${
-                  viewMode === "table" ? styles.segmentActive : ""
-                }`}
-                onClick={() => setViewMode("table")}
-                title="Table view"
-              >
-                <Table2 size={12} strokeWidth={2.2} />
-              </button>
-            </div>
+            <SegmentedControlComponent
+              value={viewMode}
+              onChange={(value: string) => setViewMode(value)}
+              segments={[
+                { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
+                { value: "table", icon: <Table2 size={12} strokeWidth={2.2} /> },
+              ]}
+              compact
+            />
           </div>
 
           {/* ── Divider ── */}

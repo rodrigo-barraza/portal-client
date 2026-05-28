@@ -15,7 +15,11 @@ import {
   EyeOff,
   AlertTriangle,
 } from "lucide-react";
-import { PageHeaderComponent } from "@rodrigo-barraza/components-library";
+import {
+  PageHeaderComponent,
+  SearchInputComponent,
+  IconButtonComponent,
+} from "@rodrigo-barraza/components-library";
 import { getPreview } from "./ComponentPreviewRegistryComponent";
 import styles from "./ComponentsComponent.module.css";
 
@@ -194,17 +198,13 @@ export default function ComponentsComponent({
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
         {/* Search */}
-        <div className={styles.searchWrapper}>
-          <Search size={14} className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search components…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-            id="component-search"
-          />
-        </div>
+        <SearchInputComponent
+          value={search}
+          onChange={(value: string) => setSearch(value)}
+          placeholder="Search components…"
+          compact
+          id="component-search"
+        />
 
         {/* Category pills */}
         <div className={styles.categoryPills}>
@@ -232,27 +232,27 @@ export default function ComponentsComponent({
 
         {/* View toggle */}
         <div className={styles.viewToggle}>
-          <button
-            className={`${styles.viewButton} ${showPreviews ? styles.viewBtnActive : ""}`}
+          <IconButtonComponent
+            icon={showPreviews ? <Eye size={14} /> : <EyeOff size={14} />}
             onClick={() => setShowPreviews((v) => !v)}
-            title={showPreviews ? "Hide previews" : "Show previews"}
-          >
-            {showPreviews ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button>
-          <button
-            className={`${styles.viewButton} ${viewMode === "grid" ? styles.viewBtnActive : ""}`}
+            tooltip={showPreviews ? "Hide previews" : "Show previews"}
+            active={showPreviews}
+            className={styles.viewButton}
+          />
+          <IconButtonComponent
+            icon={<LayoutGrid size={14} />}
             onClick={() => setViewMode("grid")}
-            title="Grid view"
-          >
-            <LayoutGrid size={14} />
-          </button>
-          <button
-            className={`${styles.viewButton} ${viewMode === "list" ? styles.viewBtnActive : ""}`}
+            tooltip="Grid view"
+            active={viewMode === "grid"}
+            className={styles.viewButton}
+          />
+          <IconButtonComponent
+            icon={<List size={14} />}
             onClick={() => setViewMode("list")}
-            title="List view"
-          >
-            <List size={14} />
-          </button>
+            tooltip="List view"
+            active={viewMode === "list"}
+            className={styles.viewButton}
+          />
         </div>
       </div>
 
