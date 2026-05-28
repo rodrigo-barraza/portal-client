@@ -6,8 +6,6 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Search,
-  X,
   Move,
   Eye,
   EyeOff,
@@ -199,7 +197,7 @@ function computeTypeGroups(
   }
   // Sort each group alphabetically
   for (const members of groupMap.values())
-    members.sort((a, b) => a.name.localeCompare(b.name));
+    members.sort((firstService, secondService) => firstService.name.localeCompare(secondService.name));
   // Return in canonical order, then any extras
   const result: { type: string; members: PortalService[] }[] = [];
   for (const typeName of TYPE_ORDER) {
@@ -219,23 +217,23 @@ function layoutTypeNodes(groups: { type: string; members: PortalService[] }[]) {
   const positions: Record<string, NodePosition> = {};
 
   // Pre-compute cluster sizes
-  const sizes = groups.map((g) => clusterSize(g.members.length, TYPE_MAX_COLS));
+  const sizes = groups.map((group) => clusterSize(group.members.length, TYPE_MAX_COLS));
 
   // Arrange into a 2-column grid, tracking max height per row
-  const colWidths = [0, 0];
+  const columnWidths = [0, 0];
   for (let i = 0; i < groups.length; i++) {
     const column = i % TYPE_COLS;
-    colWidths[column] = Math.max(colWidths[column], sizes[i].w);
+    columnWidths[column] = Math.max(columnWidths[column], sizes[i].width);
   }
 
   let rowY = 0;
   for (let i = 0; i < groups.length; i += TYPE_COLS) {
     let rowMaxH = 0;
-    for (let c = 0; c < TYPE_COLS && i + c < groups.length; c++) {
-      const groupIndex = i + c;
-      const { columnCount, h } = sizes[groupIndex];
-      const colX = c === 0 ? 0 : colWidths[0] + TYPE_GROUP_GAP_X;
-      const clusterX = colX + (colWidths[c] - sizes[groupIndex].w) / 2;
+    for (let columnIndex = 0; columnIndex < TYPE_COLS && i + columnIndex < groups.length; columnIndex++) {
+      const groupIndex = i + columnIndex;
+      const { columnCount, height } = sizes[groupIndex];
+      const colX = columnIndex === 0 ? 0 : columnWidths[0] + TYPE_GROUP_GAP_X;
+      const clusterX = colX + (columnWidths[columnIndex] - sizes[groupIndex].width) / 2;
       const clusterY = rowY + LABEL_H;
 
       groups[groupIndex].members.forEach((service, serviceIndex) => {
@@ -247,7 +245,7 @@ function layoutTypeNodes(groups: { type: string; members: PortalService[] }[]) {
         };
       });
 
-      rowMaxH = Math.max(rowMaxH, LABEL_H + h);
+      rowMaxH = Math.max(rowMaxH, LABEL_H + height);
     }
     rowY += rowMaxH + TYPE_GROUP_GAP_Y;
   }
@@ -267,7 +265,7 @@ function computeLayers(services: PortalService[]) {
   }
 
   // Sort each tier alphabetically for consistent ordering
-  for (const tier of tiers) tier.sort((a, b) => a.name.localeCompare(b.name));
+  for (const tier of tiers) tier.sort((firstService, secondService) => firstService.name.localeCompare(secondService.name));
 
   return tiers;
 }
@@ -276,34 +274,34 @@ function computeLayers(services: PortalService[]) {
 function computeLibraries(services: PortalService[]) {
   return services
     .filter((service) => NON_TIERED_TYPES.has(service.projectType || ""))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((firstService, secondService) => firstService.name.localeCompare(secondService.name));
 }
 
 // ── Compute cluster dimensions for a given layer ────────────────
 function clusterSize(count: number, maxCols = MAX_COLS) {
-  if (count === 0) return { columnCount: 0, rows: 0, w: 0, h: 0 };
+  if (count === 0) return { columnCount: 0, rows: 0, width: 0, height: 0 };
   const columnCount = Math.min(count, maxCols);
   const rows = Math.ceil(count / columnCount);
   const clusterWidth =
     columnCount * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2;
   const clusterHeight =
     rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2;
-  return { columnCount, rows, w: clusterWidth, h: clusterHeight };
+  return { columnCount, rows, width: clusterWidth, height: clusterHeight };
 }
 
 // ── Assign positions from layers (grid clusters) ─────────────────
-function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
+function layoutNodes(layers: PortalService[][], libraries: PortalService[]) {
   const LABEL_H = 28; // height reserved for tier label above cluster
   const positions: Record<string, NodePosition> = {};
 
   // ── Libraries column (left side) ──────────────────────────
-  const libSize = clusterSize(libs.length, LIBS_MAX_COLS);
-  let libsColumnW = 0;
+  const libraryClusterSize = clusterSize(libraries.length, LIBS_MAX_COLS);
+  let librariesColumnWidth = 0;
 
-  if (libs.length > 0) {
-    libsColumnW = libSize.w + LIBS_GAP;
+  if (libraries.length > 0) {
+    librariesColumnWidth = libraryClusterSize.width + LIBS_GAP;
 
-    libs.forEach((service, serviceIndex) => {
+    libraries.forEach((service, serviceIndex) => {
       const column = serviceIndex % LIBS_MAX_COLS;
       const row = Math.floor(serviceIndex / LIBS_MAX_COLS);
       positions[service.id] = {
@@ -314,15 +312,15 @@ function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
   }
 
   // ── Tier columns (right side, offset by libs width) ───────
-  const sizes = layers.map((l) => clusterSize(l.length));
-  const maxW = Math.max(...sizes.map((s) => s.w), 0);
+  const sizes = layers.map((layer) => clusterSize(layer.length));
+  const maximumClusterWidth = Math.max(...sizes.map((size) => size.width), 0);
 
   let currentY = 0;
 
   layers.forEach((layer, layerIndex) => {
     if (!layer.length) return;
-    const { columnCount, w, h } = sizes[layerIndex];
-    const clusterX = libsColumnW + (maxW - w) / 2;
+    const { columnCount, width, height } = sizes[layerIndex];
+    const clusterX = librariesColumnWidth + (maximumClusterWidth - width) / 2;
     const clusterY = currentY + LABEL_H;
 
     layer.forEach((service, serviceIndex) => {
@@ -334,10 +332,10 @@ function layoutNodes(layers: PortalService[][], libs: PortalService[]) {
       };
     });
 
-    currentY = clusterY + h + TIER_SPACING;
+    currentY = clusterY + height + TIER_SPACING;
   });
 
-  return { positions, libsColumnW };
+  return { positions, libsColumnW: librariesColumnWidth };
 }
 
 // ── Collect edges (with type derived from target's projectType) ──
@@ -394,71 +392,71 @@ function getPortPoint(position: { x: number; y: number }, side: PortSide) {
 }
 
 function computeEdgeAnchors(
-  sp: { x: number; y: number },
-  tp: { x: number; y: number },
+  sourcePosition: { x: number; y: number },
+  targetPosition: { x: number; y: number },
 ): PortResult {
   // Center-to-center delta
-  const cx1 = sp.x + NODE_W / 2,
-    cy1 = sp.y + NODE_H / 2;
-  const cx2 = tp.x + NODE_W / 2,
-    cy2 = tp.y + NODE_H / 2;
-  const dx = cx2 - cx1;
-  const dy = cy2 - cy1;
-  const absDx = Math.abs(dx);
-  const absDy = Math.abs(dy);
+  const centerX1 = sourcePosition.x + NODE_W / 2,
+    centerY1 = sourcePosition.y + NODE_H / 2;
+  const centerX2 = targetPosition.x + NODE_W / 2,
+    centerY2 = targetPosition.y + NODE_H / 2;
+  const deltaX = centerX2 - centerX1;
+  const deltaY = centerY2 - centerY1;
+  const absoluteDeltaX = Math.abs(deltaX);
+  const absoluteDeltaY = Math.abs(deltaY);
 
   let side1: PortSide, side2: PortSide;
 
   // When the vertical gap between nodes is minimal (they're roughly side-by-side),
   // prefer horizontal ports to avoid edges crossing through node bodies
-  const verticalOverlap = !(sp.y + NODE_H < tp.y || tp.y + NODE_H < sp.y);
-  const horizontalOverlap = !(sp.x + NODE_W < tp.x || tp.x + NODE_W < sp.x);
+  const verticalOverlap = !(sourcePosition.y + NODE_H < targetPosition.y || targetPosition.y + NODE_H < sourcePosition.y);
+  const horizontalOverlap = !(sourcePosition.x + NODE_W < targetPosition.x || targetPosition.x + NODE_W < sourcePosition.x);
 
   if (verticalOverlap && !horizontalOverlap) {
     // Nodes are side-by-side vertically — use left/right ports
-    side1 = dx > 0 ? "right" : "left";
-    side2 = dx > 0 ? "left" : "right";
+    side1 = deltaX > 0 ? "right" : "left";
+    side2 = deltaX > 0 ? "left" : "right";
   } else if (horizontalOverlap && !verticalOverlap) {
     // Nodes are stacked vertically — use top/bottom ports
-    side1 = dy > 0 ? "bottom" : "top";
-    side2 = dy > 0 ? "top" : "bottom";
-  } else if (absDy >= absDx) {
+    side1 = deltaY > 0 ? "bottom" : "top";
+    side2 = deltaY > 0 ? "top" : "bottom";
+  } else if (absoluteDeltaY >= absoluteDeltaX) {
     // Predominantly vertical relationship
-    side1 = dy > 0 ? "bottom" : "top";
-    side2 = dy > 0 ? "top" : "bottom";
+    side1 = deltaY > 0 ? "bottom" : "top";
+    side2 = deltaY > 0 ? "top" : "bottom";
   } else {
     // Predominantly horizontal relationship
-    side1 = dx > 0 ? "right" : "left";
-    side2 = dx > 0 ? "left" : "right";
+    side1 = deltaX > 0 ? "right" : "left";
+    side2 = deltaX > 0 ? "left" : "right";
   }
 
-  const p1 = getPortPoint(sp, side1);
-  const p2 = getPortPoint(tp, side2);
+  const point1 = getPortPoint(sourcePosition, side1);
+  const point2 = getPortPoint(targetPosition, side2);
 
-  return { x1: p1.x, y1: p1.y, side1, x2: p2.x, y2: p2.y, side2 };
+  return { x1: point1.x, y1: point1.y, side1, x2: point2.x, y2: point2.y, side2 };
 }
 
 // Control point offset — extends outward from the port face
-function ctrlOffset(side: PortSide, dist: number): { dx: number; dy: number } {
-  const magnitude = Math.max(dist * 0.4, 40);
+function ctrlOffset(side: PortSide, distance: number): { deltaX: number; deltaY: number } {
+  const magnitude = Math.max(distance * 0.4, 40);
   switch (side) {
     case "top":
-      return { dx: 0, dy: -magnitude };
+      return { deltaX: 0, deltaY: -magnitude };
     case "bottom":
-      return { dx: 0, dy: magnitude };
+      return { deltaX: 0, deltaY: magnitude };
     case "left":
-      return { dx: -magnitude, dy: 0 };
+      return { deltaX: -magnitude, deltaY: 0 };
     case "right":
-      return { dx: magnitude, dy: 0 };
+      return { deltaX: magnitude, deltaY: 0 };
   }
 }
 
 function edgePath(anchor: PortResult): string {
   const { x1, y1, side1, x2, y2, side2 } = anchor;
-  const dist = Math.hypot(x2 - x1, y2 - y1);
-  const c1 = ctrlOffset(side1, dist);
-  const c2 = ctrlOffset(side2, dist);
-  return `M ${x1} ${y1} C ${x1 + c1.dx} ${y1 + c1.dy}, ${x2 + c2.dx} ${y2 + c2.dy}, ${x2} ${y2}`;
+  const distance = Math.hypot(x2 - x1, y2 - y1);
+  const controlPoint1 = ctrlOffset(side1, distance);
+  const controlPoint2 = ctrlOffset(side2, distance);
+  return `M ${x1} ${y1} C ${x1 + controlPoint1.deltaX} ${y1 + controlPoint1.deltaY}, ${x2 + controlPoint2.deltaX} ${y2 + controlPoint2.deltaY}, ${x2} ${y2}`;
 }
 
 // ── Main Component ───────────────────────────────────────────────
@@ -466,8 +464,8 @@ export default function TopologyComponent() {
   const [allServices, setAllServices] = useState<PortalService[]>([]);
   const [tierColors, setTierColors] =
     useState<Record<number, DeployTierColor>>(DEPLOY_TIER_COLORS);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [analysisData, setAnalysisData] = useState<ProjectAnalysis | null>(
     null,
   );
@@ -476,7 +474,7 @@ export default function TopologyComponent() {
   >({});
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [tooltipData, setTooltipData] = useState<PortalService | null>(null);
 
   // View mode toggle
@@ -484,34 +482,32 @@ export default function TopologyComponent() {
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   // Edge type visibility toggles
   const [edgeVisibility, setEdgeVisibility] = useState<
     Record<EdgeType, boolean>
   >(() => {
-    const init: Record<EdgeType, boolean> = {} as Record<EdgeType, boolean>;
-    for (const [key, cfg] of Object.entries(EDGE_TYPE_CONFIG))
-      init[key as EdgeType] = cfg.defaultVisible;
-    return init;
+    const initialEdgeVisibility: Record<EdgeType, boolean> = {} as Record<EdgeType, boolean>;
+    for (const [key, config] of Object.entries(EDGE_TYPE_CONFIG))
+      initialEdgeVisibility[key as EdgeType] = config.defaultVisible;
+    return initialEdgeVisibility;
   });
   const toggleEdgeType = useCallback((type: EdgeType) => {
-    setEdgeVisibility((prev) => ({ ...prev, [type]: !prev[type] }));
+    setEdgeVisibility((previousEdgeVisibility) => ({ ...previousEdgeVisibility, [type]: !previousEdgeVisibility[type] }));
   }, []);
 
   // Project type visibility toggles
   const [typeVisibility, setTypeVisibility] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    for (const key of Object.keys(SERVICE_TYPE_COLORS)) init[key] = true;
-    return init;
+    const initialTypeVisibility: Record<string, boolean> = {};
+    for (const key of Object.keys(SERVICE_TYPE_COLORS)) initialTypeVisibility[key] = true;
+    return initialTypeVisibility;
   });
   const toggleTypeVisibility = useCallback((type: string) => {
-    setTypeVisibility((prev) => ({ ...prev, [type]: !prev[type] }));
+    setTypeVisibility((previousTypeVisibility) => ({ ...previousTypeVisibility, [type]: !previousTypeVisibility[type] }));
   }, []);
 
   // Draggable node positions (overrides layout)
-  const [posOverrides, setPosOverrides] = useState<
+  const [positionOverrides, setPositionOverrides] = useState<
     Record<string, NodePosition>
   >({});
 
@@ -520,7 +516,7 @@ export default function TopologyComponent() {
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  const [dragging, setDragging] = useState<{
+  const [draggingNodeState, setDraggingNodeState] = useState<{
     nodeId: string;
     offsetX: number;
     offsetY: number;
@@ -529,7 +525,7 @@ export default function TopologyComponent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef(zoom);
-  const didFetch = useRef(false);
+  const hasFetchedDataRef = useRef(false);
 
   // Cluster (group) dragging
   const clusterDragging = useRef<{
@@ -612,30 +608,30 @@ export default function TopologyComponent() {
         ApiService.getProjectAnalysis(refresh).catch(() => null),
       ]);
 
-      let svcs: PortalService[] = (
+      let servicesList: PortalService[] = (
         ((servicesRes as Record<string, unknown>)
           .services as PortalService[]) || []
-      ).map((s) => ({
-        ...s,
+      ).map((service) => ({
+        ...service,
         isInfrastructure: false,
       }));
-      const infra: PortalService[] = (
+      const infrastructureServices: PortalService[] = (
         ((servicesRes as Record<string, unknown>)
           .infrastructure as PortalService[]) || []
-      ).map((s) => ({
-        ...s,
+      ).map((service) => ({
+        ...service,
         isInfrastructure: true,
       }));
 
       // Merge detected dependencies into service data
       if (analysisRes) {
-        svcs = mergeAnalysisDeps(svcs, analysisRes as ProjectAnalysis);
+        servicesList = mergeAnalysisDeps(servicesList, analysisRes as ProjectAnalysis);
         setAnalysisData(analysisRes as ProjectAnalysis);
         if ((analysisRes as ProjectAnalysis).repoSizes)
           setRepoSizes((analysisRes as ProjectAnalysis).repoSizes!);
       }
 
-      setAllServices([...svcs, ...infra]);
+      setAllServices([...servicesList, ...infrastructureServices]);
       if ((servicesRes as Record<string, unknown>).deployTierColors)
         setTierColors(
           (servicesRes as Record<string, unknown>).deployTierColors as Record<
@@ -646,21 +642,21 @@ export default function TopologyComponent() {
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
   }
 
   const didCenterRef = useRef(false);
 
   useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
+    if (hasFetchedDataRef.current) return;
+    hasFetchedDataRef.current = true;
     loadData(true);
   }, []);
 
   const handleRefresh = () => {
-    setRefreshing(true);
+    setIsRefreshing(true);
     loadData(true);
   };
 
@@ -674,10 +670,10 @@ export default function TopologyComponent() {
   );
 
   const layers = useMemo(() => computeLayers(filteredServices), [filteredServices]);
-  const libs = useMemo(() => computeLibraries(filteredServices), [filteredServices]);
+  const libraries = useMemo(() => computeLibraries(filteredServices), [filteredServices]);
   const { positions: tierBasePositions } = useMemo(
-    () => layoutNodes(layers, libs),
-    [layers, libs],
+    () => layoutNodes(layers, libraries),
+    [layers, libraries],
   );
   const typeGroups = useMemo(
     () => computeTypeGroups(filteredServices),
@@ -712,17 +708,17 @@ export default function TopologyComponent() {
 
   // Merged positions (base + overrides from dragging)
   const positions = useMemo(() => {
-    const merged = { ...basePositions };
-    for (const [id, pos] of Object.entries(posOverrides)) {
-      if (merged[id]) merged[id] = pos;
+    const mergedPositions = { ...basePositions };
+    for (const [nodeId, position] of Object.entries(positionOverrides)) {
+      if (mergedPositions[nodeId]) mergedPositions[nodeId] = position;
     }
-    return merged;
-  }, [basePositions, posOverrides]);
+    return mergedPositions;
+  }, [basePositions, positionOverrides]);
 
   // Switch view mode and reset transient state
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
-    setPosOverrides({});
+    setPositionOverrides({});
     setSelectedNode(null);
     didCenterRef.current = false;
   }, []);
@@ -755,13 +751,13 @@ export default function TopologyComponent() {
   }, [layers, positions]);
 
   // Dynamic rect for the libraries cluster
-  const libsClusterRect = useMemo(() => {
-    if (!libs.length) return null;
+  const librariesClusterRect = useMemo(() => {
+    if (!libraries.length) return null;
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
       maxY = -Infinity;
-    for (const service of libs) {
+    for (const service of libraries) {
       const position = positions[service.id];
       if (!position) continue;
       minX = Math.min(minX, position.x);
@@ -773,10 +769,10 @@ export default function TopologyComponent() {
     return {
       x: minX - CLUSTER_PAD,
       y: minY - CLUSTER_PAD,
-      w: maxX - minX + CLUSTER_PAD * 2,
-      h: maxY - minY + CLUSTER_PAD * 2,
+      width: maxX - minX + CLUSTER_PAD * 2,
+      height: maxY - minY + CLUSTER_PAD * 2,
     };
-  }, [libs, positions]);
+  }, [libraries, positions]);
 
   const healthyCount = filteredServices.filter((s) => s.healthy).length;
 
@@ -928,14 +924,14 @@ export default function TopologyComponent() {
 
   // ── Node drag ───────────────────────────────────────────────
   const handleNodeMouseDown = useCallback(
-    (e: React.MouseEvent, service: PortalService) => {
-      if (e.button !== 0) return;
-      e.stopPropagation();
+    (event: React.MouseEvent, service: PortalService) => {
+      if (event.button !== 0) return;
+      event.stopPropagation();
       setSelectedNode(service.id);
       const position = positions[service.id];
       if (!position) return;
-      const svgPos = screenToSvg(e.clientX, e.clientY);
-      setDragging({
+      const svgPos = screenToSvg(event.clientX, event.clientY);
+      setDraggingNodeState({
         nodeId: service.id,
         offsetX: svgPos.x - position.x,
         offsetY: svgPos.y - position.y,
@@ -946,43 +942,43 @@ export default function TopologyComponent() {
 
   // ── Cluster (group) drag ────────────────────────────────────
   const handleClusterMouseDown = useCallback(
-    (e: React.MouseEvent, clusterType: string, clusterIndex: number) => {
-      if (e.button !== 0) return;
-      e.stopPropagation();
+    (event: React.MouseEvent, clusterType: string, clusterIndex: number) => {
+      if (event.button !== 0) return;
+      event.stopPropagation();
       setSelectedNode(null);
 
-      const svgPos = screenToSvg(e.clientX, e.clientY);
+      const svgPos = screenToSvg(event.clientX, event.clientY);
       let memberIds: string[];
-      if (clusterType === "libs") {
-        memberIds = libs.map((s) => s.id);
+      if (clusterType === "libraries") {
+        memberIds = libraries.map((service) => service.id);
       } else if (clusterType === "type") {
-        memberIds = (typeGroups[clusterIndex]?.members || []).map((s) => s.id);
+        memberIds = (typeGroups[clusterIndex]?.members || []).map((service) => service.id);
       } else {
-        memberIds = (layers[clusterIndex] || []).map((s) => s.id);
+        memberIds = (layers[clusterIndex] || []).map((service) => service.id);
       }
 
       // Snapshot current positions of all cluster members
-      const origPositions: Record<string, NodePosition> = {};
+      const originalPositions: Record<string, NodePosition> = {};
       for (const id of memberIds) {
         const position = positions[id];
-        if (position) origPositions[id] = { x: position.x, y: position.y };
+        if (position) originalPositions[id] = { x: position.x, y: position.y };
       }
 
       clusterDragging.current = {
         startX: svgPos.x,
         startY: svgPos.y,
         memberIds,
-        origPositions,
+        origPositions: originalPositions,
       };
     },
-    [screenToSvg, libs, layers, typeGroups, positions],
+    [screenToSvg, libraries, layers, typeGroups, positions],
   );
 
   // ── Canvas pan ──────────────────────────────────────────────
   const handleCanvasMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button !== 0) return;
-      const element = e.target as Element;
+    (event: React.MouseEvent) => {
+      if (event.button !== 0) return;
+      const element = event.target as Element;
       if (
         element.closest("[data-topology-node]") ||
         element.closest("[data-topology-cluster]")
@@ -991,8 +987,8 @@ export default function TopologyComponent() {
       setSelectedNode(null); // deselect on background click
       setIsPanning(true);
       panStart.current = {
-        x: e.clientX,
-        y: e.clientY,
+        x: event.clientX,
+        y: event.clientY,
         panX: pan.x,
         panY: pan.y,
       };
@@ -1001,50 +997,50 @@ export default function TopologyComponent() {
   );
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (event: MouseEvent) => {
       // Single node drag
-      if (dragging) {
-        const svgPos = screenToSvg(e.clientX, e.clientY);
-        setPosOverrides((prev) => ({
-          ...prev,
-          [dragging.nodeId]: {
-            x: svgPos.x - dragging.offsetX,
-            y: svgPos.y - dragging.offsetY,
+      if (draggingNodeState) {
+        const svgPos = screenToSvg(event.clientX, event.clientY);
+        setPositionOverrides((previousOverrides) => ({
+          ...previousOverrides,
+          [draggingNodeState.nodeId]: {
+            x: svgPos.x - draggingNodeState.offsetX,
+            y: svgPos.y - draggingNodeState.offsetY,
           },
         }));
         return;
       }
       // Cluster (group) drag
       if (clusterDragging.current) {
-        const svgPos = screenToSvg(e.clientX, e.clientY);
+        const svgPos = screenToSvg(event.clientX, event.clientY);
         const { startX, startY, origPositions } = clusterDragging.current;
-        const dx = svgPos.x - startX;
-        const dy = svgPos.y - startY;
-        setPosOverrides((prev) => {
-          const next = { ...prev };
-          for (const [id, orig] of Object.entries(origPositions)) {
-            next[id] = { x: orig.x + dx, y: orig.y + dy };
+        const deltaX = svgPos.x - startX;
+        const deltaY = svgPos.y - startY;
+        setPositionOverrides((previousOverrides) => {
+          const nextOverrides = { ...previousOverrides };
+          for (const [nodeId, originalPosition] of Object.entries(origPositions)) {
+            nextOverrides[nodeId] = { x: originalPosition.x + deltaX, y: originalPosition.y + deltaY };
           }
-          return next;
+          return nextOverrides;
         });
         return;
       }
       // Canvas pan
       if (isPanning) {
         setPan({
-          x: panStart.current.panX + (e.clientX - panStart.current.x),
-          y: panStart.current.panY + (e.clientY - panStart.current.y),
+          x: panStart.current.panX + (event.clientX - panStart.current.x),
+          y: panStart.current.panY + (event.clientY - panStart.current.y),
         });
       }
     },
-    [dragging, isPanning, screenToSvg],
+    [draggingNodeState, isPanning, screenToSvg],
   );
 
   const handleMouseUp = useCallback(() => {
-    if (dragging) setDragging(null);
+    if (draggingNodeState) setDraggingNodeState(null);
     if (clusterDragging.current) clusterDragging.current = null;
     if (isPanning) setIsPanning(false);
-  }, [dragging, isPanning]);
+  }, [draggingNodeState, isPanning]);
 
   // ── Zoom toward cursor ──────────────────────────────────────
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -1138,17 +1134,17 @@ export default function TopologyComponent() {
 
   // ── Tooltip ─────────────────────────────────────────────────
   const handleNodeEnter = useCallback(
-    (e: React.MouseEvent, service: PortalService) => {
+    (event: React.MouseEvent, service: PortalService) => {
       setHoveredNode(service.id);
-      setTooltipPos({ x: e.clientX, y: e.clientY });
+      setTooltipPosition({ x: event.clientX, y: event.clientY });
       setTooltipData(service);
     },
     [],
   );
 
   const handleNodeMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (hoveredNode) setTooltipPos({ x: e.clientX, y: e.clientY });
+    (event: React.MouseEvent) => {
+      if (hoveredNode) setTooltipPosition({ x: event.clientX, y: event.clientY });
     },
     [hoveredNode],
   );
@@ -1166,7 +1162,7 @@ export default function TopologyComponent() {
           <div className={styles.headerText}>
             <h1 className={styles.title}>Topology</h1>
             <p className={styles.subtitle}>
-              {loading
+              {isLoading
                 ? "Loading…"
                 : `${filteredServices.length} services · ${healthyCount} healthy`}
             </p>
@@ -1174,8 +1170,8 @@ export default function TopologyComponent() {
           <div className={styles.headerActions}>
             {/* View mode segmented toggle */}
             <SegmentedControlComponent
-              value={viewMode}
-              onChange={(value) => handleViewModeChange(value as "tier" | "type")}
+               value={viewMode}
+              onChange={(value: string) => handleViewModeChange(value as "tier" | "type")}
               segments={[
                 { value: "tier", label: "By Tier", icon: <Layers size={14} strokeWidth={1.8} /> },
                 { value: "type", label: "By Type", icon: <Grid3X3 size={14} strokeWidth={1.8} /> },
@@ -1183,14 +1179,14 @@ export default function TopologyComponent() {
             />
             <SearchInputComponent
               value={searchQuery}
-              onChange={(value) => setSearchQuery(value)}
+              onChange={(value: string) => setSearchQuery(value)}
               placeholder="Filter nodes…"
               compact
             />
             <ButtonComponent
               variant="secondary"
               icon={RefreshCw}
-              loading={refreshing}
+              loading={isRefreshing}
               onClick={handleRefresh}
             >
               Refresh
@@ -1199,7 +1195,7 @@ export default function TopologyComponent() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <LoadingIndicatorComponent
           size="small"
           label="Building topology…"
@@ -1395,23 +1391,23 @@ export default function TopologyComponent() {
                 {viewMode === "tier" && (
                   <>
                     {/* Libraries cluster background + label */}
-                    {libsClusterRect && (
+                    {librariesClusterRect && (
                       <g
                         className={
                           (selectedNode ? styles.tierLabelFaded : "") +
                             (searchVisibleTiers &&
-                            !libs.some((s: { id: string }) =>
-                              searchMatches?.has(s.id),
+                            !libraries.some((service: { id: string }) =>
+                              searchMatches?.has(service.id),
                             )
                               ? ` ${styles.tierLabelFaded}`
                               : "") || undefined
                         }
                       >
                         <rect
-                          x={libsClusterRect.x}
-                          y={libsClusterRect.y}
-                          width={libsClusterRect.w}
-                          height={libsClusterRect.h}
+                          x={librariesClusterRect.x}
+                          y={librariesClusterRect.y}
+                          width={librariesClusterRect.width}
+                          height={librariesClusterRect.height}
                           rx={10}
                           ry={10}
                           className={`${styles.clusterRect} ${styles.clusterDraggable}`}
@@ -1420,27 +1416,27 @@ export default function TopologyComponent() {
                             fill: LIBS_CLUSTER_COLOR.fill,
                           }}
                           data-topology-cluster
-                          onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "libs", -1)
+                          onMouseDown={(event) =>
+                            handleClusterMouseDown(event, "libraries", -1)
                           }
                         />
                         {/* Drag handle icon */}
                         <foreignObject
-                          x={libsClusterRect.x + 8}
-                          y={libsClusterRect.y + 6}
+                          x={librariesClusterRect.x + 8}
+                          y={librariesClusterRect.y + 6}
                           width={16}
                           height={16}
                           className={styles.clusterDragHandle}
                           data-topology-cluster
-                          onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "libs", -1)
+                          onMouseDown={(event) =>
+                            handleClusterMouseDown(event, "libraries", -1)
                           }
                         >
                           <Move size={12} strokeWidth={1.5} />
                         </foreignObject>
                         <text
-                          x={libsClusterRect.x + libsClusterRect.w / 2}
-                          y={libsClusterRect.y - 10}
+                          x={librariesClusterRect.x + librariesClusterRect.width / 2}
+                          y={librariesClusterRect.y - 10}
                           className={styles.tierLabel}
                           textAnchor="middle"
                           dominantBaseline="auto"
@@ -1587,7 +1583,7 @@ export default function TopologyComponent() {
                   if (!position) return null;
                   const Icon = getIcon(service);
                   const isHov = hoveredNode === service.id;
-                  const isDragging = dragging?.nodeId === service.id;
+                  const isDragging = draggingNodeState?.nodeId === service.id;
                   const isFadedBySelection =
                     selectedNode && !connectedNodes.has(service.id);
                   const isFadedBySearch =
@@ -1865,11 +1861,11 @@ export default function TopologyComponent() {
               className={styles.tooltip}
               style={{
                 left: Math.min(
-                  tooltipPos.x + 16,
+                  tooltipPosition.x + 16,
                   (typeof window !== "undefined" ? window.innerWidth : 1000) -
                     300,
                 ),
-                top: tooltipPos.y - 10,
+                top: tooltipPosition.y - 10,
               }}
             >
               <div className={styles.tooltipName}>{tooltipData.name}</div>

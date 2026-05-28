@@ -112,8 +112,8 @@ export default function SettingsComponent() {
 
   const updateSetting = useCallback(
     (key: string, value: string | number | boolean) => {
-      setSettings((prev: typeof DEFAULT_SETTINGS) => ({
-        ...prev,
+      setSettings((previousSettings: typeof DEFAULT_SETTINGS) => ({
+        ...previousSettings,
         [key]: value,
       }));
     },
@@ -223,18 +223,18 @@ export default function SettingsComponent() {
                 </div>
                 <div className={styles.settingControl}>
                   <div className={styles.colorSwatches}>
-                    {ACCENT_COLORS.map((c) => (
+                    {ACCENT_COLORS.map((accentColor) => (
                       <button
-                        key={c.id}
-                        className={`${styles.colorSwatch} ${settings.accentColor === c.id ? styles.isActiveState : ""}`}
+                        key={accentColor.id}
+                        className={`${styles.colorSwatch} ${settings.accentColor === accentColor.id ? styles.isActiveState : ""}`}
                         style={
                           {
-                            background: c.value,
-                            "--swatch-color": c.value,
+                            background: accentColor.value,
+                            "--swatch-color": accentColor.value,
                           } as React.CSSProperties
                         }
-                        onClick={() => updateSetting("accentColor", c.id)}
-                        title={c.id}
+                        onClick={() => updateSetting("accentColor", accentColor.id)}
+                        title={accentColor.id}
                       />
                     ))}
                   </div>
@@ -468,7 +468,7 @@ export default function SettingsComponent() {
                     <InputComponent
                       type="number"
                       value={settings.healthCheckInterval}
-                      onChange={(event) =>
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "healthCheckInterval",
                           Math.max(5, Number((event.target as HTMLInputElement).value)),
@@ -498,7 +498,7 @@ export default function SettingsComponent() {
                     <InputComponent
                       type="number"
                       value={settings.containerPollingInterval}
-                      onChange={(event) =>
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "containerPollingInterval",
                           Math.max(1, Number((event.target as HTMLInputElement).value)),
@@ -524,7 +524,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.showResponseTimes}
-                    onChange={(checked) => updateSetting("showResponseTimes", checked)}
+                    onChange={(checked: boolean) => updateSetting("showResponseTimes", checked)}
                   />
                 </div>
               </div>
@@ -544,7 +544,7 @@ export default function SettingsComponent() {
                     <InputComponent
                       type="number"
                       value={settings.alertThresholdCpu}
-                      onChange={(event) =>
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "alertThresholdCpu",
                           Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
@@ -574,7 +574,7 @@ export default function SettingsComponent() {
                     <InputComponent
                       type="number"
                       value={settings.alertThresholdMemory}
-                      onChange={(event) =>
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "alertThresholdMemory",
                           Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
@@ -648,7 +648,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.browserNotifications}
-                    onChange={(checked) => updateSetting("browserNotifications", checked)}
+                    onChange={(checked: boolean) => updateSetting("browserNotifications", checked)}
                   />
                 </div>
               </div>
@@ -664,7 +664,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.downAlerts}
-                    onChange={(checked) => updateSetting("downAlerts", checked)}
+                    onChange={(checked: boolean) => updateSetting("downAlerts", checked)}
                   />
                 </div>
               </div>
@@ -682,7 +682,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.performanceAlerts}
-                    onChange={(checked) => updateSetting("performanceAlerts", checked)}
+                    onChange={(checked: boolean) => updateSetting("performanceAlerts", checked)}
                   />
                 </div>
               </div>
@@ -698,7 +698,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.notificationSound}
-                    onChange={(checked) => updateSetting("notificationSound", checked)}
+                    onChange={(checked: boolean) => updateSetting("notificationSound", checked)}
                   />
                 </div>
               </div>
@@ -736,7 +736,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SwitchComponent
                     checked={settings.telemetryEnabled}
-                    onChange={(checked) => updateSetting("telemetryEnabled", checked)}
+                    onChange={(checked: boolean) => updateSetting("telemetryEnabled", checked)}
                   />
                 </div>
               </div>
@@ -752,7 +752,7 @@ export default function SettingsComponent() {
                 <div className={styles.settingControl}>
                   <SelectComponent
                     value={settings.retainLogs}
-                    onChange={(value) => updateSetting("retainLogs", value)}
+                    onChange={(value: string) => updateSetting("retainLogs", value)}
                     options={[
                       { value: "7d", label: "7 days" },
                       { value: "14d", label: "14 days" },
