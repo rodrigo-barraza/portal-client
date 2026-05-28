@@ -158,9 +158,9 @@ export default function ProjectsComponent() {
 
   async function loadServices(refresh = false) {
     try {
-      const res = await ApiService.getServices(refresh);
+      const servicesResponse = await ApiService.getServices(refresh);
       setServices(
-        (res.services || []).filter(
+        (servicesResponse.services || []).filter(
           (s: PortalService) => s.projectType !== "Infrastructure",
         ),
       );
@@ -174,8 +174,8 @@ export default function ProjectsComponent() {
 
   async function loadSizes() {
     try {
-      const res = await ApiService.getProjectSizes();
-      setProjectSizes(res.sizes || {});
+      const sizesResponse = await ApiService.getProjectSizes();
+      setProjectSizes(sizesResponse.sizes || {});
     } catch (error) {
       console.error("Project sizes fetch failed:", error);
     }
@@ -183,8 +183,8 @@ export default function ProjectsComponent() {
 
   async function loadLanguages() {
     try {
-      const res = await ApiService.getProjectLanguages();
-      setProjectLanguages(res.languages || {});
+      const languagesResponse = await ApiService.getProjectLanguages();
+      setProjectLanguages(languagesResponse.languages || {});
     } catch (error) {
       console.error("Project languages fetch failed:", error);
     }

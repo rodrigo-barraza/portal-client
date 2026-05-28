@@ -130,8 +130,8 @@ export default function IntegrationsComponent() {
 
   async function loadIntegrations() {
     try {
-      const res = await ApiService.getIntegrations();
-      setData(res);
+      const integrationsResponse = await ApiService.getIntegrations();
+      setData(integrationsResponse);
     } catch (error) {
       console.error("Integrations fetch failed:", error);
     } finally {

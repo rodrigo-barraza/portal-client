@@ -359,8 +359,8 @@ export default function GoogleAnalyticsComponent({
 
     (async () => {
       try {
-        const res = await ApiService.getGAProperties();
-        const props = res.properties || [];
+        const propertiesResponse = await ApiService.getGAProperties();
+        const props = propertiesResponse.properties || [];
         setProperties(props);
         // Auto-select from URL param, or if exactly one property
         if (propertyId) {
@@ -436,8 +436,8 @@ export default function GoogleAnalyticsComponent({
   const loadRealtime = useCallback(async (property: GAProperty | null) => {
     if (!property) return;
     try {
-      const res = await ApiService.getGARealtime(property.id);
-      setRealtime(res);
+      const realtimeResponse = await ApiService.getGARealtime(property.id);
+      setRealtime(realtimeResponse);
     } catch {
       // Silent fail — realtime is best-effort
     }

@@ -377,9 +377,9 @@ export default function StorageComponent() {
   const loadObjects = useCallback(async (bucket: string, pfx = "") => {
     setObjectsLoading(true);
     try {
-      const res = await ApiService.getStorageObjects(bucket, { prefix: pfx });
-      setObjects(res.objects || []);
-      setPrefixes(res.prefixes || []);
+      const objectsResponse = await ApiService.getStorageObjects(bucket, { prefix: pfx });
+      setObjects(objectsResponse.objects || []);
+      setPrefixes(objectsResponse.prefixes || []);
     } catch (error) {
       console.error("Object listing failed:", error);
     } finally {

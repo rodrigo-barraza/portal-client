@@ -282,8 +282,8 @@ export default function SessionAnalyticsComponent({
 
   const loadLive = useCallback(async () => {
     try {
-      const res = await ApiService.getSessionLive(projectId);
-      setLive(res?.data ?? res);
+      const liveSessionResponse = await ApiService.getSessionLive(projectId);
+      setLive(liveSessionResponse?.data ?? liveSessionResponse);
     } catch {
       // Silent fail — live is best-effort
     }

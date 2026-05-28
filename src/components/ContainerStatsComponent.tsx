@@ -676,8 +676,8 @@ export default function ContainerStatsComponent() {
   // Fetch system info for container count breakdown
   const fetchSystemInfo = useCallback(async () => {
     try {
-      const res = await ApiService.getSystemInfo().catch(() => null);
-      setSystemInfo(res as SystemInfo | SystemInfo[] | null);
+      const systemInfoResponse = await ApiService.getSystemInfo().catch(() => null);
+      setSystemInfo(systemInfoResponse as SystemInfo | SystemInfo[] | null);
     } catch {
       // Supplementary — silently ignore
     }
@@ -693,11 +693,11 @@ export default function ContainerStatsComponent() {
     // immediately visible instead of building from zero on each visit.
     (async () => {
       try {
-        const res = await ApiService.getContainerMetrics({
+        const metricsResponse = await ApiService.getContainerMetrics({
           range: "1h",
           limit: HISTORY_MAX,
         });
-        if (!res?.containers) return;
+        if (!metricsResponse?.containers) return;
 
         // Build per-container history from persistent data
         const seededHistory: Record<string, { cpu: number[]; mem: number[] }> =
@@ -707,7 +707,7 @@ export default function ContainerStatsComponent() {
 
         // Find the longest series length across all containers
         let maxLen = 0;
-        for (const [_name, data] of Object.entries(res.containers) as [
+        for (const [_name, data] of Object.entries(metricsResponse.containers) as [
           string,
           ContainerMetricsData,
         ][]) {
@@ -718,7 +718,7 @@ export default function ContainerStatsComponent() {
         totalCpuPoints = new Array(maxLen).fill(0);
         totalMemPoints = new Array(maxLen).fill(0);
 
-        for (const [_name, data] of Object.entries(res.containers) as [
+        for (const [_name, data] of Object.entries(metricsResponse.containers) as [
           string,
           ContainerMetricsData,
         ][]) {
@@ -823,8 +823,8 @@ export default function ContainerStatsComponent() {
 
       const results = await Promise.allSettled(
         restartableIds.map(async (id) => {
-          const res = await ApiService.getRollbackStatus(id);
-          return { id, available: res.available === true };
+          const rollbackStatusResponse = await ApiService.getRollbackStatus(id);
+          return { id, available: rollbackStatusResponse.available === true };
         }),
       );
 

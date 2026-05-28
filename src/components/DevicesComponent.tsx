@@ -69,8 +69,8 @@ export default function DevicesComponent() {
 
   async function loadDevices() {
     try {
-      const res = await ApiService.getDevices();
-      setDevices(res.devices || []);
+      const devicesResponse = await ApiService.getDevices();
+      setDevices(devicesResponse.devices || []);
     } catch (error) {
       console.error("Devices fetch failed:", error);
     } finally {
@@ -81,8 +81,8 @@ export default function DevicesComponent() {
 
   const fetchContainers = useCallback(async () => {
     try {
-      const res = await ApiService.getContainerStats();
-      setContainers(res?.containers || []);
+      const containerStatsResponse = await ApiService.getContainerStats();
+      setContainers(containerStatsResponse?.containers || []);
     } catch {
       // Container stats are supplementary — silently ignore
     }

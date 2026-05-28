@@ -306,13 +306,13 @@ export default function SessionExplorerComponent({
     async (offset = 0) => {
       setIpsLoading(true);
       try {
-        const res = await ApiService.getSessionIpUsers(
+        const ipUsersResponse = await ApiService.getSessionIpUsers(
           projectId,
           period,
           50,
           offset,
         );
-        const data = res?.data ?? res;
+        const data = ipUsersResponse?.data ?? ipUsersResponse;
         setIpUsers(data?.ips || []);
         setIpsTotal(data?.total || 0);
         setIpsOffset(offset);
@@ -329,8 +329,8 @@ export default function SessionExplorerComponent({
     async (ip: string) => {
       setIpDetailLoading(true);
       try {
-        const res = await ApiService.getSessionIpDetail(ip, projectId, period);
-        setSelectedIp(res?.data ?? res);
+        const ipDetailResponse = await ApiService.getSessionIpDetail(ip, projectId, period);
+        setSelectedIp(ipDetailResponse?.data ?? ipDetailResponse);
       } catch {
         /* silent */
       } finally {
@@ -344,13 +344,13 @@ export default function SessionExplorerComponent({
     async (offset = 0) => {
       setVisitorsLoading(true);
       try {
-        const res = await ApiService.getSessionVisitors(
+        const visitorsResponse = await ApiService.getSessionVisitors(
           projectId,
           period,
           50,
           offset,
         );
-        const data = res?.data ?? res;
+        const data = visitorsResponse?.data ?? visitorsResponse;
         setVisitors(data?.visitors || []);
         setVisitorsTotal(data?.total || 0);
         setVisitorsOffset(offset);
@@ -367,13 +367,13 @@ export default function SessionExplorerComponent({
     async (offset = 0) => {
       setSessionsLoading(true);
       try {
-        const res = await ApiService.getSessionsList(
+        const sessionsResponse = await ApiService.getSessionsList(
           projectId,
           period,
           50,
           offset,
         );
-        const data = res?.data ?? res;
+        const data = sessionsResponse?.data ?? sessionsResponse;
         setSessions(data?.sessions || []);
         setSessionsTotal(data?.total || 0);
         setSessionsOffset(offset);
@@ -389,8 +389,8 @@ export default function SessionExplorerComponent({
   const loadDetail = useCallback(async (sessionId: string) => {
     setDetailLoading(true);
     try {
-      const res = await ApiService.getSessionDetail(sessionId);
-      setSelectedSession(res?.data ?? res);
+      const sessionDetailResponse = await ApiService.getSessionDetail(sessionId);
+      setSelectedSession(sessionDetailResponse?.data ?? sessionDetailResponse);
     } catch {
       /* silent */
     } finally {

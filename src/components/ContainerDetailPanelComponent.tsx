@@ -131,15 +131,15 @@ export default function ContainerDetailPanel({
 
         // Fall back to in-memory ring buffer
         // Fall back to in-memory ring buffer
-        const res = await ApiService.getContainerStatsHistory();
-        if (res?.history) {
+        const statsHistoryResponse = await ApiService.getContainerStatsHistory();
+        if (statsHistoryResponse?.history) {
           const cpuPoints: number[] = [];
           const memPoints: number[] = [];
           const netRxPoints: number[] = [];
           const netTxPoints: number[] = [];
 
           // Ring buffer returns per-device history; flatten all devices
-          for (const deviceHistory of Object.values(res.history) as unknown[]) {
+          for (const deviceHistory of Object.values(statsHistoryResponse.history) as unknown[]) {
             const historyEntries = Array.isArray(deviceHistory)
               ? deviceHistory
               : [];
