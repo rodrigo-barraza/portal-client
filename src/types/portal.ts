@@ -275,6 +275,16 @@ export interface BucketStreamEvent {
   message?: string;
 }
 
+export interface StorageSearchResult extends StorageObject {
+  bucket: string;
+}
+
+export interface StorageSearchResponse {
+  results: StorageSearchResult[];
+  totalScanned: number;
+  truncated: boolean;
+}
+
 // ─── Project Analysis (Topology) ────────────────────────────
 
 export interface DetectedImport {

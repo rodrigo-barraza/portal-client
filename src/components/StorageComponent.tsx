@@ -24,6 +24,7 @@ import {
   Layers,
   Package,
   Box,
+  SearchX,
 } from "lucide-react";
 import {
   ButtonComponent,
@@ -43,6 +44,7 @@ import type {
   StorageObject,
   BucketStreamEvent,
   DonutSegment,
+  StorageSearchResult,
 } from "../types/portal";
 import styles from "./StorageComponent.module.css";
 
@@ -304,6 +306,15 @@ export default function StorageComponent() {
   const [objectsLoading, setObjectsLoading] = useState(false);
   const [search, setSearch] = useState("");
 
+  // Global file search state
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [globalSearchResults, setGlobalSearchResults] = useState<StorageSearchResult[]>([]);
+  const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
+  const [globalSearchTotalScanned, setGlobalSearchTotalScanned] = useState(0);
+  const [globalSearchTruncated, setGlobalSearchTruncated] = useState(false);
+  const [isGlobalSearchActive, setIsGlobalSearchActive] = useState(false);
+  const globalSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Preview state
   const [previewObject, setPreviewObject] = useState<StorageObject | null>(
     null,
@@ -446,6 +457,67 @@ export default function StorageComponent() {
       console.error("Delete failed:", error);
     }
   };
+
+  // ── Global file search (debounced) ──────────────────────────
+
+  const executeGlobalSearch = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setGlobalSearchResults([]);
+      setGlobalSearchLoading(false);
+      setIsGlobalSearchActive(false);
+      setGlobalSearchTotalScanned(0);
+      setGlobalSearchTruncated(false);
+      return;
+    }
+
+    setGlobalSearchLoading(true);
+    setIsGlobalSearchActive(true);
+    try {
+      const response = await ApiService.searchStorageObjects(query, { limit: 200 });
+      setGlobalSearchResults(response.results || []);
+      setGlobalSearchTotalScanned(response.totalScanned || 0);
+      setGlobalSearchTruncated(response.truncated || false);
+    } catch (error) {
+      console.error("Global search failed:", error);
+      setGlobalSearchResults([]);
+    } finally {
+      setGlobalSearchLoading(false);
+    }
+  }, []);
+
+  const handleGlobalSearchChange = useCallback((value: string) => {
+    setGlobalSearchQuery(value);
+
+    if (globalSearchTimerRef.current) {
+      clearTimeout(globalSearchTimerRef.current);
+    }
+
+    if (value.length < 2) {
+      setGlobalSearchResults([]);
+      setIsGlobalSearchActive(false);
+      setGlobalSearchLoading(false);
+      return;
+    }
+
+    setGlobalSearchLoading(true);
+    globalSearchTimerRef.current = setTimeout(() => {
+      executeGlobalSearch(value);
+    }, 400);
+  }, [executeGlobalSearch]);
+
+  const navigateToSearchResult = useCallback((result: StorageSearchResult) => {
+    const pathParts = result.name.split("/");
+    const resultPrefix = pathParts.length > 1 ? pathParts.slice(0, -1).join("/") + "/" : "";
+
+    setActiveBucket(result.bucket);
+    setPrefix(resultPrefix);
+    setSearch("");
+    setView("objects");
+    setGlobalSearchQuery("");
+    setGlobalSearchResults([]);
+    setIsGlobalSearchActive(false);
+    loadObjects(result.bucket, resultPrefix);
+  }, [loadObjects]);
 
   // ── Filter objects by search ─────────────────────────────────
 
@@ -819,8 +891,32 @@ export default function StorageComponent() {
         </div>
       )}
 
-      {/* ── Bucket Views (Progressive) ── */}
+      {/* ── Global File Search ── */}
       {view === "buckets" && (
+        <div className={styles.globalSearchSection}>
+          <SearchInputComponent
+            value={globalSearchQuery}
+            onChange={handleGlobalSearchChange}
+            placeholder="Search files across all stores…"
+            compact
+          />
+        </div>
+      )}
+
+      {/* ── Global Search Results ── */}
+      {view === "buckets" && isGlobalSearchActive && (
+        <GlobalSearchResultsView
+          results={globalSearchResults}
+          isLoading={globalSearchLoading}
+          query={globalSearchQuery}
+          totalScanned={globalSearchTotalScanned}
+          truncated={globalSearchTruncated}
+          onResultClick={navigateToSearchResult}
+        />
+      )}
+
+      {/* ── Bucket Views (Progressive) ── */}
+      {view === "buckets" && !isGlobalSearchActive && (
         <>
           {/* ── Bucket View Mode Toggle ── */}
           <div className={styles.bucketViewBar}>
@@ -1359,6 +1455,124 @@ function ObjectGridView({
         )}
       </div>
     </>
+  );
+}
+
+// ── Global Search Results ─────────────────────────────────────────
+
+function GlobalSearchResultsView({
+  results,
+  isLoading,
+  query,
+  totalScanned,
+  truncated,
+  onResultClick,
+}: {
+  results: StorageSearchResult[];
+  isLoading: boolean;
+  query: string;
+  totalScanned: number;
+  truncated: boolean;
+  onResultClick: (result: StorageSearchResult) => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className={styles.globalSearchResultsContainer}>
+        <LoadingIndicatorComponent
+          size="small"
+          label={`Searching across all stores…`}
+          className="loading-center"
+        />
+      </div>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <div className={styles.globalSearchResultsContainer}>
+        <div className={styles.globalSearchEmptyState}>
+          <SearchX size={36} />
+          <span>No files matching "{query}"</span>
+          <span className={styles.globalSearchEmptySubtext}>
+            Searched {totalScanned.toLocaleString()} objects across all stores
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const bucketGroups = results.reduce<Record<string, StorageSearchResult[]>>(
+    (groups, result) => {
+      if (!groups[result.bucket]) groups[result.bucket] = [];
+      groups[result.bucket].push(result);
+      return groups;
+    },
+    {},
+  );
+
+  return (
+    <div className={styles.globalSearchResultsContainer}>
+      <div className={styles.globalSearchResultsHeader}>
+        <span className={styles.globalSearchResultsTitle}>
+          <Search size={14} />
+          {results.length.toLocaleString()} results
+          {truncated && "+"} for "{query}"
+        </span>
+        <span className={styles.globalSearchResultsMeta}>
+          {totalScanned.toLocaleString()} objects scanned
+          {truncated && " · results truncated"}
+        </span>
+      </div>
+
+      {Object.entries(bucketGroups).map(([bucketName, bucketResults]) => (
+        <div key={bucketName} className={styles.globalSearchBucketGroup}>
+          <div className={styles.globalSearchBucketLabel}>
+            <HardDrive size={13} strokeWidth={2} />
+            <span>{bucketName}</span>
+            <span className={styles.globalSearchBucketCount}>
+              {bucketResults.length}
+            </span>
+          </div>
+
+          {bucketResults.map((result, index) => {
+            const FileIcon = getFileIcon(result.name);
+            const fileName = result.name.split("/").pop() || result.name;
+            const filePath = result.name.includes("/")
+              ? result.name.slice(0, result.name.lastIndexOf("/") + 1)
+              : "";
+
+            return (
+              <div
+                key={result.name}
+                className={styles.globalSearchResultRow}
+                style={{ animationDelay: `${index * 20}ms` }}
+                onClick={() => onResultClick(result)}
+              >
+                <div className={styles.globalSearchResultName}>
+                  <FileIcon size={15} className={styles.globalSearchFileIcon} />
+                  <span className={styles.globalSearchFileName}>
+                    {fileName}
+                  </span>
+                  {filePath && (
+                    <span className={styles.globalSearchFilePath}>
+                      {filePath}
+                    </span>
+                  )}
+                </div>
+                <span className={styles.objectSize}>
+                  {formatBytes(result.size)}
+                </span>
+                <span className={styles.objectDate}>
+                  {result.lastModified
+                    ? new Date(result.lastModified).toLocaleDateString()
+                    : "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -18,6 +18,7 @@ import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
   MultiSelectComponent,
+  SearchInputComponent,
   SegmentedControlComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
@@ -154,6 +155,9 @@ export default function ProjectsComponent() {
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
+  // ── Search state ───────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+
   // ── View mode state ────────────────────────────────────────────
   const [viewMode, setViewMode] = useState("table");
 
@@ -214,6 +218,22 @@ export default function ProjectsComponent() {
 
   const filtered = allItems
     .filter((s) => {
+      // Text search across key fields
+      if (searchQuery.trim()) {
+        const normalizedQuery = searchQuery.toLowerCase();
+        const searchableFields = [
+          s.name,
+          s.repo,
+          s.domain,
+          s.description,
+          s.projectType,
+        ]
+          .filter(Boolean)
+          .map((field) => (field as string).toLowerCase());
+        if (!searchableFields.some((field) => field.includes(normalizedQuery)))
+          return false;
+      }
+
       if (filters.status.length) {
         const isHealthy = s.healthy;
         if (
@@ -256,7 +276,9 @@ export default function ProjectsComponent() {
   const allDeployed = allItems.filter(isDeployedProject);
   const allNonDeployed = allItems.filter((s) => !isDeployedProject(s));
   const healthyCount = allDeployed.filter((s) => s.healthy).length;
-  const hasActiveFilter = Object.values(filters).some((v) => v.length > 0);
+  const hasActiveFilter =
+    Object.values(filters).some((v) => v.length > 0) ||
+    searchQuery.trim().length > 0;
 
   // ── Project summary computed values ─────────────────────────────
   const unhealthyCount = allDeployed.length - healthyCount;
@@ -276,6 +298,18 @@ export default function ProjectsComponent() {
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
         <div className={styles.sortBar}>
+          {/* ── Search ── */}
+          <SearchInputComponent
+            value={searchQuery}
+            onChange={(value: string) => setSearchQuery(value)}
+            placeholder="Search projects…"
+            compact
+            id="projects-search-input"
+          />
+
+          {/* ── Divider ── */}
+          <div className={styles.barDivider} />
+
           {/* ── Filters ── */}
           <div className={styles.sortBarIcon}>
             <ArrowUpDown size={13} strokeWidth={2.2} />
@@ -296,15 +330,16 @@ export default function ProjectsComponent() {
           {hasActiveFilter && (
             <button
               className={styles.clearButton}
-              onClick={() =>
+              onClick={() => {
+                setSearchQuery("");
                 setFilters({
                   status: [],
                   visibility: [],
                   environment: [],
                   projectType: [],
                   device: [],
-                })
-              }
+                });
+              }}
             >
               Clear
             </button>

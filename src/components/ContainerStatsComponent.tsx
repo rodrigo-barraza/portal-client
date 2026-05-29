@@ -1259,6 +1259,20 @@ export default function ContainerStatsComponent() {
                 )}
               </div>
 
+              {row.projectType === "client" && row.healthy && row.domain && (
+                <div className={styles.cardPreviewContainer}>
+                  <iframe
+                    src={`https://${row.domain}`}
+                    className={styles.cardPreviewIframe}
+                    title={`Preview of ${row.domain}`}
+                    loading="lazy"
+                    tabIndex={-1}
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                  <div className={styles.cardPreviewOverlay} />
+                </div>
+              )}
+
               <div className={styles.cardMetricsGrid}>
                 <div className={styles.cardMetric}>
                   <div className={styles.cardMetricHeader}>

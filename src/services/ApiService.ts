@@ -408,6 +408,19 @@ export default class ApiService {
     );
   }
 
+  static async searchStorageObjects(
+    query: string,
+    { bucket, limit = 200 }: { bucket?: string; limit?: number } = {},
+  ) {
+    const queryString = new URLSearchParams();
+    queryString.set("query", query);
+    if (bucket) queryString.set("bucket", bucket);
+    if (limit !== 200) queryString.set("limit", String(limit));
+    return ApiService._request(
+      `/object-store/search?${queryString.toString()}`,
+    );
+  }
+
   // ── Google Analytics ────────────────────────────────────────
 
   /**
