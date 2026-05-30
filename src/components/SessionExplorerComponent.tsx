@@ -17,6 +17,8 @@ import {
   FileText,
   Network,
   Hash,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
 import {
@@ -268,7 +270,9 @@ export default function SessionExplorerComponent({
   period: string;
 }) {
   type Tab = "ips" | "visitors" | "sessions";
+  type ViewMode = "cards" | "table";
   const [tab, setTab] = useState<Tab>("ips");
+  const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [searchQuery, setSearchQuery] = useState("");
 
   // ── IPs state ──
@@ -846,14 +850,36 @@ export default function SessionExplorerComponent({
           </button>
         </nav>
 
-        {/* ── Search Input ── */}
-        <SearchInputComponent
-          value={searchQuery}
-          onChange={(value: string) => setSearchQuery(value)}
-          placeholder={`Search ${tab === "ips" ? "IPs" : tab === "visitors" ? "visitors" : "sessions"}…`}
-          compact
-          id="session-explorer-search-input"
-        />
+        <div className={styles["controls-right"]}>
+          {/* ── View Mode Toggle ── */}
+          <div className={styles["view-mode-toggle"]} role="group" aria-label="View mode">
+            <button
+              className={`${styles["view-mode-button"]} ${viewMode === "cards" ? styles["view-mode-button-active"] : ""}`}
+              onClick={() => setViewMode("cards")}
+              aria-label="Card view"
+              title="Card view"
+            >
+              <LayoutGrid size={14} strokeWidth={2.2} />
+            </button>
+            <button
+              className={`${styles["view-mode-button"]} ${viewMode === "table" ? styles["view-mode-button-active"] : ""}`}
+              onClick={() => setViewMode("table")}
+              aria-label="Table view"
+              title="Table view"
+            >
+              <Table2 size={14} strokeWidth={2.2} />
+            </button>
+          </div>
+
+          {/* ── Search Input ── */}
+          <SearchInputComponent
+            value={searchQuery}
+            onChange={(value: string) => setSearchQuery(value)}
+            placeholder={`Search ${tab === "ips" ? "IPs" : tab === "visitors" ? "visitors" : "sessions"}…`}
+            compact
+            id="session-explorer-search-input"
+          />
+        </div>
       </section>
 
       {/* ── IPs Tab ── */}
@@ -871,67 +897,113 @@ export default function SessionExplorerComponent({
             <div className={styles.emptyState}>No IPs match your search query.</div>
           ) : (
             <>
-              <div className={styles.cardList}>
-                {filteredIpUsers.map((ipUser) => (
-                  <button
-                    key={ipUser.ip}
-                    className={styles.visitorCard}
-                    onClick={() => loadIpDetail(ipUser.ip)}
-                  >
-                    <div className={styles.visitorHeader}>
-                      <div className={styles.visitorId}>
-                        <Network size={12} strokeWidth={2.2} />
-                        {ipUser.ip}
+              {viewMode === "cards" ? (
+                <div className={styles.cardList}>
+                  {filteredIpUsers.map((ipUser) => (
+                    <button
+                      key={ipUser.ip}
+                      className={styles.visitorCard}
+                      onClick={() => loadIpDetail(ipUser.ip)}
+                    >
+                      <div className={styles.visitorHeader}>
+                        <div className={styles.visitorId}>
+                          <Network size={12} strokeWidth={2.2} />
+                          {ipUser.ip}
+                        </div>
+                        <span className={styles.visitorSessionCount}>
+                          {ipUser.sessionCount} session
+                          {ipUser.sessionCount !== 1 ? "s" : ""}
+                        </span>
                       </div>
-                      <span className={styles.visitorSessionCount}>
-                        {ipUser.sessionCount} session
-                        {ipUser.sessionCount !== 1 ? "s" : ""}
-                      </span>
-                    </div>
 
-                    <div className={styles.visitorMeta}>
-                      {ipUser.visitorIds.length > 0 && (
+                      <div className={styles.visitorMeta}>
+                        {ipUser.visitorIds.length > 0 && (
+                          <span className={styles.visitorMetaItem}>
+                            <Users size={11} strokeWidth={2} />
+                            {ipUser.visitorIds.length} visitor
+                            {ipUser.visitorIds.length !== 1 ? "s" : ""}
+                          </span>
+                        )}
                         <span className={styles.visitorMetaItem}>
-                          <Users size={11} strokeWidth={2} />
-                          {ipUser.visitorIds.length} visitor
-                          {ipUser.visitorIds.length !== 1 ? "s" : ""}
+                          <Globe size={11} strokeWidth={2} />
+                          {ipUser.lastBrowser?.name || "Unknown"}
                         </span>
-                      )}
-                      <span className={styles.visitorMetaItem}>
-                        <Globe size={11} strokeWidth={2} />
-                        {ipUser.lastBrowser?.name || "Unknown"}
+                        <span className={styles.visitorMetaItem}>
+                          <Monitor size={11} strokeWidth={2} />
+                          {ipUser.lastOs?.name || "Unknown"}
+                        </span>
+                        <span className={styles.visitorMetaItem}>
+                          <DeviceIcon type={ipUser.lastDevice?.type} />
+                          {ipUser.lastDevice?.type || "desktop"}
+                        </span>
+                        {ipUser.lastGeo?.country && (
+                          <span className={styles.visitorMetaItem}>
+                            <MapPin size={11} strokeWidth={2} />
+                            {ipUser.lastGeo.city && ipUser.lastGeo.city !== "(not set)"
+                              ? `${ipUser.lastGeo.city}, `
+                              : ""}
+                            {ipUser.lastGeo.country}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className={styles.visitorFooter}>
+                        <span className={styles.visitorTime}>
+                          <Clock size={11} strokeWidth={2} />
+                          {formatElapsedTime(ipUser.totalDuration / 1000)} total
+                        </span>
+                        <span className={styles.visitorSeen}>
+                          Last seen {formatTimeAgo(ipUser.lastSeen)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.sessionTable}>
+                  <div className={styles.sessionTableHeader}>
+                    <span>IP Address</span>
+                    <span>Visitors</span>
+                    <span>Browser / OS</span>
+                    <span>Location</span>
+                    <span>Duration</span>
+                    <span>Last Seen</span>
+                  </div>
+                  {filteredIpUsers.map((ipUser) => (
+                    <button
+                      key={ipUser.ip}
+                      className={styles.sessionTableRow}
+                      onClick={() => loadIpDetail(ipUser.ip)}
+                    >
+                      <span className={styles.sessionTableId}>
+                        <Network size={11} strokeWidth={2} />
+                        {ipUser.ip}
                       </span>
-                      <span className={styles.visitorMetaItem}>
-                        <Monitor size={11} strokeWidth={2} />
-                        {ipUser.lastOs?.name || "Unknown"}
+                      <span className={styles.sessionTableIp}>
+                        {ipUser.visitorIds.length} visitor{ipUser.visitorIds.length !== 1 ? "s" : ""}
+                        {" · "}
+                        {ipUser.sessionCount} session{ipUser.sessionCount !== 1 ? "s" : ""}
                       </span>
-                      <span className={styles.visitorMetaItem}>
+                      <span className={styles.sessionTableDevice}>
                         <DeviceIcon type={ipUser.lastDevice?.type} />
-                        {ipUser.lastDevice?.type || "desktop"}
+                        {ipUser.lastBrowser?.name || "?"} / {ipUser.lastOs?.name || "?"}
                       </span>
-                      {ipUser.lastGeo?.country && (
-                        <span className={styles.visitorMetaItem}>
-                          <MapPin size={11} strokeWidth={2} />
-                          {ipUser.lastGeo.city && ipUser.lastGeo.city !== "(not set)"
-                            ? `${ipUser.lastGeo.city}, `
-                            : ""}
-                          {ipUser.lastGeo.country}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className={styles.visitorFooter}>
-                      <span className={styles.visitorTime}>
-                        <Clock size={11} strokeWidth={2} />
-                        {formatElapsedTime(ipUser.totalDuration / 1000)} total
+                      <span className={styles.sessionTableGeo}>
+                        {ipUser.lastGeo?.city && ipUser.lastGeo.city !== "(not set)"
+                          ? `${ipUser.lastGeo.city}, `
+                          : ""}
+                        {ipUser.lastGeo?.country || "—"}
                       </span>
-                      <span className={styles.visitorSeen}>
-                        Last seen {formatTimeAgo(ipUser.lastSeen)}
+                      <span className={styles.sessionTableDuration}>
+                        {formatElapsedTime(ipUser.totalDuration / 1000)}
                       </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+                      <span className={styles.sessionTableTime}>
+                        {formatTimeAgo(ipUser.lastSeen)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {ipsTotal > 50 && (
                 <div className={styles.pagination}>
@@ -975,83 +1047,129 @@ export default function SessionExplorerComponent({
             <div className={styles.emptyState}>No visitors match your search query.</div>
           ) : (
             <>
-              <div className={styles.cardList}>
-                {filteredVisitors.map((visitor) => (
-                  <div key={visitor.visitorId} className={styles.visitorCard}>
-                    <div className={styles.visitorHeader}>
-                      <div className={styles.visitorId}>
-                        <Users size={12} strokeWidth={2.2} />
-                        {visitor.visitorId.slice(0, 12)}…
+              {viewMode === "cards" ? (
+                <div className={styles.cardList}>
+                  {filteredVisitors.map((visitor) => (
+                    <div key={visitor.visitorId} className={styles.visitorCard}>
+                      <div className={styles.visitorHeader}>
+                        <div className={styles.visitorId}>
+                          <Users size={12} strokeWidth={2.2} />
+                          {visitor.visitorId.slice(0, 12)}…
+                        </div>
+                        <span className={styles.visitorSessionCount}>
+                          {visitor.sessionCount} session
+                          {visitor.sessionCount !== 1 ? "s" : ""}
+                        </span>
                       </div>
-                      <span className={styles.visitorSessionCount}>
-                        {visitor.sessionCount} session
-                        {visitor.sessionCount !== 1 ? "s" : ""}
-                      </span>
-                    </div>
 
-                    <div className={styles.visitorMeta}>
-                      {visitor.lastIp && (
-                        <button
-                          className={`${styles.visitorMetaItem} ${styles.visitorMetaLink}`}
-                          onClick={() => loadIpDetail(visitor.lastIp)}
-                        >
-                          <Network size={11} strokeWidth={2} />
-                          {visitor.lastIp}
-                        </button>
-                      )}
-                      <span className={styles.visitorMetaItem}>
-                        <Globe size={11} strokeWidth={2} />
-                        {visitor.lastBrowser?.name || "Unknown"}
-                      </span>
-                      <span className={styles.visitorMetaItem}>
-                        <Monitor size={11} strokeWidth={2} />
-                        {visitor.lastOs?.name || "Unknown"}
-                      </span>
-                      <span className={styles.visitorMetaItem}>
-                        <DeviceIcon type={visitor.lastDevice?.type} />
-                        {visitor.lastDevice?.type || "desktop"}
-                      </span>
-                      {visitor.lastGeo?.country && (
+                      <div className={styles.visitorMeta}>
+                        {visitor.lastIp && (
+                          <button
+                            className={`${styles.visitorMetaItem} ${styles.visitorMetaLink}`}
+                            onClick={() => loadIpDetail(visitor.lastIp)}
+                          >
+                            <Network size={11} strokeWidth={2} />
+                            {visitor.lastIp}
+                          </button>
+                        )}
                         <span className={styles.visitorMetaItem}>
-                          <MapPin size={11} strokeWidth={2} />
-                          {visitor.lastGeo.city && visitor.lastGeo.city !== "(not set)"
-                            ? `${visitor.lastGeo.city}, `
-                            : ""}
-                          {visitor.lastGeo.country}
+                          <Globe size={11} strokeWidth={2} />
+                          {visitor.lastBrowser?.name || "Unknown"}
                         </span>
-                      )}
-                    </div>
-
-                    <div className={styles.visitorFooter}>
-                      <span className={styles.visitorTime}>
-                        <Clock size={11} strokeWidth={2} />
-                        {formatElapsedTime(visitor.totalDuration / 1000)} total
-                      </span>
-                      <span className={styles.visitorSeen}>
-                        Last seen {formatTimeAgo(visitor.lastSeen)}
-                      </span>
-                    </div>
-
-                    <div className={styles.sessionPills}>
-                      {visitor.sessionIds.slice(0, 5).map((sessionId) => (
-                        <button
-                          key={sessionId}
-                          className={styles.sessionPill}
-                          onClick={() => loadDetail(sessionId)}
-                          title={sessionId}
-                        >
-                          {sessionId.slice(0, 8)}…
-                        </button>
-                      ))}
-                      {visitor.sessionIds.length > 5 && (
-                        <span className={styles.sessionPillMore}>
-                          +{visitor.sessionIds.length - 5} more
+                        <span className={styles.visitorMetaItem}>
+                          <Monitor size={11} strokeWidth={2} />
+                          {visitor.lastOs?.name || "Unknown"}
                         </span>
-                      )}
+                        <span className={styles.visitorMetaItem}>
+                          <DeviceIcon type={visitor.lastDevice?.type} />
+                          {visitor.lastDevice?.type || "desktop"}
+                        </span>
+                        {visitor.lastGeo?.country && (
+                          <span className={styles.visitorMetaItem}>
+                            <MapPin size={11} strokeWidth={2} />
+                            {visitor.lastGeo.city && visitor.lastGeo.city !== "(not set)"
+                              ? `${visitor.lastGeo.city}, `
+                              : ""}
+                            {visitor.lastGeo.country}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className={styles.visitorFooter}>
+                        <span className={styles.visitorTime}>
+                          <Clock size={11} strokeWidth={2} />
+                          {formatElapsedTime(visitor.totalDuration / 1000)} total
+                        </span>
+                        <span className={styles.visitorSeen}>
+                          Last seen {formatTimeAgo(visitor.lastSeen)}
+                        </span>
+                      </div>
+
+                      <div className={styles.sessionPills}>
+                        {visitor.sessionIds.slice(0, 5).map((sessionId) => (
+                          <button
+                            key={sessionId}
+                            className={styles.sessionPill}
+                            onClick={() => loadDetail(sessionId)}
+                            title={sessionId}
+                          >
+                            {sessionId.slice(0, 8)}…
+                          </button>
+                        ))}
+                        {visitor.sessionIds.length > 5 && (
+                          <span className={styles.sessionPillMore}>
+                            +{visitor.sessionIds.length - 5} more
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.sessionTable}>
+                  <div className={styles.sessionTableHeader}>
+                    <span>Visitor ID</span>
+                    <span>IP</span>
+                    <span>Browser / OS</span>
+                    <span>Location</span>
+                    <span>Sessions</span>
+                    <span>Last Seen</span>
                   </div>
-                ))}
-              </div>
+                  {filteredVisitors.map((visitor) => (
+                    <div
+                      key={visitor.visitorId}
+                      className={styles.sessionTableRow}
+                    >
+                      <span className={styles.sessionTableId}>
+                        <Users size={11} strokeWidth={2} />
+                        {visitor.visitorId.slice(0, 12)}…
+                      </span>
+                      <button
+                        className={`${styles.sessionTableIp} ${styles.visitorMetaLink}`}
+                        onClick={() => loadIpDetail(visitor.lastIp)}
+                      >
+                        {visitor.lastIp}
+                      </button>
+                      <span className={styles.sessionTableDevice}>
+                        <DeviceIcon type={visitor.lastDevice?.type} />
+                        {visitor.lastBrowser?.name || "?"} / {visitor.lastOs?.name || "?"}
+                      </span>
+                      <span className={styles.sessionTableGeo}>
+                        {visitor.lastGeo?.city && visitor.lastGeo.city !== "(not set)"
+                          ? `${visitor.lastGeo.city}, `
+                          : ""}
+                        {visitor.lastGeo?.country || "—"}
+                      </span>
+                      <span className={styles.sessionTableDuration}>
+                        {visitor.sessionCount} session{visitor.sessionCount !== 1 ? "s" : ""}
+                      </span>
+                      <span className={styles.sessionTableTime}>
+                        {formatTimeAgo(visitor.lastSeen)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {visitorsTotal > 50 && (
                 <div className={styles.pagination}>
@@ -1098,44 +1216,104 @@ export default function SessionExplorerComponent({
             <div className={styles.emptyState}>No sessions match your search query.</div>
           ) : (
             <>
-              <div className={styles.sessionTable}>
-                <div className={styles.sessionTableHeader}>
-                  <span>Session</span>
-                  <span>IP</span>
-                  <span>Device</span>
-                  <span>Location</span>
-                  <span>Duration</span>
-                  <span>Last Active</span>
+              {viewMode === "table" ? (
+                <div className={styles.sessionTable}>
+                  <div className={styles.sessionTableHeader}>
+                    <span>Session</span>
+                    <span>IP</span>
+                    <span>Device</span>
+                    <span>Location</span>
+                    <span>Duration</span>
+                    <span>Last Active</span>
+                  </div>
+                  {filteredSessions.map((session) => (
+                    <button
+                      key={session.sessionId}
+                      className={styles.sessionTableRow}
+                      onClick={() => loadDetail(session.sessionId)}
+                    >
+                      <span className={styles.sessionTableId}>
+                        {session.sessionId.slice(0, 8)}…
+                      </span>
+                      <span className={styles.sessionTableIp}>{session.ip}</span>
+                      <span className={styles.sessionTableDevice}>
+                        <DeviceIcon type={session.device?.type} />
+                        {session.browser?.name || "?"} / {session.os?.name || "?"}
+                      </span>
+                      <span className={styles.sessionTableGeo}>
+                        {session.geo?.city && session.geo.city !== "(not set)"
+                          ? `${session.geo.city}, `
+                          : ""}
+                        {session.geo?.country || "—"}
+                      </span>
+                      <span className={styles.sessionTableDuration}>
+                        {formatElapsedTime(session.duration / 1000)}
+                      </span>
+                      <span className={styles.sessionTableTime}>
+                        {formatTimeAgo(session.updatedAt)}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                {filteredSessions.map((session) => (
-                  <button
-                    key={session.sessionId}
-                    className={styles.sessionTableRow}
-                    onClick={() => loadDetail(session.sessionId)}
-                  >
-                    <span className={styles.sessionTableId}>
-                      {session.sessionId.slice(0, 8)}…
-                    </span>
-                    <span className={styles.sessionTableIp}>{session.ip}</span>
-                    <span className={styles.sessionTableDevice}>
-                      <DeviceIcon type={session.device?.type} />
-                      {session.browser?.name || "?"} / {session.os?.name || "?"}
-                    </span>
-                    <span className={styles.sessionTableGeo}>
-                      {session.geo?.city && session.geo.city !== "(not set)"
-                        ? `${session.geo.city}, `
-                        : ""}
-                      {session.geo?.country || "—"}
-                    </span>
-                    <span className={styles.sessionTableDuration}>
-                      {formatElapsedTime(session.duration / 1000)}
-                    </span>
-                    <span className={styles.sessionTableTime}>
-                      {formatTimeAgo(session.updatedAt)}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              ) : (
+                <div className={styles.cardList}>
+                  {filteredSessions.map((session) => (
+                    <button
+                      key={session.sessionId}
+                      className={styles.visitorCard}
+                      onClick={() => loadDetail(session.sessionId)}
+                    >
+                      <div className={styles.visitorHeader}>
+                        <div className={styles.visitorId}>
+                          <Hash size={12} strokeWidth={2.2} />
+                          {session.sessionId.slice(0, 12)}…
+                        </div>
+                        <span className={styles.visitorSessionCount}>
+                          {formatElapsedTime(session.duration / 1000)}
+                        </span>
+                      </div>
+
+                      <div className={styles.visitorMeta}>
+                        <span className={styles.visitorMetaItem}>
+                          <Network size={11} strokeWidth={2} />
+                          {session.ip}
+                        </span>
+                        <span className={styles.visitorMetaItem}>
+                          <Globe size={11} strokeWidth={2} />
+                          {session.browser?.name || "Unknown"}
+                        </span>
+                        <span className={styles.visitorMetaItem}>
+                          <Monitor size={11} strokeWidth={2} />
+                          {session.os?.name || "Unknown"}
+                        </span>
+                        <span className={styles.visitorMetaItem}>
+                          <DeviceIcon type={session.device?.type} />
+                          {session.device?.type || "desktop"}
+                        </span>
+                        {session.geo?.country && (
+                          <span className={styles.visitorMetaItem}>
+                            <MapPin size={11} strokeWidth={2} />
+                            {session.geo.city && session.geo.city !== "(not set)"
+                              ? `${session.geo.city}, `
+                              : ""}
+                            {session.geo.country}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className={styles.visitorFooter}>
+                        <span className={styles.visitorTime}>
+                          <Clock size={11} strokeWidth={2} />
+                          {formatTimestamp(session.createdAt)}
+                        </span>
+                        <span className={styles.visitorSeen}>
+                          Active {formatTimeAgo(session.updatedAt)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {sessionsTotal > 50 && (
                 <div className={styles.pagination}>

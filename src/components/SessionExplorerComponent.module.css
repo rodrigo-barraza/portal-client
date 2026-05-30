@@ -16,6 +16,48 @@
   flex-wrap: wrap;
 }
 
+/* ── Controls Right ──────────────────────────────────────────── */
+
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── View Mode Toggle ────────────────────────────────────────── */
+
+.view-mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--background-elevated);
+  border-radius: var(--border-radius-sm);
+  padding: 3px;
+}
+
+.view-mode-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  color: var(--text-muted);
+  border-radius: calc(var(--border-radius-sm) - 1px);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    color: var(--text-secondary);
+  }
+}
+
+.view-mode-button-active {
+  background: var(--background-surface);
+  color: var(--accent-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
 /* ── Tab Bar ─────────────────────────────────────────────────── */
 
 .tabBar {
@@ -234,6 +276,9 @@
 }
 
 .sessionTableId {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-weight: 500;
   color: var(--text-primary);
