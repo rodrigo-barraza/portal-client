@@ -23,7 +23,7 @@ import {
   ButtonComponent,
   DrawerComponent,
   LoadingIndicatorComponent,
-  MultiSelectComponent,
+  SelectComponent,
   PageHeaderComponent,
   ChartLineComponent,
   TableComponent,
@@ -1015,7 +1015,8 @@ export default function ContainerStatsComponent() {
 
           {/* ── Device Filter ──────────────────────────────────────── */}
           {deviceIds.length > 1 && (
-            <MultiSelectComponent
+            <SelectComponent
+              multiple
               label="Host"
               value={activeDevices}
               options={deviceIds.map((deviceId) => ({
@@ -1028,7 +1029,8 @@ export default function ContainerStatsComponent() {
           )}
 
           {/* ── Type Filter ────────────────────────────────────────── */}
-          <MultiSelectComponent
+          <SelectComponent
+            multiple
             label="Type"
             value={activeTypes}
             options={(["client", "service", "bot"] as const).map((type) => ({

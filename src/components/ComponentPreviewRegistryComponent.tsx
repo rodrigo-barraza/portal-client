@@ -51,7 +51,6 @@ import {
   InputComponent,
   LoadingIndicatorComponent,
   LoadingStateComponent,
-  MultiSelectComponent,
   PaginationComponent,
   RadioComponent,
   SearchInputComponent,
@@ -446,7 +445,8 @@ const PREVIEWS = {
 
   MultiSelectComponent: () => (
     <PreviewStack>
-      <MultiSelectComponent
+      <SelectComponent
+        multiple
         value={[]}
         onChange={() => {}}
         options={[

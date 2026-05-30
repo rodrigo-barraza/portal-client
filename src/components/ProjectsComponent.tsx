@@ -17,7 +17,7 @@ import {
   ButtonComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
-  MultiSelectComponent,
+  SelectComponent,
   SearchInputComponent,
   SegmentedControlComponent,
 } from "@rodrigo-barraza/components-library";
@@ -317,7 +317,8 @@ export default function ProjectsComponent() {
           </div>
 
           {Object.entries(filterOptions).map(([dimension, config]) => (
-            <MultiSelectComponent
+            <SelectComponent
+              multiple
               key={dimension}
               label={config.label}
               value={filters[dimension] as string[]}
