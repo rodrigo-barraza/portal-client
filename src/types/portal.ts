@@ -349,6 +349,7 @@ export interface GAProperty {
   id: string;
   label: string;
   measurementId: string;
+  domain?: string | null;
 }
 
 export interface GAOverview {

@@ -29,6 +29,7 @@ interface GAProperty {
   id: string;
   label: string;
   measurementId?: string;
+  domain?: string | null;
 }
 
 interface GASummary {
@@ -248,6 +249,20 @@ export default function PropertyListingComponent({
                     className={styles.propertyCardArrow}
                   />
                 </div>
+
+                {prop.domain && (
+                  <div className={styles.propertyCardPreviewContainer}>
+                    <iframe
+                      src={`https://${prop.domain}`}
+                      className={styles.propertyCardPreviewIframe}
+                      title={`Preview of ${prop.domain}`}
+                      loading="lazy"
+                      tabIndex={-1}
+                      sandbox="allow-scripts allow-same-origin"
+                    />
+                    <div className={styles.propertyCardPreviewOverlay} />
+                  </div>
+                )}
 
                 {propertySummary?.loaded ? (
                   <>

@@ -721,6 +721,7 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  container-type: inline-size;
   transition:
     border-color var(--transition-fast),
     transform 120ms ease,
@@ -810,6 +811,39 @@
 .propertyCard:hover .propertyCardArrow {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* ── Live Site Preview Thumbnail (scaled iframe) ── */
+
+.propertyCardPreviewContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--calculated-border-color);
+  background: var(--background-elevated);
+  isolation: isolate;
+}
+
+.propertyCardPreviewIframe {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1280px;
+  height: 800px;
+  border: none;
+  transform-origin: top left;
+  scale: calc(100cqi / 1280);
+  pointer-events: none;
+}
+
+.propertyCardPreviewOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 12px 2px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
 }
 
 .propertyCardStats {

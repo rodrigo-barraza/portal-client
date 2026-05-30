@@ -504,8 +504,9 @@
   height: 800px;
   border: none;
   transform-origin: top left;
-  /* Scale 1280px viewport to fit card content area (≈308px at 340px min card) */
-  scale: 0.24;
+  /* Dynamically scale the 1280px viewport to fit the card's content width.
+     100cqi = container query inline size (from .containerCard's container-type) */
+  scale: calc(100cqi / 1280);
   pointer-events: none;
 }
 
