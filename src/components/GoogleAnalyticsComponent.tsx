@@ -13,6 +13,7 @@ import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
   TableComponent,
+  DatePickerComponent,
 } from "@rodrigo-barraza/components-library";
 import PropertyListingComponent from "./PropertyListingComponent";
 import {
@@ -315,6 +316,14 @@ export default function GoogleAnalyticsComponent({
     null,
   );
   const [period, setPeriod] = useState("30d");
+
+  const [startDate, endDate] = useMemo(() => {
+    if (period && period.includes("_")) {
+      const [parsedStartDate, parsedEndDate] = period.split("_");
+      return [parsedStartDate, parsedEndDate];
+    }
+    return ["", ""];
+  }, [period]);
 
   const [realtime, setRealtime] = useState<{ activeUsers: number } | null>(
     null,
@@ -691,16 +700,26 @@ export default function GoogleAnalyticsComponent({
         {selectedProperty && (
           <div className={styles.headerControls}>
             <div className={styles.periodTabs}>
-              {["7d", "30d", "90d"].map((p) => (
+              {["7d", "30d", "90d"].map((presetPeriod) => (
                 <button
-                  key={p}
-                  className={`${styles.periodTab} ${period === p ? styles.activeTab : ""}`}
-                  onClick={() => setPeriod(p)}
+                  key={presetPeriod}
+                  className={`${styles.periodTab} ${period === presetPeriod ? styles.activeTab : ""}`}
+                  onClick={() => setPeriod(presetPeriod)}
                 >
-                  {p}
+                  {presetPeriod}
                 </button>
               ))}
             </div>
+            <DatePickerComponent
+              from={startDate}
+              to={endDate}
+              onChange={(value: { from: string; to: string }) => {
+                if (value && value.from && value.to) {
+                  setPeriod(`${value.from}_${value.to}`);
+                }
+              }}
+              placeholder="Custom range"
+            />
           </div>
         )}
       </PageHeaderComponent>
