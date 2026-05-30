@@ -494,6 +494,7 @@
   border: 1px solid var(--calculated-border-color);
   background: var(--background-elevated);
   isolation: isolate;
+  container-type: inline-size;
 }
 
 .cardPreviewIframe {
