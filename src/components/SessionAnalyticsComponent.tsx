@@ -429,7 +429,7 @@ export default function SessionAnalyticsComponent({
         <LoadingIndicatorComponent
           size="small"
           label="Loading session analytics…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       ) : (
         <>

@@ -402,8 +402,8 @@ export default function ProjectTableComponent({
 
   const getRowClassName = useCallback((row: PortalService) => {
     if (NON_DEPLOYED_TYPES.has(row.projectType as string))
-      return styles.rowNeutral;
-    return row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
+      return styles.statusRowNeutral;
+    return row.healthy ? styles.statusRowHealthy : styles.statusRowUnhealthy;
   }, []);
 
   const handleRowClick = useCallback(

@@ -486,16 +486,16 @@ function ContainerTab({
                     />
                     <span className={styles.metricCardTitle}>Network</span>
                   </div>
-                  <div className={styles.ioStats}>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>RX</span>
-                      <span className={styles.ioValue}>
+                  <div className={styles.inputOutputStats}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>RX</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.network.rx)}
                       </span>
                     </span>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>TX</span>
-                      <span className={styles.ioValue}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>TX</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.network.tx)}
                       </span>
                     </span>
@@ -514,16 +514,16 @@ function ContainerTab({
                     />
                     <span className={styles.metricCardTitle}>Block I/O</span>
                   </div>
-                  <div className={styles.ioStats}>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Read</span>
-                      <span className={styles.ioValue}>
+                  <div className={styles.inputOutputStats}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>Read</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.blockIO.read)}
                       </span>
                     </span>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Write</span>
-                      <span className={styles.ioValue}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>Write</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.blockIO.write)}
                       </span>
                     </span>
@@ -975,51 +975,51 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
 
       {/* Overview cards */}
       {overview && (
-        <div className={styles.gaCards}>
-          <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>
+        <div className={styles.analyticsCards}>
+          <div className={styles.analyticsCard}>
+            <span className={styles.analyticsCardValue}>
               {formatNumber(overview.totalUsers)}
             </span>
-            <span className={styles.gaCardLabel}>Users</span>
+            <span className={styles.analyticsCardLabel}>Users</span>
           </div>
-          <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>
+          <div className={styles.analyticsCard}>
+            <span className={styles.analyticsCardValue}>
               {formatNumber(overview.pageviews)}
             </span>
-            <span className={styles.gaCardLabel}>Pageviews</span>
+            <span className={styles.analyticsCardLabel}>Pageviews</span>
           </div>
-          <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>
+          <div className={styles.analyticsCard}>
+            <span className={styles.analyticsCardValue}>
               {formatNumber(overview.sessions)}
             </span>
-            <span className={styles.gaCardLabel}>Sessions</span>
+            <span className={styles.analyticsCardLabel}>Sessions</span>
           </div>
-          <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>
+          <div className={styles.analyticsCard}>
+            <span className={styles.analyticsCardValue}>
               {formatGADuration(overview.avgSessionDuration)}
             </span>
-            <span className={styles.gaCardLabel}>Avg Duration</span>
+            <span className={styles.analyticsCardLabel}>Avg Duration</span>
           </div>
-          <div className={styles.gaCard}>
-            <span className={styles.gaCardValue}>
+          <div className={styles.analyticsCard}>
+            <span className={styles.analyticsCardValue}>
               {formatGAPercent(overview.engagementRate)}
             </span>
-            <span className={styles.gaCardLabel}>Engagement</span>
+            <span className={styles.analyticsCardLabel}>Engagement</span>
           </div>
         </div>
       )}
 
       {/* Top Pages */}
       {(pages?.pages?.length ?? 0) > 0 && (
-        <div className={styles.gaSection}>
+        <div className={styles.analyticsSection}>
           <h4 className={styles.sectionTitle}>Top Pages (30d)</h4>
-          <div className={styles.gaPageList}>
+          <div className={styles.analyticsPageList}>
             {pages!.pages.slice(0, 5).map((p: GAPageRow, i: number) => (
-              <div key={i} className={styles.gaPageRow}>
-                <span className={`${styles.gaPagePath} ${styles.mono}`}>
+              <div key={i} className={styles.analyticsPageRow}>
+                <span className={`${styles.analyticsPagePath} ${styles.mono}`}>
                   {p.pagePath}
                 </span>
-                <span className={styles.gaPageViews}>
+                <span className={styles.analyticsPageViews}>
                   {formatNumber(p.pageviews)}
                 </span>
               </div>

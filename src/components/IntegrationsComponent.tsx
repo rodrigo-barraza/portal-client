@@ -251,7 +251,7 @@ export default function IntegrationsComponent() {
         <LoadingIndicatorComponent
           size="small"
           label="Loading integrations…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       ) : (
         <div className={styles.categoryList}>
@@ -348,7 +348,7 @@ export default function IntegrationsComponent() {
                                   strokeWidth={2}
                                   className={styles.keyIcon}
                                 />
-                                <code className={styles.envKey}>
+                                <code className={styles.environmentKey}>
                                   {item.envKey}
                                 </code>
                               </div>

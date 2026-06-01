@@ -110,13 +110,13 @@
 
 .statusDot.healthy {
   background: var(--color-success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 6px oklch(69.6% 0.1491 162.5 / 0.4);
   animation: pulse 2s ease-in-out infinite;
 }
 
 .statusDot.unhealthy {
   background: var(--color-danger);
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 6px oklch(63.7% 0.2078 25.3 / 0.4);
 }
 
 .statusLabel {
@@ -252,22 +252,22 @@
   min-width: 0;
 }
 
-.svcDot {
+.serviceDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.svcDot.healthy {
+.serviceDot.healthy {
   background: var(--color-success);
 }
 
-.svcDot.unhealthy {
+.serviceDot.unhealthy {
   background: var(--color-danger);
 }
 
-.svcName {
+.serviceName {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--text-primary);
@@ -302,7 +302,7 @@
   flex-shrink: 0;
 }
 
-.svcPort {
+.servicePort {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -312,14 +312,14 @@
   border-radius: 2px;
 }
 
-.svcUrl {
+.serviceUrl {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   white-space: nowrap;
 }
 
-.svcLatency {
+.serviceLatency {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -328,7 +328,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.svcError {
+.serviceError {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -449,12 +449,12 @@
 
 .stageInfra {
   color: var(--node-infra);
-  background: rgba(168, 85, 247, 0.1);
+  background: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
 .visibilityExternal {
   color: var(--node-external);
-  background: rgba(45, 212, 191, 0.1);
+  background: oklch(78.5% 0.1325 181.9 / 0.1);
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -470,7 +470,7 @@
 
 .infraRow {
   &:hover {
-    background: rgba(168, 85, 247, 0.04);
+    background: oklch(62.7% 0.2326 303.9 / 0.04);
   }
 }
 

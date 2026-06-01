@@ -55,7 +55,7 @@
 .view-mode-button-active {
   background: var(--background-surface);
   color: var(--accent-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.06);
 }
 
 /* ── Tab Bar ─────────────────────────────────────────────────── */
@@ -92,7 +92,7 @@
 .tabActive {
   background: var(--background-surface);
   color: var(--text-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.06);
 }
 
 .tabBadge {
@@ -105,7 +105,7 @@
 }
 
 .tabActive .tabBadge {
-  background: rgba(99, 102, 241, 0.1);
+  background: oklch(58.5% 0.2041 277.1 / 0.1);
   color: var(--accent-primary);
 }
 
@@ -132,7 +132,7 @@
 
   &:hover {
     border-color: var(--calculated-border-subtle);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px oklch(0.0% 0.0 0.0 / 0.04);
   }
 }
 
@@ -156,7 +156,7 @@
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.08);
+  background: oklch(58.5% 0.2041 277.1 / 0.08);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -218,7 +218,7 @@
     color var(--transition-fast);
 
   &:hover {
-    background: rgba(99, 102, 241, 0.12);
+    background: oklch(58.5% 0.2041 277.1 / 0.12);
     color: var(--accent-primary);
   }
 }
@@ -470,13 +470,13 @@
 }
 
 .timelinePageview .timelineDot {
-  background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
+  background: oklch(58.5% 0.2041 277.1 / 0.12);
+  color: oklch(58.5% 0.2041 277.1);
 }
 
 .timelineEvent .timelineDot {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
+  background: oklch(76.9% 0.1646 70.1 / 0.12);
+  color: oklch(76.9% 0.1646 70.1);
 }
 
 .timelineConnector {
@@ -515,11 +515,11 @@
 }
 
 .timelinePageview .timelineType {
-  color: #6366f1;
+  color: oklch(58.5% 0.2041 277.1);
 }
 
 .timelineEvent .timelineType {
-  color: #f59e0b;
+  color: oklch(76.9% 0.1646 70.1);
 }
 
 .timelineTime {
@@ -641,21 +641,21 @@
 
 /* ── IP Summary Bar ──────────────────────────────────────────── */
 
-.ipSummaryBar {
+.ipAddressSummaryBar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   padding: 14px 18px;
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.06),
-    rgba(139, 92, 246, 0.04)
+    oklch(58.5% 0.2041 277.1 / 0.06),
+    oklch(60.6% 0.219 292.7 / 0.04)
   );
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid oklch(58.5% 0.2041 277.1 / 0.15);
   border-radius: var(--border-radius-sm);
 }
 
-.ipSummaryStat {
+.ipAddressSummaryStat {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -664,18 +664,18 @@
   color: var(--text-primary);
 }
 
-.ipSummaryStat svg {
+.ipAddressSummaryStat svg {
   color: var(--accent-primary);
 }
 
 /* ── Meta Highlight (clickable IP) ───────────────────────────── */
 
 .metaCardHighlight {
-  border-color: rgba(99, 102, 241, 0.25);
+  border-color: oklch(58.5% 0.2041 277.1 / 0.25);
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.05),
-    rgba(99, 102, 241, 0.02)
+    oklch(58.5% 0.2041 277.1 / 0.05),
+    oklch(58.5% 0.2041 277.1 / 0.02)
   );
 }
 
@@ -692,7 +692,7 @@
   word-break: break-all;
 
   &:hover {
-    color: #818cf8;
+    color: oklch(68.0% 0.1584 276.9);
   }
 }
 
@@ -734,8 +734,8 @@
   font-size: 0.6875rem;
   font-family: var(--font-mono);
   color: var(--text-secondary);
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.15);
+  background: oklch(69.6% 0.1491 162.5 / 0.08);
+  border: 1px solid oklch(69.6% 0.1491 162.5 / 0.15);
   border-radius: 6px;
 }
 

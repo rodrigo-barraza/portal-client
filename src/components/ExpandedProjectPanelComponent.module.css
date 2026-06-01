@@ -274,21 +274,21 @@
   color: var(--color-success);
 }
 .miniNodeInternal {
-  border-color: rgba(16, 185, 129, 0.1);
+  border-color: oklch(69.6% 0.1491 162.5 / 0.1);
 }
 
 .miniNodeExternal .miniNodeIconWrap {
   color: var(--node-external);
 }
 .miniNodeExternal {
-  border-color: rgba(45, 212, 191, 0.1);
+  border-color: oklch(78.5% 0.1325 181.9 / 0.1);
 }
 
 .miniNodeInfra .miniNodeIconWrap {
   color: var(--node-infra);
 }
 .miniNodeInfra {
-  border-color: rgba(168, 85, 247, 0.1);
+  border-color: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
 .miniNodeSelf {
@@ -329,12 +329,12 @@
 
 .miniStatusHealthy {
   background: var(--color-success);
-  box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 4px oklch(69.6% 0.1491 162.5 / 0.5);
 }
 
 .miniStatusDown {
   background: var(--color-danger);
-  box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 4px oklch(63.7% 0.2078 25.3 / 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -420,19 +420,19 @@
 
 /* ── I/O Stats ─────────────────────────────────────────────────── */
 
-.ioStats {
+.inputOutputStats {
   display: flex;
   gap: 16px;
   padding-top: 2px;
 }
 
-.ioStat {
+.inputOutputStat {
   display: flex;
   align-items: baseline;
   gap: 5px;
 }
 
-.ioDir {
+.inputOutputDirection {
   font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -441,7 +441,7 @@
   font-family: var(--font-mono);
 }
 
-.ioValue {
+.inputOutputValue {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
@@ -463,8 +463,8 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: oklch(69.6% 0.1491 162.5 / 0.08);
+  border: 1px solid oklch(69.6% 0.1491 162.5 / 0.2);
   border-radius: 100px;
   align-self: flex-start;
 }
@@ -499,13 +499,13 @@
   color: var(--text-tertiary);
 }
 
-.gaCards {
+.analyticsCards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 8px;
 }
 
-.gaCard {
+.analyticsCard {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -515,7 +515,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.gaCardValue {
+.analyticsCardValue {
   font-size: var(--font-size-md);
   font-weight: 600;
   font-family: var(--font-mono);
@@ -523,7 +523,7 @@
   letter-spacing: -0.02em;
 }
 
-.gaCardLabel {
+.analyticsCardLabel {
   font-size: 0.625rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -531,19 +531,19 @@
   color: var(--text-muted);
 }
 
-.gaSection {
+.analyticsSection {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.gaPageList {
+.analyticsPageList {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.gaPageRow {
+.analyticsPageRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -552,11 +552,11 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.gaPageRow:last-child {
+.analyticsPageRow:last-child {
   border-bottom: none;
 }
 
-.gaPagePath {
+.analyticsPagePath {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   overflow: hidden;
@@ -565,7 +565,7 @@
   min-width: 0;
 }
 
-.gaPageViews {
+.analyticsPageViews {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);

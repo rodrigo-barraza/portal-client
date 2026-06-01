@@ -489,7 +489,7 @@ export default function ProjectsComponent() {
         <LoadingIndicatorComponent
           size="small"
           label="Polling projects…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       ) : (
         <>

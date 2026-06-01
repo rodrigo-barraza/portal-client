@@ -667,7 +667,7 @@ export default function StorageComponent() {
             <LoadingIndicatorComponent
               size="small"
               label="Querying storage…"
-              className="loading-center"
+              className="is-loading-centered-state"
             />
           ) : (
             <div className={styles.storageGrid}>
@@ -1040,7 +1040,7 @@ export default function StorageComponent() {
           <LoadingIndicatorComponent
             size="small"
             label={`Loading ${activeBucket}…`}
-            className="loading-center"
+            className="is-loading-centered-state"
           />
         ) : objectViewMode === "table" ? (
           /* ── Table View ── */
@@ -1481,7 +1481,7 @@ function GlobalSearchResultsView({
         <LoadingIndicatorComponent
           size="small"
           label={`Searching across all stores…`}
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       </div>
     );

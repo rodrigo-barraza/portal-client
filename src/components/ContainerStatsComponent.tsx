@@ -369,13 +369,13 @@ function buildColumns({
         if (!net || (net.rx === 0 && net.tx === 0))
           return <span className={styles.dimText}>—</span>;
         return (
-          <div className={styles.ioCell}>
-            <span className={styles.ioCompact}>
-              <span className={styles.ioArrow}>↓</span>
+          <div className={styles.inputOutputCell}>
+            <span className={styles.inputOutputCompact}>
+              <span className={styles.inputOutputArrow}>↓</span>
               {formatBytes(net.rx)}
             </span>
-            <span className={styles.ioCompact}>
-              <span className={styles.ioArrow}>↑</span>
+            <span className={styles.inputOutputCompact}>
+              <span className={styles.inputOutputArrow}>↑</span>
               {formatBytes(net.tx)}
             </span>
           </div>
@@ -975,7 +975,7 @@ export default function ContainerStatsComponent() {
   );
 
   const getRowClassName = (row: ContainerRow) =>
-    row.healthy ? styles.rowHealthy : styles.rowUnhealthy;
+    row.healthy ? styles.statusRowHealthy : styles.statusRowUnhealthy;
 
   // Build full stats object for drawer
   const selectedStats = selectedContainer?._stats || null;
@@ -986,7 +986,7 @@ export default function ContainerStatsComponent() {
         <LoadingIndicatorComponent
           size="small"
           label="Querying containers…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       </div>
     );

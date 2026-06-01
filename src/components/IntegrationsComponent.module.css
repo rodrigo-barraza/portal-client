@@ -361,7 +361,7 @@
   flex-shrink: 0;
 }
 
-.envKey {
+.environmentKey {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-tertiary);
@@ -460,7 +460,7 @@
 .segmentActive {
   background: var(--background-surface);
   color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px oklch(0.0% 0.0 0.0 / 0.06);
 }
 
 /* ── Table Cell Render Customizations ── */

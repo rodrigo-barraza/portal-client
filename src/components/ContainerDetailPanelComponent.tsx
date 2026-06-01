@@ -341,17 +341,17 @@ export default function ContainerDetailPanel({
                 />
                 <span className={styles.metricCardTitle}>CPU Throttling</span>
               </div>
-              <div className={styles.ioStats}>
-                <span className={styles.ioStat}>
-                  <span className={styles.ioDir}>Throttled</span>
-                  <span className={styles.ioValue}>
+              <div className={styles.inputOutputStats}>
+                <span className={styles.inputOutputStat}>
+                  <span className={styles.inputOutputDirection}>Throttled</span>
+                  <span className={styles.inputOutputValue}>
                     {stats.cpuThrottling.throttledPeriods} /{" "}
                     {stats.cpuThrottling.periods} periods
                   </span>
                 </span>
-                <span className={styles.ioStat}>
-                  <span className={styles.ioDir}>Time</span>
-                  <span className={styles.ioValue}>
+                <span className={styles.inputOutputStat}>
+                  <span className={styles.inputOutputDirection}>Time</span>
+                  <span className={styles.inputOutputValue}>
                     {formatNanoseconds(stats.cpuThrottling.throttledTimeNs)}
                   </span>
                 </span>
@@ -479,16 +479,16 @@ export default function ContainerDetailPanel({
                     />
                     <span className={styles.metricCardTitle}>Network</span>
                   </div>
-                  <div className={styles.ioStats}>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>RX</span>
-                      <span className={styles.ioValue}>
+                  <div className={styles.inputOutputStats}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>RX</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.network.rx)}
                       </span>
                     </span>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>TX</span>
-                      <span className={styles.ioValue}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>TX</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.network.tx)}
                       </span>
                     </span>
@@ -496,16 +496,16 @@ export default function ContainerDetailPanel({
                   {/* Packet counts */}
                   {((stats.network.rxPackets ?? 0) > 0 ||
                     (stats.network.txPackets ?? 0) > 0) && (
-                    <div className={styles.ioStats}>
-                      <span className={styles.ioStat}>
-                        <span className={styles.ioDir}>Packets RX</span>
-                        <span className={styles.ioValue}>
+                    <div className={styles.inputOutputStats}>
+                      <span className={styles.inputOutputStat}>
+                        <span className={styles.inputOutputDirection}>Packets RX</span>
+                        <span className={styles.inputOutputValue}>
                           {stats.network.rxPackets?.toLocaleString()}
                         </span>
                       </span>
-                      <span className={styles.ioStat}>
-                        <span className={styles.ioDir}>Packets TX</span>
-                        <span className={styles.ioValue}>
+                      <span className={styles.inputOutputStat}>
+                        <span className={styles.inputOutputDirection}>Packets TX</span>
+                        <span className={styles.inputOutputValue}>
                           {stats.network.txPackets?.toLocaleString()}
                         </span>
                       </span>
@@ -516,12 +516,12 @@ export default function ContainerDetailPanel({
                     (stats.network.txDropped ?? 0) > 0 ||
                     (stats.network.rxErrors ?? 0) > 0 ||
                     (stats.network.txErrors ?? 0) > 0) && (
-                    <div className={styles.ioStatsWarn}>
+                    <div className={styles.inputOutputStatsWarning}>
                       {((stats.network.rxDropped ?? 0) > 0 ||
                         (stats.network.txDropped ?? 0) > 0) && (
-                        <span className={styles.ioStat}>
-                          <span className={styles.ioDir}>Dropped</span>
-                          <span className={styles.ioValue}>
+                        <span className={styles.inputOutputStat}>
+                          <span className={styles.inputOutputDirection}>Dropped</span>
+                          <span className={styles.inputOutputValue}>
                             {(
                               (stats.network.rxDropped ?? 0) +
                               (stats.network.txDropped ?? 0)
@@ -531,9 +531,9 @@ export default function ContainerDetailPanel({
                       )}
                       {((stats.network.rxErrors ?? 0) > 0 ||
                         (stats.network.txErrors ?? 0) > 0) && (
-                        <span className={styles.ioStat}>
-                          <span className={styles.ioDir}>Errors</span>
-                          <span className={styles.ioValueDanger}>
+                        <span className={styles.inputOutputStat}>
+                          <span className={styles.inputOutputDirection}>Errors</span>
+                          <span className={styles.inputOutputValueDanger}>
                             {(
                               (stats.network.rxErrors ?? 0) +
                               (stats.network.txErrors ?? 0)
@@ -557,16 +557,16 @@ export default function ContainerDetailPanel({
                     />
                     <span className={styles.metricCardTitle}>Block I/O</span>
                   </div>
-                  <div className={styles.ioStats}>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Read</span>
-                      <span className={styles.ioValue}>
+                  <div className={styles.inputOutputStats}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>Read</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.blockIO.read)}
                       </span>
                     </span>
-                    <span className={styles.ioStat}>
-                      <span className={styles.ioDir}>Write</span>
-                      <span className={styles.ioValue}>
+                    <span className={styles.inputOutputStat}>
+                      <span className={styles.inputOutputDirection}>Write</span>
+                      <span className={styles.inputOutputValue}>
                         {formatBytes(stats.blockIO.write)}
                       </span>
                     </span>
@@ -594,7 +594,7 @@ export default function ContainerDetailPanel({
                     ([name, iface]) => (
                       <div key={name} className={styles.interfaceRow}>
                         <span className={styles.interfaceName}>{name}</span>
-                        <span className={styles.ioCompactDetail}>
+                        <span className={styles.inputOutputCompactDetail}>
                           ↓ {formatBytes((iface as NetworkInterface).rxBytes)} ·
                           ↑ {formatBytes((iface as NetworkInterface).txBytes)}
                         </span>

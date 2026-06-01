@@ -24,7 +24,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(10, 10, 15, 0.8) 60%,
+    oklch(14.7% 0.0107 285.0 / 0.8) 60%,
     transparent 100%
   );
 }
@@ -33,7 +33,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(245, 245, 247, 0.85) 60%,
+    oklch(97.1% 0.0027 285.7 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -42,7 +42,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(12, 26, 26, 0.85) 60%,
+    oklch(20.5% 0.0195 195.8 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -51,7 +51,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(6, 13, 24, 0.85) 60%,
+    oklch(15.8% 0.0265 257.6 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -60,7 +60,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(221, 222, 227, 0.85) 60%,
+    oklch(90.1% 0.0069 277.0 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -69,7 +69,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(14, 10, 16, 0.85) 60%,
+    oklch(15.3% 0.0142 314.3 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -78,7 +78,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(18, 12, 8, 0.85) 60%,
+    oklch(16.1% 0.0134 56.1 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -87,7 +87,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(10, 14, 20, 0.85) 60%,
+    oklch(16.2% 0.0143 258.4 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -96,7 +96,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(8, 14, 8, 0.85) 60%,
+    oklch(15.5% 0.0161 144.8 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -105,7 +105,7 @@
   background: linear-gradient(
     to bottom,
     var(--background-base) 0%,
-    rgba(16, 16, 16, 0.85) 60%,
+    oklch(17.3% 0.0 263.3 / 0.85) 60%,
     transparent 100%
   );
 }
@@ -485,39 +485,39 @@ g:hover > .clusterDragHandle:hover {
   color: var(--color-success);
 }
 .nodeInternal.nodeHealthy {
-  border-color: rgba(16, 185, 129, 0.1);
+  border-color: oklch(69.6% 0.1491 162.5 / 0.1);
 }
 .nodeInternal.nodeHealthy:hover {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: oklch(69.6% 0.1491 162.5 / 0.3);
 }
 .nodeInternal.nodeHealthy .nodeGlow {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 20px oklch(69.6% 0.1491 162.5 / 0.1);
 }
 
 .nodeExternal .nodeIconWrap {
   color: var(--node-external);
 }
 .nodeExternal.nodeHealthy {
-  border-color: rgba(45, 212, 191, 0.1);
+  border-color: oklch(78.5% 0.1325 181.9 / 0.1);
 }
 .nodeExternal.nodeHealthy:hover {
-  border-color: rgba(45, 212, 191, 0.3);
+  border-color: oklch(78.5% 0.1325 181.9 / 0.3);
 }
 .nodeExternal.nodeHealthy .nodeGlow {
-  box-shadow: 0 0 20px rgba(45, 212, 191, 0.1);
+  box-shadow: 0 0 20px oklch(78.5% 0.1325 181.9 / 0.1);
 }
 
 .nodeInfra .nodeIconWrap {
   color: var(--node-infra);
 }
 .nodeInfra.nodeHealthy {
-  border-color: rgba(168, 85, 247, 0.1);
+  border-color: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 .nodeInfra.nodeHealthy:hover {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: oklch(62.7% 0.2326 303.9 / 0.3);
 }
 .nodeInfra.nodeHealthy .nodeGlow {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 20px oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
 /* Tier-colored nodes — inline styles handle colors, hover brightens border */
@@ -526,16 +526,16 @@ g:hover > .clusterDragHandle:hover {
 }
 
 .nodeDown {
-  border-color: rgba(239, 68, 68, 0.15);
+  border-color: oklch(63.7% 0.2078 25.3 / 0.15);
 }
 .nodeDown .nodeIconWrap {
   color: var(--color-danger);
 }
 .nodeDown:hover {
-  border-color: rgba(239, 68, 68, 0.35);
+  border-color: oklch(63.7% 0.2078 25.3 / 0.35);
 }
 .nodeDown .nodeGlow {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 20px oklch(63.7% 0.2078 25.3 / 0.1);
 }
 
 .nodeHovered {
@@ -620,13 +620,13 @@ g:hover > .clusterDragHandle:hover {
 
 .statusHealthy {
   background: var(--color-success);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px oklch(69.6% 0.1491 162.5 / 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 
 .statusDown {
   background: var(--color-danger);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 8px oklch(63.7% 0.2078 25.3 / 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 

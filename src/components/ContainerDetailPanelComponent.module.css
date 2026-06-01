@@ -89,21 +89,21 @@
 
   &[data-state="running"] {
     color: var(--color-success);
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: oklch(69.6% 0.1491 162.5 / 0.1);
+    border: 1px solid oklch(69.6% 0.1491 162.5 / 0.25);
   }
 
   &[data-state="exited"],
   &[data-state="dead"] {
     color: var(--color-danger);
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: oklch(63.7% 0.2078 25.3 / 0.1);
+    border: 1px solid oklch(63.7% 0.2078 25.3 / 0.25);
   }
 
   &[data-state="paused"] {
     color: var(--color-warning);
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: oklch(76.9% 0.1646 70.1 / 0.1);
+    border: 1px solid oklch(76.9% 0.1646 70.1 / 0.25);
   }
 
   &[data-state="restarting"],
@@ -234,27 +234,27 @@
 
 /* ── I/O Stats ────────────────────────────────────────────────── */
 
-.ioStats {
+.inputOutputStats {
   display: flex;
   gap: 20px;
   padding-top: 4px;
 }
 
-.ioStatsWarn {
+.inputOutputStatsWarning {
   display: flex;
   gap: 20px;
   padding-top: 6px;
-  border-top: 1px solid rgba(239, 68, 68, 0.15);
+  border-top: 1px solid oklch(63.7% 0.2078 25.3 / 0.15);
   margin-top: 4px;
 }
 
-.ioStat {
+.inputOutputStat {
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
 
-.ioDir {
+.inputOutputDirection {
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -263,14 +263,14 @@
   font-family: var(--font-mono);
 }
 
-.ioValue {
+.inputOutputValue {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
   font-weight: 600;
 }
 
-.ioValueDanger {
+.inputOutputValueDanger {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--color-danger);
@@ -335,7 +335,7 @@
   border-radius: 4px;
 }
 
-.ioCompactDetail {
+.inputOutputCompactDetail {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);

@@ -161,7 +161,7 @@ export default function DevicesComponent() {
         <LoadingIndicatorComponent
           size="small"
           label="Discovering devices…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       ) : (
         <div className={styles.deviceList}>
@@ -302,7 +302,7 @@ function ContainerRow({
           strokeWidth={1.8}
           className={styles.containerIcon}
         />
-        <span className={styles.svcName}>{container.name}</span>
+        <span className={styles.serviceName}>{container.name}</span>
         <BadgeComponent variant={isRunning ? "success" : "danger"}>
           {container.state || "unknown"}
         </BadgeComponent>

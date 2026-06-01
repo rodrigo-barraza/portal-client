@@ -254,7 +254,7 @@
 
 .terminal {
   background: var(--background-base);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
@@ -273,8 +273,8 @@
   justify-content: space-between;
   padding: 0 14px;
   height: 38px;
-  background: rgba(255, 255, 255, 0.025);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: oklch(100.0% 0.0001 263.3 / 0.025);
+  border-bottom: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
   flex-shrink: 0;
 }
 
@@ -284,7 +284,7 @@
   gap: 8px;
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
+  color: oklch(100.0% 0.0001 263.3 / 0.4);
   letter-spacing: 0.02em;
   font-family: var(--font-mono);
   white-space: nowrap;
@@ -294,7 +294,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: oklch(100.0% 0.0001 263.3 / 0.2);
   flex-shrink: 0;
   transition:
     background var(--transition-fast),
@@ -303,17 +303,17 @@
 
 .terminalDot.connected {
   background: var(--color-success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 6px oklch(69.6% 0.1491 162.5 / 0.35);
   animation: dotPulse 2.5s ease-in-out infinite;
 }
 
 @keyframes dotPulse {
   0%,
   100% {
-    box-shadow: 0 0 4px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 0 4px oklch(69.6% 0.1491 162.5 / 0.25);
   }
   50% {
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 10px oklch(69.6% 0.1491 162.5 / 0.5);
   }
 }
 
@@ -334,7 +334,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--border-radius-sm);
-  color: rgba(255, 255, 255, 0.3);
+  color: oklch(100.0% 0.0001 263.3 / 0.3);
   cursor: pointer;
   transition:
     background var(--transition-fast),
@@ -343,13 +343,13 @@
 }
 
 .terminalButton:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  background: oklch(100.0% 0.0001 263.3 / 0.06);
+  color: oklch(100.0% 0.0001 263.3 / 0.7);
 }
 
 .terminalButton.isActiveState {
-  background: rgba(99, 102, 241, 0.12);
-  border-color: rgba(99, 102, 241, 0.2);
+  background: oklch(58.5% 0.2041 277.1 / 0.12);
+  border-color: oklch(58.5% 0.2041 277.1 / 0.2);
   color: var(--accent-primary);
 }
 
@@ -378,7 +378,7 @@
 
 .lineCount {
   font-size: 0.625rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: oklch(100.0% 0.0001 263.3 / 0.25);
   font-family: var(--font-mono);
   font-weight: 400;
   padding: 0 8px;
@@ -389,7 +389,7 @@
 .separator {
   width: 1px;
   height: 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: oklch(100.0% 0.0001 263.3 / 0.06);
   margin: 0 4px;
   flex-shrink: 0;
 }
@@ -419,23 +419,23 @@
 }
 
 .logLine:hover {
-  background: rgba(255, 255, 255, 0.018);
+  background: oklch(100.0% 0.0001 263.3 / 0.018);
 }
 
 /* Level accent borders — subtle left-edge indicators */
 
 .logLineError {
-  border-left-color: rgba(248, 113, 113, 0.5);
-  background: rgba(239, 68, 68, 0.03);
+  border-left-color: oklch(71.1% 0.1661 22.2 / 0.5);
+  background: oklch(63.7% 0.2078 25.3 / 0.03);
 }
 
 .logLineWarn {
-  border-left-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.02);
+  border-left-color: oklch(83.7% 0.1643 84.4 / 0.4);
+  background: oklch(83.7% 0.1643 84.4 / 0.02);
 }
 
 .logLineSuccess {
-  border-left-color: rgba(52, 211, 153, 0.4);
+  border-left-color: oklch(77.3% 0.1535 163.3 / 0.4);
 }
 
 /* ── Line Number Gutter ── */
@@ -445,22 +445,22 @@
   width: 40px;
   text-align: right;
   padding-right: 12px;
-  color: rgba(255, 255, 255, 0.08);
+  color: oklch(100.0% 0.0001 263.3 / 0.08);
   font-size: 0.625rem;
   user-select: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  border-right: 1px solid oklch(100.0% 0.0001 263.3 / 0.03);
   margin-right: 12px;
 }
 
 .logLine:hover .lineNumber {
-  color: rgba(255, 255, 255, 0.15);
+  color: oklch(100.0% 0.0001 263.3 / 0.15);
 }
 
 /* ── Timestamp ── */
 
 .lineTimestamp {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.2);
+  color: oklch(100.0% 0.0001 263.3 / 0.2);
   margin-right: 10px;
   font-size: 0.65625rem;
 }
@@ -506,11 +506,11 @@
   gap: 16px;
   height: calc(100dvh - 220px);
   min-height: 400px;
-  color: rgba(255, 255, 255, 0.3);
+  color: oklch(100.0% 0.0001 263.3 / 0.3);
   font-size: 0.8125rem;
   animation: fadeIn var(--transition-normal) ease-out;
   background: var(--background-base);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
   border-radius: var(--border-radius-sm);
 }
 
@@ -528,7 +528,7 @@
   justify-content: center;
   gap: 10px;
   padding: 32px;
-  color: rgba(255, 255, 255, 0.35);
+  color: oklch(100.0% 0.0001 263.3 / 0.35);
   font-size: var(--font-size-sm);
   font-family: var(--font-mono);
 }
@@ -548,8 +548,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(239, 68, 68, 0.08);
-  border-bottom: 1px solid rgba(239, 68, 68, 0.12);
+  background: oklch(63.7% 0.2078 25.3 / 0.08);
+  border-bottom: 1px solid oklch(63.7% 0.2078 25.3 / 0.12);
   color: var(--log-error);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -561,8 +561,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(245, 158, 11, 0.08);
-  border-top: 1px solid rgba(245, 158, 11, 0.12);
+  background: oklch(76.9% 0.1646 70.1 / 0.08);
+  border-top: 1px solid oklch(76.9% 0.1646 70.1 / 0.12);
   color: var(--log-warn);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -576,10 +576,10 @@
   padding: 0 8px;
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: oklch(100.0% 0.0001 263.3 / 0.04);
+  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.08);
   border-radius: var(--border-radius-sm);
-  color: rgba(255, 255, 255, 0.9);
+  color: oklch(100.0% 0.0001 263.3 / 0.9);
   width: 140px;
   transition:
     width var(--transition-fast),
@@ -587,18 +587,18 @@
 }
 
 .searchInput::placeholder {
-  color: rgba(255, 255, 255, 0.2);
+  color: oklch(100.0% 0.0001 263.3 / 0.2);
 }
 
 .searchInput:focus {
   width: 200px;
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 1px oklch(58.5% 0.2041 277.1 / 0.3);
 }
 
 .highlight {
-  background: rgba(251, 191, 36, 0.25);
+  background: oklch(83.7% 0.1643 84.4 / 0.25);
   border-radius: 1px;
 }
 

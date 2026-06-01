@@ -519,21 +519,21 @@ export default function SessionExplorerComponent({
         ) : (
           <>
             {/* ── IP Summary Stats ── */}
-            <div className={styles.ipSummaryBar}>
-              <div className={styles.ipSummaryStat}>
+            <div className={styles.ipAddressSummaryBar}>
+              <div className={styles.ipAddressSummaryStat}>
                 <Hash size={12} strokeWidth={2} />
                 <span>{ip.sessionCount} sessions</span>
               </div>
-              <div className={styles.ipSummaryStat}>
+              <div className={styles.ipAddressSummaryStat}>
                 <Users size={12} strokeWidth={2} />
                 <span>{ip.visitorIds?.length || 0} visitor IDs</span>
               </div>
-              <div className={styles.ipSummaryStat}>
+              <div className={styles.ipAddressSummaryStat}>
                 <Clock size={12} strokeWidth={2} />
                 <span>{formatElapsedTime(ip.totalDuration / 1000)} total</span>
               </div>
               {ip.projects && ip.projects.length > 1 && (
-                <div className={styles.ipSummaryStat}>
+                <div className={styles.ipAddressSummaryStat}>
                   <Globe size={12} strokeWidth={2} />
                   <span>{ip.projects.length} projects</span>
                 </div>
@@ -889,7 +889,7 @@ export default function SessionExplorerComponent({
             <LoadingIndicatorComponent
               size="small"
               label="Loading IPs…"
-              className="loading-center"
+              className="is-loading-centered-state"
             />
           ) : ipUsers.length === 0 ? (
             <div className={styles.emptyState}>No IP data available.</div>
@@ -1039,7 +1039,7 @@ export default function SessionExplorerComponent({
             <LoadingIndicatorComponent
               size="small"
               label="Loading visitors…"
-              className="loading-center"
+              className="is-loading-centered-state"
             />
           ) : visitors.length === 0 ? (
             <div className={styles.emptyState}>No visitor data available.</div>
@@ -1208,7 +1208,7 @@ export default function SessionExplorerComponent({
             <LoadingIndicatorComponent
               size="small"
               label="Loading sessions…"
-              className="loading-center"
+              className="is-loading-centered-state"
             />
           ) : sessions.length === 0 ? (
             <div className={styles.emptyState}>No session data available.</div>

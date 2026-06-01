@@ -1199,7 +1199,7 @@ export default function TopologyComponent() {
         <LoadingIndicatorComponent
           size="small"
           label="Building topology…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       ) : (
         <>

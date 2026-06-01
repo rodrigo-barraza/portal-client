@@ -653,7 +653,7 @@ export default function GoogleAnalyticsComponent({
         <LoadingIndicatorComponent
           size="small"
           label="Loading properties…"
-          className="loading-center"
+          className="is-loading-centered-state"
         />
       </div>
     );
@@ -770,7 +770,7 @@ export default function GoogleAnalyticsComponent({
             <LoadingIndicatorComponent
               size="small"
               label="Loading analytics…"
-              className="loading-center"
+              className="is-loading-centered-state"
             />
           ) : (
             <>
