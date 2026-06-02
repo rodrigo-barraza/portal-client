@@ -85,7 +85,7 @@ const DEFAULT_SETTINGS = {
 const STORAGE_KEY = "portal:settings";
 
 export default function SettingsComponent() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState("appearance");
   const [settings, setSettings] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -120,9 +120,9 @@ export default function SettingsComponent() {
     [],
   );
 
-  const scrollToSection = useCallback((id: string) => {
-    setActiveSection(id);
-    sectionRefs.current[id]?.scrollIntoView({
+  const scrollToSection = useCallback((sectionIdentifier: string) => {
+    setActiveSection(sectionIdentifier);
+    sectionRefs.current[sectionIdentifier]?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
@@ -149,11 +149,11 @@ export default function SettingsComponent() {
       <div className={styles.settingsBody}>
         {/* ── Sidebar ── */}
         <nav className={styles.sidebar}>
-          {SECTIONS.map(({ id, label, icon: Icon }) => (
+          {SECTIONS.map(({ id: sectionIdentifier, label, icon: Icon }) => (
             <button
-              key={id}
-              className={`${styles.sidebarLink} ${activeSection === id ? styles.isActiveState : ""}`}
-              onClick={() => scrollToSection(id)}
+              key={sectionIdentifier}
+              className={`${styles.sidebarLink} ${activeSection === sectionIdentifier ? styles.isActiveState : ""}`}
+              onClick={() => scrollToSection(sectionIdentifier)}
             >
               <Icon size={15} strokeWidth={2} className={styles.sidebarIcon} />
               {label}
@@ -195,19 +195,19 @@ export default function SettingsComponent() {
                   <SelectComponent
                     value={theme}
                     onChange={(selectedValue: string) => {
-                      let current = theme;
-                      const themes = ["dark", "light", "tropical", "oceanic"];
-                      while (current !== selectedValue) {
-                        toggleTheme();
-                        const index = themes.indexOf(current);
-                        current = themes[(index + 1) % themes.length];
-                      }
+                      setTheme(selectedValue);
                     }}
                     options={[
                       { value: "dark", label: "Dark" },
-                      { value: "light", label: "Light" },
+                      { value: "light", label: "Daylight" },
+                      { value: "muted", label: "Overcast" },
                       { value: "tropical", label: "Tropical" },
                       { value: "oceanic", label: "Oceanic" },
+                      { value: "punk", label: "Punk" },
+                      { value: "ember", label: "Ember" },
+                      { value: "arctic", label: "Arctic" },
+                      { value: "forest", label: "Forest" },
+                      { value: "mono", label: "Mono" },
                     ]}
                   />
                 </div>

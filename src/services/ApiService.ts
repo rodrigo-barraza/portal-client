@@ -756,4 +756,20 @@ export default class ApiService {
       `/session-analytics/ip/${encodeURIComponent(ip)}?${queryString.toString()}`,
     );
   }
+
+  // ── Workspaces ──────────────────────────────────────────────
+
+  /**
+   * Fetch connected workspace agents.
+   */
+  static async getWorkspaceAgents() {
+    return ApiService._request("/workspaces/agents");
+  }
+
+  /**
+   * Get the download URL for the workspace agent file.
+   */
+  static getWorkspaceAgentDownloadUrl() {
+    return `${PORTAL_SERVICE_URL}/workspaces/download/agent`;
+  }
 }

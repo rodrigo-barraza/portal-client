@@ -508,7 +508,7 @@ g:hover > .clusterDragHandle:hover {
 }
 
 .nodeInfra .nodeIconWrap {
-  color: var(--node-infra);
+  color: var(--node-infrastructure);
 }
 .nodeInfra.nodeHealthy {
   border-color: oklch(62.7% 0.2326 303.9 / 0.1);
@@ -792,7 +792,7 @@ g:hover > .clusterDragHandle:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--log-info);
+  color: var(--log-information);
 }
 .tooltipDepList {
   font-size: var(--font-size-xs);

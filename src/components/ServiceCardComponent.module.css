@@ -129,8 +129,8 @@
   background: var(--calculated-color-warning-subtle);
 }
 
-.stageInfra {
-  color: var(--node-infra);
+.stageInfrastructure {
+  color: var(--node-infrastructure);
   background: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 

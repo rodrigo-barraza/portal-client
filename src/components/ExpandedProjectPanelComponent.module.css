@@ -285,7 +285,7 @@
 }
 
 .miniNodeInfra .miniNodeIconWrap {
-  color: var(--node-infra);
+  color: var(--node-infrastructure);
 }
 .miniNodeInfra {
   border-color: oklch(62.7% 0.2326 303.9 / 0.1);

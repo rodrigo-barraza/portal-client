@@ -481,11 +481,11 @@
 }
 
 .levelWarn {
-  color: var(--log-warn);
+  color: var(--log-warning);
 }
 
 .levelInfo {
-  color: var(--log-info);
+  color: var(--log-information);
 }
 
 .levelSuccess {
@@ -563,7 +563,7 @@
   padding: 8px 14px;
   background: oklch(76.9% 0.1646 70.1 / 0.08);
   border-top: 1px solid oklch(76.9% 0.1646 70.1 / 0.12);
-  color: var(--log-warn);
+  color: var(--log-warning);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   font-weight: 500;

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
+  Check,
   Clock,
   Container,
   Cpu,
@@ -17,6 +18,7 @@ import {
   Server,
   Square,
   Undo2,
+  X,
 } from "lucide-react";
 import {
   BadgeComponent,
@@ -54,11 +56,11 @@ const POLL_INTERVAL = 5_000;
 const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
 
 function severityColor(
-  pct: number,
+  percentage: number,
   thresholds: [number, number] = [40, 80],
 ): string {
-  if (pct > thresholds[1]) return "var(--color-danger)";
-  if (pct > thresholds[0]) return "var(--color-warning)";
+  if (percentage > thresholds[1]) return "var(--color-danger)";
+  if (percentage > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
 }
 
@@ -233,8 +235,8 @@ function buildColumns({
       : [systemInfo]
     : [];
   const hostRamByDevice: Record<string, number> = {};
-  for (const d of sysDevices) {
-    hostRamByDevice[d.deviceId] = d.totalMemory || 0;
+  for (const deviceInfo of sysDevices) {
+    hostRamByDevice[deviceInfo.deviceId] = deviceInfo.totalMemory || 0;
   }
 
   return [
@@ -259,7 +261,12 @@ function buildColumns({
       label: "Status",
       sortable: true,
       render: (row: ContainerRow) => (
-        <BadgeComponent type="status" healthy={row.healthy} />
+        <span
+          className={`${styles.statusIndicator} ${row.healthy ? styles.statusHealthy : styles.statusDown}`}
+          title={row.healthy ? "Healthy" : "Down"}
+        >
+          {row.healthy ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
+        </span>
       ),
       sortValue: (row: ContainerRow) => (row.healthy ? 1 : 0),
     },
@@ -299,7 +306,7 @@ function buildColumns({
               height={24}
               historyMax={HISTORY_MAX}
               showGrid
-              formatValue={(v: number) => formatPercent(v, "adaptive")}
+              formatValue={(value: number) => formatPercent(value, "adaptive")}
             />
           </div>
         );
@@ -344,17 +351,17 @@ function buildColumns({
         const history = containerHistory?.[row.containerName]?.mem;
         if (!history || history.length < 2)
           return <span className={styles.dimText}>—</span>;
-        const maxVal = row._stats?.memory?.limit || Math.max(...history, 1);
+        const maximumValue = row._stats?.memory?.limit || Math.max(...history, 1);
         return (
           <div className={styles.inlineSparkline}>
             <ChartLineComponent
               data={history}
               color="#3b82f6"
-              maxValue={maxVal}
+              maxValue={maximumValue}
               height={24}
               historyMax={HISTORY_MAX}
               showGrid
-              formatValue={(v: number) => formatBytes(v)}
+              formatValue={(value: number) => formatBytes(value)}
             />
           </div>
         );
@@ -365,18 +372,18 @@ function buildColumns({
       label: "Net I/O",
       sortable: true,
       render: (row: ContainerRow) => {
-        const net = row._stats?.network;
-        if (!net || (net.rx === 0 && net.tx === 0))
+        const networkStats = row._stats?.network;
+        if (!networkStats || (networkStats.rx === 0 && networkStats.tx === 0))
           return <span className={styles.dimText}>—</span>;
         return (
           <div className={styles.inputOutputCell}>
             <span className={styles.inputOutputCompact}>
               <span className={styles.inputOutputArrow}>↓</span>
-              {formatBytes(net.rx)}
+              {formatBytes(networkStats.rx)}
             </span>
             <span className={styles.inputOutputCompact}>
               <span className={styles.inputOutputArrow}>↑</span>
-              {formatBytes(net.tx)}
+              {formatBytes(networkStats.tx)}
             </span>
           </div>
         );
@@ -554,12 +561,12 @@ export default function ContainerStatsComponent() {
 
       // Merge container data with project metadata + stats
       const rows: ContainerRow[] = containers.map(
-        (c: Record<string, unknown>) => {
-          const matchedService = projectByDocker[c.name as string] || null;
+        (container: Record<string, unknown>) => {
+          const matchedService = projectByDocker[container.name as string] || null;
 
           let type: "client" | "service" | "bot";
           const rawType = (matchedService?.projectType || "").toLowerCase();
-          const nameLower = (c.name as string).toLowerCase();
+          const nameLower = (container.name as string).toLowerCase();
           if (rawType === "client" || nameLower.includes("client")) {
             type = "client";
           } else if (rawType === "bot" || nameLower.includes("bot")) {
@@ -572,39 +579,39 @@ export default function ContainerStatsComponent() {
             // Container identity
             id:
               matchedService?.id ||
-              `${(c.device as string) || "unknown"}-${c.name}`,
-            containerName: c.name as string,
+              `${(container.device as string) || "unknown"}-${container.name}`,
+            containerName: container.name as string,
             // Project registry fields
-            healthy: matchedService?.healthy ?? c.state === "running",
+            healthy: matchedService?.healthy ?? container.state === "running",
             registered: !!matchedService,
             visibility: matchedService?.visibility || null,
             port: matchedService?.port || null,
             url: matchedService?.url || null,
             domain: matchedService?.domain || null,
             responseTimeMs: matchedService?.responseTimeMs ?? null,
-            device: (c.device as string) || matchedService?.device || null,
+            device: (container.device as string) || matchedService?.device || null,
             restartable: matchedService?.restartable ?? false,
             controllable: true,
-            dockerProject: c.name as string,
+            dockerProject: container.name as string,
             projectType: type,
             // Per-container Docker stats (for table columns + drawer)
             _stats: {
-              cpu: c.cpu,
-              cpuThrottling: c.cpuThrottling,
-              memory: c.memory,
-              memoryDetail: c.memoryDetail,
-              network: c.network,
-              blockIO: c.blockIO,
-              pids: c.pids,
+              cpu: container.cpu,
+              cpuThrottling: container.cpuThrottling,
+              memory: container.memory,
+              memoryDetail: container.memoryDetail,
+              network: container.network,
+              blockIO: container.blockIO,
+              pids: container.pids,
               // Container metadata
-              image: c.image,
-              state: c.state,
-              status: c.status,
-              created: c.created,
-              command: c.command,
-              ports: c.ports,
-              mounts: c.mounts,
-              labels: c.labels,
+              image: container.image,
+              state: container.state,
+              status: container.status,
+              created: container.created,
+              command: container.command,
+              ports: container.ports,
+              mounts: container.mounts,
+              labels: container.labels,
             },
           };
         },
@@ -617,26 +624,26 @@ export default function ContainerStatsComponent() {
 
       // Build stats map for summary cards
       const statsMap: Record<string, Partial<ContainerStats>> = {};
-      for (const c of containers) {
-        statsMap[(c as Record<string, unknown>).name as string] = {
-          cpu: c.cpu,
-          memory: c.memory,
-          network: c.network,
-          blockIO: c.blockIO,
-          pids: c.pids,
+      for (const container of containers) {
+        statsMap[(container as Record<string, unknown>).name as string] = {
+          cpu: container.cpu,
+          memory: container.memory,
+          network: container.network,
+          blockIO: container.blockIO,
+          pids: container.pids,
         };
       }
       setContainerStats(statsMap);
 
       // Accumulate sparkline history for CPU and memory
       const totalCpu = containers.reduce(
-        (sum: number, c: Partial<ContainerStats>) =>
-          sum + (c.cpu?.percent || 0),
+        (sum: number, container: Partial<ContainerStats>) =>
+          sum + (container.cpu?.percent || 0),
         0,
       );
       const totalMem = containers.reduce(
-        (sum: number, c: Partial<ContainerStats>) =>
-          sum + (c.memory?.used || 0),
+        (sum: number, container: Partial<ContainerStats>) =>
+          sum + (container.memory?.used || 0),
         0,
       );
       setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
@@ -645,16 +652,16 @@ export default function ContainerStatsComponent() {
       // Accumulate per-container sparkline history
       setContainerHistory((prev) => {
         const next = { ...prev };
-        for (const c of containers) {
-          const existing = next[c.name] || { cpu: [], mem: [] };
-          next[c.name] = {
+        for (const container of containers) {
+          const existing = next[container.name] || { cpu: [], mem: [] };
+          next[container.name] = {
             cpu: [
               ...existing.cpu.slice(-(HISTORY_MAX - 1)),
-              c.cpu?.percent || 0,
+              container.cpu?.percent || 0,
             ],
             mem: [
               ...existing.mem.slice(-(HISTORY_MAX - 1)),
-              c.memory?.used || 0,
+              container.memory?.used || 0,
             ],
           };
         }
@@ -724,8 +731,8 @@ export default function ContainerStatsComponent() {
         ][]) {
           if (!data.points || data.points.length === 0) continue;
 
-          const cpuPoints = data.points.map((p) => p.cpu);
-          const memoryPoints = data.points.map((p) => p.mem);
+          const cpuPoints = data.points.map((point) => point.cpu);
+          const memoryPoints = data.points.map((point) => point.mem);
           seededHistory[_name] = { cpu: cpuPoints, mem: memoryPoints };
 
           // Accumulate totals — right-align shorter series
@@ -929,10 +936,12 @@ export default function ContainerStatsComponent() {
   );
   const averageResponseTime =
     rowsWithResponseTime.length > 0
-      ? rowsWithResponseTime.reduce(
-          (sum, row) => sum + (row.responseTimeMs ?? 0),
-          0,
-        ) / rowsWithResponseTime.length
+      ? Math.round(
+          rowsWithResponseTime.reduce(
+            (sum, row) => sum + (row.responseTimeMs ?? 0),
+            0,
+          ) / rowsWithResponseTime.length
+        )
       : 0;
 
 

@@ -171,6 +171,36 @@
   filter: drop-shadow(0 0 3px oklch(63.7% 0.2078 25.3 / 0.4));
 }
 
+/* ── Circular Status Indicator ── */
+
+.statusIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+  transition:
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.statusIndicator svg {
+  display: block;
+}
+
+.statusHealthy {
+  background: var(--color-success);
+  box-shadow: 0 0 6px oklch(69.6% 0.1491 162.5 / 0.45);
+}
+
+.statusDown {
+  background: var(--color-danger);
+  box-shadow: 0 0 6px oklch(63.7% 0.2078 25.3 / 0.45);
+}
+
 /* ── Row health border ── */
 
 .statusRowHealthy {

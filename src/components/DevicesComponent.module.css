@@ -444,11 +444,11 @@
 /* ── Infrastructure Styles ── */
 
 .infraHeader {
-  color: var(--node-infra);
+  color: var(--node-infrastructure);
 }
 
-.stageInfra {
-  color: var(--node-infra);
+.stageInfrastructure {
+  color: var(--node-infrastructure);
   background: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
@@ -475,7 +475,7 @@
 }
 
 .infraRowIcon {
-  color: var(--node-infra);
+  color: var(--node-infrastructure);
   flex-shrink: 0;
 }
 
