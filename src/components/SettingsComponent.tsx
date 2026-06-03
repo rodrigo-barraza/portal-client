@@ -200,6 +200,7 @@ export default function SettingsComponent() {
                     options={[
                       { value: "dark", label: "Dark" },
                       { value: "light", label: "Daylight" },
+                      { value: "twilight", label: "Twilight" },
                       { value: "muted", label: "Overcast" },
                       { value: "tropical", label: "Tropical" },
                       { value: "oceanic", label: "Oceanic" },
