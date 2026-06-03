@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { LoadingIndicatorComponent, SearchInputComponent } from "@rodrigo-barraza/components-library";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { LoadingIndicatorComponent, SearchInputComponent, TableComponent } from "@rodrigo-barraza/components-library";
 import {
   Users,
   Clock,
@@ -402,6 +402,253 @@ export default function SessionExplorerComponent({
       setDetailLoading(false);
     }
   }, []);
+
+  // ── Column Definitions for TableComponent ──
+
+  const ipColumns = useMemo(() => [
+    {
+      key: "ip",
+      label: "IP Address",
+      width: "15%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableId}>
+          <Network size={11} strokeWidth={2} />
+          {ipUserRecord.ip}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => ipUserRecord.ip,
+    },
+    {
+      key: "visitorCount",
+      label: "Visitors",
+      width: "15%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableIp}>
+          {ipUserRecord.visitorIds.length} visitor{ipUserRecord.visitorIds.length !== 1 ? "s" : ""}
+          {" · "}
+          {ipUserRecord.sessionCount} session{ipUserRecord.sessionCount !== 1 ? "s" : ""}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => ipUserRecord.sessionCount,
+    },
+    {
+      key: "browser",
+      label: "Browser / OS",
+      width: "23%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableDevice}>
+          <DeviceIcon type={ipUserRecord.lastDevice?.type} />
+          {ipUserRecord.lastBrowser?.name || "?"} / {ipUserRecord.lastOs?.name || "?"}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => ipUserRecord.lastBrowser?.name || "",
+    },
+    {
+      key: "location",
+      label: "Location",
+      width: "23%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableGeo}>
+          {ipUserRecord.lastGeo?.city && ipUserRecord.lastGeo.city !== "(not set)"
+            ? `${ipUserRecord.lastGeo.city}, `
+            : ""}
+          {ipUserRecord.lastGeo?.country || "—"}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => ipUserRecord.lastGeo?.country || "",
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      width: "12%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableDuration}>
+          {formatElapsedTime(ipUserRecord.totalDuration / 1000)}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => ipUserRecord.totalDuration,
+    },
+    {
+      key: "lastSeen",
+      label: "Last Seen",
+      width: "12%",
+      sortable: true,
+      render: (ipUserRecord: IpUser) => (
+        <span className={styles.sessionTableTime}>
+          {formatTimeAgo(ipUserRecord.lastSeen)}
+        </span>
+      ),
+      sortValue: (ipUserRecord: IpUser) => new Date(ipUserRecord.lastSeen).getTime(),
+    },
+  ], []);
+
+  const visitorColumns = useMemo(() => [
+    {
+      key: "visitorId",
+      label: "Visitor ID",
+      width: "15%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <span className={styles.sessionTableId}>
+          <Users size={11} strokeWidth={2} />
+          {visitorRecord.visitorId.slice(0, 12)}…
+        </span>
+      ),
+      sortValue: (visitorRecord: Visitor) => visitorRecord.visitorId,
+    },
+    {
+      key: "lastIp",
+      label: "IP",
+      width: "15%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <button
+          className={`${styles.sessionTableIp} ${styles.visitorMetaLink}`}
+          onClick={(event: React.MouseEvent) => {
+            event.stopPropagation();
+            loadIpDetail(visitorRecord.lastIp);
+          }}
+        >
+          {visitorRecord.lastIp}
+        </button>
+      ),
+      sortValue: (visitorRecord: Visitor) => visitorRecord.lastIp,
+    },
+    {
+      key: "browser",
+      label: "Browser / OS",
+      width: "23%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <span className={styles.sessionTableDevice}>
+          <DeviceIcon type={visitorRecord.lastDevice?.type} />
+          {visitorRecord.lastBrowser?.name || "?"} / {visitorRecord.lastOs?.name || "?"}
+        </span>
+      ),
+      sortValue: (visitorRecord: Visitor) => visitorRecord.lastBrowser?.name || "",
+    },
+    {
+      key: "location",
+      label: "Location",
+      width: "23%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <span className={styles.sessionTableGeo}>
+          {visitorRecord.lastGeo?.city && visitorRecord.lastGeo.city !== "(not set)"
+            ? `${visitorRecord.lastGeo.city}, `
+            : ""}
+          {visitorRecord.lastGeo?.country || "—"}
+        </span>
+      ),
+      sortValue: (visitorRecord: Visitor) => visitorRecord.lastGeo?.country || "",
+    },
+    {
+      key: "sessionCount",
+      label: "Sessions",
+      width: "12%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <span className={styles.sessionTableDuration}>
+          {visitorRecord.sessionCount} session{visitorRecord.sessionCount !== 1 ? "s" : ""}
+        </span>
+      ),
+      sortValue: (visitorRecord: Visitor) => visitorRecord.sessionCount,
+    },
+    {
+      key: "lastSeen",
+      label: "Last Seen",
+      width: "12%",
+      sortable: true,
+      render: (visitorRecord: Visitor) => (
+        <span className={styles.sessionTableTime}>
+          {formatTimeAgo(visitorRecord.lastSeen)}
+        </span>
+      ),
+      sortValue: (visitorRecord: Visitor) => new Date(visitorRecord.lastSeen).getTime(),
+    },
+  ], [loadIpDetail]);
+
+  const sessionColumns = useMemo(() => [
+    {
+      key: "sessionId",
+      label: "Session",
+      width: "15%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableId}>
+          {sessionRecord.sessionId.slice(0, 8)}…
+        </span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => sessionRecord.sessionId,
+    },
+    {
+      key: "ip",
+      label: "IP",
+      width: "15%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableIp}>{sessionRecord.ip}</span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => sessionRecord.ip,
+    },
+    {
+      key: "device",
+      label: "Device",
+      width: "23%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableDevice}>
+          <DeviceIcon type={sessionRecord.device?.type} />
+          {sessionRecord.browser?.name || "?"} / {sessionRecord.os?.name || "?"}
+        </span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => sessionRecord.browser?.name || "",
+    },
+    {
+      key: "location",
+      label: "Location",
+      width: "23%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableGeo}>
+          {sessionRecord.geo?.city && sessionRecord.geo.city !== "(not set)"
+            ? `${sessionRecord.geo.city}, `
+            : ""}
+          {sessionRecord.geo?.country || "—"}
+        </span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => sessionRecord.geo?.country || "",
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      width: "12%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableDuration}>
+          {formatElapsedTime(sessionRecord.duration / 1000)}
+        </span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => sessionRecord.duration,
+    },
+    {
+      key: "lastActive",
+      label: "Last Active",
+      width: "12%",
+      sortable: true,
+      render: (sessionRecord: SessionRow) => (
+        <span className={styles.sessionTableTime}>
+          {formatTimeAgo(sessionRecord.updatedAt)}
+        </span>
+      ),
+      sortValue: (sessionRecord: SessionRow) => new Date(sessionRecord.updatedAt).getTime(),
+    },
+  ], []);
 
   // ── Effects ───────────────────────────────────────────────
 
@@ -960,49 +1207,15 @@ export default function SessionExplorerComponent({
                   ))}
                 </div>
               ) : (
-                <div className={styles.sessionTable}>
-                  <div className={styles.sessionTableHeader}>
-                    <span>IP Address</span>
-                    <span>Visitors</span>
-                    <span>Browser / OS</span>
-                    <span>Location</span>
-                    <span>Duration</span>
-                    <span>Last Seen</span>
-                  </div>
-                  {filteredIpUsers.map((ipUser) => (
-                    <button
-                      key={ipUser.ip}
-                      className={styles.sessionTableRow}
-                      onClick={() => loadIpDetail(ipUser.ip)}
-                    >
-                      <span className={styles.sessionTableId}>
-                        <Network size={11} strokeWidth={2} />
-                        {ipUser.ip}
-                      </span>
-                      <span className={styles.sessionTableIp}>
-                        {ipUser.visitorIds.length} visitor{ipUser.visitorIds.length !== 1 ? "s" : ""}
-                        {" · "}
-                        {ipUser.sessionCount} session{ipUser.sessionCount !== 1 ? "s" : ""}
-                      </span>
-                      <span className={styles.sessionTableDevice}>
-                        <DeviceIcon type={ipUser.lastDevice?.type} />
-                        {ipUser.lastBrowser?.name || "?"} / {ipUser.lastOs?.name || "?"}
-                      </span>
-                      <span className={styles.sessionTableGeo}>
-                        {ipUser.lastGeo?.city && ipUser.lastGeo.city !== "(not set)"
-                          ? `${ipUser.lastGeo.city}, `
-                          : ""}
-                        {ipUser.lastGeo?.country || "—"}
-                      </span>
-                      <span className={styles.sessionTableDuration}>
-                        {formatElapsedTime(ipUser.totalDuration / 1000)}
-                      </span>
-                      <span className={styles.sessionTableTime}>
-                        {formatTimeAgo(ipUser.lastSeen)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <TableComponent<IpUser>
+                  columns={ipColumns}
+                  data={filteredIpUsers}
+                  getRowKey={(ipUserRecord: IpUser) => ipUserRecord.ip}
+                  onRowClick={(ipUserRecord: IpUser) => loadIpDetail(ipUserRecord.ip)}
+                  emptyText="No IPs match your search query."
+                  mini
+                  storageKey="session-explorer-ips"
+                />
               )}
 
               {ipsTotal > 50 && (
@@ -1126,49 +1339,14 @@ export default function SessionExplorerComponent({
                   ))}
                 </div>
               ) : (
-                <div className={styles.sessionTable}>
-                  <div className={styles.sessionTableHeader}>
-                    <span>Visitor ID</span>
-                    <span>IP</span>
-                    <span>Browser / OS</span>
-                    <span>Location</span>
-                    <span>Sessions</span>
-                    <span>Last Seen</span>
-                  </div>
-                  {filteredVisitors.map((visitor) => (
-                    <div
-                      key={visitor.visitorId}
-                      className={styles.sessionTableRow}
-                    >
-                      <span className={styles.sessionTableId}>
-                        <Users size={11} strokeWidth={2} />
-                        {visitor.visitorId.slice(0, 12)}…
-                      </span>
-                      <button
-                        className={`${styles.sessionTableIp} ${styles.visitorMetaLink}`}
-                        onClick={() => loadIpDetail(visitor.lastIp)}
-                      >
-                        {visitor.lastIp}
-                      </button>
-                      <span className={styles.sessionTableDevice}>
-                        <DeviceIcon type={visitor.lastDevice?.type} />
-                        {visitor.lastBrowser?.name || "?"} / {visitor.lastOs?.name || "?"}
-                      </span>
-                      <span className={styles.sessionTableGeo}>
-                        {visitor.lastGeo?.city && visitor.lastGeo.city !== "(not set)"
-                          ? `${visitor.lastGeo.city}, `
-                          : ""}
-                        {visitor.lastGeo?.country || "—"}
-                      </span>
-                      <span className={styles.sessionTableDuration}>
-                        {visitor.sessionCount} session{visitor.sessionCount !== 1 ? "s" : ""}
-                      </span>
-                      <span className={styles.sessionTableTime}>
-                        {formatTimeAgo(visitor.lastSeen)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <TableComponent<Visitor>
+                  columns={visitorColumns}
+                  data={filteredVisitors}
+                  getRowKey={(visitorRecord: Visitor) => visitorRecord.visitorId}
+                  emptyText="No visitors match your search query."
+                  mini
+                  storageKey="session-explorer-visitors"
+                />
               )}
 
               {visitorsTotal > 50 && (
@@ -1217,44 +1395,15 @@ export default function SessionExplorerComponent({
           ) : (
             <>
               {viewMode === "table" ? (
-                <div className={styles.sessionTable}>
-                  <div className={styles.sessionTableHeader}>
-                    <span>Session</span>
-                    <span>IP</span>
-                    <span>Device</span>
-                    <span>Location</span>
-                    <span>Duration</span>
-                    <span>Last Active</span>
-                  </div>
-                  {filteredSessions.map((session) => (
-                    <button
-                      key={session.sessionId}
-                      className={styles.sessionTableRow}
-                      onClick={() => loadDetail(session.sessionId)}
-                    >
-                      <span className={styles.sessionTableId}>
-                        {session.sessionId.slice(0, 8)}…
-                      </span>
-                      <span className={styles.sessionTableIp}>{session.ip}</span>
-                      <span className={styles.sessionTableDevice}>
-                        <DeviceIcon type={session.device?.type} />
-                        {session.browser?.name || "?"} / {session.os?.name || "?"}
-                      </span>
-                      <span className={styles.sessionTableGeo}>
-                        {session.geo?.city && session.geo.city !== "(not set)"
-                          ? `${session.geo.city}, `
-                          : ""}
-                        {session.geo?.country || "—"}
-                      </span>
-                      <span className={styles.sessionTableDuration}>
-                        {formatElapsedTime(session.duration / 1000)}
-                      </span>
-                      <span className={styles.sessionTableTime}>
-                        {formatTimeAgo(session.updatedAt)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <TableComponent<SessionRow>
+                  columns={sessionColumns}
+                  data={filteredSessions}
+                  getRowKey={(sessionRecord: SessionRow) => sessionRecord.sessionId}
+                  onRowClick={(sessionRecord: SessionRow) => loadDetail(sessionRecord.sessionId)}
+                  emptyText="No sessions match your search query."
+                  mini
+                  storageKey="session-explorer-sessions"
+                />
               ) : (
                 <div className={styles.cardList}>
                   {filteredSessions.map((session) => (

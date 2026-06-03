@@ -395,7 +395,7 @@ export default function ProjectTableComponent({
     [excludeColumns],
   );
 
-  const columnumns = useCallback(
+  const columns = useCallback(
     () => buildColumns(projectSizes, projectLanguages, excludeSet),
     [projectSizes, projectLanguages, excludeSet],
   )();
@@ -428,7 +428,7 @@ export default function ProjectTableComponent({
       <TableComponent
         title={title}
         subtitle={subtitle}
-        columnumns={columnumns}
+        columns={columns}
         data={services}
         getRowKey={(row: PortalService) => row.id}
         sortKey={sortKey}
