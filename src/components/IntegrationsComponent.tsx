@@ -154,9 +154,9 @@ export default function IntegrationsComponent() {
   };
 
   const toggleCategory = (category: string) => {
-    setCollapsedCategories((prev) => ({
-      ...prev,
-      [category]: !prev[category],
+    setCollapsedCategories((previousState) => ({
+      ...previousState,
+      [category]: !previousState[category],
     }));
   };
 

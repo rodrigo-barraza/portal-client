@@ -40,9 +40,9 @@ import type {
 } from "../types/portal";
 
 const MAX_SPARKLINE_POINTS = 60;
-function severityColor(pct: number, thresholds = [40, 80]) {
-  if (pct > thresholds[1]) return "var(--color-danger)";
-  if (pct > thresholds[0]) return "var(--color-warning)";
+function severityColor(percent: number, thresholds = [40, 80]) {
+  if (percent > thresholds[1]) return "var(--color-danger)";
+  if (percent > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
 }
 
@@ -704,11 +704,11 @@ function TopologyTab({
   // Walk upstream (full chain) + downstream (one level)
   const upstream = new Map();
   const downstream = new Map();
-  for (const e of allEdges) {
-    if (!upstream.has(e.target)) upstream.set(e.target, []);
-    upstream.get(e.target).push(e.source);
-    if (!downstream.has(e.source)) downstream.set(e.source, []);
-    downstream.get(e.source).push(e.target);
+  for (const edge of allEdges) {
+    if (!upstream.has(edge.target)) upstream.set(edge.target, []);
+    upstream.get(edge.target).push(edge.source);
+    if (!downstream.has(edge.source)) downstream.set(edge.source, []);
+    downstream.get(edge.source).push(edge.target);
   }
 
   const connected = new Set([service.id]);
@@ -727,7 +727,7 @@ function TopologyTab({
   // Filter services and edges to connected subgraph
   const graphServices = allServices.filter((s) => connected.has(s.id));
   const graphEdges = allEdges.filter(
-    (e) => connected.has(e.source) && connected.has(e.target),
+    (edge) => connected.has(edge.source) && connected.has(edge.target),
   );
 
   if (graphServices.length <= 1) {
@@ -746,8 +746,8 @@ function TopologyTab({
     tiers[tier].push(currentService);
   }
   for (const tier of tiers)
-    tier.sort((a: PortalService, b: PortalService) =>
-      a.name.localeCompare(b.name),
+    tier.sort((firstService: PortalService, secondService: PortalService) =>
+      firstService.name.localeCompare(secondService.name),
     );
 
   const GAP_X = 20;
@@ -1014,13 +1014,13 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
         <div className={styles.analyticsSection}>
           <h4 className={styles.sectionTitle}>Top Pages (30d)</h4>
           <div className={styles.analyticsPageList}>
-            {pages!.pages.slice(0, 5).map((p: GAPageRow, i: number) => (
+            {pages!.pages.slice(0, 5).map((page: GAPageRow, i: number) => (
               <div key={i} className={styles.analyticsPageRow}>
                 <span className={`${styles.analyticsPagePath} ${styles.mono}`}>
-                  {p.pagePath}
+                  {page.pagePath}
                 </span>
                 <span className={styles.analyticsPageViews}>
-                  {formatNumber(p.pageviews)}
+                  {formatNumber(page.pageviews)}
                 </span>
               </div>
             ))}

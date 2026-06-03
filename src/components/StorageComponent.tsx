@@ -316,10 +316,10 @@ export default function StorageComponent() {
   const globalSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Preview state
-  const [previewObject, setPreviewObject] = useState<StorageObject | null>(
+  const [previousStateiewObject, setPreviewObject] = useState<StorageObject | null>(
     null,
   );
-  const [previewStat, setPreviewStat] = useState<StorageObject | null>(null);
+  const [previousStateiewStat, setPreviewStat] = useState<StorageObject | null>(null);
 
   // Storage overview state
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -344,8 +344,8 @@ export default function StorageComponent() {
             setSkeletonCount(event.totalBuckets || 0);
             break;
           case "bucket":
-            if (event.bucket) setBuckets((prev) => [...prev, event.bucket!]);
-            setSkeletonCount((prev) => Math.max(0, prev - 1));
+            if (event.bucket) setBuckets((previousState) => [...previousState, event.bucket!]);
+            setSkeletonCount((previousState) => Math.max(0, previousState - 1));
             break;
           case "done":
             setStreaming(false);
@@ -533,8 +533,8 @@ export default function StorageComponent() {
   const filteredPrefixes = useMemo(() => {
     if (!search) return prefixes;
     const normalizedSearch = search.toLowerCase();
-    return prefixes.filter((p) =>
-      folderLabel(p, prefix).toLowerCase().includes(normalizedSearch),
+    return prefixes.filter((property) =>
+      folderLabel(property, prefix).toLowerCase().includes(normalizedSearch),
     );
   }, [prefixes, search, prefix]);
 
@@ -604,13 +604,13 @@ export default function StorageComponent() {
   const bucketSegments = useMemo(() => {
     if (!storageSummary?.buckets) return [];
     return storageSummary.buckets
-      .filter((b) => b.totalSize > 0)
-      .sort((a, b) => b.totalSize - a.totalSize)
-      .map((b, i) => ({
-        value: b.totalSize,
+      .filter((bucket) => bucket.totalSize > 0)
+      .sort((firstBucket, secondBucket) => secondBucket.totalSize - firstBucket.totalSize)
+      .map((bucket, i) => ({
+        value: bucket.totalSize,
         color: BUCKET_COLORS[i % BUCKET_COLORS.length],
-        label: b.name,
-        objectCount: b.objectCount,
+        label: bucket.name,
+        objectCount: bucket.objectCount,
       }));
   }, [storageSummary]);
 
@@ -1071,11 +1071,11 @@ export default function StorageComponent() {
         ))}
 
       {/* ── Preview Overlay ── */}
-      {previewObject && (
+      {previousStateiewObject && (
         <PreviewOverlay
           bucketName={activeBucket!}
-          object={previewObject}
-          stat={previewStat}
+          object={previousStateiewObject}
+          stat={previousStateiewStat}
           onClose={closePreview}
         />
       )}
@@ -1102,9 +1102,9 @@ function ObjectTableView({
   activeBucket: string;
   search: string;
   setSearch: (val: string) => void;
-  navigateToPrefix: (p: string) => void;
-  openPreview: (o: StorageObject) => void;
-  handleDelete: (o: StorageObject) => void;
+  navigateToPrefix: (targetPrefix: string) => void;
+  openPreview: (storageObject: StorageObject) => void;
+  handleDelete: (storageObject: StorageObject) => void;
 }) {
   return (
     <div className={styles.objectListContainer}>
@@ -1336,9 +1336,9 @@ function ObjectGridView({
   activeBucket: string;
   search: string;
   setSearch: (val: string) => void;
-  navigateToPrefix: (p: string) => void;
-  openPreview: (o: StorageObject) => void;
-  handleDelete: (o: StorageObject) => void;
+  navigateToPrefix: (targetPrefix: string) => void;
+  openPreview: (storageObject: StorageObject) => void;
+  handleDelete: (storageObject: StorageObject) => void;
 }) {
   return (
     <>
@@ -1607,62 +1607,62 @@ function PreviewOverlay({
   }, [onClose]);
 
   return (
-    <div className={styles.previewOverlay} onClick={onClose}>
-      <div className={styles.previewPanel} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.previewHeader}>
-          <span className={styles.previewTitle}>{filename}</span>
-          <button className={styles.previewCloseButton} onClick={onClose}>
+    <div className={styles.previousStateiewOverlay} onClick={onClose}>
+      <div className={styles.previousStateiewPanel} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.previousStateiewHeader}>
+          <span className={styles.previousStateiewTitle}>{filename}</span>
+          <button className={styles.previousStateiewCloseButton} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        <div className={styles.previewBody}>
+        <div className={styles.previousStateiewBody}>
           {mediaType === "image" && (
             <img
-              className={styles.previewImage}
+              className={styles.previousStateiewImage}
               src={downloadUrl}
               alt={filename}
             />
           )}
           {mediaType === "audio" && (
-            <audio className={styles.previewAudio} controls src={downloadUrl} />
+            <audio className={styles.previousStateiewAudio} controls src={downloadUrl} />
           )}
           {mediaType === "video" && (
-            <video className={styles.previewVideo} controls src={downloadUrl} />
+            <video className={styles.previousStateiewVideo} controls src={downloadUrl} />
           )}
           {!mediaType && (
-            <div className={styles.previewFallback}>
+            <div className={styles.previousStateiewFallback}>
               <File size={48} />
-              <span>No preview available for this file type</span>
+              <span>No previousStateiew available for this file type</span>
             </div>
           )}
 
           {/* ── Metadata Grid ── */}
-          <div className={styles.previewMeta}>
-            <span className={styles.previewMetaLabel}>Key</span>
-            <span className={styles.previewMetaValue}>{object.name}</span>
-            <span className={styles.previewMetaLabel}>Size</span>
-            <span className={styles.previewMetaValue}>
+          <div className={styles.previousStateiewMeta}>
+            <span className={styles.previousStateiewMetaLabel}>Key</span>
+            <span className={styles.previousStateiewMetaValue}>{object.name}</span>
+            <span className={styles.previousStateiewMetaLabel}>Size</span>
+            <span className={styles.previousStateiewMetaValue}>
               {formatBytes(stat?.size ?? object.size)}
             </span>
             {stat?.contentType && (
               <>
-                <span className={styles.previewMetaLabel}>Type</span>
-                <span className={styles.previewMetaValue}>
+                <span className={styles.previousStateiewMetaLabel}>Type</span>
+                <span className={styles.previousStateiewMetaValue}>
                   {stat.contentType}
                 </span>
               </>
             )}
             {stat?.etag && (
               <>
-                <span className={styles.previewMetaLabel}>ETag</span>
-                <span className={styles.previewMetaValue}>{stat.etag}</span>
+                <span className={styles.previousStateiewMetaLabel}>ETag</span>
+                <span className={styles.previousStateiewMetaValue}>{stat.etag}</span>
               </>
             )}
             {(stat?.lastModified || object.lastModified) && (
               <>
-                <span className={styles.previewMetaLabel}>Modified</span>
-                <span className={styles.previewMetaValue}>
+                <span className={styles.previousStateiewMetaLabel}>Modified</span>
+                <span className={styles.previousStateiewMetaValue}>
                   {new Date(
                     stat?.lastModified ||
                       object.lastModified ||
@@ -1674,7 +1674,7 @@ function PreviewOverlay({
           </div>
         </div>
 
-        <div className={styles.previewFooter}>
+        <div className={styles.previousStateiewFooter}>
           <ButtonComponent
             variant="secondary"
             icon={Download}

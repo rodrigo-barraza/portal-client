@@ -168,7 +168,7 @@ function ActionCell({
           iconSize={9}
           loading={rollingBack}
           disabled={rollingBack || restarting || stopping || starting}
-          title="Rollback to previous build"
+          title="Rollback to previousStateious build"
           className={styles.actionButton}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             event.stopPropagation();
@@ -514,7 +514,7 @@ export default function ContainerStatsComponent() {
     Record<string, Partial<ContainerStats>>
   >({});
   const [cpuHistory, setCpuHistory] = useState<number[]>([]);
-  const [memHistory, setMemHistory] = useState<number[]>([]);
+  const [memoryHistory, setMemoryHistory] = useState<number[]>([]);
   const [selectedContainer, setSelectedContainer] =
     useState<ContainerRow | null>(null);
   const [activeDevices, setActiveDevices] = useState<string[]>([]);
@@ -618,7 +618,7 @@ export default function ContainerStatsComponent() {
       );
 
       // Sort by name
-      rows.sort((a, b) => a.containerName.localeCompare(b.containerName));
+      rows.sort((firstItem, secondItem) => firstItem.containerName.localeCompare(secondItem.containerName));
 
       setContainerRows(rows);
 
@@ -641,17 +641,17 @@ export default function ContainerStatsComponent() {
           sum + (container.cpu?.percent || 0),
         0,
       );
-      const totalMem = containers.reduce(
+      const totalMemory = containers.reduce(
         (sum: number, container: Partial<ContainerStats>) =>
           sum + (container.memory?.used || 0),
         0,
       );
-      setCpuHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalCpu]);
-      setMemHistory((prev) => [...prev.slice(-(HISTORY_MAX - 1)), totalMem]);
+      setCpuHistory((previousState) => [...previousState.slice(-(HISTORY_MAX - 1)), totalCpu]);
+      setMemoryHistory((previousState) => [...previousState.slice(-(HISTORY_MAX - 1)), totalMemory]);
 
       // Accumulate per-container sparkline history
-      setContainerHistory((prev) => {
-        const next = { ...prev };
+      setContainerHistory((previousState) => {
+        const next = { ...previousState };
         for (const container of containers) {
           const existing = next[container.name] || { cpu: [], mem: [] };
           next[container.name] = {
@@ -669,9 +669,9 @@ export default function ContainerStatsComponent() {
       });
 
       // Update selected container if drawer is open
-      setSelectedContainer((prev) => {
-        if (!prev) return null;
-        return rows.find((r) => r.id === prev.id) || null;
+      setSelectedContainer((previousState) => {
+        if (!previousState) return null;
+        return rows.find((r) => r.id === previousState.id) || null;
       });
     } catch {
       // Don't break the page on error
@@ -710,20 +710,20 @@ export default function ContainerStatsComponent() {
         const seededHistory: Record<string, { cpu: number[]; mem: number[] }> =
           {};
         let totalCpuPoints: number[] = [];
-        let totalMemPoints: number[] = [];
+        let totalMemoryPoints: number[] = [];
 
         // Find the longest series length across all containers
-        let maxLen = 0;
+        let maxLength = 0;
         for (const [_name, data] of Object.entries(metricsResponse.containers) as [
           string,
           ContainerMetricsData,
         ][]) {
-          if (data.points?.length > maxLen) maxLen = data.points.length;
+          if (data.points?.length > maxLength) maxLength = data.points.length;
         }
 
         // Initialize totalCpu/Mem arrays with zeroes
-        totalCpuPoints = new Array(maxLen).fill(0);
-        totalMemPoints = new Array(maxLen).fill(0);
+        totalCpuPoints = new Array(maxLength).fill(0);
+        totalMemoryPoints = new Array(maxLength).fill(0);
 
         for (const [_name, data] of Object.entries(metricsResponse.containers) as [
           string,
@@ -736,22 +736,22 @@ export default function ContainerStatsComponent() {
           seededHistory[_name] = { cpu: cpuPoints, mem: memoryPoints };
 
           // Accumulate totals — right-align shorter series
-          const offset = maxLen - data.points.length;
+          const offset = maxLength - data.points.length;
           for (let i = 0; i < data.points.length; i++) {
             totalCpuPoints[offset + i] += data.points[i].cpu || 0;
-            totalMemPoints[offset + i] += data.points[i].mem || 0;
+            totalMemoryPoints[offset + i] += data.points[i].mem || 0;
           }
         }
 
         // Only seed if we got meaningful data
         if (Object.keys(seededHistory).length > 0) {
-          setContainerHistory((prev) => {
+          setContainerHistory((previousState) => {
             // Don't overwrite if live polling has already populated data
-            if (Object.keys(prev).length > 0) return prev;
+            if (Object.keys(previousState).length > 0) return previousState;
             return seededHistory;
           });
-          setCpuHistory((prev) => (prev.length > 2 ? prev : totalCpuPoints));
-          setMemHistory((prev) => (prev.length > 2 ? prev : totalMemPoints));
+          setCpuHistory((previousState) => (previousState.length > 2 ? previousState : totalCpuPoints));
+          setMemoryHistory((previousState) => (previousState.length > 2 ? previousState : totalMemoryPoints));
         }
       } catch {
         // Non-critical — sparklines will just build from live data
@@ -919,15 +919,15 @@ export default function ContainerStatsComponent() {
 
   const avgCpuUsage =
     filteredStats.length > 0
-      ? filteredStats.reduce((sum, c) => sum + (c.cpu?.percent || 0), 0) /
+      ? filteredStats.reduce((sum, container) => sum + (container.cpu?.percent || 0), 0) /
         filteredStats.length
       : 0;
   const totalCpuUsage = filteredStats.reduce(
-    (sum, c) => sum + (c.cpu?.percent || 0),
+    (sum, container) => sum + (container.cpu?.percent || 0),
     0,
   );
-  const totalMemUsed = filteredStats.reduce(
-    (sum, c) => sum + (c.memory?.used || 0),
+  const totalMemoryUsed = filteredStats.reduce(
+    (sum, container) => sum + (container.memory?.used || 0),
     0,
   );
 
@@ -947,17 +947,17 @@ export default function ContainerStatsComponent() {
 
   // Use actual host RAM from systemInfo instead of summing per-container cgroup limits.
   // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
-  const totalMemLimit = useMemo((): number => {
+  const totalMemoryLimit = useMemo((): number => {
     if (systemInfo) {
       const devices: SystemInfo[] = Array.isArray(systemInfo)
         ? systemInfo
         : [systemInfo];
       if (activeDevices.length > 0) {
         return devices
-          .filter((d) => activeDevices.includes(d.deviceId))
-          .reduce((sum, d) => sum + (d.totalMemory || 0), 0);
+          .filter((deviceInfo) => activeDevices.includes(deviceInfo.deviceId))
+          .reduce((sum, deviceInfo) => sum + (deviceInfo.totalMemory || 0), 0);
       }
-      return devices.reduce((sum, d) => sum + (d.totalMemory || 0), 0);
+      return devices.reduce((sum, deviceInfo) => sum + (deviceInfo.totalMemory || 0), 0);
     }
     // Fallback: take max memory.limit per device (cgroup limit = host RAM for uncapped containers)
     const perDevice: Record<string, number> = {};
@@ -967,13 +967,13 @@ export default function ContainerStatsComponent() {
       perDevice[dev] = Math.max(perDevice[dev] || 0, limit);
     }
     return (Object.values(perDevice) as number[]).reduce(
-      (sum, v) => sum + v,
+      (sum, value) => sum + value,
       0,
     );
   }, [systemInfo, activeDevices, filteredRows]);
 
-  const memPercent =
-    totalMemLimit > 0 ? (totalMemUsed / totalMemLimit) * 100 : 0;
+  const memoryPercent =
+    totalMemoryLimit > 0 ? (totalMemoryUsed / totalMemoryLimit) * 100 : 0;
   const totalNetRx = filteredRows.reduce(
     (sum, r) => sum + (r._stats?.network?.rx || 0),
     0,
@@ -1089,7 +1089,7 @@ export default function ContainerStatsComponent() {
                 {activeDevices.length > 0
                   ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
                   : systemInfo
-                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((s, d) => s + (d.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
+                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
                     : `${healthyCount} healthy`}
               </span>
             </div>
@@ -1126,7 +1126,7 @@ export default function ContainerStatsComponent() {
               height={48}
               historyMax={HISTORY_MAX}
               showGrid
-              formatValue={(v: number) => formatPercent(v, "adaptive")}
+              formatValue={(value: number) => formatPercent(value, "adaptive")}
             />
           </div>
 
@@ -1144,26 +1144,26 @@ export default function ContainerStatsComponent() {
               <div className={styles.statCardContent}>
                 <span
                   className={styles.statCardValue}
-                  style={{ color: severityColor(memPercent, [60, 85]) }}
+                  style={{ color: severityColor(memoryPercent, [60, 85]) }}
                 >
-                  {formatBytes(totalMemUsed)}
+                  {formatBytes(totalMemoryUsed)}
                 </span>
                 <span className={styles.statCardLabel}>Memory Used</span>
                 <span className={styles.statCardSub}>
-                  {totalMemLimit
-                    ? `${formatPercent(memPercent, "adaptive")} of ${formatBytes(totalMemLimit)} total`
+                  {totalMemoryLimit
+                    ? `${formatPercent(memoryPercent, "adaptive")} of ${formatBytes(totalMemoryLimit)} total`
                     : "—"}
                 </span>
               </div>
             </div>
             <ChartLineComponent
-              data={memHistory}
+              data={memoryHistory}
               color="#3b82f6"
-              maxValue={totalMemLimit || 1}
+              maxValue={totalMemoryLimit || 1}
               height={48}
               historyMax={HISTORY_MAX}
               showGrid
-              formatValue={(v: number) => formatBytes(v)}
+              formatValue={(value: number) => formatBytes(value)}
             />
           </div>
 

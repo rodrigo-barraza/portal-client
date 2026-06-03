@@ -232,8 +232,8 @@ function layoutTypeNodes(groups: { type: string; members: PortalService[] }[]) {
     for (let columnIndex = 0; columnIndex < TYPE_COLS && i + columnIndex < groups.length; columnIndex++) {
       const groupIndex = i + columnIndex;
       const { columnCount, height } = sizes[groupIndex];
-      const colX = columnIndex === 0 ? 0 : columnWidths[0] + TYPE_GROUP_GAP_X;
-      const clusterX = colX + (columnWidths[columnIndex] - sizes[groupIndex].width) / 2;
+      const columnX = columnIndex === 0 ? 0 : columnWidths[0] + TYPE_GROUP_GAP_X;
+      const clusterX = columnX + (columnWidths[columnIndex] - sizes[groupIndex].width) / 2;
       const clusterY = rowY + LABEL_H;
 
       groups[groupIndex].members.forEach((service, serviceIndex) => {
@@ -690,7 +690,7 @@ export default function TopologyComponent() {
 
   const allEdges = useMemo(() => collectEdges(filteredServices), [filteredServices]);
   const edges = useMemo(
-    () => allEdges.filter((e) => edgeVisibility[e.type]),
+    () => allEdges.filter((edge) => edgeVisibility[edge.type]),
     [allEdges, edgeVisibility],
   );
 
@@ -702,7 +702,7 @@ export default function TopologyComponent() {
       tooling: 0,
       infra: 0,
     };
-    for (const e of allEdges) counts[e.type] = (counts[e.type] || 0) + 1;
+    for (const edge of allEdges) counts[edge.type] = (counts[edge.type] || 0) + 1;
     return counts;
   }, [allEdges]);
 
@@ -863,11 +863,11 @@ export default function TopologyComponent() {
 
     const upstream = new Map(); // target → [sources]
     const downstream = new Map(); // source → [targets]
-    for (const e of edges) {
-      if (!upstream.has(e.target)) upstream.set(e.target, []);
-      upstream.get(e.target).push(e.source);
-      if (!downstream.has(e.source)) downstream.set(e.source, []);
-      downstream.get(e.source).push(e.target);
+    for (const edge of edges) {
+      if (!upstream.has(edge.target)) upstream.set(edge.target, []);
+      upstream.get(edge.target).push(edge.source);
+      if (!downstream.has(edge.source)) downstream.set(edge.source, []);
+      downstream.get(edge.source).push(edge.target);
     }
 
     // Walk full upstream chain
@@ -893,13 +893,13 @@ export default function TopologyComponent() {
     // "outgoing" = direct edge OUT FROM the selected node (immediate consumer)
     // "network"  = transitive edge between other connected nodes
     const dirMap = new Map<string, "incoming" | "outgoing" | "network">();
-    for (const e of edges) {
-      const key = `${e.source}-${e.target}`;
-      if (!visited.has(e.source) || !visited.has(e.target)) continue;
+    for (const edge of edges) {
+      const key = `${edge.source}-${edge.target}`;
+      if (!visited.has(edge.source) || !visited.has(edge.target)) continue;
 
-      if (e.target === selectedNode) {
+      if (edge.target === selectedNode) {
         dirMap.set(key, "incoming");
-      } else if (e.source === selectedNode) {
+      } else if (edge.source === selectedNode) {
         dirMap.set(key, "outgoing");
       } else {
         dirMap.set(key, "network");
@@ -1043,20 +1043,20 @@ export default function TopologyComponent() {
   }, [draggingNodeState, isPanning]);
 
   // ── Zoom toward cursor ──────────────────────────────────────
-  const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
+  const handleWheel = useCallback((event: WheelEvent) => {
+    event.preventDefault();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
     const currentZoom = zoomRef.current;
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const delta = event.deltaY > 0 ? 0.9 : 1.1;
     const next = Math.min(3, Math.max(0.2, currentZoom * delta));
     const ratio = next / currentZoom;
     zoomRef.current = next;
-    setPan((p) => ({
-      x: mouseX - ratio * (mouseX - p.x),
-      y: mouseY - ratio * (mouseY - p.y),
+    setPan((previousPan) => ({
+      x: mouseX - ratio * (mouseX - previousPan.x),
+      y: mouseY - ratio * (mouseY - previousPan.y),
     }));
     setZoom(next);
   }, []);
@@ -1476,8 +1476,8 @@ export default function TopologyComponent() {
                               fill: typeConfig.fill,
                             }}
                             data-topology-cluster
-                            onMouseDown={(e) =>
-                              handleClusterMouseDown(e, "tier", tierIndex)
+                            onMouseDown={(event) =>
+                              handleClusterMouseDown(event, "tier", tierIndex)
                             }
                           />
                           {/* Drag handle icon */}
@@ -1488,8 +1488,8 @@ export default function TopologyComponent() {
                             height={16}
                             className={styles.clusterDragHandle}
                             data-topology-cluster
-                            onMouseDown={(e) =>
-                              handleClusterMouseDown(e, "tier", tierIndex)
+                            onMouseDown={(event) =>
+                              handleClusterMouseDown(event, "tier", tierIndex)
                             }
                           >
                             <Move size={12} strokeWidth={1.5} />
@@ -1542,8 +1542,8 @@ export default function TopologyComponent() {
                             fill: `color-mix(in srgb, ${typeConfig.color} 4%, transparent)`,
                           }}
                           data-topology-cluster
-                          onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "type", groupIndex)
+                          onMouseDown={(event) =>
+                            handleClusterMouseDown(event, "type", groupIndex)
                           }
                         />
                         <foreignObject
@@ -1553,8 +1553,8 @@ export default function TopologyComponent() {
                           height={16}
                           className={styles.clusterDragHandle}
                           data-topology-cluster
-                          onMouseDown={(e) =>
-                            handleClusterMouseDown(e, "type", groupIndex)
+                          onMouseDown={(event) =>
+                            handleClusterMouseDown(event, "type", groupIndex)
                           }
                         >
                           <Move size={12} strokeWidth={1.5} />
@@ -1610,8 +1610,8 @@ export default function TopologyComponent() {
                     >
                       <div
                         className={`${styles.nodeCard} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === service.id ? styles.nodeSelected : ""}${isFaded ? ` ${styles.nodeFaded}` : ""}`}
-                        onMouseDown={(e) => handleNodeMouseDown(e, service)}
-                        onMouseEnter={(e) => handleNodeEnter(e, service)}
+                        onMouseDown={(event) => handleNodeMouseDown(event, service)}
+                        onMouseEnter={(event) => handleNodeEnter(event, service)}
                         onMouseMove={handleNodeMove}
                         onMouseLeave={handleNodeLeave}
                         style={
@@ -1727,7 +1727,7 @@ export default function TopologyComponent() {
                 EdgeType,
                 (typeof EDGE_TYPE_CONFIG)[EdgeType],
               ][]
-            ).map(([type, cfg]) => {
+            ).map(([type, config]) => {
               const visible = edgeVisibility[type];
               const count = edgeTypeCounts[type] || 0;
               return (
@@ -1735,18 +1735,18 @@ export default function TopologyComponent() {
                   key={type}
                   className={`${styles.legendItem} ${styles.legendToggle}${!visible ? ` ${styles.legendToggleOff}` : ""}`}
                   onClick={() => toggleEdgeType(type)}
-                  title={`${visible ? "Hide" : "Show"} ${cfg.label} (${count})`}
+                  title={`${visible ? "Hide" : "Show"} ${config.label} (${count})`}
                 >
                   <div
                     className={styles.legendEdgeLine}
                     style={{
-                      borderTopColor: cfg.color,
-                      borderTopStyle: cfg.dash === "none" ? "solid" : "dashed",
-                      borderTopWidth: `${Math.max(cfg.width, 1.5)}px`,
+                      borderTopColor: config.color,
+                      borderTopStyle: config.dash === "none" ? "solid" : "dashed",
+                      borderTopWidth: `${Math.max(config.width, 1.5)}px`,
                       opacity: visible ? 1 : 0.3,
                     }}
                   />
-                  <span>{cfg.label}</span>
+                  <span>{config.label}</span>
                   <span className={styles.legendCount}>{count}</span>
                   {visible ? (
                     <Eye
@@ -1966,10 +1966,10 @@ export default function TopologyComponent() {
                             🔗 API Calls
                           </span>
                           <span className={styles.tooltipDepList}>
-                            {detected.apiCalls
-                              .map((a: { target: string }) => a.target)
-                              .join(", ")}
-                          </span>
+                             {detected.apiCalls
+                               .map((apiCall: { target: string }) => apiCall.target)
+                               .join(", ")}
+                           </span>
                         </>
                       )}
                     </div>
@@ -1978,13 +1978,13 @@ export default function TopologyComponent() {
               {(tooltipData.dependsOn?.length ?? 0) > 0 &&
                 (() => {
                   const deps = tooltipData.dependsOn!;
-                  const required = deps.filter((d) =>
-                    typeof d === "string" ? true : d.criticality !== "optional",
+                  const required = deps.filter((data) =>
+                    typeof data === "string" ? true : data.criticality !== "optional",
                   );
-                  const optional = deps.filter((d) =>
-                    typeof d === "string"
+                  const optional = deps.filter((data) =>
+                    typeof data === "string"
                       ? false
-                      : d.criticality === "optional",
+                      : data.criticality === "optional",
                   );
                   return (
                     <div className={styles.tooltipDeps}>
@@ -1995,7 +1995,7 @@ export default function TopologyComponent() {
                           </span>
                           <span className={styles.tooltipDepList}>
                             {required
-                              .map((d) => (typeof d === "string" ? d : d.name))
+                              .map((data) => (typeof data === "string" ? data : data.name))
                               .join(", ")}
                           </span>
                         </>
@@ -2011,7 +2011,7 @@ export default function TopologyComponent() {
                             className={`${styles.tooltipDepList} ${styles.tooltipDepListOptional}`}
                           >
                             {optional
-                              .map((d) => (typeof d === "string" ? d : d.name))
+                              .map((data) => (typeof data === "string" ? data : data.name))
                               .join(", ")}
                           </span>
                         </>

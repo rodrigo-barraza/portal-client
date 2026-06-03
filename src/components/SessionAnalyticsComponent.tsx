@@ -243,7 +243,7 @@ export default function SessionAnalyticsComponent({
   // ── Load Reports ──────────────────────────────────────────
 
   const loadReports = useCallback(
-    async (p: string) => {
+    async (selectedPeriod: string) => {
       setLoading(true);
       try {
         const [
@@ -255,13 +255,13 @@ export default function SessionAnalyticsComponent({
           tsRes,
           eventsRes,
         ] = await Promise.all([
-          ApiService.getSessionOverview(projectId, p).catch(() => null),
-          ApiService.getSessionPages(projectId, p).catch(() => null),
-          ApiService.getSessionReferrers(projectId, p).catch(() => null),
-          ApiService.getSessionGeo(projectId, p).catch(() => null),
-          ApiService.getSessionDevices(projectId, p).catch(() => null),
-          ApiService.getSessionTimeSeries(projectId, p).catch(() => null),
-          ApiService.getSessionEvents(projectId, p).catch(() => null),
+          ApiService.getSessionOverview(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionPages(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionReferrers(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionGeo(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionDevices(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionTimeSeries(projectId, selectedPeriod).catch(() => null),
+          ApiService.getSessionEvents(projectId, selectedPeriod).catch(() => null),
         ]);
 
         setOverview(overviewRes?.data ?? overviewRes);
@@ -306,7 +306,7 @@ export default function SessionAnalyticsComponent({
   // ── Computed ──────────────────────────────────────────────
 
   const maxPageViews =
-    pages && pages.length > 0 ? Math.max(...pages.map((p) => p.views)) : 0;
+    pages && pages.length > 0 ? Math.max(...pages.map((property) => property.views)) : 0;
 
   const maxReferrerSessions =
     referrers && referrers.length > 0
@@ -330,19 +330,19 @@ export default function SessionAnalyticsComponent({
 
   const osSegments = useMemo((): DonutSegment[] => {
     if (!devices?.operatingSystems) return [];
-    return devices.operatingSystems.map((d, i) => ({
-      value: d.sessions,
+    return devices.operatingSystems.map((osItem, i) => ({
+      value: osItem.sessions,
       color: CHART_COLORS[(i + 5) % CHART_COLORS.length],
-      label: d.name,
+      label: osItem.name,
     }));
   }, [devices]);
 
   const deviceTypeSegments = useMemo((): DonutSegment[] => {
     if (!devices?.deviceTypes) return [];
-    return devices.deviceTypes.map((d, i) => ({
-      value: d.sessions,
+    return devices.deviceTypes.map((deviceType, i) => ({
+      value: deviceType.sessions,
       color: CHART_COLORS[i % CHART_COLORS.length],
-      label: d.type,
+      label: deviceType.type,
     }));
   }, [devices]);
 
@@ -383,13 +383,13 @@ export default function SessionAnalyticsComponent({
       >
         <div className={styles.headerControls}>
           <div className={styles.periodTabs}>
-            {["7d", "30d", "90d"].map((p) => (
+            {["7d", "30d", "90d"].map((presetPeriod) => (
               <button
-                key={p}
-                className={`${styles.periodTab} ${period === p ? styles.activeTab : ""}`}
-                onClick={() => setPeriod(p)}
+                key={presetPeriod}
+                className={`${styles.periodTab} ${period === presetPeriod ? styles.activeTab : ""}`}
+                onClick={() => setPeriod(presetPeriod)}
               >
-                {p}
+                {presetPeriod}
               </button>
             ))}
           </div>
@@ -492,8 +492,8 @@ export default function SessionAnalyticsComponent({
                     ] as const
                   ).map((metric) => {
                     const values = timeSeries.map(
-                      (d) =>
-                        (d as unknown as Record<string, number>)[metric.key] ||
+                      (point) =>
+                        (point as unknown as Record<string, number>)[metric.key] ||
                         0,
                     );
                     const max = Math.max(...values, 1);
@@ -506,7 +506,7 @@ export default function SessionAnalyticsComponent({
                         height={140}
                         historyMax={values.length}
                         showGrid
-                        formatValue={(v: number) => formatNumber(Math.round(v))}
+                        formatValue={(value: number) => formatNumber(Math.round(value))}
                       />
                     );
                   })}
@@ -665,11 +665,11 @@ export default function SessionAnalyticsComponent({
                       centerLabel="Sessions"
                     />
                     <div className={styles.donutLegend}>
-                      {devices.deviceTypes.map((d, i) => (
+                      {devices.deviceTypes.map((deviceType, i) => (
                         <HorizontalBar
-                          key={d.type}
-                          label={d.type || "Unknown"}
-                          value={d.sessions}
+                          key={deviceType.type}
+                          label={deviceType.type || "Unknown"}
+                          value={deviceType.sessions}
                           max={Math.max(
                             ...devices.deviceTypes.map((dt) => dt.sessions),
                           )}
@@ -738,13 +738,13 @@ export default function SessionAnalyticsComponent({
                   centerLabel="Sessions"
                 />
                 <div className={styles.donutLegend}>
-                  {devices.operatingSystems.slice(0, 6).map((d, i) => (
+                  {devices.operatingSystems.slice(0, 6).map((osItem, i) => (
                     <HorizontalBar
-                      key={d.name}
-                      label={d.name}
-                      value={d.sessions}
+                      key={osItem.name}
+                      label={osItem.name}
+                      value={osItem.sessions}
                       max={Math.max(
-                        ...devices.operatingSystems.map((o) => o.sessions),
+                        ...devices.operatingSystems.map((option) => option.sessions),
                       )}
                       color={CHART_COLORS[(i + 5) % CHART_COLORS.length]}
                       suffix=" sessions"

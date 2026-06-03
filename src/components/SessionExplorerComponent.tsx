@@ -145,8 +145,8 @@ interface SessionDetail extends SessionRow {
 
 // ── Helpers ───────────────────────────────────────────────────
 
-function formatTimeAgo(dateStr: string): string {
-  const delta = Date.now() - new Date(dateStr).getTime();
+function formatTimeAgo(dateString: string): string {
+  const delta = Date.now() - new Date(dateString).getTime();
   const seconds = Math.floor(delta / 1000);
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
@@ -157,8 +157,8 @@ function formatTimeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-function formatTimestamp(dateStr: string): string {
-  const parsedDate = new Date(dateStr);
+function formatTimestamp(dateString: string): string {
+  const parsedDate = new Date(dateString);
   return parsedDate.toLocaleString("en-US", {
     month: "short",
     day: "numeric",

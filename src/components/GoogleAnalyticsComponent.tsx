@@ -284,7 +284,7 @@ function SparklineChart({
     <div className={styles.sparklineStack}>
       {metrics.map((metric) => {
         const values = series.map(
-          (d) => (d as unknown as Record<string, number>)[metric.key] || 0,
+          (point) => (point as unknown as Record<string, number>)[metric.key] || 0,
         );
         const max = Math.max(...values, 1);
         return (
@@ -296,7 +296,7 @@ function SparklineChart({
             height={140}
             historyMax={values.length}
             showGrid
-            formatValue={(v: number) => formatNumber(Math.round(v))}
+            formatValue={(value: number) => formatNumber(Math.round(value))}
           />
         );
       })}
@@ -373,7 +373,7 @@ export default function GoogleAnalyticsComponent({
         setProperties(props);
         // Auto-select from URL param, or if exactly one property
         if (propertyId) {
-          const match = props.find((p: GAProperty) => p.id === propertyId);
+          const match = props.find((propertyItem: GAProperty) => propertyItem.id === propertyId);
           if (match) setSelectedProperty(match);
         } else if (props.length === 1) {
           setSelectedProperty(props[0]);
@@ -389,7 +389,7 @@ export default function GoogleAnalyticsComponent({
   // ── Load Reports ──────────────────────────────────────────
 
   const loadReports = useCallback(
-    async (property: GAProperty | null, p: string) => {
+    async (property: GAProperty | null, selectedPeriod: string) => {
       if (!property) return;
       setReportsLoading(true);
 
@@ -407,17 +407,17 @@ export default function GoogleAnalyticsComponent({
           nvrRes,
           eventsRes,
         ] = await Promise.all([
-          ApiService.getGAOverview(property.id, p).catch(() => null),
-          ApiService.getGAPages(property.id, p).catch(() => null),
-          ApiService.getGASources(property.id, p).catch(() => null),
-          ApiService.getGAGeography(property.id, p).catch(() => null),
-          ApiService.getGADevices(property.id, p).catch(() => null),
-          ApiService.getGATimeSeries(property.id, p).catch(() => null),
-          ApiService.getGAChannels(property.id, p).catch(() => null),
-          ApiService.getGALandingPages(property.id, p).catch(() => null),
-          ApiService.getGAHeatmap(property.id, p).catch(() => null),
-          ApiService.getGANewVsReturning(property.id, p).catch(() => null),
-          ApiService.getGAEvents(property.id, p).catch(() => null),
+          ApiService.getGAOverview(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGAPages(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGASources(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGAGeography(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGADevices(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGATimeSeries(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGAChannels(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGALandingPages(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGAHeatmap(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGANewVsReturning(property.id, selectedPeriod).catch(() => null),
+          ApiService.getGAEvents(property.id, selectedPeriod).catch(() => null),
         ]);
 
         setOverview(overviewRes);
@@ -479,10 +479,10 @@ export default function GoogleAnalyticsComponent({
 
   const deviceSegments = useMemo(() => {
     if (!devices?.categories) return [];
-    return devices.categories.map((d, i) => ({
-      value: d.sessions,
+    return devices.categories.map((deviceCategory, i) => ({
+      value: deviceCategory.sessions,
       color: CHART_COLORS[i % CHART_COLORS.length],
-      label: d.category,
+      label: deviceCategory.category,
     }));
   }, [devices]);
 
@@ -507,10 +507,10 @@ export default function GoogleAnalyticsComponent({
 
   const osSegments = useMemo(() => {
     if (!devices?.operatingSystems) return [];
-    return devices.operatingSystems.map((d, i) => ({
-      value: d.sessions,
+    return devices.operatingSystems.map((osItem, i) => ({
+      value: osItem.sessions,
       color: CHART_COLORS[(i + 5) % CHART_COLORS.length],
-      label: d.os,
+      label: osItem.os,
     }));
   }, [devices]);
 
@@ -530,7 +530,7 @@ export default function GoogleAnalyticsComponent({
 
   const maxChannelSessions =
     channels?.channels && channels.channels.length > 0
-      ? Math.max(...channels.channels.map((c) => c.sessions))
+      ? Math.max(...channels.channels.map((channel) => channel.sessions))
       : 0;
 
   const maxEventCount =
@@ -557,13 +557,13 @@ export default function GoogleAnalyticsComponent({
       "Sunday",
     ];
     const grid: Record<string, number> = {};
-    let maxVal = 0;
+    let maxValue = 0;
     for (const cell of heatmap.cells) {
       const key = `${cell.day}:${cell.hour}`;
       grid[key] = (grid[key] || 0) + cell.users;
-      if (grid[key] > maxVal) maxVal = grid[key];
+      if (grid[key] > maxValue) maxValue = grid[key];
     }
-    return { grid, dayOrder, maxVal };
+    return { grid, dayOrder, maxValue };
   }, [heatmap]);
 
   // ── Table columns for pages ───────────────────────────────
@@ -924,8 +924,8 @@ export default function GoogleAnalyticsComponent({
                         {Array.from({ length: 24 }, (_, h) => {
                           const value = heatmapData.grid[`${day}:${h}`] || 0;
                           const intensity =
-                            heatmapData.maxVal > 0
-                              ? value / heatmapData.maxVal
+                            heatmapData.maxValue > 0
+                              ? value / heatmapData.maxValue
                               : 0;
                           return (
                             <div
@@ -963,11 +963,11 @@ export default function GoogleAnalyticsComponent({
                     </div>
                     <div className={styles.panelBody}>
                       <div className={styles.barList}>
-                        {channels!.channels.map((c, i) => (
+                        {channels!.channels.map((channel, i) => (
                           <HorizontalBar
-                            key={c.channel}
-                            label={c.channel}
-                            value={c.sessions}
+                            key={channel.channel}
+                            label={channel.channel}
+                            value={channel.sessions}
                             max={maxChannelSessions}
                             color={CHART_COLORS[i % CHART_COLORS.length]}
                           />
@@ -1097,14 +1097,14 @@ export default function GoogleAnalyticsComponent({
                         />
                         <div className={styles.donutLegend}>
                           {devices.categories.map(
-                            (d: GADeviceCategory, i: number) => (
+                            (deviceCategory: GADeviceCategory, i: number) => (
                               <HorizontalBar
-                                key={d.category}
-                                label={d.category}
-                                value={d.sessions}
+                                key={deviceCategory.category}
+                                label={deviceCategory.category}
+                                value={deviceCategory.sessions}
                                 max={Math.max(
                                   ...devices.categories.map(
-                                    (c: GADeviceCategory) => c.sessions,
+                                    (item: GADeviceCategory) => item.sessions,
                                   ),
                                 )}
                                 color={CHART_COLORS[i % CHART_COLORS.length]}
@@ -1184,14 +1184,14 @@ export default function GoogleAnalyticsComponent({
                       <div className={styles.donutLegend}>
                         {devices?.operatingSystems
                           ?.slice(0, 6)
-                          .map((d: GAOperatingSystem, i: number) => (
+                          .map((osItem: GAOperatingSystem, i: number) => (
                             <HorizontalBar
-                              key={d.os}
-                              label={d.os}
-                              value={d.sessions}
+                              key={osItem.os}
+                              label={osItem.os}
+                              value={osItem.sessions}
                               max={Math.max(
                                 ...(devices.operatingSystems || []).map(
-                                  (o: GAOperatingSystem) => o.sessions,
+                                  (operatingSystem: GAOperatingSystem) => operatingSystem.sessions,
                                 ),
                               )}
                               color={

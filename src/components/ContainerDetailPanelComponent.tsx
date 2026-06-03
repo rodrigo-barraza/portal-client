@@ -40,11 +40,11 @@ import styles from "./ContainerDetailPanelComponent.module.css";
 const MAX_SPARKLINE_POINTS = 60;
 
 function severityColor(
-  pct: number,
+  percent: number,
   thresholds: [number, number] = [40, 80],
 ): string {
-  if (pct > thresholds[1]) return "var(--color-danger)";
-  if (pct > thresholds[0]) return "var(--color-warning)";
+  if (percent > thresholds[1]) return "var(--color-danger)";
+  if (percent > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
 }
 
@@ -114,16 +114,16 @@ export default function ContainerDetailPanel({
         if (containerData?.points?.length >= 2) {
           setHistory({
             cpu: containerData.points.map(
-              (p: ContainerMetricsPoint) => p.cpu ?? 0,
+              (point: ContainerMetricsPoint) => point.cpu ?? 0,
             ),
             mem: containerData.points.map(
-              (p: ContainerMetricsPoint) => p.mem ?? 0,
+              (point: ContainerMetricsPoint) => point.mem ?? 0,
             ),
             netRx: containerData.points.map(
-              (p: ContainerMetricsPoint) => p.netRx ?? 0,
+              (point: ContainerMetricsPoint) => point.netRx ?? 0,
             ),
             netTx: containerData.points.map(
-              (p: ContainerMetricsPoint) => p.netTx ?? 0,
+              (point: ContainerMetricsPoint) => point.netTx ?? 0,
             ),
           });
           return;
@@ -134,7 +134,7 @@ export default function ContainerDetailPanel({
         const statsHistoryResponse = await ApiService.getContainerStatsHistory();
         if (statsHistoryResponse?.history) {
           const cpuPoints: number[] = [];
-          const memPoints: number[] = [];
+          const memoryPoints: number[] = [];
           const netRxPoints: number[] = [];
           const netTxPoints: number[] = [];
 
@@ -152,7 +152,7 @@ export default function ContainerDetailPanel({
                 snapshotRecord?.containers?.[container.containerName];
               if (containerSnapshot) {
                 cpuPoints.push(containerSnapshot.cpu ?? 0);
-                memPoints.push(containerSnapshot.memoryUsed ?? 0);
+                memoryPoints.push(containerSnapshot.memoryUsed ?? 0);
                 netRxPoints.push(containerSnapshot.netRx ?? 0);
                 netTxPoints.push(containerSnapshot.netTx ?? 0);
               }
@@ -162,7 +162,7 @@ export default function ContainerDetailPanel({
           if (cpuPoints.length >= 2) {
             setHistory({
               cpu: cpuPoints,
-              mem: memPoints,
+              mem: memoryPoints,
               netRx: netRxPoints,
               netTx: netTxPoints,
             });
@@ -325,7 +325,7 @@ export default function ContainerDetailPanel({
                 maxValue={100}
                 height={36}
                 historyMax={MAX_SPARKLINE_POINTS}
-                formatValue={(v: number) => `${v.toFixed(1)}%`}
+                formatValue={(value: number) => `${value.toFixed(1)}%`}
               />
             )}
           </div>
@@ -395,7 +395,7 @@ export default function ContainerDetailPanel({
                 maxValue={stats.memory.limit}
                 height={36}
                 historyMax={MAX_SPARKLINE_POINTS}
-                formatValue={(v: number) => formatBytes(v)}
+                formatValue={(value: number) => formatBytes(value)}
               />
             )}
           </div>
@@ -617,13 +617,13 @@ export default function ContainerDetailPanel({
                 <span className={styles.metricCardTitle}>Port Mappings</span>
               </div>
               <div className={styles.portList}>
-                {stats.ports.map((p: PortMapping, i: number) => (
+                {stats.ports.map((port: PortMapping, i: number) => (
                   <div key={i} className={styles.portRow}>
                     <span className={styles.portMapping}>
-                      {p.publicPort
-                        ? `${p.ip || "0.0.0.0"}:${p.publicPort}`
+                      {port.publicPort
+                        ? `${port.ip || "0.0.0.0"}:${port.publicPort}`
                         : "—"}{" "}
-                      → {p.privatePort}/{p.type}
+                      → {port.privatePort}/{port.type}
                     </span>
                   </div>
                 ))}
@@ -646,18 +646,18 @@ export default function ContainerDetailPanel({
                 </span>
               </div>
               <div className={styles.mountList}>
-                {stats.mounts.map((m: VolumeMount, i: number) => (
+                {stats.mounts.map((mount: VolumeMount, i: number) => (
                   <div key={i} className={styles.mountRow}>
-                    <span className={styles.mountType}>{m.type}</span>
+                    <span className={styles.mountType}>{mount.type}</span>
                     <span
                       className={styles.mountPath}
-                      title={`${m.source} → ${m.destination}`}
+                      title={`${mount.source} → ${mount.destination}`}
                     >
-                      {m.name || m.source?.split("/").pop() || m.source} →{" "}
-                      {m.destination}
+                      {mount.name || mount.source?.split("/").pop() || mount.source} →{" "}
+                      {mount.destination}
                     </span>
                     <span className={styles.mountMode}>
-                      {m.rw ? "rw" : "ro"}
+                      {mount.rw ? "rw" : "ro"}
                     </span>
                   </div>
                 ))}
@@ -681,7 +681,7 @@ export default function ContainerDetailPanel({
               </div>
               <div className={styles.labelList}>
                 {Object.entries(stats.labels)
-                  .sort(([a], [b]) => a.localeCompare(b))
+                  .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
                   .map(([key, value]) => (
                     <div key={key} className={styles.labelRow}>
                       <span className={styles.labelKey} title={key}>

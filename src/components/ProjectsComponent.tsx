@@ -65,34 +65,34 @@ const STATIC_FILTER_OPTIONS = {
 
 /** Compare two services by the chosen sort key. */
 function compareBySortKey(
-  a: PortalService,
-  b: PortalService,
+  firstService: PortalService,
+  secondService: PortalService,
   sortKey: string,
   sortDir: string,
 ) {
   const dir = sortDir === "asc" ? 1 : -1;
   switch (sortKey) {
     case "name":
-      return dir * (a.name || "").localeCompare(b.name || "");
+      return dir * (firstService.name || "").localeCompare(secondService.name || "");
     case "status":
       // healthy first in asc, down first in desc
-      return dir * ((b.healthy ? 1 : 0) - (a.healthy ? 1 : 0));
+      return dir * ((secondService.healthy ? 1 : 0) - (firstService.healthy ? 1 : 0));
     case "type":
-      return dir * (a.projectType || "").localeCompare(b.projectType || "");
+      return dir * (firstService.projectType || "").localeCompare(secondService.projectType || "");
     case "tier":
-      return dir * ((a.deployTier ?? 99) - (b.deployTier ?? 99));
+      return dir * ((firstService.deployTier ?? 99) - (secondService.deployTier ?? 99));
     case "essential":
-      return dir * ((b.essential ? 1 : 0) - (a.essential ? 1 : 0));
+      return dir * ((secondService.essential ? 1 : 0) - (firstService.essential ? 1 : 0));
     case "domain":
-      return dir * (a.domain || "").localeCompare(b.domain || "");
+      return dir * (firstService.domain || "").localeCompare(secondService.domain || "");
     case "repo":
-      return dir * (a.repo || "").localeCompare(b.repo || "");
+      return dir * (firstService.repo || "").localeCompare(secondService.repo || "");
     case "dependencies":
-      return dir * ((a.dependsOn || []).length - (b.dependsOn || []).length);
+      return dir * ((firstService.dependsOn || []).length - (secondService.dependsOn || []).length);
     case "database":
-      return dir * (a.db || "").localeCompare(b.db || "");
+      return dir * (firstService.db || "").localeCompare(secondService.db || "");
     case "containers":
-      return dir * ((a.dockerProject ? 1 : 0) - (b.dockerProject ? 1 : 0));
+      return dir * ((firstService.dockerProject ? 1 : 0) - (secondService.dockerProject ? 1 : 0));
     default:
       return 0;
   }
@@ -118,7 +118,7 @@ function buildFilterOptions(items: PortalService[]) {
     ...STATIC_FILTER_OPTIONS,
     projectType: {
       label: "Type",
-      values: types.map((t) => ({ value: t, label: t })),
+      values: types.map((projectType) => ({ value: projectType, label: projectType })),
     },
     device: {
       label: "Device",
@@ -209,7 +209,7 @@ export default function ProjectsComponent() {
   };
 
   const setFilter = (dimension: string, values: string[]) => {
-    setFilters((prev) => ({ ...prev, [dimension]: values }));
+    setFilters((previousState) => ({ ...previousState, [dimension]: values }));
   };
 
   // ── Apply filters & sort ────────────────────────────────────────
@@ -238,9 +238,9 @@ export default function ProjectsComponent() {
         const isHealthy = s.healthy;
         if (
           !filters.status.some(
-            (v) =>
-              (v === "healthy" && isHealthy) ||
-              (v === "unhealthy" && !isHealthy),
+            (statusValue) =>
+              (statusValue === "healthy" && isHealthy) ||
+              (statusValue === "unhealthy" && !isHealthy),
           )
         )
           return false;
@@ -264,8 +264,8 @@ export default function ProjectsComponent() {
         return false;
       return true;
     })
-    .sort((a: PortalService, b: PortalService) =>
-      compareBySortKey(a, b, sortKey, sortDir),
+    .sort((firstService: PortalService, secondService: PortalService) =>
+      compareBySortKey(firstService, secondService, sortKey, sortDir),
     );
 
   // ── Split into deployed services vs libraries/toolkits ──────────
@@ -277,7 +277,7 @@ export default function ProjectsComponent() {
   const allNonDeployed = allItems.filter((s) => !isDeployedProject(s));
   const healthyCount = allDeployed.filter((s) => s.healthy).length;
   const hasActiveFilter =
-    Object.values(filters).some((v) => v.length > 0) ||
+    Object.values(filters).some((value) => value.length > 0) ||
     searchQuery.trim().length > 0;
 
   // ── Project summary computed values ─────────────────────────────

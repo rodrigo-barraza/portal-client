@@ -28,7 +28,7 @@ import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import styles from "./ProjectTableComponent.module.css";
 
 // ── GitHub Linguist Language Colors ────────────────────────────────
-// Official colors from github/linguist for the most common languages.
+// Official columnors from github/linguist for the most common languages.
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: "#3178c6",
   JavaScript: "#f1e05a",
@@ -66,7 +66,7 @@ const LANGUAGE_COLORS: Record<string, string> = {
   MDX: "#fcb32c",
 };
 
-/** Fallback color for unlisted languages */
+/** Fallback columnor for unlisted languages */
 const DEFAULT_LANGUAGE_COLOR = "#8b8b8b";
 
 // ── Formatting helpers ─────────────────────────────────────────────
@@ -74,7 +74,7 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
 /**
  * Column definitions for the centralized TableComponent.
- * Each column maps to a field on the service status object.
+ * Each columnumn maps to a field on the service status object.
 
  */
 function buildColumns(
@@ -352,7 +352,7 @@ function buildColumns(
       },
       sortValue: (row: PortalService) => projectSizes[row.id]?.sizeBytes ?? 0,
     },
-  ].filter((col) => !excludeColumns.has(col.key));
+  ].filter((column) => !excludeColumns.has(column.key));
 }
 
 interface ProjectTableProps {
@@ -395,7 +395,7 @@ export default function ProjectTableComponent({
     [excludeColumns],
   );
 
-  const columns = useCallback(
+  const columnumns = useCallback(
     () => buildColumns(projectSizes, projectLanguages, excludeSet),
     [projectSizes, projectLanguages, excludeSet],
   )();
@@ -428,7 +428,7 @@ export default function ProjectTableComponent({
       <TableComponent
         title={title}
         subtitle={subtitle}
-        columns={columns}
+        columnumns={columnumns}
         data={services}
         getRowKey={(row: PortalService) => row.id}
         sortKey={sortKey}

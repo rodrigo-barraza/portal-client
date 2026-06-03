@@ -52,9 +52,9 @@ const DEVICE_COLOR_MAP = {
 /**
  * Color by severity threshold for CPU/memory values.
  */
-function severityColor(pct: number, thresholds = [40, 80]) {
-  if (pct > thresholds[1]) return "var(--color-danger)";
-  if (pct > thresholds[0]) return "var(--color-warning)";
+function severityColor(percent: number, thresholds = [40, 80]) {
+  if (percent > thresholds[1]) return "var(--color-danger)";
+  if (percent > thresholds[0]) return "var(--color-warning)";
   return "var(--color-success)";
 }
 
@@ -113,27 +113,27 @@ export default function DevicesComponent() {
       string,
       Array<Partial<ContainerStats> & { name: string; device?: string }>
     > = {};
-    for (const c of containers) {
-      const deviceId = c.device || "unknown";
+    for (const container of containers) {
+      const deviceId = container.device || "unknown";
       if (!map[deviceId]) map[deviceId] = [];
-      map[deviceId].push(c);
+      map[deviceId].push(container);
     }
     // Sort containers within each device by name
     for (const key of Object.keys(map)) {
-      map[key].sort((a, b) => a.name.localeCompare(b.name));
+      map[key].sort((firstContainer, secondContainer) => firstContainer.name.localeCompare(secondContainer.name));
     }
     return map;
   }, [containers]);
 
-  const sortedDevices = [...devices].sort((a: Device, b: Device) => {
-    const aCount = containersByDevice[a.id]?.length || 0;
-    const bCount = containersByDevice[b.id]?.length || 0;
-    return bCount - aCount;
+  const sortedDevices = [...devices].sort((firstDevice: Device, secondDevice: Device) => {
+    const firstDeviceCount = containersByDevice[firstDevice.id]?.length || 0;
+    const secondDeviceCount = containersByDevice[secondDevice.id]?.length || 0;
+    return secondDeviceCount - firstDeviceCount;
   });
 
   const totalContainers = containers.length;
   const runningContainers = containers.filter(
-    (c) => c.state === "running",
+    (container) => container.state === "running",
   ).length;
 
   return (
@@ -198,7 +198,7 @@ function DeviceCard({
   const accentColor =
     DEVICE_COLOR_MAP[device.type as keyof typeof DEVICE_COLOR_MAP] ||
     "var(--accent-primary)";
-  const runningCount = containers.filter((c) => c.state === "running").length;
+  const runningCount = containers.filter((connection) => connection.state === "running").length;
   const allRunning =
     runningCount === containers.length && containers.length > 0;
 
@@ -253,7 +253,7 @@ function DeviceCard({
         <div className={styles.servicesSection}>
           <button
             className={styles.servicesHeader}
-            onClick={() => setContainersExpanded((prev) => !prev)}
+            onClick={() => setContainersExpanded((previousState) => !previousState)}
             aria-expanded={containersExpanded}
           >
             <span>Containers ({containers.length})</span>
