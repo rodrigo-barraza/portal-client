@@ -173,7 +173,7 @@ export default function ComponentsComponent({
   const totalSize = components.reduce((sum, c) => sum + c.sizeKb, 0);
 
   return (
-    <div className={styles.components}>
+    <div className={styles['components']}>
       <PageHeaderComponent
         sticky={false}
         title="Components"
@@ -196,7 +196,7 @@ export default function ComponentsComponent({
       </PageHeaderComponent>
 
       {/* ── Toolbar ── */}
-      <div className={styles.toolbar}>
+      <div className={styles['toolbar']}>
         {/* Search */}
         <SearchInputComponent
           value={search}
@@ -209,7 +209,7 @@ export default function ComponentsComponent({
         {/* Category pills */}
         <div className={styles['category-pills']}>
           <button
-            className={`${styles.pill} ${activeCategory === "all" ? styles['pill-active'] : ""}`}
+            className={`${styles['pill']} ${activeCategory === "all" ? styles['pill-active'] : ""}`}
             onClick={() => setActiveCategory("all")}
           >
             All
@@ -218,7 +218,7 @@ export default function ComponentsComponent({
           {Object.entries(CATEGORIES).map(([key, cat]) => (
             <button
               key={key}
-              className={`${styles.pill} ${activeCategory === key ? styles['pill-active'] : ""}`}
+              className={`${styles['pill']} ${activeCategory === key ? styles['pill-active'] : ""}`}
               onClick={() => setActiveCategory(key)}
             >
               <span className={styles['pill-emoji']}>{cat.icon}</span>
@@ -283,11 +283,11 @@ export default function ComponentsComponent({
 
       {/* ── Grid / List ── */}
       {viewMode === "grid" ? (
-        <div className={styles.grid}>
+        <div className={styles['grid']}>
           {filtered.map((comp, i) => (
             <div
               key={comp.name}
-              className={styles.card}
+              className={styles['card']}
               style={{ animationDelay: `${Math.min(i * 30, 600)}ms` }}
             >
               <div className={styles['card-header']}>
@@ -342,7 +342,7 @@ export default function ComponentsComponent({
           ))}
         </div>
       ) : (
-        <div className={styles.list}>
+        <div className={styles['list']}>
           {filtered.map((comp, i) => (
             <div
               key={comp.name}

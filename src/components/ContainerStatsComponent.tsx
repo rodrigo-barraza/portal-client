@@ -625,7 +625,7 @@ export default function ContainerStatsComponent() {
       // Build stats map for summary cards
       const statsMap: Record<string, Partial<ContainerStats>> = {};
       for (const container of containers) {
-        statsMap[(container as Record<string, unknown>).name as string] = {
+        statsMap[container.name as string] = {
           cpu: container.cpu,
           memory: container.memory,
           network: container.network,
@@ -991,7 +991,7 @@ export default function ContainerStatsComponent() {
 
   if (loading) {
     return (
-      <div className={styles.section}>
+      <div className={styles['section']}>
         <LoadingIndicatorComponent
           size="small"
           label="Querying containers…"
@@ -1002,7 +1002,7 @@ export default function ContainerStatsComponent() {
   }
 
   return (
-    <div className={styles.section}>
+    <div className={styles['section']}>
       <PageHeaderComponent
         sticky={false}
         title="Containers"

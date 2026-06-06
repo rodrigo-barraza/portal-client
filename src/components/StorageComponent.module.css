@@ -614,7 +614,7 @@
   background: oklch(0.0% 0.0 0.0 / 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  animation: fadeInPure 200ms ease-out;
+  animation: fade-in-pure 200ms ease-out;
 }
 
 .preview-panel {
@@ -627,7 +627,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: popoverInUp 250ms ease-out;
+  animation: popover-in-up 250ms ease-out;
   box-shadow: var(--calculated-shadow-lg);
 }
 

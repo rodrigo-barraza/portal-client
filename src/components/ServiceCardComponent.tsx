@@ -111,7 +111,7 @@ function Sparkline({
   return (
     <canvas
       ref={canvasRef}
-      className={styles.sparkline}
+      className={styles['sparkline']}
       style={{ height: `${height}px` }}
     />
   );
@@ -159,8 +159,8 @@ export default function ServiceCardComponent({
   const statusClass = isNonDeployed
     ? styles['non-deployed']
     : isHealthy
-      ? styles.healthy
-      : styles.unhealthy;
+      ? styles['healthy']
+      : styles['unhealthy'];
   const isProduction = service.environment === "Production";
   const isInfra = service.isInfrastructure;
 
@@ -178,7 +178,7 @@ export default function ServiceCardComponent({
   }, [service.id, service.restartable]);
 
   return (
-    <div className={`${styles.card} ${statusClass}`}>
+    <div className={`${styles['card']} ${statusClass}`}>
       <div className={styles['card-header']}>
         <div className={styles['name-row']}>
           <TypeIcon
@@ -186,11 +186,11 @@ export default function ServiceCardComponent({
             strokeWidth={2.6}
             className={`${styles['infra-icon']} ${statusClass}`}
           />
-          <span className={styles.name}>{service.name}</span>
+          <span className={styles['name']}>{service.name}</span>
         </div>
       </div>
 
-      <div className={styles.details}>
+      <div className={styles['details']}>
         {/* ── Action Buttons (containerized services only) ── */}
         {service.restartable && (
           <div className={styles['action-row']}>
@@ -288,7 +288,7 @@ export default function ServiceCardComponent({
         )}
 
         {/* ── Status ── */}
-        <div className={styles.detail}>
+        <div className={styles['detail']}>
           <span className={styles['detail-label']}>Status</span>
           {isNonDeployed ? (
             <BadgeComponent variant="info">Not Deployed</BadgeComponent>
@@ -299,7 +299,7 @@ export default function ServiceCardComponent({
 
         {/* ── NPM Package (libraries only) ── */}
         {service.npmPackage && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Package</span>
             <BadgeComponent variant="info">
               <Package size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -410,7 +410,7 @@ export default function ServiceCardComponent({
         )}
 
         {/* ── Stage / Visibility ── */}
-        <div className={styles.detail}>
+        <div className={styles['detail']}>
           <span className={styles['detail-label']}>Environment</span>
           <BadgeComponent variant={isProduction ? "success" : "info"}>
             {service.environment || "Unknown"}
@@ -421,7 +421,7 @@ export default function ServiceCardComponent({
           (() => {
             const colors = SERVICE_TYPE_COLORS[service.projectType as string];
             return (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Type</span>
                 <BadgeComponent
                   variant="info"
@@ -445,7 +445,7 @@ export default function ServiceCardComponent({
           (() => {
             const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
             return (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Tier</span>
                 <BadgeComponent
                   variant="info"
@@ -466,7 +466,7 @@ export default function ServiceCardComponent({
           })()}
 
         {service.visibility && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Visibility</span>
             <BadgeComponent
               type="visibility"
@@ -477,7 +477,7 @@ export default function ServiceCardComponent({
         )}
 
         {service.responseTimeMs != null && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Response</span>
             <BadgeComponent
               type="responseTime"
@@ -488,7 +488,7 @@ export default function ServiceCardComponent({
         )}
 
         {service.device && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Device</span>
             <BadgeComponent
               type="device"
@@ -502,15 +502,15 @@ export default function ServiceCardComponent({
         {isInfra && service.metadata && (
           <>
             {service.metadata.version && (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Version</span>
-                <span className={`${styles['detail-value']} ${styles.mono}`}>
+                <span className={`${styles['detail-value']} ${styles['mono']}`}>
                   {service.metadata.version}
                 </span>
               </div>
             )}
             {service.metadata.uptime != null && (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Uptime</span>
                 <span className={styles['detail-value']}>
                   {formatElapsedTime(service.metadata.uptime)}
@@ -518,7 +518,7 @@ export default function ServiceCardComponent({
               </div>
             )}
             {service.metadata.connections != null && (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Connections</span>
                 <span className={styles['detail-value']}>
                   {service.metadata.connections}
@@ -526,7 +526,7 @@ export default function ServiceCardComponent({
               </div>
             )}
             {service.metadata.databases != null && (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Databases</span>
                 <span className={styles['detail-value']}>
                   {service.metadata.databases}
@@ -534,7 +534,7 @@ export default function ServiceCardComponent({
               </div>
             )}
             {service.metadata.buckets != null && (
-              <div className={styles.detail}>
+              <div className={styles['detail']}>
                 <span className={styles['detail-label']}>Buckets</span>
                 <span className={styles['detail-value']}>
                   {service.metadata.buckets}
@@ -543,9 +543,9 @@ export default function ServiceCardComponent({
             )}
             {service.metadata.bucketNames &&
               service.metadata.bucketNames.length > 0 && (
-                <div className={styles.detail}>
+                <div className={styles['detail']}>
                   <span className={styles['detail-label']}>Bucket Names</span>
-                  <span className={`${styles['detail-value']} ${styles.mono}`}>
+                  <span className={`${styles['detail-value']} ${styles['mono']}`}>
                     {service.metadata.bucketNames.join(", ")}
                   </span>
                 </div>
@@ -555,7 +555,7 @@ export default function ServiceCardComponent({
 
         {/* ── Standard service metadata ── */}
         {!isInfra && service.metadata?.version && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Version</span>
             <span className={styles['detail-value']}>
               {service.metadata.version}
@@ -565,9 +565,9 @@ export default function ServiceCardComponent({
 
         {/* ── Node Version (from health endpoint) ── */}
         {service.metadata?.nodeVersion && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Node</span>
-            <span className={`${styles['detail-value']} ${styles.mono}`}>
+            <span className={`${styles['detail-value']} ${styles['mono']}`}>
               {service.metadata.nodeVersion}
             </span>
           </div>
@@ -575,30 +575,30 @@ export default function ServiceCardComponent({
 
         {/* ── Python Version (from health endpoint, if available) ── */}
         {service.metadata?.pythonVersion && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Python</span>
-            <span className={`${styles['detail-value']} ${styles.mono}`}>
+            <span className={`${styles['detail-value']} ${styles['mono']}`}>
               {service.metadata.pythonVersion}
             </span>
           </div>
         )}
 
         {service.port && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Port</span>
             <BadgeComponent type="port" port={service.port} />
           </div>
         )}
 
         {service.url && !isInfra && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Address</span>
             <BadgeComponent type="address" address={service.url} link />
           </div>
         )}
 
         {service.domain && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Domain</span>
             <BadgeComponent
               type="domain"
@@ -609,7 +609,7 @@ export default function ServiceCardComponent({
         )}
 
         {service.repo && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Repository</span>
             <BadgeComponent
               type="repository"
@@ -620,7 +620,7 @@ export default function ServiceCardComponent({
         )}
 
         {service.checkedAt && (
-          <div className={styles.detail}>
+          <div className={styles['detail']}>
             <span className={styles['detail-label']}>Checked</span>
             <BadgeComponent
               type="dateTime"

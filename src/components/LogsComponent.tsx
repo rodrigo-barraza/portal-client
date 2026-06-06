@@ -606,7 +606,7 @@ export default function LogsComponent() {
   const activeContainerName = activeContainer || "";
 
   return (
-    <div className={styles.logs}>
+    <div className={styles['logs']}>
       <PageHeaderComponent
         sticky={false}
         title="Logs"
@@ -726,12 +726,12 @@ export default function LogsComponent() {
 
       {/* ── Terminal Viewer ── */}
       {activeContainer ? (
-        <div className={styles.terminal} data-theme="dark">
+        <div className={styles['terminal']} data-theme="dark">
           {/* Header */}
           <div className={styles['terminal-header']}>
             <div className={styles['terminal-title']}>
               <span
-                className={`${styles['terminal-dot']} ${connected ? styles.connected : ""}`}
+                className={`${styles['terminal-dot']} ${connected ? styles['connected'] : ""}`}
               />
               {activeContainerName}
               {connected && (
@@ -744,7 +744,7 @@ export default function LogsComponent() {
                 {filteredLines.length.toLocaleString()}
               </span>
 
-              <span className={styles.separator} />
+              <span className={styles['separator']} />
 
               {/* Search */}
               {showSearch && (
@@ -785,7 +785,7 @@ export default function LogsComponent() {
                 )}
               </button>
 
-              <span className={styles.separator} />
+              <span className={styles['separator']} />
 
               <button
                 className={styles['terminal-button']}
@@ -803,7 +803,7 @@ export default function LogsComponent() {
                 <Trash2 size={13} strokeWidth={1.8} />
               </button>
 
-              <span className={styles.separator} />
+              <span className={styles['separator']} />
 
               <button
                 className={`${styles['terminal-button']} ${restarting ? styles['restart-spin'] : ""}`}
@@ -826,14 +826,14 @@ export default function LogsComponent() {
             onScroll={handleScroll}
           >
             {filteredLines.length === 0 && connected && (
-              <div className={styles.connecting}>
+              <div className={styles['connecting']}>
                 <span className={styles['connecting-dot']} />
                 Waiting for log output…
               </div>
             )}
 
             {filteredLines.length === 0 && !connected && !error && (
-              <div className={styles.connecting}>
+              <div className={styles['connecting']}>
                 <span className={styles['connecting-dot']} />
                 Connecting…
               </div>

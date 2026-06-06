@@ -124,7 +124,7 @@ function Sparkline({
   return (
     <canvas
       ref={canvasRef}
-      className={styles.sparkline}
+      className={styles['sparkline']}
       style={{ height: `${height}px` }}
     />
   );
@@ -158,14 +158,14 @@ const TABS = [
 function ProjectTab({ service }: { service: PortalService }) {
   return (
     <div className={styles['project-tab']}>
-      <div className={styles.section}>
+      <div className={styles['section']}>
         <h4 className={styles['section-title']}>Identity</h4>
         <div className={`${styles['field-grid']} ${styles['field-grid-single']}`}>
           {service.projectType &&
             (() => {
               const colors = SERVICE_TYPE_COLORS[service.projectType as string];
               return (
-                <div className={styles.field}>
+                <div className={styles['field']}>
                   <span className={styles['field-label']}>Type</span>
                   <BadgeComponent
                     variant="info"
@@ -188,7 +188,7 @@ function ProjectTab({ service }: { service: PortalService }) {
             (() => {
               const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
               return (
-                <div className={styles.field}>
+                <div className={styles['field']}>
                   <span className={styles['field-label']}>Tier</span>
                   <BadgeComponent
                     variant="info"
@@ -208,7 +208,7 @@ function ProjectTab({ service }: { service: PortalService }) {
               );
             })()}
           {service.repo && (
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Repository</span>
               <BadgeComponent
                 type="repository"
@@ -218,7 +218,7 @@ function ProjectTab({ service }: { service: PortalService }) {
             </div>
           )}
           {service.domain && (
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Domain</span>
               <BadgeComponent
                 type="domain"
@@ -231,19 +231,19 @@ function ProjectTab({ service }: { service: PortalService }) {
       </div>
 
       {(service.metadata || service.checkedAt) && (
-        <div className={styles.section}>
+        <div className={styles['section']}>
           <h4 className={styles['section-title']}>Metadata</h4>
           <div className={styles['field-grid']}>
             {service.metadata?.version && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Version</span>
-                <span className={`${styles['field-value']} ${styles.mono}`}>
+                <span className={`${styles['field-value']} ${styles['mono']}`}>
                   {service.metadata.version}
                 </span>
               </div>
             )}
             {service.isInfrastructure && service.metadata?.uptime != null && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Uptime</span>
                 <span className={styles['field-value']}>
                   {formatElapsedTime(service.metadata.uptime)}
@@ -252,7 +252,7 @@ function ProjectTab({ service }: { service: PortalService }) {
             )}
             {service.isInfrastructure &&
               service.metadata?.connections != null && (
-                <div className={styles.field}>
+                <div className={styles['field']}>
                   <span className={styles['field-label']}>Connections</span>
                   <span className={styles['field-value']}>
                     {service.metadata.connections}
@@ -261,7 +261,7 @@ function ProjectTab({ service }: { service: PortalService }) {
               )}
             {service.isInfrastructure &&
               service.metadata?.databases != null && (
-                <div className={styles.field}>
+                <div className={styles['field']}>
                   <span className={styles['field-label']}>Databases</span>
                   <span className={styles['field-value']}>
                     {service.metadata.databases}
@@ -269,7 +269,7 @@ function ProjectTab({ service }: { service: PortalService }) {
                 </div>
               )}
             {service.isInfrastructure && service.metadata?.buckets != null && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Buckets</span>
                 <span className={styles['field-value']}>
                   {service.metadata.buckets}
@@ -278,15 +278,15 @@ function ProjectTab({ service }: { service: PortalService }) {
             )}
             {service.isInfrastructure &&
               (service.metadata?.bucketNames?.length ?? 0) > 0 && (
-                <div className={styles.field}>
+                <div className={styles['field']}>
                   <span className={styles['field-label']}>Bucket Names</span>
-                  <span className={`${styles['field-value']} ${styles.mono}`}>
+                  <span className={`${styles['field-value']} ${styles['mono']}`}>
                     {service.metadata!.bucketNames!.join(", ")}
                   </span>
                 </div>
               )}
             {service.checkedAt && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Last Checked</span>
                 <BadgeComponent
                   type="dateTime"
@@ -315,14 +315,14 @@ function ContainerTab({
     <div className={styles['container-tab']}>
       {/* ── Left: Container info ── */}
       <div className={styles['container-info']}>
-        <div className={styles.section}>
+        <div className={styles['section']}>
           <h4 className={styles['section-title']}>Status &amp; Environment</h4>
           <div className={styles['field-grid']}>
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Status</span>
               <BadgeComponent type="status" healthy={service.healthy} />
             </div>
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Environment</span>
               <BadgeComponent
                 variant={
@@ -333,7 +333,7 @@ function ContainerTab({
               </BadgeComponent>
             </div>
             {service.visibility && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Visibility</span>
                 <BadgeComponent
                   type="visibility"
@@ -343,7 +343,7 @@ function ContainerTab({
               </div>
             )}
             {service.responseTimeMs != null && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Response</span>
                 <BadgeComponent
                   type="responseTime"
@@ -353,7 +353,7 @@ function ContainerTab({
               </div>
             )}
             {service.device && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Device</span>
                 <BadgeComponent
                   type="device"
@@ -365,17 +365,17 @@ function ContainerTab({
           </div>
         </div>
 
-        <div className={styles.section}>
+        <div className={styles['section']}>
           <h4 className={styles['section-title']}>Network</h4>
           <div className={styles['field-grid']}>
             {service.port && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Port</span>
                 <BadgeComponent type="port" port={service.port} />
               </div>
             )}
             {service.url && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Address</span>
                 <BadgeComponent type="address" address={service.url} link />
               </div>
@@ -1016,7 +1016,7 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
           <div className={styles['analytics-page-list']}>
             {pages!.pages.slice(0, 5).map((page: GAPageRow, i: number) => (
               <div key={i} className={styles['analytics-page-row']}>
-                <span className={`${styles['analytics-page-path']} ${styles.mono}`}>
+                <span className={`${styles['analytics-page-path']} ${styles['mono']}`}>
                   {page.pagePath}
                 </span>
                 <span className={styles['analytics-page-views']}>
@@ -1052,7 +1052,7 @@ export default function ExpandedProjectPanel({
   });
 
   return (
-    <div className={styles.panel}>
+    <div className={styles['panel']}>
       {/* ── Tab Bar ── */}
       <div className={styles['tab-bar']}>
         {visibleTabs.map((tab) => {
@@ -1060,7 +1060,7 @@ export default function ExpandedProjectPanel({
           return (
             <button
               key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles['tab-active'] : ""}`}
+              className={`${styles['tab']} ${activeTab === tab.id ? styles['tab-active'] : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               <Icon size={12} strokeWidth={2.2} />

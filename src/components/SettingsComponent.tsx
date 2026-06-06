@@ -139,7 +139,7 @@ export default function SettingsComponent() {
   }, []);
 
   return (
-    <div className={styles.settings}>
+    <div className={styles['settings']}>
       <PageHeaderComponent
         sticky={false}
         title="Settings"
@@ -148,7 +148,7 @@ export default function SettingsComponent() {
 
       <div className={styles['settings-body']}>
         {/* ── Sidebar ── */}
-        <nav className={styles.sidebar}>
+        <nav className={styles['sidebar']}>
           {SECTIONS.map(({ id: sectionIdentifier, label, icon: Icon }) => (
             <button
               key={sectionIdentifier}
@@ -168,7 +168,7 @@ export default function SettingsComponent() {
             ref={(element) => {
               sectionRefs.current.appearance = element;
             }}
-            className={styles.section}
+            className={styles['section']}
             id="settings-appearance"
           >
             <div className={styles['section-header']}>
@@ -302,7 +302,7 @@ export default function SettingsComponent() {
             ref={(element) => {
               sectionRefs.current.dashboard = element;
             }}
-            className={styles.section}
+            className={styles['section']}
             id="settings-dashboard"
           >
             <div className={styles['section-header']}>
@@ -423,7 +423,7 @@ export default function SettingsComponent() {
             ref={(element) => {
               sectionRefs.current.monitoring = element;
             }}
-            className={styles.section}
+            className={styles['section']}
             id="settings-monitoring"
           >
             <div className={styles['section-header']}>
@@ -599,7 +599,7 @@ export default function SettingsComponent() {
             ref={(element) => {
               sectionRefs.current.notifications = element;
             }}
-            className={styles.section}
+            className={styles['section']}
             id="settings-notifications"
           >
             <div className={styles['section-header']}>
@@ -689,7 +689,7 @@ export default function SettingsComponent() {
             ref={(element) => {
               sectionRefs.current.data = element;
             }}
-            className={`${styles.section} ${styles['danger-section']}`}
+            className={`${styles['section']} ${styles['danger-section']}`}
             id="settings-data"
           >
             <div className={styles['section-header']}>
@@ -790,14 +790,14 @@ export default function SettingsComponent() {
           </section>
 
           {/* ── Footer ── */}
-          <div className={styles.footer}>
+          <div className={styles['footer']}>
             <span className={styles['footer-version']}>Portal v1.0.0</span>
             <div className={styles['footer-links']}>
               <span className={styles['footer-link']}>
                 Keyboard shortcuts
                 <span className={styles['kbd-group']} style={{ marginLeft: 6 }}>
-                  <kbd className={styles.kbd}>⌘</kbd>
-                  <kbd className={styles.kbd}>K</kbd>
+                  <kbd className={styles['kbd']}>⌘</kbd>
+                  <kbd className={styles['kbd']}>K</kbd>
                 </span>
               </span>
             </div>

@@ -182,7 +182,7 @@ export default function IntegrationsComponent() {
     .filter((cat: IntegrationCategory) => cat.integrations.length > 0);
 
   return (
-    <div className={styles.integrations}>
+    <div className={styles['integrations']}>
       <PageHeaderComponent
         sticky={false}
         title="Integrations"
@@ -311,7 +311,7 @@ export default function IntegrationsComponent() {
                         {cat.integrations.map((item: IntegrationItem) => (
                           <div
                             key={item.envKey}
-                            className={`${styles['integration-card']} ${item.configured ? styles.configured : styles.unconfigured}`}
+                            className={`${styles['integration-card']} ${item.configured ? styles['configured'] : styles['unconfigured']}`}
                           >
                             <div className={styles['card-header']}>
                               <div className={styles['card-status']}>

@@ -314,6 +314,13 @@ export interface RepoSize {
   sizeBytes: number;
 }
 
+/** Response shape from the /services API endpoint. */
+export interface ServicesResponse {
+  services: PortalService[];
+  infrastructure: PortalService[];
+  deployTierColors?: Record<number, DeployTierColor>;
+}
+
 // ─── Topology ───────────────────────────────────────────────
 
 export type EdgeType = "api" | "import" | "tooling" | "infra";

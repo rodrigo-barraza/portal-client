@@ -742,7 +742,7 @@ g:hover > .cluster-drag-handle:hover {
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   pointer-events: none;
-  animation: popoverInUp 150ms ease-out;
+  animation: popover-in-up 150ms ease-out;
   box-shadow: var(--calculated-shadow-md);
   min-width: 160px;
   max-width: 280px;

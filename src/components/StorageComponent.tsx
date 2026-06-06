@@ -70,7 +70,7 @@ function DonutChart({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className={styles.donut}
+      className={styles['donut']}
     >
       {/* Track */}
       <circle
@@ -644,7 +644,7 @@ export default function StorageComponent() {
   ]);
 
   return (
-    <div className={styles.storage}>
+    <div className={styles['storage']}>
       <PageHeaderComponent
         sticky={false}
         title="Object Store"
@@ -843,7 +843,7 @@ export default function StorageComponent() {
 
       {/* ── Breadcrumb Navigation ── */}
       {view === "objects" && (
-        <div className={styles.breadcrumb}>
+        <div className={styles['breadcrumb']}>
           <div className={styles['breadcrumb-path']}>
             {breadcrumbSegments.map((seg, index) => {
               const isLast = index === breadcrumbSegments.length - 1;
@@ -1432,7 +1432,7 @@ function ObjectGridView({
                   <Download size={14} />
                 </a>
                 <button
-                  className={`${styles['action-button']} ${styles.danger}`}
+                  className={`${styles['action-button']} ${styles['danger']}`}
                   title="Delete"
                   onClick={(e) => {
                     e.stopPropagation();

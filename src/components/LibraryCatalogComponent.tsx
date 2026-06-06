@@ -89,7 +89,7 @@ export default function LibraryCatalogComponent({
   );
 
   return (
-    <div className={styles.catalog}>
+    <div className={styles['catalog']}>
       <PageHeaderComponent
         sticky={false}
         title={title}
@@ -110,7 +110,7 @@ export default function LibraryCatalogComponent({
       </PageHeaderComponent>
 
       {/* ── Toolbar ── */}
-      <div className={styles.toolbar}>
+      <div className={styles['toolbar']}>
         <SearchInputComponent
           value={search}
           onChange={(value: string) => setSearch(value)}
@@ -126,11 +126,11 @@ export default function LibraryCatalogComponent({
       </div>
 
       {/* ── Grid ── */}
-      <div className={styles.grid}>
+      <div className={styles['grid']}>
         {filtered.map((item: CatalogItem, i: number) => (
           <div
             key={item.name}
-            className={styles.card}
+            className={styles['card']}
             style={
               {
                 animationDelay: `${Math.min(i * 30, 600)}ms`,

@@ -294,7 +294,7 @@ export default function ProjectsComponent() {
   );
 
   return (
-    <div className={styles.services}>
+    <div className={styles['services']}>
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
         <div className={styles['sort-bar']}>
@@ -513,7 +513,7 @@ export default function ProjectsComponent() {
                       </span>
                     </div>
                   )}
-                  <div className={styles.grid}>
+                  <div className={styles['grid']}>
                     {deployedItems.map((service: PortalService) => (
                       <ServiceCardComponent
                         key={service.id}
@@ -561,7 +561,7 @@ export default function ProjectsComponent() {
                       {nonDeployedItems.length}
                     </span>
                   </div>
-                  <div className={styles.grid}>
+                  <div className={styles['grid']}>
                     {nonDeployedItems.map((service: PortalService) => (
                       <ServiceCardComponent
                         key={service.id}

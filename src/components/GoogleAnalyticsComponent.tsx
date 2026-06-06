@@ -215,7 +215,7 @@ function DonutChart({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className={styles.donut}
+      className={styles['donut']}
     >
       <circle
         cx={center}
@@ -644,7 +644,7 @@ export default function GoogleAnalyticsComponent({
 
   if (loading) {
     return (
-      <div className={styles.dashboard}>
+      <div className={styles['dashboard']}>
         <PageHeaderComponent
           sticky={false}
           title="Web Analytics"
@@ -661,7 +661,7 @@ export default function GoogleAnalyticsComponent({
 
   if (error) {
     return (
-      <div className={styles.dashboard}>
+      <div className={styles['dashboard']}>
         <PageHeaderComponent
           sticky={false}
           title="Web Analytics"
@@ -679,7 +679,7 @@ export default function GoogleAnalyticsComponent({
   // No GA properties — still show session projects listing
   if (properties.length === 0) {
     return (
-      <div className={styles.dashboard}>
+      <div className={styles['dashboard']}>
         <PageHeaderComponent
           sticky={false}
           title="Web Analytics"
@@ -691,7 +691,7 @@ export default function GoogleAnalyticsComponent({
   }
 
   return (
-    <div className={styles.dashboard}>
+    <div className={styles['dashboard']}>
       <PageHeaderComponent
         sticky={false}
         title="Web Analytics"
@@ -898,7 +898,7 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Hourly Traffic Heatmap ────────────────────────── */}
               {heatmapData && (
-                <div className={styles.panel}>
+                <div className={styles['panel']}>
                   <div className={styles['panel-header']}>
                     <Layers
                       size={15}
@@ -947,7 +947,7 @@ export default function GoogleAnalyticsComponent({
               {/* ── Channel Grouping + Sources ─────────────────────── */}
               <div className={styles['content-grid']}>
                 {(channels?.channels?.length ?? 0) > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <Layers
                         size={15}
@@ -978,7 +978,7 @@ export default function GoogleAnalyticsComponent({
                 )}
 
                 {(sources?.sources?.length ?? 0) > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <Link2
                         size={15}
@@ -1010,7 +1010,7 @@ export default function GoogleAnalyticsComponent({
               {/* ── Geography + Events ─────────────────────────────── */}
               <div className={styles['content-grid']}>
                 {(geography?.locations?.length ?? 0) > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <MapPin
                         size={15}
@@ -1044,7 +1044,7 @@ export default function GoogleAnalyticsComponent({
                 )}
 
                 {(events?.events?.length ?? 0) > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <Zap
                         size={15}
@@ -1077,7 +1077,7 @@ export default function GoogleAnalyticsComponent({
               {devices && (
                 <div className={styles['content-grid']}>
                   {deviceSegments.length > 0 && (
-                    <div className={styles.panel}>
+                    <div className={styles['panel']}>
                       <div className={styles['panel-header']}>
                         <Monitor
                           size={15}
@@ -1118,7 +1118,7 @@ export default function GoogleAnalyticsComponent({
                   )}
 
                   {browserSegments.length > 0 && (
-                    <div className={styles.panel}>
+                    <div className={styles['panel']}>
                       <div className={styles['panel-header']}>
                         <Globe
                           size={15}
@@ -1163,7 +1163,7 @@ export default function GoogleAnalyticsComponent({
               {/* ── OS + New vs Returning + Screen Resolution ──────── */}
               <div className={styles['content-grid']}>
                 {osSegments.length > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <Laptop
                         size={15}
@@ -1206,7 +1206,7 @@ export default function GoogleAnalyticsComponent({
                 )}
 
                 {nvrSegments.length > 0 && (
-                  <div className={styles.panel}>
+                  <div className={styles['panel']}>
                     <div className={styles['panel-header']}>
                       <RefreshCw
                         size={15}
@@ -1255,7 +1255,7 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Screen Resolution ──────────────────────────────── */}
               {(devices?.screenResolutions?.length ?? 0) > 0 && (
-                <div className={styles.panel}>
+                <div className={styles['panel']}>
                   <div className={styles['panel-header']}>
                     <Ruler
                       size={15}

@@ -179,17 +179,17 @@ export default function ContainerDetailPanel({
   const uptime = uptimeMatch ? uptimeMatch[1].trim() : null;
 
   return (
-    <div className={styles.panel}>
+    <div className={styles['panel']}>
       {/* ── Identity & Status ── */}
-      <div className={styles.section}>
+      <div className={styles['section']}>
         <h4 className={styles['section-title']}>Status</h4>
         <div className={styles['field-grid']}>
-          <div className={styles.field}>
+          <div className={styles['field']}>
             <span className={styles['field-label']}>Health</span>
             <BadgeComponent type="status" healthy={container.healthy} />
           </div>
           {container.visibility && (
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Visibility</span>
               <BadgeComponent
                 type="visibility"
@@ -199,7 +199,7 @@ export default function ContainerDetailPanel({
             </div>
           )}
           {container.responseTimeMs != null && (
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Response</span>
               <BadgeComponent
                 type="responseTime"
@@ -209,7 +209,7 @@ export default function ContainerDetailPanel({
             </div>
           )}
           {container.device && (
-            <div className={styles.field}>
+            <div className={styles['field']}>
               <span className={styles['field-label']}>Device</span>
               <BadgeComponent
                 type="device"
@@ -223,17 +223,17 @@ export default function ContainerDetailPanel({
 
       {/* ── Container Info ── */}
       {stats && (
-        <div className={styles.section}>
+        <div className={styles['section']}>
           <h4 className={styles['section-title']}>Container</h4>
           <div className={styles['field-grid']}>
             {stats.image && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Image</span>
                 <span className={styles['field-value-mono']}>{stats.image}</span>
               </div>
             )}
             {stats.state && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>State</span>
                 <span className={styles['state-badge']} data-state={stats.state}>
                   {stats.state}
@@ -241,13 +241,13 @@ export default function ContainerDetailPanel({
               </div>
             )}
             {uptime && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Uptime</span>
                 <span className={styles['field-value-mono']}>{uptime}</span>
               </div>
             )}
             {stats.created && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Created</span>
                 <span className={styles['field-value-mono']}>
                   {formatTimestamp(stats.created)}
@@ -255,7 +255,7 @@ export default function ContainerDetailPanel({
               </div>
             )}
             {stats.command && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Command</span>
                 <span className={styles['command-text']} title={stats.command}>
                   {stats.command}
@@ -263,7 +263,7 @@ export default function ContainerDetailPanel({
               </div>
             )}
             {(stats.pids ?? 0) > 0 && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>PIDs</span>
                 <span className={styles['field-value-mono']}>{stats.pids}</span>
               </div>
@@ -273,17 +273,17 @@ export default function ContainerDetailPanel({
       )}
 
       {container.port || container.url ? (
-        <div className={styles.section}>
+        <div className={styles['section']}>
           <h4 className={styles['section-title']}>Networking</h4>
           <div className={styles['field-grid']}>
             {container.port && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Port</span>
                 <BadgeComponent type="port" port={container.port} />
               </div>
             )}
             {container.url && (
-              <div className={styles.field}>
+              <div className={styles['field']}>
                 <span className={styles['field-label']}>Address</span>
                 <BadgeComponent type="address" address={container.url} link />
               </div>

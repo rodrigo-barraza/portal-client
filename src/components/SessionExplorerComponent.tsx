@@ -199,7 +199,7 @@ function TimelineView({
         <span>{label || "Activity Timeline"}</span>
         <span className={styles['timeline-count']}>{timeline.length} events</span>
       </div>
-      <div className={styles.timeline}>
+      <div className={styles['timeline']}>
         {timeline.map((entry, i) => (
           <div
             key={i}
@@ -749,7 +749,7 @@ export default function SessionExplorerComponent({
   if (selectedIp) {
     const ip = selectedIp;
     return (
-      <div className={styles.explorer}>
+      <div className={styles['explorer']}>
         <div className={styles['detail-header']}>
           <button className={styles['back-button']} onClick={handleBack}>
             <ArrowLeft size={14} strokeWidth={2.2} />
@@ -915,7 +915,7 @@ export default function SessionExplorerComponent({
   if (selectedSession) {
     const currentSession = selectedSession;
     return (
-      <div className={styles.explorer}>
+      <div className={styles['explorer']}>
         <div className={styles['detail-header']}>
           <button className={styles['back-button']} onClick={handleBack}>
             <ArrowLeft size={14} strokeWidth={2.2} />
@@ -1056,13 +1056,13 @@ export default function SessionExplorerComponent({
   // ══════════════════════════════════════════════════════════
 
   return (
-    <div className={styles.explorer}>
+    <div className={styles['explorer']}>
       {/* ── Controls Section ── */}
       <section className={styles["controls-container"]}>
         {/* ── Tab Bar Navigation ── */}
         <nav className={styles['tab-bar']}>
           <button
-            className={`${styles.tab} ${tab === "ips" ? styles['tab-active'] : ""}`}
+            className={`${styles['tab']} ${tab === "ips" ? styles['tab-active'] : ""}`}
             onClick={() => setTab("ips")}
           >
             <Network size={13} strokeWidth={2.2} />
@@ -1072,7 +1072,7 @@ export default function SessionExplorerComponent({
             )}
           </button>
           <button
-            className={`${styles.tab} ${tab === "visitors" ? styles['tab-active'] : ""}`}
+            className={`${styles['tab']} ${tab === "visitors" ? styles['tab-active'] : ""}`}
             onClick={() => setTab("visitors")}
           >
             <Users size={13} strokeWidth={2.2} />
@@ -1084,7 +1084,7 @@ export default function SessionExplorerComponent({
             )}
           </button>
           <button
-            className={`${styles.tab} ${tab === "sessions" ? styles['tab-active'] : ""}`}
+            className={`${styles['tab']} ${tab === "sessions" ? styles['tab-active'] : ""}`}
             onClick={() => setTab("sessions")}
           >
             <Clock size={13} strokeWidth={2.2} />
@@ -1219,7 +1219,7 @@ export default function SessionExplorerComponent({
               )}
 
               {ipsTotal > 50 && (
-                <div className={styles.pagination}>
+                <div className={styles['pagination']}>
                   <button
                     className={styles['page-button']}
                     disabled={ipsOffset === 0}
@@ -1350,7 +1350,7 @@ export default function SessionExplorerComponent({
               )}
 
               {visitorsTotal > 50 && (
-                <div className={styles.pagination}>
+                <div className={styles['pagination']}>
                   <button
                     className={styles['page-button']}
                     disabled={visitorsOffset === 0}
@@ -1465,7 +1465,7 @@ export default function SessionExplorerComponent({
               )}
 
               {sessionsTotal > 50 && (
-                <div className={styles.pagination}>
+                <div className={styles['pagination']}>
                   <button
                     className={styles['page-button']}
                     disabled={sessionsOffset === 0}

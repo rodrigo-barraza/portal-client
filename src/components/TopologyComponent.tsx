@@ -37,6 +37,7 @@ import type {
   TopologyEdge,
   ProjectAnalysis,
   DeployTierColor,
+  ServicesResponse,
 } from "../types/portal";
 import styles from "./TopologyComponent.module.css";
 
@@ -604,41 +605,33 @@ export default function TopologyComponent() {
   async function loadData(refresh = false) {
     try {
       const [servicesRes, analysisRes] = await Promise.all([
-        ApiService.getServices(refresh),
-        ApiService.getProjectAnalysis(refresh).catch(() => null),
+        ApiService.getServices(refresh) as Promise<ServicesResponse>,
+        ApiService.getProjectAnalysis(refresh).catch(() => null) as Promise<ProjectAnalysis | null>,
       ]);
 
-      let servicesList: PortalService[] = (
-        ((servicesRes as Record<string, unknown>)
-          .services as PortalService[]) || []
-      ).map((service) => ({
-        ...service,
-        isInfrastructure: false,
-      }));
+      let servicesList: PortalService[] = (servicesRes.services || []).map(
+        (service) => ({
+          ...service,
+          isInfrastructure: false,
+        }),
+      );
       const infrastructureServices: PortalService[] = (
-        ((servicesRes as Record<string, unknown>)
-          .infrastructure as PortalService[]) || []
+        servicesRes.infrastructure || []
       ).map((service) => ({
         ...service,
         isInfrastructure: true,
       }));
 
-      // Merge detected dependencies into service data
       if (analysisRes) {
-        servicesList = mergeAnalysisDeps(servicesList, analysisRes as ProjectAnalysis);
-        setAnalysisData(analysisRes as ProjectAnalysis);
-        if ((analysisRes as ProjectAnalysis).repoSizes)
-          setRepoSizes((analysisRes as ProjectAnalysis).repoSizes!);
+        servicesList = mergeAnalysisDeps(servicesList, analysisRes);
+        setAnalysisData(analysisRes);
+        if (analysisRes.repoSizes) setRepoSizes(analysisRes.repoSizes);
       }
 
       setAllServices([...servicesList, ...infrastructureServices]);
-      if ((servicesRes as Record<string, unknown>).deployTierColors)
-        setTierColors(
-          (servicesRes as Record<string, unknown>).deployTierColors as Record<
-            number,
-            DeployTierColor
-          >,
-        );
+      if (servicesRes.deployTierColors) {
+        setTierColors(servicesRes.deployTierColors);
+      }
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
@@ -1155,13 +1148,13 @@ export default function TopologyComponent() {
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div className={styles.topology}>
+    <div className={styles['topology']}>
       {/* Header */}
-      <div className={styles.header}>
+      <div className={styles['header']}>
         <div className={styles['header-inner']}>
           <div className={styles['header-text']}>
-            <h1 className={styles.title}>Topology</h1>
-            <p className={styles.subtitle}>
+            <h1 className={styles['title']}>Topology</h1>
+            <p className={styles['subtitle']}>
               {isLoading
                 ? "Loading…"
                 : `${filteredServices.length} services · ${healthyCount} healthy`}
@@ -1205,12 +1198,12 @@ export default function TopologyComponent() {
         <>
           <div
             ref={containerRef}
-            className={`${styles['canvas-wrapper']}${isPanning ? ` ${styles.panning}` : ""}`}
+            className={`${styles['canvas-wrapper']}${isPanning ? ` ${styles['panning']}` : ""}`}
             onMouseDown={handleCanvasMouseDown}
           >
             <svg
               ref={svgRef}
-              className={styles.svg}
+              className={styles['svg']}
               style={{ overflow: "visible" }}
             >
               <defs>
@@ -1663,7 +1656,7 @@ export default function TopologyComponent() {
           </div>
 
           {/* Legend */}
-          <div className={styles.legend}>
+          <div className={styles['legend']}>
             <div className={styles['legend-title']}>Nodes</div>
             <div className={styles['legend-item']}>
               <div
@@ -1858,7 +1851,7 @@ export default function TopologyComponent() {
           {/* Tooltip */}
           {tooltipData && (
             <div
-              className={styles.tooltip}
+              className={styles['tooltip']}
               style={{
                 left: Math.min(
                   tooltipPosition.x + 16,

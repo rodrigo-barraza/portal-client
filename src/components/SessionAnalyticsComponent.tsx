@@ -131,7 +131,7 @@ function DonutChart({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className={styles.donut}
+      className={styles['donut']}
     >
       <circle
         cx={center}
@@ -375,7 +375,7 @@ export default function SessionAnalyticsComponent({
   // ── Render ────────────────────────────────────────────────
 
   return (
-    <div className={styles.dashboard}>
+    <div className={styles['dashboard']}>
       <PageHeaderComponent
         sticky={false}
         title="Session Analytics"
@@ -553,7 +553,7 @@ export default function SessionAnalyticsComponent({
           {/* ── Referrers + Events ────────────────────────────── */}
           <div className={styles['content-grid']}>
             {referrers && referrers.length > 0 && (
-              <div className={styles.panel}>
+              <div className={styles['panel']}>
                 <div className={styles['panel-header']}>
                   <Link2
                     size={15}
@@ -582,7 +582,7 @@ export default function SessionAnalyticsComponent({
             )}
 
             {events && events.length > 0 && (
-              <div className={styles.panel}>
+              <div className={styles['panel']}>
                 <div className={styles['panel-header']}>
                   <Zap
                     size={15}
@@ -613,7 +613,7 @@ export default function SessionAnalyticsComponent({
 
           {/* ── Geography ─────────────────────────────────────── */}
           {geo && geo.length > 0 && (
-            <div className={styles.panel}>
+            <div className={styles['panel']}>
               <div className={styles['panel-header']}>
                 <MapPin
                   size={15}
@@ -648,7 +648,7 @@ export default function SessionAnalyticsComponent({
           {devices && (
             <div className={styles['content-grid']}>
               {deviceTypeSegments.length > 0 && (
-                <div className={styles.panel}>
+                <div className={styles['panel']}>
                   <div className={styles['panel-header']}>
                     <Monitor
                       size={15}
@@ -683,7 +683,7 @@ export default function SessionAnalyticsComponent({
               )}
 
               {browserSegments.length > 0 && (
-                <div className={styles.panel}>
+                <div className={styles['panel']}>
                   <div className={styles['panel-header']}>
                     <Globe
                       size={15}
@@ -721,7 +721,7 @@ export default function SessionAnalyticsComponent({
 
           {/* ── OS ────────────────────────────────────────────── */}
           {osSegments.length > 0 && devices && (
-            <div className={styles.panel}>
+            <div className={styles['panel']}>
               <div className={styles['panel-header']}>
                 <Laptop
                   size={15}

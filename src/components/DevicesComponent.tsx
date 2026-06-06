@@ -137,7 +137,7 @@ export default function DevicesComponent() {
   ).length;
 
   return (
-    <div className={styles.devices}>
+    <div className={styles['devices']}>
       <PageHeaderComponent
         sticky={false}
         title="Devices"
@@ -222,7 +222,7 @@ function DeviceCard({
             <h3 className={styles['device-name']}>{device.name}</h3>
             <div className={styles['device-meta']}>
               <span className={styles['device-type']}>{device.type}</span>
-              <span className={styles.separator}>·</span>
+              <span className={styles['separator']}>·</span>
               <span className={styles['device-os']}>{device.os}</span>
             </div>
           </div>
@@ -242,7 +242,7 @@ function DeviceCard({
       {/* ── Hostname ── */}
       <div className={styles['hostname-row']}>
         <span className={styles['hostname-label']}>Hostname</span>
-        <code className={styles.hostname}>{device.hostname}</code>
+        <code className={styles['hostname']}>{device.hostname}</code>
       </div>
 
       {/* ── Notes ── */}
@@ -260,7 +260,7 @@ function DeviceCard({
             <ChevronDown
               size={14}
               strokeWidth={2}
-              className={`${styles.chevron} ${containersExpanded ? styles['chevron-expanded'] : ""}`}
+              className={`${styles['chevron']} ${containersExpanded ? styles['chevron-expanded'] : ""}`}
             />
           </button>
           <div
@@ -289,7 +289,7 @@ function ContainerRow({
 
   return (
     <div
-      className={`${styles['service-row']} ${isRunning ? styles.healthy : styles.unhealthy}`}
+      className={`${styles['service-row']} ${isRunning ? styles['healthy'] : styles['unhealthy']}`}
     >
       <div className={styles['service-left']}>
         <StatusDotComponent
