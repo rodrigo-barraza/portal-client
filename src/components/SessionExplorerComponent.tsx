@@ -1101,7 +1101,7 @@ export default function SessionExplorerComponent({
           {/* ── View Mode Toggle ── */}
           <div className={styles["view-mode-toggle"]} role="group" aria-label="View mode">
             <button
-              className={`${styles["view-mode-button"]} ${viewMode === "cards" ? styles["view-mode-button-active"] : ""}`}
+              className={`${styles["view-mode-button"]} ${viewMode === "cards" ? styles["view-mode-button-is-active-state"] : ""}`}
               onClick={() => setViewMode("cards")}
               aria-label="Card view"
               title="Card view"
@@ -1109,7 +1109,7 @@ export default function SessionExplorerComponent({
               <LayoutGrid size={14} strokeWidth={2.2} />
             </button>
             <button
-              className={`${styles["view-mode-button"]} ${viewMode === "table" ? styles["view-mode-button-active"] : ""}`}
+              className={`${styles["view-mode-button"]} ${viewMode === "table" ? styles["view-mode-button-is-active-state"] : ""}`}
               onClick={() => setViewMode("table")}
               aria-label="Table view"
               title="Table view"

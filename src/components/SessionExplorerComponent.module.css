@@ -52,7 +52,7 @@
   }
 }
 
-.view-mode-button-active {
+.view-mode-button-is-active-state {
   background: var(--background-surface);
   color: var(--accent-primary);
   box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.06);

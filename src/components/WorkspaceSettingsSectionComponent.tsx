@@ -194,7 +194,7 @@ export default function WorkspaceSettingsSectionComponent() {
 
       {/* ── Connected Agents ── */}
       <div className={styles["agents-panel"]}>
-        <div className={styles["agents-header-row"]}>
+        <div className={styles["agents-header-layout-row"]}>
           <span className={styles["agents-title"]}>
             Connected Agents ({agents.length})
           </span>
