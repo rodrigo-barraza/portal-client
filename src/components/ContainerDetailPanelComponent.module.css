@@ -7,10 +7,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  animation: panelSlideIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: panel-slide-in 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes panelSlideIn {
+@keyframes panel-slide-in {
   from {
     opacity: 0;
     transform: translateY(-6px);
@@ -29,7 +29,7 @@
   gap: 10px;
 }
 
-.sectionTitle {
+.section-title {
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -40,7 +40,7 @@
   margin: 0;
 }
 
-.fieldGrid {
+.field-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2px 16px;
@@ -55,7 +55,7 @@
   min-width: 0;
 }
 
-.fieldLabel {
+.field-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
@@ -63,7 +63,7 @@
   flex-shrink: 0;
 }
 
-.fieldValueMono {
+.field-value-mono {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-primary);
@@ -77,7 +77,7 @@
 
 /* ── State Badge ─────────────────────────────────────────────── */
 
-.stateBadge {
+.state-badge {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -116,7 +116,7 @@
 
 /* ── Command Text ────────────────────────────────────────────── */
 
-.commandText {
+.command-text {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);
@@ -133,13 +133,13 @@
 
 /* ── Metrics Grid ─────────────────────────────────────────────── */
 
-.metricsGrid {
+.metrics-grid {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.metricsEmpty {
+.metrics-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -153,13 +153,13 @@
   border-radius: var(--border-radius-sm);
 }
 
-.emptyIcon {
+.empty-icon {
   opacity: 0.5;
 }
 
 /* ── Metric Card ──────────────────────────────────────────────── */
 
-.metricCard {
+.metric-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -174,18 +174,18 @@
   }
 }
 
-.metricCardHeader {
+.metric-card-header {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.metricCardIcon {
+.metric-card-icon {
   color: var(--text-secondary);
   flex-shrink: 0;
 }
 
-.metricCardTitle {
+.metric-card-title {
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -193,7 +193,7 @@
   color: var(--text-secondary);
 }
 
-.metricCardValue {
+.metric-card-value {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
@@ -201,7 +201,7 @@
   white-space: nowrap;
 }
 
-.metricCardDim {
+.metric-card-dim {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
@@ -209,7 +209,7 @@
   white-space: nowrap;
 }
 
-.metricRow {
+.metric-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
@@ -217,7 +217,7 @@
 
 /* ── Percent Bar ──────────────────────────────────────────────── */
 
-.barTrack {
+.bar-track {
   width: 100%;
   height: 3px;
   background: var(--background-elevated);
@@ -225,7 +225,7 @@
   overflow: hidden;
 }
 
-.barFill {
+.bar-fill {
   height: 100%;
   border-radius: 2px;
   transform-origin: left;
@@ -234,13 +234,13 @@
 
 /* ── I/O Stats ────────────────────────────────────────────────── */
 
-.inputOutputStats {
+.input-output-stats {
   display: flex;
   gap: 20px;
   padding-top: 4px;
 }
 
-.inputOutputStatsWarning {
+.input-output-stats-warning {
   display: flex;
   gap: 20px;
   padding-top: 6px;
@@ -248,13 +248,13 @@
   margin-top: 4px;
 }
 
-.inputOutputStat {
+.input-output-stat {
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
 
-.inputOutputDirection {
+.input-output-direction {
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -263,14 +263,14 @@
   font-family: var(--font-mono);
 }
 
-.inputOutputValue {
+.input-output-value {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
   font-weight: 600;
 }
 
-.inputOutputValueDanger {
+.input-output-value-danger {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--color-danger);
@@ -279,21 +279,21 @@
 
 /* ── Detail Grid (Memory Breakdown) ───────────────────────────── */
 
-.detailGrid {
+.detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px 16px;
   padding-top: 4px;
 }
 
-.detailItem {
+.detail-item {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
 
-.detailLabel {
+.detail-label {
   font-size: 0.6875rem;
   color: var(--text-secondary);
   font-weight: 600;
@@ -301,7 +301,7 @@
   letter-spacing: 0.04em;
 }
 
-.detailValue {
+.detail-value {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -310,14 +310,14 @@
 
 /* ── Network Interfaces ───────────────────────────────────────── */
 
-.interfaceList {
+.interface-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-top: 4px;
 }
 
-.interfaceRow {
+.interface-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -325,7 +325,7 @@
   padding: 3px 0;
 }
 
-.interfaceName {
+.interface-name {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -335,7 +335,7 @@
   border-radius: 4px;
 }
 
-.inputOutputCompactDetail {
+.input-output-compact-detail {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);
@@ -344,18 +344,18 @@
 
 /* ── Port Mappings ────────────────────────────────────────────── */
 
-.portList {
+.port-list {
   display: flex;
   flex-direction: column;
   gap: 3px;
   padding-top: 4px;
 }
 
-.portRow {
+.port-row {
   padding: 3px 0;
 }
 
-.portMapping {
+.port-mapping {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);
@@ -364,14 +364,14 @@
 
 /* ── Volume Mounts ────────────────────────────────────────────── */
 
-.mountList {
+.mount-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-top: 4px;
 }
 
-.mountRow {
+.mount-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -379,7 +379,7 @@
   min-width: 0;
 }
 
-.mountType {
+.mount-type {
   font-family: var(--font-mono);
   font-size: 0.625rem;
   font-weight: 700;
@@ -392,7 +392,7 @@
   flex-shrink: 0;
 }
 
-.mountPath {
+.mount-path {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);
@@ -403,7 +403,7 @@
   flex: 1;
 }
 
-.mountMode {
+.mount-mode {
   font-family: var(--font-mono);
   font-size: 0.625rem;
   font-weight: 700;
@@ -413,7 +413,7 @@
 
 /* ── Labels ────────────────────────────────────────────────────── */
 
-.labelList {
+.label-list {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -422,7 +422,7 @@
   overflow-y: auto;
 }
 
-.labelRow {
+.label-row {
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -430,7 +430,7 @@
   min-width: 0;
 }
 
-.labelKey {
+.label-key {
   font-family: var(--font-mono);
   font-size: 0.625rem;
   color: var(--text-secondary);
@@ -442,7 +442,7 @@
   flex-shrink: 0;
 }
 
-.labelValue {
+.label-value {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-primary);
@@ -468,10 +468,10 @@
     max-height: 70vh;
     border-radius: 12px 12px 0 0;
     z-index: 500;
-    animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
-  @keyframes slideUp {
+  @keyframes slide-up {
     from {
       transform: translateY(100%);
     }

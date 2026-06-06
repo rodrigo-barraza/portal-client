@@ -297,7 +297,7 @@ export default function ProjectsComponent() {
     <div className={styles.services}>
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
-        <div className={styles.sortBar}>
+        <div className={styles['sort-bar']}>
           {/* ── Search ── */}
           <SearchInputComponent
             value={searchQuery}
@@ -308,10 +308,10 @@ export default function ProjectsComponent() {
           />
 
           {/* ── Divider ── */}
-          <div className={styles.barDivider} />
+          <div className={styles['bar-divider']} />
 
           {/* ── Filters ── */}
-          <div className={styles.sortBarIcon}>
+          <div className={styles['sort-bar-icon']}>
             <ArrowUpDown size={13} strokeWidth={2.2} />
             <span>Filter</span>
           </div>
@@ -330,7 +330,7 @@ export default function ProjectsComponent() {
 
           {hasActiveFilter && (
             <button
-              className={styles.clearButton}
+              className={styles['clear-button']}
               onClick={() => {
                 setSearchQuery("");
                 setFilters({
@@ -347,14 +347,14 @@ export default function ProjectsComponent() {
           )}
 
           {/* ── Divider ── */}
-          <div className={styles.barDivider} />
+          <div className={styles['bar-divider']} />
 
           {/* ── View Mode Toggle ── */}
-          <div className={styles.sortBarIcon}>
+          <div className={styles['sort-bar-icon']}>
             <span>View</span>
           </div>
 
-          <div className={styles.sortGroup}>
+          <div className={styles['sort-group']}>
             <SegmentedControlComponent
               value={viewMode}
               onChange={(value: string) => setViewMode(value)}
@@ -367,7 +367,7 @@ export default function ProjectsComponent() {
           </div>
 
           {/* ── Divider ── */}
-          <div className={styles.barDivider} />
+          <div className={styles['bar-divider']} />
 
           {/* ── Refresh Button ── */}
           <ButtonComponent
@@ -393,35 +393,35 @@ export default function ProjectsComponent() {
 
       {/* ── Project Summary Cards ───────────────────────────────── */}
       {!loading && (
-        <div className={styles.summaryGrid}>
-          <div className={styles.statCard}>
+        <div className={styles['summary-grid']}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
             >
               <FolderKanban size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{allItems.length}</span>
-              <span className={styles.statCardLabel}>Projects</span>
-              <span className={styles.statCardSub}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>{allItems.length}</span>
+              <span className={styles['stat-card-label']}>Projects</span>
+              <span className={styles['stat-card-sub']}>
                 {allDeployed.length} deployed · {allNonDeployed.length}{" "}
                 libraries & tools
               </span>
             </div>
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}
             >
               <HeartPulse size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{healthyCount}</span>
-              <span className={styles.statCardLabel}>Healthy</span>
-              <span className={styles.statCardSub}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>{healthyCount}</span>
+              <span className={styles['stat-card-label']}>Healthy</span>
+              <span className={styles['stat-card-sub']}>
                 {unhealthyCount > 0
                   ? `${unhealthyCount} unhealthy`
                   : "All systems nominal"}
@@ -429,53 +429,53 @@ export default function ProjectsComponent() {
             </div>
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}
             >
               <Server size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>
                 {uniqueDevices.length}
               </span>
-              <span className={styles.statCardLabel}>Devices</span>
-              <span className={styles.statCardSub}>
+              <span className={styles['stat-card-label']}>Devices</span>
+              <span className={styles['stat-card-sub']}>
                 {uniqueDevices.join(" · ") || "No devices"}
               </span>
             </div>
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
             >
               <Layers size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>{uniqueTypes.length}</span>
-              <span className={styles.statCardLabel}>Types</span>
-              <span className={styles.statCardSub}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>{uniqueTypes.length}</span>
+              <span className={styles['stat-card-label']}>Types</span>
+              <span className={styles['stat-card-sub']}>
                 {uniqueTypes.join(" · ") || "No types"}
               </span>
             </div>
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}
             >
               <HardDrive size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>
                 {totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}
               </span>
-              <span className={styles.statCardLabel}>Total Code</span>
-              <span className={styles.statCardSub}>
+              <span className={styles['stat-card-label']}>Total Code</span>
+              <span className={styles['stat-card-sub']}>
                 {Object.keys(projectSizes).length} repos measured
               </span>
             </div>
@@ -494,7 +494,7 @@ export default function ProjectsComponent() {
       ) : (
         <>
           {hasActiveFilter && (
-            <div className={styles.filterSummary}>
+            <div className={styles['filter-summary']}>
               Showing {filtered.length} of {allItems.length} projects
             </div>
           )}
@@ -505,10 +505,10 @@ export default function ProjectsComponent() {
               {viewMode === "card" ? (
                 <>
                   {nonDeployedItems.length > 0 && (
-                    <div className={styles.sectionLabel}>
+                    <div className={styles['section-label']}>
                       <Server size={13} strokeWidth={2.2} />
                       <span>Deployed Services</span>
-                      <span className={styles.sectionCount}>
+                      <span className={styles['section-count']}>
                         {deployedItems.length}
                       </span>
                     </div>
@@ -554,10 +554,10 @@ export default function ProjectsComponent() {
             <>
               {viewMode === "card" ? (
                 <>
-                  <div className={styles.sectionLabel}>
+                  <div className={styles['section-label']}>
                     <BookOpen size={13} strokeWidth={2.2} />
                     <span>Libraries & Toolkits</span>
-                    <span className={styles.sectionCount}>
+                    <span className={styles['section-count']}>
                       {nonDeployedItems.length}
                     </span>
                   </div>
@@ -592,7 +592,7 @@ export default function ProjectsComponent() {
 
           {/* ═══ Empty state ════════════════════════════════════════ */}
           {filtered.length === 0 && (
-            <div className={styles.emptyState}>
+            <div className={styles['empty-state']}>
               No projects match the selected filters
             </div>
           )}

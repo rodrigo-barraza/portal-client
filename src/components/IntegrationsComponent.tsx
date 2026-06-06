@@ -67,23 +67,23 @@ export default function IntegrationsComponent() {
       sortable: true,
       sortValue: (row: IntegrationItem) => row.provider,
       render: (row: IntegrationItem) => (
-        <div className={styles.tableProviderCell}>
+        <div className={styles['table-provider-cell']}>
           {row.configured ? (
             <div
-              className={styles.statusDotConfigured}
+              className={styles['status-dot-configured']}
               style={{ width: 16, height: 16 }}
             >
               <Check size={9} strokeWidth={3} />
             </div>
           ) : (
             <div
-              className={styles.statusDotMissing}
+              className={styles['status-dot-missing']}
               style={{ width: 16, height: 16 }}
             >
               <X size={9} strokeWidth={3} />
             </div>
           )}
-          <span className={styles.tableProviderName}>{row.provider}</span>
+          <span className={styles['table-provider-name']}>{row.provider}</span>
         </div>
       ),
     },
@@ -93,7 +93,7 @@ export default function IntegrationsComponent() {
       sortable: true,
       sortValue: (row: IntegrationItem) => row.envKey,
       render: (row: IntegrationItem) => (
-        <code className={styles.tableEnvKey}>{row.envKey}</code>
+        <code className={styles['table-env-key']}>{row.envKey}</code>
       ),
     },
     {
@@ -103,9 +103,9 @@ export default function IntegrationsComponent() {
       sortValue: (row: IntegrationItem) => row.maskedKey || "",
       render: (row: IntegrationItem) =>
         row.maskedKey ? (
-          <code className={styles.tableMaskedKey}>{row.maskedKey}</code>
+          <code className={styles['table-masked-key']}>{row.maskedKey}</code>
         ) : (
-          <span className={styles.tableNotConfigured}>Not configured</span>
+          <span className={styles['table-not-configured']}>Not configured</span>
         ),
     },
     {
@@ -118,14 +118,14 @@ export default function IntegrationsComponent() {
             href={row.docs}
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.docsLink}
+            className={styles['docs-link']}
             title="Open provider docs"
             style={{ margin: "0 auto" }}
           >
             <ExternalLink size={13} strokeWidth={2} />
           </a>
         ) : (
-          <span className={styles.tableNoDocs}>—</span>
+          <span className={styles['table-no-docs']}>—</span>
         ),
     },
   ];
@@ -192,7 +192,7 @@ export default function IntegrationsComponent() {
             : `${data?.configuredCount ?? 0} of ${data?.totalCount ?? 0} API keys configured`
         }
       >
-        <div className={styles.headerControls}>
+        <div className={styles['header-controls']}>
           {!loading && (
             <SegmentedControlComponent
               value={viewMode}
@@ -217,7 +217,7 @@ export default function IntegrationsComponent() {
 
       {/* ── Search Bar ── */}
       {!loading && (
-        <div className={styles.searchBar}>
+        <div className={styles['search-bar']}>
           <SearchInputComponent
             value={searchQuery}
             onChange={(value: string) => setSearchQuery(value)}
@@ -229,20 +229,20 @@ export default function IntegrationsComponent() {
 
       {/* ── Stats Row ── */}
       {!loading && data && (
-        <div className={styles.statsRow}>
-          <div className={styles.statCard}>
-            <span className={styles.statValue}>{data.totalCount}</span>
-            <span className={styles.statLabel}>Total Services</span>
+        <div className={styles['stats-row']}>
+          <div className={styles['stat-card']}>
+            <span className={styles['stat-value']}>{data.totalCount}</span>
+            <span className={styles['stat-label']}>Total Services</span>
           </div>
-          <div className={`${styles.statCard} ${styles.statConfigured}`}>
-            <span className={styles.statValue}>{data.configuredCount}</span>
-            <span className={styles.statLabel}>Configured</span>
+          <div className={`${styles['stat-card']} ${styles['stat-configured']}`}>
+            <span className={styles['stat-value']}>{data.configuredCount}</span>
+            <span className={styles['stat-label']}>Configured</span>
           </div>
-          <div className={`${styles.statCard} ${styles.statMissing}`}>
-            <span className={styles.statValue}>
+          <div className={`${styles['stat-card']} ${styles['stat-missing']}`}>
+            <span className={styles['stat-value']}>
               {data.totalCount - data.configuredCount}
             </span>
-            <span className={styles.statLabel}>Missing</span>
+            <span className={styles['stat-label']}>Missing</span>
           </div>
         </div>
       )}
@@ -254,33 +254,33 @@ export default function IntegrationsComponent() {
           className="is-loading-centered-state"
         />
       ) : (
-        <div className={styles.categoryList}>
+        <div className={styles['category-list']}>
           {filteredCategories?.map(
             (cat: IntegrationCategory, catIndex: number) => {
               const isCollapsed = collapsedCategories[cat.category];
               return (
                 <div
                   key={cat.category}
-                  className={styles.categoryGroup}
+                  className={styles['category-group']}
                   style={{ animationDelay: `${catIndex * 50}ms` }}
                 >
                   {/* ── Category Header ── */}
                   <button
-                    className={styles.categoryHeader}
+                    className={styles['category-header']}
                     onClick={() => toggleCategory(cat.category)}
                   >
-                    <div className={styles.categoryLeft}>
+                    <div className={styles['category-left']}>
                       {isCollapsed ? (
                         <ChevronRight size={14} strokeWidth={2.5} />
                       ) : (
                         <ChevronDown size={14} strokeWidth={2.5} />
                       )}
-                      <span className={styles.categoryName}>
+                      <span className={styles['category-name']}>
                         {cat.category}
                       </span>
                     </div>
-                    <div className={styles.categoryBadges}>
-                      <span className={styles.categoryCount}>
+                    <div className={styles['category-badges']}>
+                      <span className={styles['category-count']}>
                         {cat.configuredCount}/{cat.totalCount}
                       </span>
                       {cat.configuredCount === cat.totalCount ? (
@@ -307,24 +307,24 @@ export default function IntegrationsComponent() {
                         emptyText="No integrations in this category"
                       />
                     ) : (
-                      <div className={styles.integrationCards}>
+                      <div className={styles['integration-cards']}>
                         {cat.integrations.map((item: IntegrationItem) => (
                           <div
                             key={item.envKey}
-                            className={`${styles.integrationCard} ${item.configured ? styles.configured : styles.unconfigured}`}
+                            className={`${styles['integration-card']} ${item.configured ? styles.configured : styles.unconfigured}`}
                           >
-                            <div className={styles.cardHeader}>
-                              <div className={styles.cardStatus}>
+                            <div className={styles['card-header']}>
+                              <div className={styles['card-status']}>
                                 {item.configured ? (
-                                  <div className={styles.statusDotConfigured}>
+                                  <div className={styles['status-dot-configured']}>
                                     <Check size={10} strokeWidth={3} />
                                   </div>
                                 ) : (
-                                  <div className={styles.statusDotMissing}>
+                                  <div className={styles['status-dot-missing']}>
                                     <X size={10} strokeWidth={3} />
                                   </div>
                                 )}
-                                <span className={styles.providerName}>
+                                <span className={styles['provider-name']}>
                                   {item.provider}
                                 </span>
                               </div>
@@ -333,7 +333,7 @@ export default function IntegrationsComponent() {
                                   href={item.docs}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={styles.docsLink}
+                                  className={styles['docs-link']}
                                   title="Open provider dashboard"
                                 >
                                   <ExternalLink size={13} strokeWidth={2} />
@@ -341,23 +341,23 @@ export default function IntegrationsComponent() {
                               )}
                             </div>
 
-                            <div className={styles.cardBody}>
-                              <div className={styles.keyRow}>
+                            <div className={styles['card-body']}>
+                              <div className={styles['key-row']}>
                                 <Key
                                   size={11}
                                   strokeWidth={2}
-                                  className={styles.keyIcon}
+                                  className={styles['key-icon']}
                                 />
-                                <code className={styles.environmentKey}>
+                                <code className={styles['environment-key']}>
                                   {item.envKey}
                                 </code>
                               </div>
                               {item.maskedKey ? (
-                                <div className={styles.maskedKey}>
+                                <div className={styles['masked-key']}>
                                   <code>{item.maskedKey}</code>
                                 </div>
                               ) : (
-                                <div className={styles.notConfigured}>
+                                <div className={styles['not-configured']}>
                                   <span>Not configured</span>
                                 </div>
                               )}
@@ -372,7 +372,7 @@ export default function IntegrationsComponent() {
           )}
 
           {filteredCategories?.length === 0 && (
-            <div className={styles.emptyState}>
+            <div className={styles['empty-state']}>
               No integrations match your search
             </div>
           )}

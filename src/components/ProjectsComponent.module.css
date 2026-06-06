@@ -5,33 +5,33 @@
 
 /* ── System Summary Cards ────────────────────────────────────── */
 
-.summaryGrid {
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 20px;
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fade-in var(--transition-normal) ease-out;
 }
 
 @media (max-width: 1400px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 1200px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.statCard {
+.stat-card {
   display: flex;
   align-items: flex-start;
   gap: 14px;
@@ -39,7 +39,7 @@
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
   transition: border-color var(--transition-fast);
 
   &:hover {
@@ -47,7 +47,7 @@
   }
 }
 
-.statCardIcon {
+.stat-card-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,14 +57,14 @@
   flex-shrink: 0;
 }
 
-.statCardContent {
+.stat-card-content {
   display: flex;
   flex-direction: column;
   gap: 1px;
   min-width: 0;
 }
 
-.statCardValue {
+.stat-card-value {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
@@ -73,7 +73,7 @@
   font-family: var(--font-mono);
 }
 
-.statCardLabel {
+.stat-card-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-tertiary);
@@ -81,7 +81,7 @@
   letter-spacing: 0.04em;
 }
 
-.statCardSub {
+.stat-card-sub {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   margin-top: 2px;
@@ -94,7 +94,7 @@
   gap: 16px;
 }
 
-.refreshButton {
+.refresh-button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -119,7 +119,7 @@
   animation: spin 1s linear infinite;
 }
 
-.loadingState {
+.loading-state {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -129,7 +129,7 @@
   font-size: var(--font-size-base);
 }
 
-.loadingDot {
+.loading-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -139,7 +139,7 @@
 
 /* ── Sort / Filter Bar ── */
 
-.sortBar {
+.sort-bar {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -150,11 +150,11 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fade-in var(--transition-normal) ease-out;
   flex-wrap: wrap;
 }
 
-.sortBarIcon {
+.sort-bar-icon {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -166,13 +166,13 @@
   flex-shrink: 0;
 }
 
-.sortGroup {
+.sort-group {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.segmentedControl {
+.segmented-control {
   display: flex;
   align-items: center;
   background: var(--background-surface);
@@ -181,7 +181,7 @@
   overflow: hidden;
 }
 
-.segmentButton {
+.segment-button {
   padding: 5px 10px;
   font-size: var(--font-size-xs);
   font-weight: 500;
@@ -199,26 +199,26 @@
     border-right: none;
   }
 
-  &:hover:not(.segmentActive) {
+  &:hover:not(.segment-active) {
     color: var(--text-secondary);
     background: oklch(100.0% 0.0001 263.3 / 0.03);
   }
 }
 
-.segmentActive {
+.segment-active {
   color: var(--text-primary);
   background: var(--calculated-accent-primary-subtle);
   box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
-.segmentBtnIcon {
+.segment-btn-icon {
   padding: 6px 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.clearButton {
+.clear-button {
   padding: 5px 10px;
   font-size: var(--font-size-xs);
   font-weight: 500;
@@ -240,7 +240,7 @@
 
 /* ── Bar Divider ── */
 
-.barDivider {
+.bar-divider {
   width: 1px;
   height: 22px;
   background: var(--calculated-border-color);
@@ -249,16 +249,16 @@
 
 /* ── Filter Summary ── */
 
-.filterSummary {
+.filter-summary {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   margin-bottom: 12px;
-  animation: fadeIn var(--transition-fast) ease-out;
+  animation: fade-in var(--transition-fast) ease-out;
 }
 
 /* ── Empty State ── */
 
-.emptyState {
+.empty-state {
   grid-column: 1 / -1;
   text-align: center;
   padding: 48px 24px;
@@ -268,7 +268,7 @@
 
 /* ── Section Divider ── */
 
-.sectionLabel {
+.section-label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -281,14 +281,14 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fade-in var(--transition-normal) ease-out;
 }
 
-.sectionLabel:first-of-type {
+.section-label:first-of-type {
   margin-top: 0;
 }
 
-.sectionCount {
+.section-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -310,17 +310,17 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .sortBar {
+  .sort-bar {
     gap: 8px;
     padding: 10px 12px;
   }
 
-  .sortGroup {
+  .sort-group {
     flex: 1 1 calc(50% - 8px);
     min-width: 0;
   }
 
-  .barDivider {
+  .bar-divider {
     display: none;
   }
 
@@ -329,7 +329,7 @@
     gap: 12px;
   }
 
-  .emptyState {
+  .empty-state {
     padding: 32px 16px;
   }
 }

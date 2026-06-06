@@ -1,19 +1,19 @@
 /* ── ComponentPreviewRegistry ─────────────────────────────────── */
 
-.previewRow {
+.preview-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.previewStack {
+.preview-stack {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.previewLabel {
+.preview-label {
   font-size: 0.625rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -21,7 +21,7 @@
   letter-spacing: 0.06em;
 }
 
-.previewPlaceholder {
+.preview-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,7 +35,7 @@
   font-style: italic;
 }
 
-.previewCompact {
+.preview-compact {
   display: flex;
   align-items: stretch;
   height: 180px;

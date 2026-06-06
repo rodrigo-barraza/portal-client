@@ -68,9 +68,9 @@ function severityColor(
 function MiniBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
-    <div className={styles.miniBarTrack}>
+    <div className={styles['mini-bar-track']}>
       <div
-        className={styles.miniBarFill}
+        className={styles['mini-bar-fill']}
         style={{ width: `${clamped}%`, background: color }}
       />
     </div>
@@ -102,7 +102,7 @@ function ActionCell({
   const isHealthy = service.healthy;
 
   return (
-    <div className={styles.actionRow}>
+    <div className={styles['action-row']}>
       {isHealthy ? (
         <ButtonComponent
           variant="destructive"
@@ -112,7 +112,7 @@ function ActionCell({
           loading={stopping}
           disabled={stopping || restarting || rollingBack}
           title="Stop"
-          className={styles.actionButton}
+          className={styles['action-button']}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             event.stopPropagation();
             setStopping(true);
@@ -134,7 +134,7 @@ function ActionCell({
           loading={starting}
           disabled={starting || restarting || rollingBack}
           title="Start"
-          className={styles.actionButton}
+          className={styles['action-button']}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             event.stopPropagation();
             setStarting(true);
@@ -156,7 +156,7 @@ function ActionCell({
         iconSize={9}
         href={`/logs?container=${service.dockerProject || service.id}`}
         title="Logs"
-        className={styles.actionButton}
+        className={styles['action-button']}
         onClick={(event: React.MouseEvent<HTMLElement>) => event.stopPropagation()}
       />
 
@@ -169,7 +169,7 @@ function ActionCell({
           loading={rollingBack}
           disabled={rollingBack || restarting || stopping || starting}
           title="Rollback to previousStateious build"
-          className={styles.actionButton}
+          className={styles['action-button']}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             event.stopPropagation();
             setRollingBack(true);
@@ -192,7 +192,7 @@ function ActionCell({
         loading={restarting}
         disabled={restarting || stopping || starting || rollingBack}
         title="Restart"
-        className={styles.actionButton}
+        className={styles['action-button']}
         onClick={(event: React.MouseEvent<HTMLElement>) => {
           event.stopPropagation();
           setRestarting(true);
@@ -245,13 +245,13 @@ function buildColumns({
       label: "Container",
       sortable: true,
       render: (row: ContainerRow) => (
-        <div className={styles.nameCell}>
+        <div className={styles['name-cell']}>
           <Container
             size={14}
             strokeWidth={2.6}
-            className={`${styles.typeIcon} ${row.healthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+            className={`${styles['type-icon']} ${row.healthy ? styles['icon-healthy'] : styles['icon-unhealthy']}`}
           />
-          <span className={styles.containerName}>{row.containerName}</span>
+          <span className={styles['container-name']}>{row.containerName}</span>
         </div>
       ),
       sortValue: (row: ContainerRow) => row.containerName || "",
@@ -262,7 +262,7 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) => (
         <span
-          className={`${styles.statusIndicator} ${row.healthy ? styles.statusHealthy : styles.statusDown}`}
+          className={`${styles['status-indicator']} ${row.healthy ? styles['status-healthy'] : styles['status-down']}`}
           title={row.healthy ? "Healthy" : "Down"}
         >
           {row.healthy ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
@@ -276,11 +276,11 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) => {
         const cpuPercent = row._stats?.cpu?.percent;
-        if (cpuPercent == null) return <span className={styles.dimText}>—</span>;
+        if (cpuPercent == null) return <span className={styles['dim-text']}>—</span>;
         const color = severityColor(cpuPercent);
         return (
-          <div className={styles.metricCell}>
-            <span className={styles.metricValue} style={{ color }}>
+          <div className={styles['metric-cell']}>
+            <span className={styles['metric-value']} style={{ color }}>
               {formatPercent(cpuPercent, "adaptive")}
             </span>
             <MiniBar percent={cpuPercent} color={color} />
@@ -296,9 +296,9 @@ function buildColumns({
       render: (row: ContainerRow) => {
         const history = containerHistory?.[row.containerName]?.cpu;
         if (!history || history.length < 2)
-          return <span className={styles.dimText}>—</span>;
+          return <span className={styles['dim-text']}>—</span>;
         return (
-          <div className={styles.inlineSparkline}>
+          <div className={styles['inline-sparkline']}>
             <ChartLineComponent
               data={history}
               color="#10b981"
@@ -318,7 +318,7 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) => {
         const memoryStats = row._stats?.memory;
-        if (!memoryStats) return <span className={styles.dimText}>—</span>;
+        if (!memoryStats) return <span className={styles['dim-text']}>—</span>;
         const hostRam = hostRamByDevice[row.device || ""] || 0;
         const isCapped =
           memoryStats.limit > 0 &&
@@ -329,10 +329,10 @@ function buildColumns({
           : memoryStats.percent;
         const color = severityColor(percentage, [60, 85]);
         return (
-          <div className={styles.metricCell}>
-            <span className={styles.metricValue} style={{ color }}>
+          <div className={styles['metric-cell']}>
+            <span className={styles['metric-value']} style={{ color }}>
               {formatBytes(memoryStats.used)}
-              <span className={styles.metricLimit}>
+              <span className={styles['metric-limit']}>
                 {" "}
                 / {isCapped ? formatBytes(memoryStats.limit) : "∞"}
               </span>
@@ -350,10 +350,10 @@ function buildColumns({
       render: (row: ContainerRow) => {
         const history = containerHistory?.[row.containerName]?.mem;
         if (!history || history.length < 2)
-          return <span className={styles.dimText}>—</span>;
+          return <span className={styles['dim-text']}>—</span>;
         const maximumValue = row._stats?.memory?.limit || Math.max(...history, 1);
         return (
-          <div className={styles.inlineSparkline}>
+          <div className={styles['inline-sparkline']}>
             <ChartLineComponent
               data={history}
               color="#3b82f6"
@@ -374,15 +374,15 @@ function buildColumns({
       render: (row: ContainerRow) => {
         const networkStats = row._stats?.network;
         if (!networkStats || (networkStats.rx === 0 && networkStats.tx === 0))
-          return <span className={styles.dimText}>—</span>;
+          return <span className={styles['dim-text']}>—</span>;
         return (
-          <div className={styles.inputOutputCell}>
-            <span className={styles.inputOutputCompact}>
-              <span className={styles.inputOutputArrow}>↓</span>
+          <div className={styles['input-output-cell']}>
+            <span className={styles['input-output-compact']}>
+              <span className={styles['input-output-arrow']}>↓</span>
               {formatBytes(networkStats.rx)}
             </span>
-            <span className={styles.inputOutputCompact}>
-              <span className={styles.inputOutputArrow}>↑</span>
+            <span className={styles['input-output-compact']}>
+              <span className={styles['input-output-arrow']}>↑</span>
               {formatBytes(networkStats.tx)}
             </span>
           </div>
@@ -398,7 +398,7 @@ function buildColumns({
       sortable: true,
       render: (row: ContainerRow) => {
         const created = row._stats?.created;
-        if (!created) return <span className={styles.dimText}>—</span>;
+        if (!created) return <span className={styles['dim-text']}>—</span>;
         return (
           <BadgeComponent
             type="dateTime"
@@ -984,7 +984,7 @@ export default function ContainerStatsComponent() {
   );
 
   const getRowClassName = (row: ContainerRow) =>
-    row.healthy ? styles.statusRowHealthy : styles.statusRowUnhealthy;
+    row.healthy ? styles['status-row-healthy'] : styles['status-row-unhealthy'];
 
   // Build full stats object for drawer
   const selectedStats = selectedContainer?._stats || null;
@@ -1010,10 +1010,10 @@ export default function ContainerStatsComponent() {
       />
 
       {/* ── Filters & View Toggle ────────────────────────────────── */}
-      <div className={styles.filtersBar}>
-        <div className={styles.filtersContainer}>
+      <div className={styles['filters-bar']}>
+        <div className={styles['filters-container']}>
           {/* ── Search Input ───────────────────────────────────────── */}
-          <div className={styles.searchWrapper}>
+          <div className={styles['search-wrapper']}>
             <SearchInputComponent
               value={searchQuery}
               onChange={setSearchQuery}
@@ -1052,16 +1052,16 @@ export default function ContainerStatsComponent() {
         </div>
 
         {/* ── View Mode Switcher ──────────────────────────────────── */}
-        <div className={styles.viewModeToggle}>
+        <div className={styles['view-mode-toggle']}>
           <button
-            className={`${styles.toggleButton} ${viewMode === "table" ? styles.toggleBtnActive : ""}`}
+            className={`${styles['toggle-button']} ${viewMode === "table" ? styles['toggle-btn-active'] : ""}`}
             onClick={() => handleToggleViewMode("table")}
             title="Table View"
           >
             <List size={14} strokeWidth={2.4} />
           </button>
           <button
-            className={`${styles.toggleButton} ${viewMode === "cards" ? styles.toggleBtnActive : ""}`}
+            className={`${styles['toggle-button']} ${viewMode === "cards" ? styles['toggle-btn-active'] : ""}`}
             onClick={() => handleToggleViewMode("cards")}
             title="Cards View"
           >
@@ -1072,20 +1072,20 @@ export default function ContainerStatsComponent() {
 
       {/* ── Infrastructure Summary Cards ──────────────────────────── */}
       {!loading && (
-        <div className={styles.summaryGrid}>
-          <div className={styles.statCard}>
+        <div className={styles['summary-grid']}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
             >
               <Server size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>
                 {filteredRows.length}
               </span>
-              <span className={styles.statCardLabel}>Containers</span>
-              <span className={styles.statCardSub}>
+              <span className={styles['stat-card-label']}>Containers</span>
+              <span className={styles['stat-card-sub']}>
                 {activeDevices.length > 0
                   ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
                   : systemInfo
@@ -1095,10 +1095,10 @@ export default function ContainerStatsComponent() {
             </div>
           </div>
 
-          <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
-            <div className={styles.statCardHeader}>
+          <div className={`${styles['stat-card']} ${styles['stat-card-with-chart']}`}>
+            <div className={styles['stat-card-header']}>
               <div
-                className={styles.statCardIcon}
+                className={styles['stat-card-icon']}
                 style={{
                   color: "#10b981",
                   background: "rgba(16,185,129,0.08)",
@@ -1106,15 +1106,15 @@ export default function ContainerStatsComponent() {
               >
                 <Cpu size={18} strokeWidth={2} />
               </div>
-              <div className={styles.statCardContent}>
+              <div className={styles['stat-card-content']}>
                 <span
-                  className={styles.statCardValue}
+                  className={styles['stat-card-value']}
                   style={{ color: severityColor(avgCpuUsage) }}
                 >
                   {totalCpuUsage.toFixed(1)}%
                 </span>
-                <span className={styles.statCardLabel}>CPU Usage</span>
-                <span className={styles.statCardSub}>
+                <span className={styles['stat-card-label']}>CPU Usage</span>
+                <span className={styles['stat-card-sub']}>
                   {avgCpuUsage.toFixed(1)}% avg per container
                 </span>
               </div>
@@ -1130,10 +1130,10 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          <div className={`${styles.statCard} ${styles.statCardWithChart}`}>
-            <div className={styles.statCardHeader}>
+          <div className={`${styles['stat-card']} ${styles['stat-card-with-chart']}`}>
+            <div className={styles['stat-card-header']}>
               <div
-                className={styles.statCardIcon}
+                className={styles['stat-card-icon']}
                 style={{
                   color: "#3b82f6",
                   background: "rgba(59,130,246,0.08)",
@@ -1141,15 +1141,15 @@ export default function ContainerStatsComponent() {
               >
                 <MemoryStick size={18} strokeWidth={2} />
               </div>
-              <div className={styles.statCardContent}>
+              <div className={styles['stat-card-content']}>
                 <span
-                  className={styles.statCardValue}
+                  className={styles['stat-card-value']}
                   style={{ color: severityColor(memoryPercent, [60, 85]) }}
                 >
                   {formatBytes(totalMemoryUsed)}
                 </span>
-                <span className={styles.statCardLabel}>Memory Used</span>
-                <span className={styles.statCardSub}>
+                <span className={styles['stat-card-label']}>Memory Used</span>
+                <span className={styles['stat-card-sub']}>
                   {totalMemoryLimit
                     ? `${formatPercent(memoryPercent, "adaptive")} of ${formatBytes(totalMemoryLimit)} total`
                     : "—"}
@@ -1167,39 +1167,39 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
             >
               <Network size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>
                 {formatBytes(totalNetRx + totalNetTx)}
               </span>
-              <span className={styles.statCardLabel}>Network I/O</span>
-              <span className={styles.statCardSub}>
+              <span className={styles['stat-card-label']}>Network I/O</span>
+              <span className={styles['stat-card-sub']}>
                 ↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx
               </span>
             </div>
           </div>
 
-          <div className={styles.statCard}>
+          <div className={styles['stat-card']}>
             <div
-              className={styles.statCardIcon}
+              className={styles['stat-card-icon']}
               style={{ color: "#f97316", background: "rgba(249,115,22,0.08)" }}
             >
               <Clock size={18} strokeWidth={2} />
             </div>
-            <div className={styles.statCardContent}>
-              <span className={styles.statCardValue}>
+            <div className={styles['stat-card-content']}>
+              <span className={styles['stat-card-value']}>
                 {averageResponseTime > 0
                   ? formatDuration(averageResponseTime)
                   : "—"}
               </span>
-              <span className={styles.statCardLabel}>Avg Response</span>
-              <span className={styles.statCardSub}>
+              <span className={styles['stat-card-label']}>Avg Response</span>
+              <span className={styles['stat-card-sub']}>
                 {rowsWithResponseTime.length > 0
                   ? `Based on ${rowsWithResponseTime.length} active service${rowsWithResponseTime.length === 1 ? "" : "s"}`
                   : "No services with active responses"}
@@ -1210,7 +1210,7 @@ export default function ContainerStatsComponent() {
       )}
 
       {filteredRows.length === 0 ? (
-        <div className={styles.emptyState}>
+        <div className={styles['empty-state']}>
           No containers found{activeDevices.length > 0 ? ` on ${activeDevices.join(", ")}` : ""}
         </div>
       ) : viewMode === "table" ? (
@@ -1228,31 +1228,31 @@ export default function ContainerStatsComponent() {
         />
       ) : (
         /* ── Cards Grid View ────────────────────────────────────── */
-        <div className={styles.cardsGrid}>
+        <div className={styles['cards-grid']}>
           {filteredRows.map((row) => (
             <div
               key={row.id}
-              className={`${styles.containerCard} ${row.healthy ? styles.cardHealthy : styles.cardUnhealthy} ${selectedContainer?.id === row.id ? styles.cardActive : ""}`}
+              className={`${styles['container-card']} ${row.healthy ? styles['card-healthy'] : styles['card-unhealthy']} ${selectedContainer?.id === row.id ? styles['card-active'] : ""}`}
               onClick={() => setSelectedContainer(row)}
             >
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitleSection}>
+              <div className={styles['card-header']}>
+                <div className={styles['card-title-section']}>
                   <Container
                     size={14}
                     strokeWidth={2.6}
-                    className={`${styles.typeIcon} ${row.healthy ? styles.iconHealthy : styles.iconUnhealthy}`}
+                    className={`${styles['type-icon']} ${row.healthy ? styles['icon-healthy'] : styles['icon-unhealthy']}`}
                   />
-                  <span className={styles.cardName}>{row.containerName}</span>
+                  <span className={styles['card-name']}>{row.containerName}</span>
                 </div>
-                <div className={styles.cardBadgeSection}>
+                <div className={styles['card-badge-section']}>
                   <BadgeComponent type="status" healthy={row.healthy} />
                   {row.device && (
-                    <span className={styles.cardDevicePill}>{row.device}</span>
+                    <span className={styles['card-device-pill']}>{row.device}</span>
                   )}
                 </div>
               </div>
 
-              <div className={styles.cardMeta}>
+              <div className={styles['card-meta']}>
                 {row.port && <BadgeComponent type="port" port={row.port} />}
                 {row.visibility && (
                   <BadgeComponent
@@ -1271,25 +1271,25 @@ export default function ContainerStatsComponent() {
               </div>
 
               {row.projectType === "client" && row.healthy && row.domain && (
-                <div className={styles.cardPreviewContainer}>
+                <div className={styles['card-preview-container']}>
                   <iframe
                     src={`https://${row.domain}`}
-                    className={styles.cardPreviewIframe}
+                    className={styles['card-preview-iframe']}
                     title={`Preview of ${row.domain}`}
                     loading="lazy"
                     tabIndex={-1}
                     sandbox="allow-scripts allow-same-origin"
                   />
-                  <div className={styles.cardPreviewOverlay} />
+                  <div className={styles['card-preview-overlay']} />
                 </div>
               )}
 
-              <div className={styles.cardMetricsGrid}>
-                <div className={styles.cardMetric}>
-                  <div className={styles.cardMetricHeader}>
-                    <Cpu size={12} className={styles.metricIconCpu} />
-                    <span className={styles.cardMetricLabel}>CPU</span>
-                    <span className={styles.cardMetricValue}>
+              <div className={styles['card-metrics-grid']}>
+                <div className={styles['card-metric']}>
+                  <div className={styles['card-metric-header']}>
+                    <Cpu size={12} className={styles['metric-icon-cpu']} />
+                    <span className={styles['card-metric-label']}>CPU</span>
+                    <span className={styles['card-metric-value']}>
                       {row._stats?.cpu?.percent != null
                         ? formatPercent(row._stats.cpu.percent, "adaptive")
                         : "—"}
@@ -1303,11 +1303,11 @@ export default function ContainerStatsComponent() {
                   )}
                 </div>
 
-                <div className={styles.cardMetric}>
-                  <div className={styles.cardMetricHeader}>
-                    <MemoryStick size={12} className={styles.metricIconRam} />
-                    <span className={styles.cardMetricLabel}>RAM</span>
-                    <span className={styles.cardMetricValue}>
+                <div className={styles['card-metric']}>
+                  <div className={styles['card-metric-header']}>
+                    <MemoryStick size={12} className={styles['metric-icon-ram']} />
+                    <span className={styles['card-metric-label']}>RAM</span>
+                    <span className={styles['card-metric-value']}>
                       {row._stats?.memory
                         ? formatBytes(row._stats.memory.used)
                         : "—"}
@@ -1333,11 +1333,11 @@ export default function ContainerStatsComponent() {
                 </div>
               </div>
 
-              <div className={styles.cardFooter}>
-                <div className={styles.cardUptime}>
+              <div className={styles['card-footer']}>
+                <div className={styles['card-uptime']}>
                   {row._stats?.created ? (
                     <>
-                      <span className={styles.uptimeLabel}>Uptime:</span>
+                      <span className={styles['uptime-label']}>Uptime:</span>
                       <BadgeComponent
                         type="dateTime"
                         date={row._stats.created * 1000}

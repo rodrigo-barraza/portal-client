@@ -83,7 +83,7 @@ function PreviewRow({
   gap?: number;
 }) {
   return (
-    <div className={styles.previewRow} style={{ gap }}>
+    <div className={styles['preview-row']} style={{ gap }}>
       {children}
     </div>
   );
@@ -97,14 +97,14 @@ function PreviewStack({
   gap?: number;
 }) {
   return (
-    <div className={styles.previewStack} style={{ gap }}>
+    <div className={styles['preview-stack']} style={{ gap }}>
       {children}
     </div>
   );
 }
 
 function PreviewLabel({ children }: { children: ReactNode }) {
-  return <span className={styles.previewLabel}>{children}</span>;
+  return <span className={styles['preview-label']}>{children}</span>;
 }
 
 // ── Preview Registry ─────────────────────────────────────────────
@@ -203,14 +203,14 @@ const PREVIEWS = {
   ),
 
   DialogComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <AlertCircle size={16} />
       <span>Opens as overlay — click triggers required</span>
     </div>
   ),
 
   DiscordChatComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <span>Requires Discord message data context</span>
     </div>
   ),
@@ -253,7 +253,7 @@ const PREVIEWS = {
   ),
 
   FabMenuComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Plus size={16} />
       <span>Expands radially on click — requires fixed positioning</span>
     </div>
@@ -327,20 +327,20 @@ const PREVIEWS = {
   ),
 
   MenuComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Menu size={16} />
       <span>Positioned popover — requires trigger click</span>
     </div>
   ),
 
   ModalComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <span>Full-screen overlay — opens via state toggle</span>
     </div>
   ),
 
   NavigationDrawerComponent: () => (
-    <div className={styles.previewCompact}>
+    <div className={styles['preview-compact']}>
       <NavigationDrawerComponent
         variant="standard"
         open={true}
@@ -369,7 +369,7 @@ const PREVIEWS = {
   ),
 
   NavigationRailComponent: () => (
-    <div className={styles.previewCompact}>
+    <div className={styles['preview-compact']}>
       <NavigationRailComponent
         items={[
           { id: "home", label: "Home", icon: Home },
@@ -383,14 +383,14 @@ const PREVIEWS = {
   ),
 
   NavigationSidebarComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Menu size={16} />
       <span>Full sidebar — used as page chrome</span>
     </div>
   ),
 
   PageHeaderComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <span>Sticky page header — wraps title + actions</span>
     </div>
   ),
@@ -482,7 +482,7 @@ const PREVIEWS = {
   ),
 
   SnackbarComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Bell size={16} />
       <span>Triggered via useSnackbar() hook</span>
     </div>
@@ -552,7 +552,7 @@ const PREVIEWS = {
   ),
 
   TableComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <FileText size={16} />
       <span>Data table — requires columns + rows config</span>
     </div>
@@ -585,7 +585,7 @@ const PREVIEWS = {
   ),
 
   ToastComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Bell size={16} />
       <span>Triggered via useToast() hook</span>
     </div>
@@ -652,7 +652,7 @@ const PREVIEWS = {
   ),
 
   CarouselComponent: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <span>Multi-item carousel — requires item content</span>
     </div>
   ),
@@ -673,7 +673,7 @@ const PREVIEWS = {
   ),
 
   ThemeProvider: () => (
-    <div className={styles.previewPlaceholder}>
+    <div className={styles['preview-placeholder']}>
       <Settings size={16} />
       <span>Context provider — wraps app for theming</span>
     </div>

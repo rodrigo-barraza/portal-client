@@ -131,9 +131,9 @@ export default function PropertyListingComponent({
       sortable: true,
       sortValue: (row: CombinedPropertyRow) => row.label,
       render: (row: CombinedPropertyRow) => (
-        <div className={styles.propertyListName}>
-          <span className={styles.propertyListLabel}>{row.label}</span>
-          <span className={styles.propertyListId}>{row.subtitle}</span>
+        <div className={styles['property-list-name']}>
+          <span className={styles['property-list-label']}>{row.label}</span>
+          <span className={styles['property-list-id']}>{row.subtitle}</span>
         </div>
       ),
     },
@@ -144,7 +144,7 @@ export default function PropertyListingComponent({
       align: "left" as const,
       sortValue: (row: CombinedPropertyRow) => row.users ?? -1,
       render: (row: CombinedPropertyRow) => (
-        <span className={styles.propertyListValue}>
+        <span className={styles['property-list-value']}>
           {row.users !== null ? formatNumber(row.users) : "—"}
         </span>
       ),
@@ -156,7 +156,7 @@ export default function PropertyListingComponent({
       align: "left" as const,
       sortValue: (row: CombinedPropertyRow) => row.pageviews ?? -1,
       render: (row: CombinedPropertyRow) => (
-        <span className={styles.propertyListValue}>
+        <span className={styles['property-list-value']}>
           {row.pageviews !== null ? formatNumber(row.pageviews) : "—"}
         </span>
       ),
@@ -168,7 +168,7 @@ export default function PropertyListingComponent({
       align: "left" as const,
       sortValue: (row: CombinedPropertyRow) => row.sessions ?? -1,
       render: (row: CombinedPropertyRow) => (
-        <span className={styles.propertyListValue}>
+        <span className={styles['property-list-value']}>
           {row.sessions !== null ? formatNumber(row.sessions) : "—"}
         </span>
       ),
@@ -181,11 +181,11 @@ export default function PropertyListingComponent({
       sortValue: (row: CombinedPropertyRow) => row.activeNow ?? -1,
       render: (row: CombinedPropertyRow) => (
         <div
-          className={`${styles.propertyListValue} ${styles.propertyListRealtime}`}
+          className={`${styles['property-list-value']} ${styles['property-list-realtime']}`}
         >
           {row.activeNow !== null ? (
             <>
-              <div className={styles.propertyListRealtimeDot} />
+              <div className={styles['property-list-realtime-dot']} />
               {formatNumber(row.activeNow)}
             </>
           ) : (
@@ -200,7 +200,7 @@ export default function PropertyListingComponent({
     <>
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
-        <div className={styles.toolbarLabel}>
+        <div className={styles['toolbar-label']}>
           <span>View</span>
         </div>
         <SegmentedControlComponent
@@ -212,7 +212,7 @@ export default function PropertyListingComponent({
           ]}
           compact
         />
-        <span className={styles.propertySummary}>
+        <span className={styles['property-summary']}>
           {properties.length}{" "}
           {properties.length === 1 ? "property" : "properties"}
           {sessionProjects.length > 0 &&
@@ -222,82 +222,82 @@ export default function PropertyListingComponent({
 
       {/* ── Card View ── */}
       {viewMode === "card" && (
-        <div className={styles.propertyGrid}>
+        <div className={styles['property-grid']}>
           {properties.map((prop: GAProperty) => {
             const propertySummary = summaries[prop.id];
             return (
               <Link
                 key={prop.id}
                 href={`/web-analytics/${prop.id}`}
-                className={styles.propertyCard}
+                className={styles['property-card']}
               >
-                <div className={styles.propertyCardHeader}>
-                  <div className={styles.propertyCardIcon}>
+                <div className={styles['property-card-header']}>
+                  <div className={styles['property-card-icon']}>
                     <TrendingUp size={18} strokeWidth={2} />
                   </div>
-                  <div className={styles.propertyCardInfo}>
-                    <span className={styles.propertyCardName}>
+                  <div className={styles['property-card-info']}>
+                    <span className={styles['property-card-name']}>
                       {prop.label}
                     </span>
-                    <span className={styles.propertyCardMeta}>
+                    <span className={styles['property-card-meta']}>
                       {prop.measurementId || prop.id}
                     </span>
                   </div>
                   <ArrowRight
                     size={14}
                     strokeWidth={2}
-                    className={styles.propertyCardArrow}
+                    className={styles['property-card-arrow']}
                   />
                 </div>
 
                 {prop.domain && (
-                  <div className={styles.propertyCardPreviewContainer}>
+                  <div className={styles['property-card-preview-container']}>
                     <iframe
                       src={`https://${prop.domain}`}
-                      className={styles.propertyCardPreviewIframe}
+                      className={styles['property-card-preview-iframe']}
                       title={`Preview of ${prop.domain}`}
                       loading="lazy"
                       tabIndex={-1}
                       sandbox="allow-scripts allow-same-origin"
                     />
-                    <div className={styles.propertyCardPreviewOverlay} />
+                    <div className={styles['property-card-preview-overlay']} />
                   </div>
                 )}
 
                 {propertySummary?.loaded ? (
                   <>
                     {propertySummary.overview && (
-                      <div className={styles.propertyCardStats}>
-                        <div className={styles.propertyCardStat}>
-                          <span className={styles.propertyCardStatValue}>
+                      <div className={styles['property-card-stats']}>
+                        <div className={styles['property-card-stat']}>
+                          <span className={styles['property-card-stat-value']}>
                             {formatNumber(propertySummary.overview.totalUsers)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>
+                          <span className={styles['property-card-stat-label']}>
                             Users
                           </span>
                         </div>
-                        <div className={styles.propertyCardStat}>
-                          <span className={styles.propertyCardStatValue}>
+                        <div className={styles['property-card-stat']}>
+                          <span className={styles['property-card-stat-value']}>
                             {formatNumber(propertySummary.overview.pageviews)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>
+                          <span className={styles['property-card-stat-label']}>
                             Pageviews
                           </span>
                         </div>
-                        <div className={styles.propertyCardStat}>
-                          <span className={styles.propertyCardStatValue}>
+                        <div className={styles['property-card-stat']}>
+                          <span className={styles['property-card-stat-value']}>
                             {formatNumber(propertySummary.overview.sessions)}
                           </span>
-                          <span className={styles.propertyCardStatLabel}>
+                          <span className={styles['property-card-stat-label']}>
                             Sessions
                           </span>
                         </div>
                       </div>
                     )}
                     {propertySummary.realtime && (
-                      <div className={styles.propertyCardRealtime}>
-                        <div className={styles.propertyCardRealtimeDot} />
-                        <span className={styles.propertyCardRealtimeValue}>
+                      <div className={styles['property-card-realtime']}>
+                        <div className={styles['property-card-realtime-dot']} />
+                        <span className={styles['property-card-realtime-value']}>
                           {formatNumber(propertySummary.realtime.activeUsers)}
                         </span>
                         <span>active now</span>
@@ -316,11 +316,11 @@ export default function PropertyListingComponent({
             <Link
               key={proj.projectId}
               href={`/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`}
-              className={styles.propertyCard}
+              className={styles['property-card']}
             >
-              <div className={styles.propertyCardHeader}>
+              <div className={styles['property-card-header']}>
                 <div
-                  className={styles.propertyCardIcon}
+                  className={styles['property-card-icon']}
                   style={{
                     background: "rgba(16, 185, 129, 0.08)",
                     color: "#10b981",
@@ -328,33 +328,33 @@ export default function PropertyListingComponent({
                 >
                   <Activity size={18} strokeWidth={2} />
                 </div>
-                <div className={styles.propertyCardInfo}>
-                  <span className={styles.propertyCardName}>
+                <div className={styles['property-card-info']}>
+                  <span className={styles['property-card-name']}>
                     {proj.projectId}
                   </span>
-                  <span className={styles.propertyCardMeta}>
+                  <span className={styles['property-card-meta']}>
                     sessions-service
                   </span>
                 </div>
                 <ArrowRight
                   size={14}
                   strokeWidth={2}
-                  className={styles.propertyCardArrow}
+                  className={styles['property-card-arrow']}
                 />
               </div>
 
-              <div className={styles.propertyCardStats}>
-                <div className={styles.propertyCardStat}>
-                  <span className={styles.propertyCardStatValue}>
+              <div className={styles['property-card-stats']}>
+                <div className={styles['property-card-stat']}>
+                  <span className={styles['property-card-stat-value']}>
                     {formatNumber(proj.uniqueVisitors)}
                   </span>
-                  <span className={styles.propertyCardStatLabel}>Visitors</span>
+                  <span className={styles['property-card-stat-label']}>Visitors</span>
                 </div>
-                <div className={styles.propertyCardStat}>
-                  <span className={styles.propertyCardStatValue}>
+                <div className={styles['property-card-stat']}>
+                  <span className={styles['property-card-stat-value']}>
                     {formatNumber(proj.sessionCount)}
                   </span>
-                  <span className={styles.propertyCardStatLabel}>Sessions</span>
+                  <span className={styles['property-card-stat-label']}>Sessions</span>
                 </div>
               </div>
             </Link>

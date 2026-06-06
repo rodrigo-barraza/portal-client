@@ -4,19 +4,19 @@
 
 /* ── Name Cell ── */
 
-.nameCell {
+.name-cell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.serviceName {
+.service-name {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.8125rem;
 }
 
-.typeIcon {
+.type-icon {
   flex-shrink: 0;
   color: var(--text-muted);
   transition:
@@ -24,38 +24,38 @@
     filter var(--transition-fast);
 }
 
-.iconHealthy {
+.icon-healthy {
   color: var(--color-success);
   filter: drop-shadow(0 0 3px oklch(69.6% 0.1491 162.5 / 0.4));
 }
 
-.iconUnhealthy {
+.icon-unhealthy {
   color: var(--color-danger);
   filter: drop-shadow(0 0 3px oklch(63.7% 0.2078 25.3 / 0.4));
 }
 
-.iconNeutral {
+.icon-neutral {
   color: var(--node-service);
   filter: none;
 }
 
 /* ── Row health border ── */
 
-.statusRowHealthy {
+.status-row-healthy {
   border-left: 3px solid var(--color-success);
 }
 
-.statusRowUnhealthy {
+.status-row-unhealthy {
   border-left: 3px solid var(--color-danger);
 }
 
-.statusRowNeutral {
+.status-row-neutral {
   border-left: 3px solid oklch(71.5% 0.1258 215.2 / 0.4);
 }
 
 /* ── Description Cell ── */
 
-.descriptionCell {
+.description-cell {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   line-height: 1.4;
@@ -68,7 +68,7 @@
 
 /* ── Muted Placeholder ── */
 
-.mutedCell {
+.muted-cell {
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   opacity: 0.4;
@@ -76,7 +76,7 @@
 
 /* ── Language Cell ── */
 
-.languageCell {
+.language-cell {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -84,7 +84,7 @@
   cursor: default;
 }
 
-.languageDot {
+.language-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -92,7 +92,7 @@
   box-shadow: 0 0 4px oklch(100.0% 0.0001 263.3 / 0.08);
 }
 
-.languageName {
+.language-name {
   color: var(--text-secondary);
   font-weight: 500;
   white-space: nowrap;
@@ -100,7 +100,7 @@
 
 /* ── Repo Link ── */
 
-.repoLink {
+.repo-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -122,23 +122,23 @@
   }
 }
 
-.externalIcon {
+.external-icon {
   opacity: 0;
   transition: opacity var(--transition-fast);
 
-  .repoLink:hover & {
+  .repo-link:hover & {
     opacity: 0.6;
   }
 }
 
 /* ── Actions ── */
 
-.actionRow {
+.action-row {
   display: inline-flex;
   gap: 4px;
 }
 
-.actionButton {
+.action-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +157,7 @@
   }
 }
 
-.actionBtnLoading {
+.action-btn-loading {
   opacity: 0.4;
   cursor: not-allowed;
   color: var(--text-muted) !important;
@@ -165,7 +165,7 @@
   background: var(--background-elevated) !important;
 }
 
-.stopButton {
+.stop-button {
   border: 1px solid oklch(63.7% 0.2078 25.3 / 0.2);
   background: oklch(63.7% 0.2078 25.3 / 0.06);
   color: var(--status-stopped);
@@ -177,7 +177,7 @@
   }
 }
 
-.startButton {
+.start-button {
   border: 1px solid oklch(69.6% 0.1491 162.5 / 0.2);
   background: oklch(69.6% 0.1491 162.5 / 0.06);
   color: var(--status-running);
@@ -189,7 +189,7 @@
   }
 }
 
-.logsButton {
+.logs-button {
   border: 1px solid oklch(71.1% 0.0352 256.8 / 0.15);
   background: oklch(71.1% 0.0352 256.8 / 0.04);
   color: var(--status-unknown);
@@ -202,7 +202,7 @@
   }
 }
 
-.restartButton {
+.restart-button {
   border: 1px solid oklch(83.7% 0.1643 84.4 / 0.2);
   background: oklch(83.7% 0.1643 84.4 / 0.06);
   color: var(--status-paused);
@@ -216,7 +216,7 @@
 
 /* ── Empty State ── */
 
-.emptyState {
+.empty-state {
   text-align: center;
   padding: 48px 24px;
   color: var(--text-muted);
@@ -243,11 +243,11 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .descriptionCell {
+  .description-cell {
     max-width: 160px;
   }
 
-  .actionButton {
+  .action-button {
     width: 32px;
     height: 32px;
   }

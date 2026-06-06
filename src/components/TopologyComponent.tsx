@@ -1158,8 +1158,8 @@ export default function TopologyComponent() {
     <div className={styles.topology}>
       {/* Header */}
       <div className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.headerText}>
+        <div className={styles['header-inner']}>
+          <div className={styles['header-text']}>
             <h1 className={styles.title}>Topology</h1>
             <p className={styles.subtitle}>
               {isLoading
@@ -1167,7 +1167,7 @@ export default function TopologyComponent() {
                 : `${filteredServices.length} services · ${healthyCount} healthy`}
             </p>
           </div>
-          <div className={styles.headerActions}>
+          <div className={styles['header-actions']}>
             {/* View mode segmented toggle */}
             <SegmentedControlComponent
                value={viewMode}
@@ -1205,7 +1205,7 @@ export default function TopologyComponent() {
         <>
           <div
             ref={containerRef}
-            className={`${styles.canvasWrapper}${isPanning ? ` ${styles.panning}` : ""}`}
+            className={`${styles['canvas-wrapper']}${isPanning ? ` ${styles.panning}` : ""}`}
             onMouseDown={handleCanvasMouseDown}
           >
             <svg
@@ -1340,7 +1340,7 @@ export default function TopologyComponent() {
                   return (
                     <g
                       key={`${edge.source}-${edge.target}-${i}`}
-                      className={`${styles.connectionGroup}${isSelected ? ` ${styles.connectionFlowing}` : ""}${isFaded ? ` ${styles.edgeFaded}` : ""}`}
+                      className={`${styles['connection-group']}${isSelected ? ` ${styles['connection-flowing']}` : ""}${isFaded ? ` ${styles['edge-faded']}` : ""}`}
                     >
                       <path
                         d={edgePathData}
@@ -1356,7 +1356,7 @@ export default function TopologyComponent() {
                           strokeWidth={6}
                           fill="none"
                           strokeOpacity={0.12}
-                          className={styles.connectionGlow}
+                          className={styles['connection-glow']}
                         />
                       )}
                       <path
@@ -1381,7 +1381,7 @@ export default function TopologyComponent() {
                           isOptional && !isSelected ? "6 4" : baseDash
                         }
                         markerEnd={markerEnd}
-                        className={styles.connectionLine}
+                        className={styles['connection-line']}
                       />
                     </g>
                   );
@@ -1394,12 +1394,12 @@ export default function TopologyComponent() {
                     {librariesClusterRect && (
                       <g
                         className={
-                          (selectedNode ? styles.tierLabelFaded : "") +
+                          (selectedNode ? styles['tier-label-faded'] : "") +
                             (searchVisibleTiers &&
                             !libraries.some((service: { id: string }) =>
                               searchMatches?.has(service.id),
                             )
-                              ? ` ${styles.tierLabelFaded}`
+                              ? ` ${styles['tier-label-faded']}`
                               : "") || undefined
                         }
                       >
@@ -1410,7 +1410,7 @@ export default function TopologyComponent() {
                           height={librariesClusterRect.height}
                           rx={10}
                           ry={10}
-                          className={`${styles.clusterRect} ${styles.clusterDraggable}`}
+                          className={`${styles['cluster-rect']} ${styles['cluster-draggable']}`}
                           style={{
                             stroke: LIBS_CLUSTER_COLOR.stroke,
                             fill: LIBS_CLUSTER_COLOR.fill,
@@ -1426,7 +1426,7 @@ export default function TopologyComponent() {
                           y={librariesClusterRect.y + 6}
                           width={16}
                           height={16}
-                          className={styles.clusterDragHandle}
+                          className={styles['cluster-drag-handle']}
                           data-topology-cluster
                           onMouseDown={(event) =>
                             handleClusterMouseDown(event, "libraries", -1)
@@ -1437,7 +1437,7 @@ export default function TopologyComponent() {
                         <text
                           x={librariesClusterRect.x + librariesClusterRect.width / 2}
                           y={librariesClusterRect.y - 10}
-                          className={styles.tierLabel}
+                          className={styles['tier-label']}
                           textAnchor="middle"
                           dominantBaseline="auto"
                         >
@@ -1457,9 +1457,9 @@ export default function TopologyComponent() {
                         <g
                           key={`cluster-${tierIndex}`}
                           className={
-                            (selectedNode ? styles.tierLabelFaded : "") +
+                            (selectedNode ? styles['tier-label-faded'] : "") +
                               (searchVisibleTiers && !searchVisibleTiers.has(tierIndex)
-                                ? ` ${styles.tierLabelFaded}`
+                                ? ` ${styles['tier-label-faded']}`
                                 : "") || undefined
                           }
                         >
@@ -1470,7 +1470,7 @@ export default function TopologyComponent() {
                             height={clusterRect.h}
                             rx={10}
                             ry={10}
-                            className={`${styles.clusterRect} ${styles.clusterDraggable}`}
+                            className={`${styles['cluster-rect']} ${styles['cluster-draggable']}`}
                             style={{
                               stroke: typeConfig.stroke,
                               fill: typeConfig.fill,
@@ -1486,7 +1486,7 @@ export default function TopologyComponent() {
                             y={clusterRect.y + 6}
                             width={16}
                             height={16}
-                            className={styles.clusterDragHandle}
+                            className={styles['cluster-drag-handle']}
                             data-topology-cluster
                             onMouseDown={(event) =>
                               handleClusterMouseDown(event, "tier", tierIndex)
@@ -1497,7 +1497,7 @@ export default function TopologyComponent() {
                           <text
                             x={clusterRect.x + clusterRect.w / 2}
                             y={clusterRect.y - 10}
-                            className={styles.tierLabel}
+                            className={styles['tier-label']}
                             textAnchor="middle"
                             dominantBaseline="auto"
                           >
@@ -1523,9 +1523,9 @@ export default function TopologyComponent() {
                       <g
                         key={`type-cluster-${group.type}`}
                         className={
-                          (selectedNode ? styles.tierLabelFaded : "") +
+                          (selectedNode ? styles['tier-label-faded'] : "") +
                             (isFadedBySearch
-                              ? ` ${styles.tierLabelFaded}`
+                              ? ` ${styles['tier-label-faded']}`
                               : "") || undefined
                         }
                       >
@@ -1536,7 +1536,7 @@ export default function TopologyComponent() {
                           height={clusterRect.h}
                           rx={10}
                           ry={10}
-                          className={`${styles.clusterRect} ${styles.clusterDraggable}`}
+                          className={`${styles['cluster-rect']} ${styles['cluster-draggable']}`}
                           style={{
                             stroke: `color-mix(in srgb, ${typeConfig.color} 35%, transparent)`,
                             fill: `color-mix(in srgb, ${typeConfig.color} 4%, transparent)`,
@@ -1551,7 +1551,7 @@ export default function TopologyComponent() {
                           y={clusterRect.y + 6}
                           width={16}
                           height={16}
-                          className={styles.clusterDragHandle}
+                          className={styles['cluster-drag-handle']}
                           data-topology-cluster
                           onMouseDown={(event) =>
                             handleClusterMouseDown(event, "type", groupIndex)
@@ -1562,7 +1562,7 @@ export default function TopologyComponent() {
                         <text
                           x={clusterRect.x + clusterRect.w / 2}
                           y={clusterRect.y - 10}
-                          className={styles.tierLabel}
+                          className={styles['tier-label']}
                           textAnchor="middle"
                           dominantBaseline="auto"
                           style={{ fill: typeConfig.color }}
@@ -1594,8 +1594,8 @@ export default function TopologyComponent() {
                     SERVICE_TYPE_COLORS[service.projectType as string] ||
                     SERVICE_TYPE_COLORS.Service;
                   const healthClass = service.healthy
-                    ? styles.nodeHealthy
-                    : styles.nodeDown;
+                    ? styles['node-healthy']
+                    : styles['node-down'];
                   const nodeColor = service.healthy ? ptc.color : undefined;
 
                   return (
@@ -1609,7 +1609,7 @@ export default function TopologyComponent() {
                       style={{ overflow: "visible" }}
                     >
                       <div
-                        className={`${styles.nodeCard} ${healthClass} ${isHov ? styles.nodeHovered : ""} ${isDragging ? styles.nodeDragging : ""} ${selectedNode === service.id ? styles.nodeSelected : ""}${isFaded ? ` ${styles.nodeFaded}` : ""}`}
+                        className={`${styles['node-card']} ${healthClass} ${isHov ? styles['node-hovered'] : ""} ${isDragging ? styles['node-dragging'] : ""} ${selectedNode === service.id ? styles['node-selected'] : ""}${isFaded ? ` ${styles['node-faded']}` : ""}`}
                         onMouseDown={(event) => handleNodeMouseDown(event, service)}
                         onMouseEnter={(event) => handleNodeEnter(event, service)}
                         onMouseMove={handleNodeMove}
@@ -1623,7 +1623,7 @@ export default function TopologyComponent() {
                         }
                       >
                         <div
-                          className={styles.nodeGlow}
+                          className={styles['node-glow']}
                           style={
                             nodeColor
                               ? { boxShadow: `0 0 20px ${ptc.subtle}` }
@@ -1634,23 +1634,23 @@ export default function TopologyComponent() {
                           service.projectType as string,
                         ) && (
                           <div
-                            className={`${styles.statusDot} ${service.healthy ? styles.statusHealthy : styles.statusDown}`}
+                            className={`${styles['status-dot']} ${service.healthy ? styles['status-healthy'] : styles['status-down']}`}
                           />
                         )}
                         <div
-                          className={styles.nodeIconWrap}
+                          className={styles['node-icon-wrap']}
                           style={nodeColor ? { color: nodeColor } : undefined}
                         >
                           <Icon size={18} strokeWidth={1.5} />
                         </div>
-                        <span className={styles.nodeName}>{service.name}</span>
+                        <span className={styles['node-name']}>{service.name}</span>
                         {repoSizes[service.id] ? (
-                          <span className={styles.nodeSize}>
+                          <span className={styles['node-size']}>
                             <HardDrive size={9} strokeWidth={1.5} />
                             {formatSize(repoSizes[service.id].sizeKB)}
                           </span>
                         ) : service.device ? (
-                          <span className={styles.nodeHost}>
+                          <span className={styles['node-host']}>
                             {service.device}
                           </span>
                         ) : null}
@@ -1664,10 +1664,10 @@ export default function TopologyComponent() {
 
           {/* Legend */}
           <div className={styles.legend}>
-            <div className={styles.legendTitle}>Nodes</div>
-            <div className={styles.legendItem}>
+            <div className={styles['legend-title']}>Nodes</div>
+            <div className={styles['legend-item']}>
               <div
-                className={styles.legendDot}
+                className={styles['legend-dot']}
                 style={{
                   background: "var(--color-success)",
                   boxShadow: "0 0 6px var(--success-subtle)",
@@ -1675,9 +1675,9 @@ export default function TopologyComponent() {
               />
               <span>Healthy</span>
             </div>
-            <div className={styles.legendItem}>
+            <div className={styles['legend-item']}>
               <div
-                className={styles.legendDot}
+                className={styles['legend-dot']}
                 style={{
                   background: "var(--color-danger)",
                   boxShadow: "0 0 6px var(--danger-subtle)",
@@ -1685,18 +1685,18 @@ export default function TopologyComponent() {
               />
               <span>Down</span>
             </div>
-            <div className={styles.legendSep} />
+            <div className={styles['legend-sep']} />
             {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => {
               const visible = typeVisibility[type] ?? true;
               return (
                 <div
                   key={type}
-                  className={`${styles.legendItem} ${styles.legendToggle}${!visible ? ` ${styles.legendToggleOff}` : ""}`}
+                  className={`${styles['legend-item']} ${styles['legend-toggle']}${!visible ? ` ${styles['legend-toggle-off']}` : ""}`}
                   onClick={() => toggleTypeVisibility(type)}
                   title={`${visible ? "Hide" : "Show"} ${type}s`}
                 >
                   <div
-                    className={styles.legendDot}
+                    className={styles['legend-dot']}
                     style={{
                       background: colors.color,
                       boxShadow: `0 0 6px ${colors.subtle}`,
@@ -1708,20 +1708,20 @@ export default function TopologyComponent() {
                     <Eye
                       size={11}
                       strokeWidth={1.5}
-                      className={styles.legendEyeIcon}
+                      className={styles['legend-eye-icon']}
                     />
                   ) : (
                     <EyeOff
                       size={11}
                       strokeWidth={1.5}
-                      className={styles.legendEyeIcon}
+                      className={styles['legend-eye-icon']}
                     />
                   )}
                 </div>
               );
             })}
-            <div className={styles.legendSep} />
-            <div className={styles.legendTitle}>Connections</div>
+            <div className={styles['legend-sep']} />
+            <div className={styles['legend-title']}>Connections</div>
             {(
               Object.entries(EDGE_TYPE_CONFIG) as [
                 EdgeType,
@@ -1733,12 +1733,12 @@ export default function TopologyComponent() {
               return (
                 <div
                   key={type}
-                  className={`${styles.legendItem} ${styles.legendToggle}${!visible ? ` ${styles.legendToggleOff}` : ""}`}
+                  className={`${styles['legend-item']} ${styles['legend-toggle']}${!visible ? ` ${styles['legend-toggle-off']}` : ""}`}
                   onClick={() => toggleEdgeType(type)}
                   title={`${visible ? "Hide" : "Show"} ${config.label} (${count})`}
                 >
                   <div
-                    className={styles.legendEdgeLine}
+                    className={styles['legend-edge-line']}
                     style={{
                       borderTopColor: config.color,
                       borderTopStyle: config.dash === "none" ? "solid" : "dashed",
@@ -1747,42 +1747,42 @@ export default function TopologyComponent() {
                     }}
                   />
                   <span>{config.label}</span>
-                  <span className={styles.legendCount}>{count}</span>
+                  <span className={styles['legend-count']}>{count}</span>
                   {visible ? (
                     <Eye
                       size={11}
                       strokeWidth={1.5}
-                      className={styles.legendEyeIcon}
+                      className={styles['legend-eye-icon']}
                     />
                   ) : (
                     <EyeOff
                       size={11}
                       strokeWidth={1.5}
-                      className={styles.legendEyeIcon}
+                      className={styles['legend-eye-icon']}
                     />
                   )}
                 </div>
               );
             })}
-            <div className={styles.legendSep} />
-            <div className={styles.legendItem}>
-              <div className={styles.legendLine} />
+            <div className={styles['legend-sep']} />
+            <div className={styles['legend-item']}>
+              <div className={styles['legend-line']} />
               <span>Required</span>
             </div>
-            <div className={styles.legendItem}>
+            <div className={styles['legend-item']}>
               <div
-                className={styles.legendLine}
+                className={styles['legend-line']}
                 style={{ borderTopStyle: "dashed", opacity: 0.5 }}
               />
               <span>Optional</span>
             </div>
             {selectedNode && (
               <>
-                <div className={styles.legendSep} />
-                <div className={styles.legendTitle}>Selected</div>
-                <div className={styles.legendItem}>
+                <div className={styles['legend-sep']} />
+                <div className={styles['legend-title']}>Selected</div>
+                <div className={styles['legend-item']}>
                   <div
-                    className={styles.legendEdgeLine}
+                    className={styles['legend-edge-line']}
                     style={{
                       borderTopColor: EDGE_DIRECTION_CONFIG.incoming.color,
                       borderTopStyle: "solid",
@@ -1796,9 +1796,9 @@ export default function TopologyComponent() {
                   />
                   <span>{EDGE_DIRECTION_CONFIG.incoming.label}</span>
                 </div>
-                <div className={styles.legendItem}>
+                <div className={styles['legend-item']}>
                   <div
-                    className={styles.legendEdgeLine}
+                    className={styles['legend-edge-line']}
                     style={{
                       borderTopColor: EDGE_DIRECTION_CONFIG.outgoing.color,
                       borderTopStyle: "solid",
@@ -1812,9 +1812,9 @@ export default function TopologyComponent() {
                   />
                   <span>{EDGE_DIRECTION_CONFIG.outgoing.label}</span>
                 </div>
-                <div className={styles.legendItem}>
+                <div className={styles['legend-item']}>
                   <div
-                    className={styles.legendEdgeLine}
+                    className={styles['legend-edge-line']}
                     style={{
                       borderTopColor: EDGE_DIRECTION_CONFIG.network.color,
                       borderTopStyle: "solid",
@@ -1834,24 +1834,24 @@ export default function TopologyComponent() {
           </div>
 
           {/* Zoom */}
-          <div className={styles.zoomControls}>
+          <div className={styles['zoom-controls']}>
             <IconButtonComponent
               icon={<ZoomIn size={15} strokeWidth={1.8} />}
               onClick={zoomIn}
               tooltip="Zoom in"
-              className={styles.zoomButton}
+              className={styles['zoom-button']}
             />
             <IconButtonComponent
               icon={<ZoomOut size={15} strokeWidth={1.8} />}
               onClick={zoomOut}
               tooltip="Zoom out"
-              className={styles.zoomButton}
+              className={styles['zoom-button']}
             />
             <IconButtonComponent
               icon={<Maximize2 size={14} strokeWidth={1.8} />}
               onClick={zoomFit}
               tooltip="Fit to view"
-              className={styles.zoomButton}
+              className={styles['zoom-button']}
             />
           </div>
 
@@ -1868,72 +1868,72 @@ export default function TopologyComponent() {
                 top: tooltipPosition.y - 10,
               }}
             >
-              <div className={styles.tooltipName}>{tooltipData.name}</div>
-              <div className={styles.tooltipRow}>
-                <span className={styles.tooltipLabel}>Status</span>
+              <div className={styles['tooltip-name']}>{tooltipData.name}</div>
+              <div className={styles['tooltip-row']}>
+                <span className={styles['tooltip-label']}>Status</span>
                 <span
-                  className={`${styles.tooltipValue} ${tooltipData.healthy ? styles.tooltipHealthy : styles.tooltipUnhealthy}`}
+                  className={`${styles['tooltip-value']} ${tooltipData.healthy ? styles['tooltip-healthy'] : styles['tooltip-unhealthy']}`}
                 >
                   {tooltipData.healthy ? "Healthy" : "Down"}
                 </span>
               </div>
               {tooltipData.device && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Device</span>
-                  <span className={styles.tooltipValue}>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Device</span>
+                  <span className={styles['tooltip-value']}>
                     {tooltipData.device}
                   </span>
                 </div>
               )}
               {tooltipData.url && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>URL</span>
-                  <span className={styles.tooltipValue}>{tooltipData.url}</span>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>URL</span>
+                  <span className={styles['tooltip-value']}>{tooltipData.url}</span>
                 </div>
               )}
-              <div className={styles.tooltipRow}>
-                <span className={styles.tooltipLabel}>Environment</span>
-                <span className={styles.tooltipValue}>
+              <div className={styles['tooltip-row']}>
+                <span className={styles['tooltip-label']}>Environment</span>
+                <span className={styles['tooltip-value']}>
                   {tooltipData.environment}
                 </span>
               </div>
               {tooltipData.visibility && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Visibility</span>
-                  <span className={styles.tooltipValue}>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Visibility</span>
+                  <span className={styles['tooltip-value']}>
                     {tooltipData.visibility}
                   </span>
                 </div>
               )}
               {repoSizes[tooltipData.id] && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Repo Size</span>
-                  <span className={styles.tooltipValue}>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Repo Size</span>
+                  <span className={styles['tooltip-value']}>
                     {formatSize(repoSizes[tooltipData.id].sizeKB)}
                   </span>
                 </div>
               )}
               {analysisData?.owners?.[tooltipData.id] && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Owner</span>
-                  <span className={styles.tooltipValue}>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Owner</span>
+                  <span className={styles['tooltip-value']}>
                     {analysisData.owners[tooltipData.id]}
                   </span>
                 </div>
               )}
               {tooltipData.responseTimeMs != null && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Latency</span>
-                  <span className={styles.tooltipValue}>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Latency</span>
+                  <span className={styles['tooltip-value']}>
                     {tooltipData.responseTimeMs}ms
                   </span>
                 </div>
               )}
               {tooltipData.error && !tooltipData.healthy && (
-                <div className={styles.tooltipRow}>
-                  <span className={styles.tooltipLabel}>Error</span>
+                <div className={styles['tooltip-row']}>
+                  <span className={styles['tooltip-label']}>Error</span>
                   <span
-                    className={`${styles.tooltipValue} ${styles.tooltipUnhealthy}`}
+                    className={`${styles['tooltip-value']} ${styles['tooltip-unhealthy']}`}
                   >
                     {tooltipData.error}
                   </span>
@@ -1947,13 +1947,13 @@ export default function TopologyComponent() {
                   const hasApiCalls = detected.apiCalls?.length > 0;
                   if (!hasImports && !hasApiCalls) return null;
                   return (
-                    <div className={styles.tooltipDeps}>
+                    <div className={styles['tooltip-deps']}>
                       {hasImports && (
                         <>
-                          <span className={styles.tooltipDepLabel}>
+                          <span className={styles['tooltip-dep-label']}>
                             📦 Imports
                           </span>
-                          <span className={styles.tooltipDepList}>
+                          <span className={styles['tooltip-dep-list']}>
                             {detected.imports
                               .map((i: { target: string }) => i.target)
                               .join(", ")}
@@ -1962,10 +1962,10 @@ export default function TopologyComponent() {
                       )}
                       {hasApiCalls && (
                         <>
-                          <span className={styles.tooltipDepLabel}>
+                          <span className={styles['tooltip-dep-label']}>
                             🔗 API Calls
                           </span>
-                          <span className={styles.tooltipDepList}>
+                          <span className={styles['tooltip-dep-list']}>
                              {detected.apiCalls
                                .map((apiCall: { target: string }) => apiCall.target)
                                .join(", ")}
@@ -1987,13 +1987,13 @@ export default function TopologyComponent() {
                       : data.criticality === "optional",
                   );
                   return (
-                    <div className={styles.tooltipDeps}>
+                    <div className={styles['tooltip-deps']}>
                       {required.length > 0 && (
                         <>
-                          <span className={styles.tooltipDepLabel}>
+                          <span className={styles['tooltip-dep-label']}>
                             ↑ Requires
                           </span>
-                          <span className={styles.tooltipDepList}>
+                          <span className={styles['tooltip-dep-list']}>
                             {required
                               .map((data) => (typeof data === "string" ? data : data.name))
                               .join(", ")}
@@ -2003,12 +2003,12 @@ export default function TopologyComponent() {
                       {optional.length > 0 && (
                         <>
                           <span
-                            className={`${styles.tooltipDepLabel} ${styles.tooltipDepLabelOptional}`}
+                            className={`${styles['tooltip-dep-label']} ${styles['tooltip-dep-label-optional']}`}
                           >
                             ↑ Optional
                           </span>
                           <span
-                            className={`${styles.tooltipDepList} ${styles.tooltipDepListOptional}`}
+                            className={`${styles['tooltip-dep-list']} ${styles['tooltip-dep-list-optional']}`}
                           >
                             {optional
                               .map((data) => (typeof data === "string" ? data : data.name))

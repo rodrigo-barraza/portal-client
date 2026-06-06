@@ -51,9 +51,9 @@ function severityColor(
 function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
-    <div className={styles.barTrack}>
+    <div className={styles['bar-track']}>
       <div
-        className={styles.barFill}
+        className={styles['bar-fill']}
         style={{ width: `${clamped}%`, background: color }}
       />
     </div>
@@ -182,15 +182,15 @@ export default function ContainerDetailPanel({
     <div className={styles.panel}>
       {/* ── Identity & Status ── */}
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Status</h4>
-        <div className={styles.fieldGrid}>
+        <h4 className={styles['section-title']}>Status</h4>
+        <div className={styles['field-grid']}>
           <div className={styles.field}>
-            <span className={styles.fieldLabel}>Health</span>
+            <span className={styles['field-label']}>Health</span>
             <BadgeComponent type="status" healthy={container.healthy} />
           </div>
           {container.visibility && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Visibility</span>
+              <span className={styles['field-label']}>Visibility</span>
               <BadgeComponent
                 type="visibility"
                 visibility={container.visibility}
@@ -200,7 +200,7 @@ export default function ContainerDetailPanel({
           )}
           {container.responseTimeMs != null && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Response</span>
+              <span className={styles['field-label']}>Response</span>
               <BadgeComponent
                 type="responseTime"
                 ms={container.responseTimeMs}
@@ -210,7 +210,7 @@ export default function ContainerDetailPanel({
           )}
           {container.device && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Device</span>
+              <span className={styles['field-label']}>Device</span>
               <BadgeComponent
                 type="device"
                 device={container.device}
@@ -224,48 +224,48 @@ export default function ContainerDetailPanel({
       {/* ── Container Info ── */}
       {stats && (
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Container</h4>
-          <div className={styles.fieldGrid}>
+          <h4 className={styles['section-title']}>Container</h4>
+          <div className={styles['field-grid']}>
             {stats.image && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Image</span>
-                <span className={styles.fieldValueMono}>{stats.image}</span>
+                <span className={styles['field-label']}>Image</span>
+                <span className={styles['field-value-mono']}>{stats.image}</span>
               </div>
             )}
             {stats.state && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>State</span>
-                <span className={styles.stateBadge} data-state={stats.state}>
+                <span className={styles['field-label']}>State</span>
+                <span className={styles['state-badge']} data-state={stats.state}>
                   {stats.state}
                 </span>
               </div>
             )}
             {uptime && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Uptime</span>
-                <span className={styles.fieldValueMono}>{uptime}</span>
+                <span className={styles['field-label']}>Uptime</span>
+                <span className={styles['field-value-mono']}>{uptime}</span>
               </div>
             )}
             {stats.created && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Created</span>
-                <span className={styles.fieldValueMono}>
+                <span className={styles['field-label']}>Created</span>
+                <span className={styles['field-value-mono']}>
                   {formatTimestamp(stats.created)}
                 </span>
               </div>
             )}
             {stats.command && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Command</span>
-                <span className={styles.commandText} title={stats.command}>
+                <span className={styles['field-label']}>Command</span>
+                <span className={styles['command-text']} title={stats.command}>
                   {stats.command}
                 </span>
               </div>
             )}
             {(stats.pids ?? 0) > 0 && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>PIDs</span>
-                <span className={styles.fieldValueMono}>{stats.pids}</span>
+                <span className={styles['field-label']}>PIDs</span>
+                <span className={styles['field-value-mono']}>{stats.pids}</span>
               </div>
             )}
           </div>
@@ -274,17 +274,17 @@ export default function ContainerDetailPanel({
 
       {container.port || container.url ? (
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Networking</h4>
-          <div className={styles.fieldGrid}>
+          <h4 className={styles['section-title']}>Networking</h4>
+          <div className={styles['field-grid']}>
             {container.port && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Port</span>
+                <span className={styles['field-label']}>Port</span>
                 <BadgeComponent type="port" port={container.port} />
               </div>
             )}
             {container.url && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Address</span>
+                <span className={styles['field-label']}>Address</span>
                 <BadgeComponent type="address" address={container.url} link />
               </div>
             )}
@@ -294,23 +294,23 @@ export default function ContainerDetailPanel({
 
       {/* ── Metrics ── */}
       {stats ? (
-        <div className={styles.metricsGrid}>
+        <div className={styles['metrics-grid']}>
           {/* CPU */}
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
+          <div className={styles['metric-card']}>
+            <div className={styles['metric-card-header']}>
               <Cpu
                 size={13}
                 strokeWidth={2.2}
-                className={styles.metricCardIcon}
+                className={styles['metric-card-icon']}
               />
-              <span className={styles.metricCardTitle}>CPU</span>
+              <span className={styles['metric-card-title']}>CPU</span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.cpu.percent) }}
               >
                 {formatPercent(stats.cpu.percent, "adaptive")}
               </span>
-              <span className={styles.metricCardDim}>
+              <span className={styles['metric-card-dim']}>
                 · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
               </span>
             </div>
@@ -332,26 +332,26 @@ export default function ContainerDetailPanel({
 
           {/* CPU Throttling */}
           {stats.cpuThrottling && stats.cpuThrottling.throttledPeriods > 0 && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
+            <div className={styles['metric-card']}>
+              <div className={styles['metric-card-header']}>
                 <Cpu
                   size={13}
                   strokeWidth={2.2}
-                  className={styles.metricCardIcon}
+                  className={styles['metric-card-icon']}
                 />
-                <span className={styles.metricCardTitle}>CPU Throttling</span>
+                <span className={styles['metric-card-title']}>CPU Throttling</span>
               </div>
-              <div className={styles.inputOutputStats}>
-                <span className={styles.inputOutputStat}>
-                  <span className={styles.inputOutputDirection}>Throttled</span>
-                  <span className={styles.inputOutputValue}>
+              <div className={styles['input-output-stats']}>
+                <span className={styles['input-output-stat']}>
+                  <span className={styles['input-output-direction']}>Throttled</span>
+                  <span className={styles['input-output-value']}>
                     {stats.cpuThrottling.throttledPeriods} /{" "}
                     {stats.cpuThrottling.periods} periods
                   </span>
                 </span>
-                <span className={styles.inputOutputStat}>
-                  <span className={styles.inputOutputDirection}>Time</span>
-                  <span className={styles.inputOutputValue}>
+                <span className={styles['input-output-stat']}>
+                  <span className={styles['input-output-direction']}>Time</span>
+                  <span className={styles['input-output-value']}>
                     {formatNanoseconds(stats.cpuThrottling.throttledTimeNs)}
                   </span>
                 </span>
@@ -360,25 +360,25 @@ export default function ContainerDetailPanel({
           )}
 
           {/* Memory */}
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
+          <div className={styles['metric-card']}>
+            <div className={styles['metric-card-header']}>
               <MemoryStick
                 size={13}
                 strokeWidth={2.2}
-                className={styles.metricCardIcon}
+                className={styles['metric-card-icon']}
               />
-              <span className={styles.metricCardTitle}>RAM</span>
+              <span className={styles['metric-card-title']}>RAM</span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
               >
                 {formatBytes(stats.memory.used)}
               </span>
-              <span className={styles.metricCardDim}>
+              <span className={styles['metric-card-dim']}>
                 / {formatBytes(stats.memory.limit)}
               </span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
               >
                 {formatPercent(stats.memory.percent, "adaptive")}
@@ -402,33 +402,33 @@ export default function ContainerDetailPanel({
 
           {/* Memory Detail */}
           {stats.memoryDetail && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
+            <div className={styles['metric-card']}>
+              <div className={styles['metric-card-header']}>
                 <MemoryStick
                   size={13}
                   strokeWidth={2.2}
-                  className={styles.metricCardIcon}
+                  className={styles['metric-card-icon']}
                 />
-                <span className={styles.metricCardTitle}>Memory Breakdown</span>
+                <span className={styles['metric-card-title']}>Memory Breakdown</span>
               </div>
-              <div className={styles.detailGrid}>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>RSS</span>
-                  <span className={styles.detailValue}>
+              <div className={styles['detail-grid']}>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>RSS</span>
+                  <span className={styles['detail-value']}>
                     {formatBytes(stats.memoryDetail.rss)}
                   </span>
                 </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Cache</span>
-                  <span className={styles.detailValue}>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>Cache</span>
+                  <span className={styles['detail-value']}>
                     {formatBytes(stats.memoryDetail.cache)}
                   </span>
                 </div>
                 {stats.memoryDetail.swap > 0 && (
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Swap</span>
+                  <div className={styles['detail-item']}>
+                    <span className={styles['detail-label']}>Swap</span>
                     <span
-                      className={styles.detailValue}
+                      className={styles['detail-value']}
                       style={{ color: "var(--color-warning)" }}
                     >
                       {formatBytes(stats.memoryDetail.swap)}
@@ -436,26 +436,26 @@ export default function ContainerDetailPanel({
                   </div>
                 )}
                 {stats.memoryDetail.maxUsage > 0 && (
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Peak</span>
-                    <span className={styles.detailValue}>
+                  <div className={styles['detail-item']}>
+                    <span className={styles['detail-label']}>Peak</span>
+                    <span className={styles['detail-value']}>
                       {formatBytes(stats.memoryDetail.maxUsage)}
                     </span>
                   </div>
                 )}
                 {stats.memoryDetail.pgfault > 0 && (
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Page Faults</span>
-                    <span className={styles.detailValue}>
+                  <div className={styles['detail-item']}>
+                    <span className={styles['detail-label']}>Page Faults</span>
+                    <span className={styles['detail-value']}>
                       {stats.memoryDetail.pgfault.toLocaleString()}
                     </span>
                   </div>
                 )}
                 {stats.memoryDetail.pgmajfault > 0 && (
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Major Faults</span>
+                  <div className={styles['detail-item']}>
+                    <span className={styles['detail-label']}>Major Faults</span>
                     <span
-                      className={styles.detailValue}
+                      className={styles['detail-value']}
                       style={{ color: "var(--color-danger)" }}
                     >
                       {stats.memoryDetail.pgmajfault.toLocaleString()}
@@ -467,28 +467,28 @@ export default function ContainerDetailPanel({
           )}
 
           {/* Network + Block I/O + PIDs */}
-          <div className={styles.metricRow}>
+          <div className={styles['metric-row']}>
             {stats.network &&
               (stats.network.rx > 0 || stats.network.tx > 0) && (
-                <div className={styles.metricCard}>
-                  <div className={styles.metricCardHeader}>
+                <div className={styles['metric-card']}>
+                  <div className={styles['metric-card-header']}>
                     <Globe
                       size={13}
                       strokeWidth={2.2}
-                      className={styles.metricCardIcon}
+                      className={styles['metric-card-icon']}
                     />
-                    <span className={styles.metricCardTitle}>Network</span>
+                    <span className={styles['metric-card-title']}>Network</span>
                   </div>
-                  <div className={styles.inputOutputStats}>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>RX</span>
-                      <span className={styles.inputOutputValue}>
+                  <div className={styles['input-output-stats']}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>RX</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.network.rx)}
                       </span>
                     </span>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>TX</span>
-                      <span className={styles.inputOutputValue}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>TX</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.network.tx)}
                       </span>
                     </span>
@@ -496,16 +496,16 @@ export default function ContainerDetailPanel({
                   {/* Packet counts */}
                   {((stats.network.rxPackets ?? 0) > 0 ||
                     (stats.network.txPackets ?? 0) > 0) && (
-                    <div className={styles.inputOutputStats}>
-                      <span className={styles.inputOutputStat}>
-                        <span className={styles.inputOutputDirection}>Packets RX</span>
-                        <span className={styles.inputOutputValue}>
+                    <div className={styles['input-output-stats']}>
+                      <span className={styles['input-output-stat']}>
+                        <span className={styles['input-output-direction']}>Packets RX</span>
+                        <span className={styles['input-output-value']}>
                           {stats.network.rxPackets?.toLocaleString()}
                         </span>
                       </span>
-                      <span className={styles.inputOutputStat}>
-                        <span className={styles.inputOutputDirection}>Packets TX</span>
-                        <span className={styles.inputOutputValue}>
+                      <span className={styles['input-output-stat']}>
+                        <span className={styles['input-output-direction']}>Packets TX</span>
+                        <span className={styles['input-output-value']}>
                           {stats.network.txPackets?.toLocaleString()}
                         </span>
                       </span>
@@ -516,12 +516,12 @@ export default function ContainerDetailPanel({
                     (stats.network.txDropped ?? 0) > 0 ||
                     (stats.network.rxErrors ?? 0) > 0 ||
                     (stats.network.txErrors ?? 0) > 0) && (
-                    <div className={styles.inputOutputStatsWarning}>
+                    <div className={styles['input-output-stats-warning']}>
                       {((stats.network.rxDropped ?? 0) > 0 ||
                         (stats.network.txDropped ?? 0) > 0) && (
-                        <span className={styles.inputOutputStat}>
-                          <span className={styles.inputOutputDirection}>Dropped</span>
-                          <span className={styles.inputOutputValue}>
+                        <span className={styles['input-output-stat']}>
+                          <span className={styles['input-output-direction']}>Dropped</span>
+                          <span className={styles['input-output-value']}>
                             {(
                               (stats.network.rxDropped ?? 0) +
                               (stats.network.txDropped ?? 0)
@@ -531,9 +531,9 @@ export default function ContainerDetailPanel({
                       )}
                       {((stats.network.rxErrors ?? 0) > 0 ||
                         (stats.network.txErrors ?? 0) > 0) && (
-                        <span className={styles.inputOutputStat}>
-                          <span className={styles.inputOutputDirection}>Errors</span>
-                          <span className={styles.inputOutputValueDanger}>
+                        <span className={styles['input-output-stat']}>
+                          <span className={styles['input-output-direction']}>Errors</span>
+                          <span className={styles['input-output-value-danger']}>
                             {(
                               (stats.network.rxErrors ?? 0) +
                               (stats.network.txErrors ?? 0)
@@ -548,25 +548,25 @@ export default function ContainerDetailPanel({
 
             {stats.blockIO &&
               (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-                <div className={styles.metricCard}>
-                  <div className={styles.metricCardHeader}>
+                <div className={styles['metric-card']}>
+                  <div className={styles['metric-card-header']}>
                     <HardDrive
                       size={13}
                       strokeWidth={2.2}
-                      className={styles.metricCardIcon}
+                      className={styles['metric-card-icon']}
                     />
-                    <span className={styles.metricCardTitle}>Block I/O</span>
+                    <span className={styles['metric-card-title']}>Block I/O</span>
                   </div>
-                  <div className={styles.inputOutputStats}>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>Read</span>
-                      <span className={styles.inputOutputValue}>
+                  <div className={styles['input-output-stats']}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>Read</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.blockIO.read)}
                       </span>
                     </span>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>Write</span>
-                      <span className={styles.inputOutputValue}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>Write</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.blockIO.write)}
                       </span>
                     </span>
@@ -578,23 +578,23 @@ export default function ContainerDetailPanel({
           {/* Per-Interface Network Breakdown */}
           {stats.network?.interfaces &&
             Object.keys(stats.network.interfaces).length > 1 && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
+              <div className={styles['metric-card']}>
+                <div className={styles['metric-card-header']}>
                   <Unplug
                     size={13}
                     strokeWidth={2.2}
-                    className={styles.metricCardIcon}
+                    className={styles['metric-card-icon']}
                   />
-                  <span className={styles.metricCardTitle}>
+                  <span className={styles['metric-card-title']}>
                     Network Interfaces
                   </span>
                 </div>
-                <div className={styles.interfaceList}>
+                <div className={styles['interface-list']}>
                   {Object.entries(stats.network.interfaces).map(
                     ([name, iface]) => (
-                      <div key={name} className={styles.interfaceRow}>
-                        <span className={styles.interfaceName}>{name}</span>
-                        <span className={styles.inputOutputCompactDetail}>
+                      <div key={name} className={styles['interface-row']}>
+                        <span className={styles['interface-name']}>{name}</span>
+                        <span className={styles['input-output-compact-detail']}>
                           ↓ {formatBytes((iface as NetworkInterface).rxBytes)} ·
                           ↑ {formatBytes((iface as NetworkInterface).txBytes)}
                         </span>
@@ -607,19 +607,19 @@ export default function ContainerDetailPanel({
 
           {/* Port Mappings */}
           {stats.ports && stats.ports.length > 0 && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
+            <div className={styles['metric-card']}>
+              <div className={styles['metric-card-header']}>
                 <Globe
                   size={13}
                   strokeWidth={2.2}
-                  className={styles.metricCardIcon}
+                  className={styles['metric-card-icon']}
                 />
-                <span className={styles.metricCardTitle}>Port Mappings</span>
+                <span className={styles['metric-card-title']}>Port Mappings</span>
               </div>
-              <div className={styles.portList}>
+              <div className={styles['port-list']}>
                 {stats.ports.map((port: PortMapping, i: number) => (
-                  <div key={i} className={styles.portRow}>
-                    <span className={styles.portMapping}>
+                  <div key={i} className={styles['port-row']}>
+                    <span className={styles['port-mapping']}>
                       {port.publicPort
                         ? `${port.ip || "0.0.0.0"}:${port.publicPort}`
                         : "—"}{" "}
@@ -633,30 +633,30 @@ export default function ContainerDetailPanel({
 
           {/* Volume Mounts */}
           {stats.mounts && stats.mounts.length > 0 && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
+            <div className={styles['metric-card']}>
+              <div className={styles['metric-card-header']}>
                 <Database
                   size={13}
                   strokeWidth={2.2}
-                  className={styles.metricCardIcon}
+                  className={styles['metric-card-icon']}
                 />
-                <span className={styles.metricCardTitle}>Mounts</span>
-                <span className={styles.metricCardDim}>
+                <span className={styles['metric-card-title']}>Mounts</span>
+                <span className={styles['metric-card-dim']}>
                   {stats.mounts.length}
                 </span>
               </div>
-              <div className={styles.mountList}>
+              <div className={styles['mount-list']}>
                 {stats.mounts.map((mount: VolumeMount, i: number) => (
-                  <div key={i} className={styles.mountRow}>
-                    <span className={styles.mountType}>{mount.type}</span>
+                  <div key={i} className={styles['mount-row']}>
+                    <span className={styles['mount-type']}>{mount.type}</span>
                     <span
-                      className={styles.mountPath}
+                      className={styles['mount-path']}
                       title={`${mount.source} → ${mount.destination}`}
                     >
                       {mount.name || mount.source?.split("/").pop() || mount.source} →{" "}
                       {mount.destination}
                     </span>
-                    <span className={styles.mountMode}>
+                    <span className={styles['mount-mode']}>
                       {mount.rw ? "rw" : "ro"}
                     </span>
                   </div>
@@ -667,28 +667,28 @@ export default function ContainerDetailPanel({
 
           {/* Docker Labels */}
           {stats.labels && Object.keys(stats.labels).length > 0 && (
-            <div className={styles.metricCard}>
-              <div className={styles.metricCardHeader}>
+            <div className={styles['metric-card']}>
+              <div className={styles['metric-card-header']}>
                 <Layers
                   size={13}
                   strokeWidth={2.2}
-                  className={styles.metricCardIcon}
+                  className={styles['metric-card-icon']}
                 />
-                <span className={styles.metricCardTitle}>Labels</span>
-                <span className={styles.metricCardDim}>
+                <span className={styles['metric-card-title']}>Labels</span>
+                <span className={styles['metric-card-dim']}>
                   {Object.keys(stats.labels).length}
                 </span>
               </div>
-              <div className={styles.labelList}>
+              <div className={styles['label-list']}>
                 {Object.entries(stats.labels)
                   .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
                   .map(([key, value]) => (
-                    <div key={key} className={styles.labelRow}>
-                      <span className={styles.labelKey} title={key}>
+                    <div key={key} className={styles['label-row']}>
+                      <span className={styles['label-key']} title={key}>
                         {key}
                       </span>
                       <span
-                        className={styles.labelValue}
+                        className={styles['label-value']}
                         title={value as string}
                       >
                         {value as string}
@@ -700,8 +700,8 @@ export default function ContainerDetailPanel({
           )}
         </div>
       ) : (
-        <div className={styles.metricsEmpty}>
-          <Box size={18} strokeWidth={1.5} className={styles.emptyIcon} />
+        <div className={styles['metrics-empty']}>
+          <Box size={18} strokeWidth={1.5} className={styles['empty-icon']} />
           <span>No metrics available</span>
         </div>
       )}

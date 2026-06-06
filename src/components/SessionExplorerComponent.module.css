@@ -60,7 +60,7 @@
 
 /* ── Tab Bar ─────────────────────────────────────────────────── */
 
-.tabBar {
+.tab-bar {
   display: flex;
   gap: 2px;
   background: var(--background-elevated);
@@ -89,13 +89,13 @@
   }
 }
 
-.tabActive {
+.tab-active {
   background: var(--background-surface);
   color: var(--text-primary);
   box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.06);
 }
 
-.tabBadge {
+.tab-badge {
   font-size: 0.6875rem;
   font-family: var(--font-mono);
   background: var(--background-elevated);
@@ -104,20 +104,20 @@
   color: var(--text-muted);
 }
 
-.tabActive .tabBadge {
+.tab-active .tab-badge {
   background: oklch(58.5% 0.2041 277.1 / 0.1);
   color: var(--accent-primary);
 }
 
 /* ── Visitor Cards ───────────────────────────────────────────── */
 
-.cardList {
+.card-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 12px;
 }
 
-.visitorCard {
+.visitor-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -128,7 +128,7 @@
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
 
   &:hover {
     border-color: var(--calculated-border-subtle);
@@ -136,13 +136,13 @@
   }
 }
 
-.visitorHeader {
+.visitor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.visitorId {
+.visitor-id {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -152,7 +152,7 @@
   color: var(--text-primary);
 }
 
-.visitorSessionCount {
+.visitor-session-count {
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--accent-primary);
@@ -161,13 +161,13 @@
   border-radius: 10px;
 }
 
-.visitorMeta {
+.visitor-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.visitorMetaItem {
+.visitor-meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -175,7 +175,7 @@
   color: var(--text-tertiary);
 }
 
-.visitorFooter {
+.visitor-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -183,7 +183,7 @@
   padding-top: 8px;
 }
 
-.visitorTime {
+.visitor-time {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -192,20 +192,20 @@
   color: var(--text-muted);
 }
 
-.visitorSeen {
+.visitor-seen {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
 /* ── Session Pills ───────────────────────────────────────────── */
 
-.sessionPills {
+.session-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.sessionPill {
+.session-pill {
   padding: 3px 8px;
   font-size: 0.6875rem;
   font-family: var(--font-mono);
@@ -223,7 +223,7 @@
   }
 }
 
-.sessionPillMore {
+.session-pill-more {
   padding: 3px 8px;
   font-size: 0.6875rem;
   color: var(--text-muted);
@@ -231,7 +231,7 @@
 
 /* ── Sessions Table ──────────────────────────────────────────── */
 
-.sessionTable {
+.session-table {
   display: flex;
   flex-direction: column;
   background: var(--background-surface);
@@ -240,7 +240,7 @@
   overflow: hidden;
 }
 
-.sessionTableHeader {
+.session-table-header {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
   gap: 8px;
@@ -254,7 +254,7 @@
   background: var(--background-surface);
 }
 
-.sessionTableRow {
+.session-table-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
   gap: 8px;
@@ -275,7 +275,7 @@
   }
 }
 
-.sessionTableId {
+.session-table-id {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -285,43 +285,43 @@
   font-size: var(--font-size-xs);
 }
 
-.sessionTableVisitor {
+.session-table-visitor {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
 
-.sessionTableDevice {
+.session-table-device {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: var(--font-size-xs);
 }
 
-.sessionTableGeo {
+.session-table-geo {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
 
-.sessionTableDuration {
+.session-table-duration {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
 
-.sessionTableTime {
+.session-table-time {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
 /* ── Detail View ─────────────────────────────────────────────── */
 
-.detailHeader {
+.detail-header {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.backButton {
+.back-button {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -344,13 +344,13 @@
 
 /* ── Meta Grid ───────────────────────────────────────────────── */
 
-.metaGrid {
+.meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 8px;
 }
 
-.metaCard {
+.meta-card {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -360,7 +360,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.metaLabel {
+.meta-label {
   font-size: 0.6875rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -368,7 +368,7 @@
   letter-spacing: 0.06em;
 }
 
-.metaValue {
+.meta-value {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -381,7 +381,7 @@
 
 /* ── UTM Bar ─────────────────────────────────────────────────── */
 
-.utmBar {
+.utm-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -391,7 +391,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.utmTag {
+.utm-tag {
   display: inline-flex;
   align-items: center;
   font-size: var(--font-size-xs);
@@ -400,7 +400,7 @@
   border: 1px solid var(--calculated-border-color);
 }
 
-.utmKey {
+.utm-key {
   padding: 2px 6px;
   background: var(--background-elevated);
   color: var(--text-muted);
@@ -409,21 +409,21 @@
   letter-spacing: 0.04em;
 }
 
-.utmValue {
+.utm-value {
   padding: 2px 8px;
   color: var(--text-secondary);
 }
 
 /* ── Timeline ────────────────────────────────────────────────── */
 
-.timelineSection {
+.timeline-section {
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
 
-.timelineHeader {
+.timeline-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -434,7 +434,7 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.timelineCount {
+.timeline-count {
   margin-left: auto;
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -446,7 +446,7 @@
   padding: 16px 18px;
 }
 
-.timelineItem {
+.timeline-item {
   display: flex;
   gap: 12px;
   position: relative;
@@ -457,7 +457,7 @@
   }
 }
 
-.timelineDot {
+.timeline-dot {
   position: relative;
   z-index: 1;
   display: flex;
@@ -469,17 +469,17 @@
   flex-shrink: 0;
 }
 
-.timelinePageview .timelineDot {
+.timeline-pageview .timeline-dot {
   background: oklch(58.5% 0.2041 277.1 / 0.12);
   color: oklch(58.5% 0.2041 277.1);
 }
 
-.timelineEvent .timelineDot {
+.timeline-event .timeline-dot {
   background: oklch(76.9% 0.1646 70.1 / 0.12);
   color: oklch(76.9% 0.1646 70.1);
 }
 
-.timelineConnector {
+.timeline-connector {
   position: absolute;
   left: 11px;
   top: 24px;
@@ -488,11 +488,11 @@
   background: var(--calculated-border-color);
 }
 
-.timelineItem:last-child .timelineConnector {
+.timeline-item:last-child .timeline-connector {
   display: none;
 }
 
-.timelineContent {
+.timeline-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -501,35 +501,35 @@
   padding-top: 2px;
 }
 
-.timelineRow {
+.timeline-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.timelineType {
+.timeline-type {
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.timelinePageview .timelineType {
+.timeline-pageview .timeline-type {
   color: oklch(58.5% 0.2041 277.1);
 }
 
-.timelineEvent .timelineType {
+.timeline-event .timeline-type {
   color: oklch(76.9% 0.1646 70.1);
 }
 
-.timelineTime {
+.timeline-time {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   margin-left: auto;
 }
 
-.timelineDetail {
+.timeline-detail {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -539,27 +539,27 @@
   word-break: break-all;
 }
 
-.timelineTitle {
+.timeline-title {
   color: var(--text-muted);
   font-family: var(--font-sans);
 }
 
-.timelineCategory {
+.timeline-category {
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.timelineAction {
+.timeline-action {
   color: var(--text-secondary);
 }
 
-.timelineLabel {
+.timeline-label {
   color: var(--text-muted);
 }
 
 /* ── User Agent Bar ──────────────────────────────────────────── */
 
-.userAgentBar {
+.user-agent-bar {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -574,14 +574,14 @@
   word-break: break-all;
 }
 
-.userAgentBar svg {
+.user-agent-bar svg {
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 /* ── Empty State ─────────────────────────────────────────────── */
 
-.emptyState {
+.empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -593,7 +593,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.emptyTimeline {
+.empty-timeline {
   padding: 24px 18px;
   text-align: center;
   color: var(--text-muted);
@@ -609,7 +609,7 @@
   gap: 12px;
 }
 
-.pageButton {
+.page-button {
   padding: 6px 14px;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -633,7 +633,7 @@
   }
 }
 
-.pageInfo {
+.page-info {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
@@ -641,7 +641,7 @@
 
 /* ── IP Summary Bar ──────────────────────────────────────────── */
 
-.ipAddressSummaryBar {
+.ip-address-summary-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -655,7 +655,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.ipAddressSummaryStat {
+.ip-address-summary-stat {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -664,13 +664,13 @@
   color: var(--text-primary);
 }
 
-.ipAddressSummaryStat svg {
+.ip-address-summary-stat svg {
   color: var(--accent-primary);
 }
 
 /* ── Meta Highlight (clickable IP) ───────────────────────────── */
 
-.metaCardHighlight {
+.meta-card-highlight {
   border-color: oklch(58.5% 0.2041 277.1 / 0.25);
   background: linear-gradient(
     135deg,
@@ -679,7 +679,7 @@
   );
 }
 
-.metaValueLink {
+.meta-value-link {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -698,7 +698,7 @@
 
 /* ── Linked Sections (Visitor IDs / Sessions under IP) ───────── */
 
-.linkedSection {
+.linked-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -708,7 +708,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.linkedHeader {
+.linked-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -717,7 +717,7 @@
   color: var(--text-primary);
 }
 
-.linkedCount {
+.linked-count {
   margin-left: auto;
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -729,7 +729,7 @@
 
 /* ── Visitor Pill (non-clickable) ────────────────────────────── */
 
-.visitorPill {
+.visitor-pill {
   padding: 3px 8px;
   font-size: 0.6875rem;
   font-family: var(--font-mono);
@@ -741,7 +741,7 @@
 
 /* ── Pill Duration Badge ─────────────────────────────────────── */
 
-.pillDuration {
+.pill-duration {
   font-size: 0.625rem;
   color: var(--text-muted);
   margin-left: 4px;
@@ -750,7 +750,7 @@
 
 /* ── Session Table IP Column ─────────────────────────────────── */
 
-.sessionTableIp {
+.session-table-ip {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
@@ -758,7 +758,7 @@
 
 /* ── Visitor Meta Link (clickable IP in visitor card) ─────────── */
 
-.visitorMetaLink {
+.visitor-meta-link {
   cursor: pointer;
   color: var(--accent-primary) !important;
   transition: opacity var(--transition-fast);
@@ -770,7 +770,7 @@
 
 /* ── Timeline Session Tag ────────────────────────────────────── */
 
-.timelineSessionTag {
+.timeline-session-tag {
   font-size: 0.625rem;
   font-family: var(--font-mono);
   padding: 1px 5px;
@@ -780,7 +780,7 @@
   letter-spacing: 0.02em;
 }
 
-.detailSessionId {
+.detail-session-id {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -792,7 +792,7 @@
 
 /* ── Animations ──────────────────────────────────────────────── */
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -804,22 +804,22 @@
 }
 
 @media (max-width: 768px) {
-  .sessionTableHeader,
-  .sessionTableRow {
+  .session-table-header,
+  .session-table-row {
     grid-template-columns: 1fr 1fr 1fr;
   }
 
-  .sessionTableGeo,
-  .sessionTableDuration,
-  .sessionTableTime {
+  .session-table-geo,
+  .session-table-duration,
+  .session-table-time {
     display: none;
   }
 
-  .metaGrid {
+  .meta-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .cardList {
+  .card-list {
     grid-template-columns: 1fr;
   }
 }

@@ -135,9 +135,9 @@ function Sparkline({
 function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
-    <div className={styles.barTrack}>
+    <div className={styles['bar-track']}>
       <div
-        className={styles.barFill}
+        className={styles['bar-fill']}
         style={{ width: `${clamped}%`, background: color }}
       />
     </div>
@@ -157,16 +157,16 @@ const TABS = [
 
 function ProjectTab({ service }: { service: PortalService }) {
   return (
-    <div className={styles.projectTab}>
+    <div className={styles['project-tab']}>
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Identity</h4>
-        <div className={`${styles.fieldGrid} ${styles.fieldGridSingle}`}>
+        <h4 className={styles['section-title']}>Identity</h4>
+        <div className={`${styles['field-grid']} ${styles['field-grid-single']}`}>
           {service.projectType &&
             (() => {
               const colors = SERVICE_TYPE_COLORS[service.projectType as string];
               return (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Type</span>
+                  <span className={styles['field-label']}>Type</span>
                   <BadgeComponent
                     variant="info"
                     style={
@@ -189,7 +189,7 @@ function ProjectTab({ service }: { service: PortalService }) {
               const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
               return (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Tier</span>
+                  <span className={styles['field-label']}>Tier</span>
                   <BadgeComponent
                     variant="info"
                     style={
@@ -209,7 +209,7 @@ function ProjectTab({ service }: { service: PortalService }) {
             })()}
           {service.repo && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Repository</span>
+              <span className={styles['field-label']}>Repository</span>
               <BadgeComponent
                 type="repository"
                 repo={service.repo}
@@ -219,7 +219,7 @@ function ProjectTab({ service }: { service: PortalService }) {
           )}
           {service.domain && (
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Domain</span>
+              <span className={styles['field-label']}>Domain</span>
               <BadgeComponent
                 type="domain"
                 domain={service.domain}
@@ -232,20 +232,20 @@ function ProjectTab({ service }: { service: PortalService }) {
 
       {(service.metadata || service.checkedAt) && (
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Metadata</h4>
-          <div className={styles.fieldGrid}>
+          <h4 className={styles['section-title']}>Metadata</h4>
+          <div className={styles['field-grid']}>
             {service.metadata?.version && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Version</span>
-                <span className={`${styles.fieldValue} ${styles.mono}`}>
+                <span className={styles['field-label']}>Version</span>
+                <span className={`${styles['field-value']} ${styles.mono}`}>
                   {service.metadata.version}
                 </span>
               </div>
             )}
             {service.isInfrastructure && service.metadata?.uptime != null && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Uptime</span>
-                <span className={styles.fieldValue}>
+                <span className={styles['field-label']}>Uptime</span>
+                <span className={styles['field-value']}>
                   {formatElapsedTime(service.metadata.uptime)}
                 </span>
               </div>
@@ -253,8 +253,8 @@ function ProjectTab({ service }: { service: PortalService }) {
             {service.isInfrastructure &&
               service.metadata?.connections != null && (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Connections</span>
-                  <span className={styles.fieldValue}>
+                  <span className={styles['field-label']}>Connections</span>
+                  <span className={styles['field-value']}>
                     {service.metadata.connections}
                   </span>
                 </div>
@@ -262,16 +262,16 @@ function ProjectTab({ service }: { service: PortalService }) {
             {service.isInfrastructure &&
               service.metadata?.databases != null && (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Databases</span>
-                  <span className={styles.fieldValue}>
+                  <span className={styles['field-label']}>Databases</span>
+                  <span className={styles['field-value']}>
                     {service.metadata.databases}
                   </span>
                 </div>
               )}
             {service.isInfrastructure && service.metadata?.buckets != null && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Buckets</span>
-                <span className={styles.fieldValue}>
+                <span className={styles['field-label']}>Buckets</span>
+                <span className={styles['field-value']}>
                   {service.metadata.buckets}
                 </span>
               </div>
@@ -279,15 +279,15 @@ function ProjectTab({ service }: { service: PortalService }) {
             {service.isInfrastructure &&
               (service.metadata?.bucketNames?.length ?? 0) > 0 && (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Bucket Names</span>
-                  <span className={`${styles.fieldValue} ${styles.mono}`}>
+                  <span className={styles['field-label']}>Bucket Names</span>
+                  <span className={`${styles['field-value']} ${styles.mono}`}>
                     {service.metadata!.bucketNames!.join(", ")}
                   </span>
                 </div>
               )}
             {service.checkedAt && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Last Checked</span>
+                <span className={styles['field-label']}>Last Checked</span>
                 <BadgeComponent
                   type="dateTime"
                   date={service.checkedAt}
@@ -312,18 +312,18 @@ function ContainerTab({
   stats?: ContainerStats & { spark?: { cpu?: number[]; mem?: number[] } };
 }) {
   return (
-    <div className={styles.containerTab}>
+    <div className={styles['container-tab']}>
       {/* ── Left: Container info ── */}
-      <div className={styles.containerInfo}>
+      <div className={styles['container-info']}>
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Status &amp; Environment</h4>
-          <div className={styles.fieldGrid}>
+          <h4 className={styles['section-title']}>Status &amp; Environment</h4>
+          <div className={styles['field-grid']}>
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Status</span>
+              <span className={styles['field-label']}>Status</span>
               <BadgeComponent type="status" healthy={service.healthy} />
             </div>
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>Environment</span>
+              <span className={styles['field-label']}>Environment</span>
               <BadgeComponent
                 variant={
                   service.environment === "Production" ? "success" : "info"
@@ -334,7 +334,7 @@ function ContainerTab({
             </div>
             {service.visibility && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Visibility</span>
+                <span className={styles['field-label']}>Visibility</span>
                 <BadgeComponent
                   type="visibility"
                   visibility={service.visibility}
@@ -344,7 +344,7 @@ function ContainerTab({
             )}
             {service.responseTimeMs != null && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Response</span>
+                <span className={styles['field-label']}>Response</span>
                 <BadgeComponent
                   type="responseTime"
                   ms={service.responseTimeMs}
@@ -354,7 +354,7 @@ function ContainerTab({
             )}
             {service.device && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Device</span>
+                <span className={styles['field-label']}>Device</span>
                 <BadgeComponent
                   type="device"
                   device={service.device}
@@ -366,17 +366,17 @@ function ContainerTab({
         </div>
 
         <div className={styles.section}>
-          <h4 className={styles.sectionTitle}>Network</h4>
-          <div className={styles.fieldGrid}>
+          <h4 className={styles['section-title']}>Network</h4>
+          <div className={styles['field-grid']}>
             {service.port && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Port</span>
+                <span className={styles['field-label']}>Port</span>
                 <BadgeComponent type="port" port={service.port} />
               </div>
             )}
             {service.url && (
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>Address</span>
+                <span className={styles['field-label']}>Address</span>
                 <BadgeComponent type="address" address={service.url} link />
               </div>
             )}
@@ -386,23 +386,23 @@ function ContainerTab({
 
       {/* ── Right: Metrics ── */}
       {stats ? (
-        <div className={styles.containerMetrics}>
+        <div className={styles['container-metrics']}>
           {/* CPU */}
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
+          <div className={styles['metric-card']}>
+            <div className={styles['metric-card-header']}>
               <Cpu
                 size={13}
                 strokeWidth={2.2}
-                className={styles.metricCardIcon}
+                className={styles['metric-card-icon']}
               />
-              <span className={styles.metricCardTitle}>CPU</span>
+              <span className={styles['metric-card-title']}>CPU</span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.cpu.percent) }}
               >
                 {formatPercent(stats.cpu.percent, "adaptive")}
               </span>
-              <span className={styles.metricCardDim}>
+              <span className={styles['metric-card-dim']}>
                 · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
               </span>
             </div>
@@ -428,25 +428,25 @@ function ContainerTab({
           </div>
 
           {/* Memory */}
-          <div className={styles.metricCard}>
-            <div className={styles.metricCardHeader}>
+          <div className={styles['metric-card']}>
+            <div className={styles['metric-card-header']}>
               <MemoryStick
                 size={13}
                 strokeWidth={2.2}
-                className={styles.metricCardIcon}
+                className={styles['metric-card-icon']}
               />
-              <span className={styles.metricCardTitle}>RAM</span>
+              <span className={styles['metric-card-title']}>RAM</span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
               >
                 {formatBytes(stats.memory.used)}
               </span>
-              <span className={styles.metricCardDim}>
+              <span className={styles['metric-card-dim']}>
                 / {formatBytes(stats.memory.limit)}
               </span>
               <span
-                className={styles.metricCardValue}
+                className={styles['metric-card-value']}
                 style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
               >
                 {formatPercent(stats.memory.percent, "adaptive")}
@@ -474,28 +474,28 @@ function ContainerTab({
           </div>
 
           {/* Network + Block I/O + PIDs */}
-          <div className={styles.metricRow}>
+          <div className={styles['metric-row']}>
             {stats.network &&
               (stats.network.rx > 0 || stats.network.tx > 0) && (
-                <div className={styles.metricCard}>
-                  <div className={styles.metricCardHeader}>
+                <div className={styles['metric-card']}>
+                  <div className={styles['metric-card-header']}>
                     <Globe
                       size={13}
                       strokeWidth={2.2}
-                      className={styles.metricCardIcon}
+                      className={styles['metric-card-icon']}
                     />
-                    <span className={styles.metricCardTitle}>Network</span>
+                    <span className={styles['metric-card-title']}>Network</span>
                   </div>
-                  <div className={styles.inputOutputStats}>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>RX</span>
-                      <span className={styles.inputOutputValue}>
+                  <div className={styles['input-output-stats']}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>RX</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.network.rx)}
                       </span>
                     </span>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>TX</span>
-                      <span className={styles.inputOutputValue}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>TX</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.network.tx)}
                       </span>
                     </span>
@@ -505,25 +505,25 @@ function ContainerTab({
 
             {stats.blockIO &&
               (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-                <div className={styles.metricCard}>
-                  <div className={styles.metricCardHeader}>
+                <div className={styles['metric-card']}>
+                  <div className={styles['metric-card-header']}>
                     <Server
                       size={13}
                       strokeWidth={2.2}
-                      className={styles.metricCardIcon}
+                      className={styles['metric-card-icon']}
                     />
-                    <span className={styles.metricCardTitle}>Block I/O</span>
+                    <span className={styles['metric-card-title']}>Block I/O</span>
                   </div>
-                  <div className={styles.inputOutputStats}>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>Read</span>
-                      <span className={styles.inputOutputValue}>
+                  <div className={styles['input-output-stats']}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>Read</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.blockIO.read)}
                       </span>
                     </span>
-                    <span className={styles.inputOutputStat}>
-                      <span className={styles.inputOutputDirection}>Write</span>
-                      <span className={styles.inputOutputValue}>
+                    <span className={styles['input-output-stat']}>
+                      <span className={styles['input-output-direction']}>Write</span>
+                      <span className={styles['input-output-value']}>
                         {formatBytes(stats.blockIO.write)}
                       </span>
                     </span>
@@ -532,21 +532,21 @@ function ContainerTab({
               )}
 
             {(stats.pids ?? 0) > 0 && (
-              <div className={styles.metricCard}>
-                <div className={styles.metricCardHeader}>
-                  <span className={styles.metricCardTitle}>PIDs</span>
-                  <span className={styles.metricCardDim}>{stats.pids}</span>
+              <div className={styles['metric-card']}>
+                <div className={styles['metric-card-header']}>
+                  <span className={styles['metric-card-title']}>PIDs</span>
+                  <span className={styles['metric-card-dim']}>{stats.pids}</span>
                 </div>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className={styles.containerMetricsEmpty}>
+        <div className={styles['container-metrics-empty']}>
           <BarChart3
             size={18}
             strokeWidth={1.5}
-            className={styles.emptyTabIcon}
+            className={styles['empty-tab-icon']}
           />
           <span>No metrics</span>
         </div>
@@ -681,8 +681,8 @@ function TopologyTab({
 
   if (deps.length === 0 && allServices.length === 0) {
     return (
-      <div className={styles.emptyTab}>
-        <Network size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
+      <div className={styles['empty-tab']}>
+        <Network size={24} strokeWidth={1.5} className={styles['empty-tab-icon']} />
         <span>No dependencies declared</span>
       </div>
     );
@@ -732,8 +732,8 @@ function TopologyTab({
 
   if (graphServices.length <= 1) {
     return (
-      <div className={styles.emptyTab}>
-        <Network size={24} strokeWidth={1.5} className={styles.emptyTabIcon} />
+      <div className={styles['empty-tab']}>
+        <Network size={24} strokeWidth={1.5} className={styles['empty-tab-icon']} />
         <span>No connections found</span>
       </div>
     );
@@ -786,8 +786,8 @@ function TopologyTab({
   });
 
   return (
-    <div className={styles.miniTopology}>
-      <svg viewBox={`0 0 ${svgW} ${svgH}`} className={styles.miniTopologySvg}>
+    <div className={styles['mini-topology']}>
+      <svg viewBox={`0 0 ${svgW} ${svgH}`} className={styles['mini-topology-svg']}>
         <defs>
           <linearGradient
             id="mini-prism-gradient"
@@ -828,7 +828,7 @@ function TopologyTab({
           return (
             <g
               key={`${edge.source}-${edge.target}-${i}`}
-              className={isSelfEdge ? styles.miniEdgeFlowing : ""}
+              className={isSelfEdge ? styles['mini-edge-flowing'] : ""}
             >
               <path
                 d={miniEdgePathData}
@@ -841,7 +841,7 @@ function TopologyTab({
                 fill="none"
                 strokeOpacity={isSelfEdge ? 0.9 : isOpt ? 0.25 : 0.4}
                 strokeDasharray={isOpt && !isSelfEdge ? "4 3" : "none"}
-                className={styles.miniEdgeLine}
+                className={styles['mini-edge-line']}
               />
             </g>
           );
@@ -855,7 +855,7 @@ function TopologyTab({
               key={`tier-${tierIndex}`}
               x={0}
               y={tierYPositions[tierIndex]}
-              className={styles.miniTierLabel}
+              className={styles['mini-tier-label']}
               dominantBaseline="middle"
             >
               {TIER_LABELS[tierIndex] || `Tier ${tierIndex}`}
@@ -870,10 +870,10 @@ function TopologyTab({
           const Icon = getIcon(currentService);
           const isSelf = currentService.id === service.id;
           const typeClass = currentService.isInfrastructure
-            ? styles.miniNodeInfra
+            ? styles['mini-node-infra']
             : currentService.visibility === "external"
-              ? styles.miniNodeExternal
-              : styles.miniNodeInternal;
+              ? styles['mini-node-external']
+              : styles['mini-node-internal'];
           return (
             <foreignObject
               key={currentService.id}
@@ -884,15 +884,15 @@ function TopologyTab({
               style={{ overflow: "visible" }}
             >
               <div
-                className={`${styles.miniNodeCard} ${typeClass} ${isSelf ? styles.miniNodeSelf : ""}`}
+                className={`${styles['mini-node-card']} ${typeClass} ${isSelf ? styles['mini-node-self'] : ""}`}
               >
                 <div
-                  className={`${styles.miniStatusDot} ${currentService.healthy ? styles.miniStatusHealthy : styles.miniStatusDown}`}
+                  className={`${styles['mini-status-dot']} ${currentService.healthy ? styles['mini-status-healthy'] : styles['mini-status-down']}`}
                 />
-                <div className={styles.miniNodeIconWrap}>
+                <div className={styles['mini-node-icon-wrap']}>
                   <Icon size={14} strokeWidth={1.5} />
                 </div>
-                <span className={styles.miniNodeName}>{currentService.name}</span>
+                <span className={styles['mini-node-name']}>{currentService.name}</span>
               </div>
             </foreignObject>
           );
@@ -938,14 +938,14 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
 
   if (!propertyId) {
     return (
-      <div className={styles.emptyTab}>
+      <div className={styles['empty-tab']}>
         <TrendingUp
           size={24}
           strokeWidth={1.5}
-          className={styles.emptyTabIcon}
+          className={styles['empty-tab-icon']}
         />
         <span>No analytics property configured</span>
-        <span className={styles.emptyTabHint}>
+        <span className={styles['empty-tab-hint']}>
           Add <code>analyticsPropertyId</code> to this project in projects.json
         </span>
       </div>
@@ -954,72 +954,72 @@ function WebAnalyticsTab({ service }: { service: PortalService }) {
 
   if (loading) {
     return (
-      <div className={styles.emptyTab}>
+      <div className={styles['empty-tab']}>
         <LoadingIndicatorComponent size="small" label="Loading analytics…" />
       </div>
     );
   }
 
   return (
-    <div className={styles.webAnalyticsTab}>
+    <div className={styles['web-analytics-tab']}>
       {/* Realtime */}
       {realtime && (
-        <div className={styles.realtimePill}>
-          <div className={styles.realtimeDot} />
-          <span className={styles.realtimeValue}>
+        <div className={styles['realtime-pill']}>
+          <div className={styles['realtime-dot']} />
+          <span className={styles['realtime-value']}>
             {formatNumber(realtime.activeUsers)}
           </span>
-          <span className={styles.realtimeLabel}>active now</span>
+          <span className={styles['realtime-label']}>active now</span>
         </div>
       )}
 
       {/* Overview cards */}
       {overview && (
-        <div className={styles.analyticsCards}>
-          <div className={styles.analyticsCard}>
-            <span className={styles.analyticsCardValue}>
+        <div className={styles['analytics-cards']}>
+          <div className={styles['analytics-card']}>
+            <span className={styles['analytics-card-value']}>
               {formatNumber(overview.totalUsers)}
             </span>
-            <span className={styles.analyticsCardLabel}>Users</span>
+            <span className={styles['analytics-card-label']}>Users</span>
           </div>
-          <div className={styles.analyticsCard}>
-            <span className={styles.analyticsCardValue}>
+          <div className={styles['analytics-card']}>
+            <span className={styles['analytics-card-value']}>
               {formatNumber(overview.pageviews)}
             </span>
-            <span className={styles.analyticsCardLabel}>Pageviews</span>
+            <span className={styles['analytics-card-label']}>Pageviews</span>
           </div>
-          <div className={styles.analyticsCard}>
-            <span className={styles.analyticsCardValue}>
+          <div className={styles['analytics-card']}>
+            <span className={styles['analytics-card-value']}>
               {formatNumber(overview.sessions)}
             </span>
-            <span className={styles.analyticsCardLabel}>Sessions</span>
+            <span className={styles['analytics-card-label']}>Sessions</span>
           </div>
-          <div className={styles.analyticsCard}>
-            <span className={styles.analyticsCardValue}>
+          <div className={styles['analytics-card']}>
+            <span className={styles['analytics-card-value']}>
               {formatGADuration(overview.avgSessionDuration)}
             </span>
-            <span className={styles.analyticsCardLabel}>Avg Duration</span>
+            <span className={styles['analytics-card-label']}>Avg Duration</span>
           </div>
-          <div className={styles.analyticsCard}>
-            <span className={styles.analyticsCardValue}>
+          <div className={styles['analytics-card']}>
+            <span className={styles['analytics-card-value']}>
               {formatGAPercent(overview.engagementRate)}
             </span>
-            <span className={styles.analyticsCardLabel}>Engagement</span>
+            <span className={styles['analytics-card-label']}>Engagement</span>
           </div>
         </div>
       )}
 
       {/* Top Pages */}
       {(pages?.pages?.length ?? 0) > 0 && (
-        <div className={styles.analyticsSection}>
-          <h4 className={styles.sectionTitle}>Top Pages (30d)</h4>
-          <div className={styles.analyticsPageList}>
+        <div className={styles['analytics-section']}>
+          <h4 className={styles['section-title']}>Top Pages (30d)</h4>
+          <div className={styles['analytics-page-list']}>
             {pages!.pages.slice(0, 5).map((page: GAPageRow, i: number) => (
-              <div key={i} className={styles.analyticsPageRow}>
-                <span className={`${styles.analyticsPagePath} ${styles.mono}`}>
+              <div key={i} className={styles['analytics-page-row']}>
+                <span className={`${styles['analytics-page-path']} ${styles.mono}`}>
                   {page.pagePath}
                 </span>
-                <span className={styles.analyticsPageViews}>
+                <span className={styles['analytics-page-views']}>
                   {formatNumber(page.pageviews)}
                 </span>
               </div>
@@ -1054,13 +1054,13 @@ export default function ExpandedProjectPanel({
   return (
     <div className={styles.panel}>
       {/* ── Tab Bar ── */}
-      <div className={styles.tabBar}>
+      <div className={styles['tab-bar']}>
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
+              className={`${styles.tab} ${activeTab === tab.id ? styles['tab-active'] : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               <Icon size={12} strokeWidth={2.2} />
@@ -1071,7 +1071,7 @@ export default function ExpandedProjectPanel({
       </div>
 
       {/* ── Tab Content ── */}
-      <div className={styles.tabContent}>
+      <div className={styles['tab-content']}>
         {activeTab === "project" && <ProjectTab service={service} />}
         {activeTab === "container" && (
           <ContainerTab service={service} stats={stats} />
@@ -1084,7 +1084,7 @@ export default function ExpandedProjectPanel({
 
       {/* ── Error Bar ── */}
       {service.error && !service.healthy && (
-        <div className={styles.errorBar}>{service.error}</div>
+        <div className={styles['error-bar']}>{service.error}</div>
       )}
     </div>
   );

@@ -5,10 +5,10 @@
 .panel {
   display: flex;
   flex-direction: column;
-  animation: panelSlideIn 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: panel-slide-in 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes panelSlideIn {
+@keyframes panel-slide-in {
   from {
     opacity: 0;
     transform: translateY(-6px);
@@ -21,7 +21,7 @@
 
 /* ── Tab Bar ───────────────────────────────────────────────────── */
 
-.tabBar {
+.tab-bar {
   display: flex;
   gap: 2px;
   padding: 6px 8px;
@@ -49,14 +49,14 @@
   }
 }
 
-.tabActive {
+.tab-active {
   color: var(--text-primary);
   background: var(--background-elevated);
 }
 
 /* ── Tab Content ───────────────────────────────────────────────── */
 
-.tabContent {
+.tab-content {
   padding: 14px 8px;
   min-height: 120px;
 }
@@ -69,7 +69,7 @@
   gap: 8px;
 }
 
-.sectionTitle {
+.section-title {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -80,13 +80,13 @@
   margin: 0;
 }
 
-.fieldGrid {
+.field-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 6px 16px;
 }
 
-.fieldGridSingle {
+.field-grid-single {
   grid-template-columns: 1fr;
 }
 
@@ -99,14 +99,14 @@
   min-width: 0;
 }
 
-.fieldLabel {
+.field-label {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.fieldValue {
+.field-value {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   font-weight: 450;
@@ -123,7 +123,7 @@
 
 /* ── Empty Tab ─────────────────────────────────────────────────── */
 
-.emptyTab {
+.empty-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -134,17 +134,17 @@
   font-size: 0.8125rem;
 }
 
-.emptyTabIcon {
+.empty-tab-icon {
   opacity: 0.4;
 }
 
-.emptyTabHint {
+.empty-tab-hint {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   opacity: 0.7;
 }
 
-.emptyTabHint code {
+.empty-tab-hint code {
   font-family: var(--font-mono);
   padding: 1px 4px;
   background: var(--background-elevated);
@@ -156,7 +156,7 @@
    Tab: Project
    ══════════════════════════════════════════════════════════════════ */
 
-.projectTab {
+.project-tab {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -166,31 +166,31 @@
    Tab: Container
    ══════════════════════════════════════════════════════════════════ */
 
-.containerTab {
+.container-tab {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
 @media (max-width: 900px) {
-  .containerTab {
+  .container-tab {
     grid-template-columns: 1fr;
   }
 }
 
-.containerInfo {
+.container-info {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.containerMetrics {
+.container-metrics {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.containerMetricsEmpty {
+.container-metrics-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -208,20 +208,20 @@
    Tab: Topology (Mini SVG Graph)
    ══════════════════════════════════════════════════════════════════ */
 
-.miniTopology {
+.mini-topology {
   display: flex;
   justify-content: center;
   padding: 8px 0;
 }
 
-.miniTopologySvg {
+.mini-topology-svg {
   width: 100%;
   max-height: 380px;
 }
 
 /* ── Tier labels ── */
 
-.miniTierLabel {
+.mini-tier-label {
   font-size: 0.5rem;
   font-weight: 600;
   fill: var(--text-muted);
@@ -234,25 +234,25 @@
 
 /* ── Edges ── */
 
-.miniEdgeLine {
+.mini-edge-line {
   pointer-events: none;
   transition: stroke-opacity 0.3s ease;
 }
 
-@keyframes miniEdgeFlow {
+@keyframes mini-edge-flow {
   to {
     stroke-dashoffset: -24;
   }
 }
 
-.miniEdgeFlowing .miniEdgeLine {
+.mini-edge-flowing .mini-edge-line {
   stroke-dasharray: 8 6;
-  animation: miniEdgeFlow 0.6s linear infinite;
+  animation: mini-edge-flow 0.6s linear infinite;
 }
 
 /* ── Node cards ── */
 
-.miniNodeCard {
+.mini-node-card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -270,39 +270,39 @@
     box-shadow var(--transition-fast);
 }
 
-.miniNodeInternal .miniNodeIconWrap {
+.mini-node-internal .mini-node-icon-wrap {
   color: var(--color-success);
 }
-.miniNodeInternal {
+.mini-node-internal {
   border-color: oklch(69.6% 0.1491 162.5 / 0.1);
 }
 
-.miniNodeExternal .miniNodeIconWrap {
+.mini-node-external .mini-node-icon-wrap {
   color: var(--node-external);
 }
-.miniNodeExternal {
+.mini-node-external {
   border-color: oklch(78.5% 0.1325 181.9 / 0.1);
 }
 
-.miniNodeInfra .miniNodeIconWrap {
+.mini-node-infra .mini-node-icon-wrap {
   color: var(--node-infrastructure);
 }
-.miniNodeInfra {
+.mini-node-infra {
   border-color: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
-.miniNodeSelf {
+.mini-node-self {
   border-color: var(--accent-primary) !important;
   box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
-.miniNodeIconWrap {
+.mini-node-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.miniNodeName {
+.mini-node-name {
   font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -318,7 +318,7 @@
 
 /* ── Status dot ── */
 
-.miniStatusDot {
+.mini-status-dot {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -327,12 +327,12 @@
   border-radius: 50%;
 }
 
-.miniStatusHealthy {
+.mini-status-healthy {
   background: var(--color-success);
   box-shadow: 0 0 4px oklch(69.6% 0.1491 162.5 / 0.5);
 }
 
-.miniStatusDown {
+.mini-status-down {
   background: var(--color-danger);
   box-shadow: 0 0 4px oklch(63.7% 0.2078 25.3 / 0.5);
   animation: pulse 2s ease-in-out infinite;
@@ -342,7 +342,7 @@
    Container Metrics (inside Container tab)
    ══════════════════════════════════════════════════════════════════ */
 
-.metricCard {
+.metric-card {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -352,18 +352,18 @@
   border-radius: var(--border-radius-sm);
 }
 
-.metricCardHeader {
+.metric-card-header {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.metricCardIcon {
+.metric-card-icon {
   color: var(--text-muted);
   flex-shrink: 0;
 }
 
-.metricCardTitle {
+.metric-card-title {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -371,7 +371,7 @@
   color: var(--text-muted);
 }
 
-.metricCardValue {
+.metric-card-value {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
@@ -379,7 +379,7 @@
   white-space: nowrap;
 }
 
-.metricCardDim {
+.metric-card-dim {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
@@ -387,7 +387,7 @@
   white-space: nowrap;
 }
 
-.metricRow {
+.metric-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 8px;
@@ -395,7 +395,7 @@
 
 /* ── Percent Bar ───────────────────────────────────────────────── */
 
-.barTrack {
+.bar-track {
   width: 100%;
   height: 3px;
   background: var(--background-elevated);
@@ -403,7 +403,7 @@
   overflow: hidden;
 }
 
-.barFill {
+.bar-fill {
   height: 100%;
   border-radius: 2px;
   transform-origin: left;
@@ -420,19 +420,19 @@
 
 /* ── I/O Stats ─────────────────────────────────────────────────── */
 
-.inputOutputStats {
+.input-output-stats {
   display: flex;
   gap: 16px;
   padding-top: 2px;
 }
 
-.inputOutputStat {
+.input-output-stat {
   display: flex;
   align-items: baseline;
   gap: 5px;
 }
 
-.inputOutputDirection {
+.input-output-direction {
   font-size: 0.5625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -441,7 +441,7 @@
   font-family: var(--font-mono);
 }
 
-.inputOutputValue {
+.input-output-value {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-secondary);
@@ -452,13 +452,13 @@
    Tab: Web Analytics
    ══════════════════════════════════════════════════════════════════ */
 
-.webAnalyticsTab {
+.web-analytics-tab {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.realtimePill {
+.realtime-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -469,7 +469,7 @@
   align-self: flex-start;
 }
 
-.realtimeDot {
+.realtime-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -487,25 +487,25 @@
   }
 }
 
-.realtimeValue {
+.realtime-value {
   font-size: 0.8125rem;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--text-primary);
 }
 
-.realtimeLabel {
+.realtime-label {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
 
-.analyticsCards {
+.analytics-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 8px;
 }
 
-.analyticsCard {
+.analytics-card {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -515,7 +515,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-.analyticsCardValue {
+.analytics-card-value {
   font-size: var(--font-size-md);
   font-weight: 600;
   font-family: var(--font-mono);
@@ -523,7 +523,7 @@
   letter-spacing: -0.02em;
 }
 
-.analyticsCardLabel {
+.analytics-card-label {
   font-size: 0.625rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -531,19 +531,19 @@
   color: var(--text-muted);
 }
 
-.analyticsSection {
+.analytics-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.analyticsPageList {
+.analytics-page-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.analyticsPageRow {
+.analytics-page-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -552,11 +552,11 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.analyticsPageRow:last-child {
+.analytics-page-row:last-child {
   border-bottom: none;
 }
 
-.analyticsPagePath {
+.analytics-page-path {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   overflow: hidden;
@@ -565,7 +565,7 @@
   min-width: 0;
 }
 
-.analyticsPageViews {
+.analytics-page-views {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -575,7 +575,7 @@
 
 /* ── Error Bar ─────────────────────────────────────────────────── */
 
-.errorBar {
+.error-bar {
   padding: 8px 10px;
   background: var(--calculated-color-danger-subtle);
   border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
@@ -598,10 +598,10 @@
     border-radius: 0;
     border-right: none;
     z-index: 500;
-    animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
-  @keyframes slideUp {
+  @keyframes slide-up {
     from {
       transform: translateY(100%);
     }
@@ -610,11 +610,11 @@
     }
   }
 
-  .metricsGrid {
+  .metrics-grid {
     grid-template-columns: 1fr;
   }
 
-  .detailGrid {
+  .detail-grid {
     grid-template-columns: 1fr;
   }
 }

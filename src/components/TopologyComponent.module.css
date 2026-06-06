@@ -110,7 +110,7 @@
   );
 }
 
-.headerInner {
+.header-inner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -118,7 +118,7 @@
   pointer-events: auto;
 }
 
-.headerText {
+.header-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -136,7 +136,7 @@
   color: var(--text-secondary);
 }
 
-.headerActions {
+.header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -144,7 +144,7 @@
 
 /* ── View mode segmented toggle ── */
 
-.viewToggle {
+.view-toggle {
   display: flex;
   align-items: center;
   background: var(--background-surface);
@@ -154,7 +154,7 @@
   flex-shrink: 0;
 }
 
-.viewToggleButton {
+.view-toggle-button {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -172,21 +172,21 @@
   position: relative;
 }
 
-.viewToggleButton:not(:last-child) {
+.view-toggle-button:not(:last-child) {
   border-right: 1px solid var(--calculated-border-color);
 }
 
-.viewToggleButton:hover {
+.view-toggle-button:hover {
   color: var(--text-secondary);
   background: var(--background-elevated);
 }
 
-.viewToggleActive {
+.view-toggle-active {
   color: var(--text-primary);
   background: var(--background-elevated);
 }
 
-.viewToggleActive::after {
+.view-toggle-active::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -195,12 +195,12 @@
   height: 2px;
   border-radius: 1px;
   background: var(--accent-primary);
-  animation: fadeIn 0.15s ease-out;
+  animation: fade-in 0.15s ease-out;
 }
 
 /* ── Search bar ── */
 
-.searchWrapper {
+.search-wrapper {
   position: relative;
   display: flex;
   align-items: center;
@@ -217,16 +217,16 @@
   cursor: text;
 }
 
-.searchWrapper:hover {
+.search-wrapper:hover {
   border-color: var(--border-hover, var(--text-muted));
 }
 
-.searchExpanded {
+.search-expanded {
   width: 200px;
   border-color: var(--accent-primary);
 }
 
-.searchIcon {
+.search-icon {
   position: absolute;
   left: 10px;
   color: var(--text-muted);
@@ -235,11 +235,11 @@
   transition: color 0.2s ease;
 }
 
-.searchExpanded .searchIcon {
+.search-expanded .search-icon {
   color: var(--text-secondary);
 }
 
-.searchInput {
+.search-input {
   width: 100%;
   height: 100%;
   padding: 0 30px 0 30px;
@@ -255,14 +255,14 @@
   transition: opacity 0.2s ease;
 }
 
-.searchExpanded .searchInput {
+.search-expanded .search-input {
   opacity: 1;
 }
-.searchInput::placeholder {
+.search-input::placeholder {
   color: var(--text-muted);
 }
 
-.searchClear {
+.search-clear {
   position: absolute;
   right: 6px;
   display: flex;
@@ -278,12 +278,12 @@
     background 0.15s ease;
 }
 
-.searchClear:hover {
+.search-clear:hover {
   color: var(--text-primary);
   background: var(--calculated-border-color);
 }
 
-.refreshButton {
+.refresh-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -311,7 +311,7 @@
 
 /* ── SVG canvas ── */
 
-.canvasWrapper {
+.canvas-wrapper {
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -320,7 +320,7 @@
   background: var(--background-base);
 }
 
-.canvasWrapper.panning {
+.canvas-wrapper.panning {
   cursor: grabbing;
 }
 
@@ -336,7 +336,7 @@
    TIER LABELS — Row labels rendered in SVG
    ═══════════════════════════════════════════════════════════════ */
 
-.tierLabel {
+.tier-label {
   font-size: var(--font-size-xs);
   font-weight: 600;
   fill: var(--text-muted);
@@ -348,7 +348,7 @@
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.clusterRect {
+.cluster-rect {
   stroke-width: 1;
   rx: 10;
   ry: 10;
@@ -362,16 +362,16 @@
 
 /* ── Draggable cluster rects ── */
 
-.clusterDraggable {
+.cluster-draggable {
   cursor: grab;
   pointer-events: auto;
 }
 
-.clusterDraggable:active {
+.cluster-draggable:active {
   cursor: grabbing;
 }
 
-.clusterDragHandle {
+.cluster-drag-handle {
   pointer-events: auto;
   cursor: grab;
   overflow: visible;
@@ -380,16 +380,16 @@
   transition: opacity 0.25s ease;
 }
 
-.clusterDragHandle:active {
+.cluster-drag-handle:active {
   cursor: grabbing;
 }
 
 /* Show drag handle when hovering the cluster group */
-g:hover > .clusterDragHandle {
+g:hover > .cluster-drag-handle {
   opacity: 0.5;
 }
 
-g:hover > .clusterDragHandle:hover {
+g:hover > .cluster-drag-handle:hover {
   opacity: 0.9;
 }
 
@@ -397,37 +397,37 @@ g:hover > .clusterDragHandle:hover {
    EDGES — Rainbow flowing gradient (from Prism Client workflows)
    ═══════════════════════════════════════════════════════════════ */
 
-.connectionGroup {
+.connection-group {
   pointer-events: auto;
 }
 
-.connectionLine {
+.connection-line {
   pointer-events: none;
   transition: stroke-opacity var(--transition-fast);
 }
 
-.connectionGlow {
+.connection-glow {
   pointer-events: none;
   filter: blur(3px);
 }
 
-@keyframes edgeFlow {
+@keyframes edge-flow {
   to {
     stroke-dashoffset: -24;
   }
 }
 
-.connectionFlowing .connectionLine {
+.connection-flowing .connection-line {
   stroke-dasharray: 8 6;
-  animation: edgeFlow 0.6s linear infinite;
+  animation: edge-flow 0.6s linear infinite;
 }
 
-.connectionFlowing .connectionGlow {
+.connection-flowing .connection-glow {
   stroke-dasharray: 8 6;
-  animation: edgeFlow 0.6s linear infinite;
+  animation: edge-flow 0.6s linear infinite;
 }
 
-.connectionGroup:hover .connectionLine {
+.connection-group:hover .connection-line {
   stroke-opacity: 1;
   stroke-width: 3;
 }
@@ -436,7 +436,7 @@ g:hover > .clusterDragHandle:hover {
    NODES — Cards rendered via foreignObject
    ═══════════════════════════════════════════════════════════════ */
 
-.nodeCard {
+.node-card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -457,17 +457,17 @@ g:hover > .clusterDragHandle:hover {
     opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nodeCard:active,
-.nodeDragging {
+.node-card:active,
+.node-dragging {
   cursor: grabbing;
 }
 
-.nodeCard:hover {
+.node-card:hover {
   transform: translateY(-1px);
   box-shadow: var(--calculated-shadow-md);
 }
 
-.nodeGlow {
+.node-glow {
   position: absolute;
   inset: -1px;
   border-radius: var(--border-radius-sm);
@@ -476,73 +476,73 @@ g:hover > .clusterDragHandle:hover {
   transition: opacity var(--transition-fast);
 }
 
-.nodeCard:hover .nodeGlow {
+.node-card:hover .node-glow {
   opacity: 1;
 }
 
 /* Type colors — used by mini-topology in ExpandedProjectPanel */
-.nodeInternal .nodeIconWrap {
+.node-internal .node-icon-wrap {
   color: var(--color-success);
 }
-.nodeInternal.nodeHealthy {
+.node-internal.node-healthy {
   border-color: oklch(69.6% 0.1491 162.5 / 0.1);
 }
-.nodeInternal.nodeHealthy:hover {
+.node-internal.node-healthy:hover {
   border-color: oklch(69.6% 0.1491 162.5 / 0.3);
 }
-.nodeInternal.nodeHealthy .nodeGlow {
+.node-internal.node-healthy .node-glow {
   box-shadow: 0 0 20px oklch(69.6% 0.1491 162.5 / 0.1);
 }
 
-.nodeExternal .nodeIconWrap {
+.node-external .node-icon-wrap {
   color: var(--node-external);
 }
-.nodeExternal.nodeHealthy {
+.node-external.node-healthy {
   border-color: oklch(78.5% 0.1325 181.9 / 0.1);
 }
-.nodeExternal.nodeHealthy:hover {
+.node-external.node-healthy:hover {
   border-color: oklch(78.5% 0.1325 181.9 / 0.3);
 }
-.nodeExternal.nodeHealthy .nodeGlow {
+.node-external.node-healthy .node-glow {
   box-shadow: 0 0 20px oklch(78.5% 0.1325 181.9 / 0.1);
 }
 
-.nodeInfra .nodeIconWrap {
+.node-infra .node-icon-wrap {
   color: var(--node-infrastructure);
 }
-.nodeInfra.nodeHealthy {
+.node-infra.node-healthy {
   border-color: oklch(62.7% 0.2326 303.9 / 0.1);
 }
-.nodeInfra.nodeHealthy:hover {
+.node-infra.node-healthy:hover {
   border-color: oklch(62.7% 0.2326 303.9 / 0.3);
 }
-.nodeInfra.nodeHealthy .nodeGlow {
+.node-infra.node-healthy .node-glow {
   box-shadow: 0 0 20px oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
 /* Tier-colored nodes — inline styles handle colors, hover brightens border */
-.nodeCard.nodeHealthy:hover .nodeGlow {
+.node-card.node-healthy:hover .node-glow {
   opacity: 1;
 }
 
-.nodeDown {
+.node-down {
   border-color: oklch(63.7% 0.2078 25.3 / 0.15);
 }
-.nodeDown .nodeIconWrap {
+.node-down .node-icon-wrap {
   color: var(--color-danger);
 }
-.nodeDown:hover {
+.node-down:hover {
   border-color: oklch(63.7% 0.2078 25.3 / 0.35);
 }
-.nodeDown .nodeGlow {
+.node-down .node-glow {
   box-shadow: 0 0 20px oklch(63.7% 0.2078 25.3 / 0.1);
 }
 
-.nodeHovered {
+.node-hovered {
   z-index: 5;
 }
 
-.nodeSelected {
+.node-selected {
   border-color: var(--accent-primary) !important;
   box-shadow: 0 0 16px var(--calculated-accent-primary-glow);
   z-index: 5;
@@ -550,36 +550,36 @@ g:hover > .clusterDragHandle:hover {
 
 /* ── Adjacency dimming — fade non-connected elements on selection ── */
 
-.nodeFaded {
+.node-faded {
   opacity: 0.12;
   pointer-events: none;
   will-change: opacity;
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nodeFaded:hover {
+.node-faded:hover {
   transform: none;
   box-shadow: none;
 }
 
-.edgeFaded .connectionLine {
+.edge-faded .connection-line {
   stroke-opacity: 0.04 !important;
   transition: stroke-opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tierLabelFaded {
+.tier-label-faded {
   opacity: 0.15;
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nodeIconWrap {
+.node-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color var(--transition-fast);
 }
 
-.nodeName {
+.node-name {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-primary);
@@ -588,13 +588,13 @@ g:hover > .clusterDragHandle:hover {
   letter-spacing: -0.01em;
 }
 
-.nodeHost {
+.node-host {
   font-size: 0.5625rem;
   color: var(--text-muted);
   text-align: center;
 }
 
-.nodeSize {
+.node-size {
   display: flex;
   align-items: center;
   gap: 3px;
@@ -605,11 +605,11 @@ g:hover > .clusterDragHandle:hover {
   transition: opacity 0.2s ease;
 }
 
-.nodeCard:hover .nodeSize {
+.node-card:hover .node-size {
   opacity: 1;
 }
 
-.statusDot {
+.status-dot {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -618,13 +618,13 @@ g:hover > .clusterDragHandle:hover {
   border-radius: 50%;
 }
 
-.statusHealthy {
+.status-healthy {
   background: var(--color-success);
   box-shadow: 0 0 8px oklch(69.6% 0.1491 162.5 / 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
 
-.statusDown {
+.status-down {
   background: var(--color-danger);
   box-shadow: 0 0 8px oklch(63.7% 0.2078 25.3 / 0.5);
   animation: pulse 2s ease-in-out infinite;
@@ -646,10 +646,10 @@ g:hover > .clusterDragHandle:hover {
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fade-in var(--transition-normal) ease-out;
 }
 
-.legendTitle {
+.legend-title {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -657,32 +657,32 @@ g:hover > .clusterDragHandle:hover {
   color: var(--text-muted);
   margin-bottom: 2px;
 }
-.legendItem {
+.legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
-.legendDot {
+.legend-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.legendLine {
+.legend-line {
   width: 20px;
   height: 0;
   border-top: 2px solid var(--text-muted);
   flex-shrink: 0;
 }
-.legendEdgeLine {
+.legend-edge-line {
   width: 20px;
   height: 0;
   flex-shrink: 0;
   transition: opacity 0.2s ease;
 }
-.legendSep {
+.legend-sep {
   width: 100%;
   height: 0;
   border-top: 1px solid var(--calculated-border-color);
@@ -690,7 +690,7 @@ g:hover > .clusterDragHandle:hover {
 }
 
 /* ── Interactive edge type toggles ── */
-.legendToggle {
+.legend-toggle {
   cursor: pointer;
   border-radius: 4px;
   padding: 2px 4px;
@@ -701,17 +701,17 @@ g:hover > .clusterDragHandle:hover {
   user-select: none;
 }
 
-.legendToggle:hover {
+.legend-toggle:hover {
   background: var(--background-elevated);
 }
-.legendToggleOff {
+.legend-toggle-off {
   opacity: 0.4;
 }
-.legendToggleOff:hover {
+.legend-toggle-off:hover {
   opacity: 0.7;
 }
 
-.legendCount {
+.legend-count {
   font-size: 0.5625rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -723,14 +723,14 @@ g:hover > .clusterDragHandle:hover {
   letter-spacing: 0.02em;
 }
 
-.legendEyeIcon {
+.legend-eye-icon {
   color: var(--text-muted);
   flex-shrink: 0;
   margin-left: 2px;
   transition: color 0.15s ease;
 }
 
-.legendToggle:hover .legendEyeIcon {
+.legend-toggle:hover .legend-eye-icon {
   color: var(--text-secondary);
 }
 
@@ -750,36 +750,36 @@ g:hover > .clusterDragHandle:hover {
   -webkit-backdrop-filter: blur(12px);
 }
 
-.tooltipName {
+.tooltip-name {
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
-.tooltipRow {
+.tooltip-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 2px 0;
 }
-.tooltipLabel {
+.tooltip-label {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
 }
-.tooltipValue {
+.tooltip-value {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
 }
-.tooltipHealthy {
+.tooltip-healthy {
   color: var(--color-success);
 }
-.tooltipUnhealthy {
+.tooltip-unhealthy {
   color: var(--color-danger);
 }
 
-.tooltipDeps {
+.tooltip-deps {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid var(--calculated-border-color);
@@ -787,26 +787,26 @@ g:hover > .clusterDragHandle:hover {
   flex-direction: column;
   gap: 3px;
 }
-.tooltipDepLabel {
+.tooltip-dep-label {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--log-information);
 }
-.tooltipDepList {
+.tooltip-dep-list {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   line-height: 1.5;
 }
-.tooltipDepLabelOptional {
+.tooltip-dep-label-optional {
   color: var(--status-paused);
 }
-.tooltipDepListOptional {
+.tooltip-dep-list-optional {
   color: var(--text-tertiary);
 }
 
-.loadingState {
+.loading-state {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -816,7 +816,7 @@ g:hover > .clusterDragHandle:hover {
   color: var(--text-muted);
   font-size: var(--font-size-base);
 }
-.loadingDot {
+.loading-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -824,7 +824,7 @@ g:hover > .clusterDragHandle:hover {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.zoomControls {
+.zoom-controls {
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -837,7 +837,7 @@ g:hover > .clusterDragHandle:hover {
   border: 1px solid var(--calculated-border-color);
 }
 
-.zoomButton {
+.zoom-button {
   width: 32px;
   height: 32px;
   display: flex;
@@ -872,11 +872,11 @@ g:hover > .clusterDragHandle:hover {
     padding: 10px;
   }
 
-  .searchInput {
+  .search-input {
     width: 100%;
   }
 
-  .detailPanel {
+  .detail-panel {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -888,10 +888,10 @@ g:hover > .clusterDragHandle:hover {
     border-right: none;
     border-bottom: none;
     z-index: 500;
-    animation: slideUp 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
-  @keyframes slideUp {
+  @keyframes slide-up {
     from {
       transform: translateY(100%);
     }
@@ -907,7 +907,7 @@ g:hover > .clusterDragHandle:hover {
     padding: 8px 10px;
   }
 
-  .legendItem {
+  .legend-item {
     font-size: 0.625rem;
   }
 }

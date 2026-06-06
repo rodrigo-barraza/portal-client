@@ -232,17 +232,17 @@ function detectLevel(text: string) {
 }
 
 const LEVEL_CLASS: Record<string, string> = {
-  error: styles.levelError,
-  warn: styles.levelWarn,
-  info: styles.levelInfo,
-  success: styles.levelSuccess,
-  debug: styles.levelDebug,
+  error: styles['level-error'],
+  warn: styles['level-warn'],
+  info: styles['level-info'],
+  success: styles['level-success'],
+  debug: styles['level-debug'],
 };
 
 const LINE_LEVEL_CLASS: Record<string, string> = {
-  error: styles.logLineError,
-  warn: styles.logLineWarn,
-  success: styles.logLineSuccess,
+  error: styles['log-line-error'],
+  warn: styles['log-line-warn'],
+  success: styles['log-line-success'],
 };
 
 /**
@@ -618,46 +618,46 @@ export default function LogsComponent() {
       />
 
       {/* ── Container Selector Dropdown ── */}
-      <div className={styles.containerDropdown} ref={containerDropdownRef}>
+      <div className={styles['container-dropdown']} ref={containerDropdownRef}>
         <button
           type="button"
-          className={`${styles.containerDropdownTrigger} ${containerDropdownOpen ? styles.containerDropdownTriggerOpen : ""}`}
+          className={`${styles['container-dropdown-trigger']} ${containerDropdownOpen ? styles['container-dropdown-trigger-open'] : ""}`}
           onClick={() => setContainerDropdownOpen((previous) => !previous)}
         >
-          <span className={styles.containerDropdownTriggerContent}>
+          <span className={styles['container-dropdown-trigger-content']}>
             {activeContainer ? (
               <>
                 <span
-                  className={`${styles.containerDropdownStatusDot} ${
+                  className={`${styles['container-dropdown-status-dot']} ${
                     containers.find((c) => c.name === activeContainer)?.state === "running"
-                      ? styles.containerDropdownStatusDotHealthy
-                      : styles.containerDropdownStatusDotUnhealthy
+                      ? styles['container-dropdown-status-dot-healthy']
+                      : styles['container-dropdown-status-dot-unhealthy']
                   }`}
                 />
-                <span className={styles.containerDropdownTriggerLabel}>
+                <span className={styles['container-dropdown-trigger-label']}>
                   {activeContainer}
                 </span>
               </>
             ) : (
-              <span className={styles.containerDropdownTriggerPlaceholder}>
+              <span className={styles['container-dropdown-trigger-placeholder']}>
                 Select a container…
               </span>
             )}
           </span>
           <ChevronDown
             size={14}
-            className={`${styles.containerDropdownChevron} ${containerDropdownOpen ? styles.containerDropdownChevronOpen : ""}`}
+            className={`${styles['container-dropdown-chevron']} ${containerDropdownOpen ? styles['container-dropdown-chevron-open'] : ""}`}
           />
         </button>
 
         {containerDropdownOpen && (
-          <div className={styles.containerDropdownMenu}>
-            <div className={styles.containerDropdownSearchWrapper}>
-              <Search size={13} className={styles.containerDropdownSearchIcon} />
+          <div className={styles['container-dropdown-menu']}>
+            <div className={styles['container-dropdown-search-wrapper']}>
+              <Search size={13} className={styles['container-dropdown-search-icon']} />
               <input
                 ref={containerSearchInputRef}
                 type="text"
-                className={styles.containerDropdownSearchInput}
+                className={styles['container-dropdown-search-input']}
                 placeholder="Search containers…"
                 value={containerSearchQuery}
                 onChange={(event) => setContainerSearchQuery(event.target.value)}
@@ -665,7 +665,7 @@ export default function LogsComponent() {
               {containerSearchQuery && (
                 <button
                   type="button"
-                  className={styles.containerDropdownSearchClear}
+                  className={styles['container-dropdown-search-clear']}
                   onClick={() => setContainerSearchQuery("")}
                 >
                   <X size={12} />
@@ -673,16 +673,16 @@ export default function LogsComponent() {
               )}
             </div>
 
-            <div className={styles.containerDropdownOptionsList}>
+            <div className={styles['container-dropdown-options-list']}>
               {filteredContainerGroups.length === 0 && (
-                <div className={styles.containerDropdownEmptyState}>
+                <div className={styles['container-dropdown-empty-state']}>
                   No containers match &ldquo;{containerSearchQuery}&rdquo;
                 </div>
               )}
 
               {filteredContainerGroups.map((group) => (
                 <div key={group.device}>
-                  <span className={styles.containerDropdownDeviceLabel}>
+                  <span className={styles['container-dropdown-device-label']}>
                     {group.deviceName}
                   </span>
                   {group.containers.map((container) => {
@@ -692,7 +692,7 @@ export default function LogsComponent() {
                       <button
                         key={`${container.device}-${container.name}`}
                         type="button"
-                        className={`${styles.containerDropdownOption} ${isSelected ? styles.containerDropdownOptionSelected : ""} ${!isRunning ? styles.containerDropdownOptionStopped : ""}`}
+                        className={`${styles['container-dropdown-option']} ${isSelected ? styles['container-dropdown-option-selected'] : ""} ${!isRunning ? styles['container-dropdown-option-stopped'] : ""}`}
                         onClick={() => {
                           connectToContainer(container.name, container.device);
                           setContainerDropdownOpen(false);
@@ -700,17 +700,17 @@ export default function LogsComponent() {
                         }}
                       >
                         <span
-                          className={`${styles.containerDropdownStatusDot} ${
+                          className={`${styles['container-dropdown-status-dot']} ${
                             isRunning
-                              ? styles.containerDropdownStatusDotHealthy
-                              : styles.containerDropdownStatusDotUnhealthy
+                              ? styles['container-dropdown-status-dot-healthy']
+                              : styles['container-dropdown-status-dot-unhealthy']
                           }`}
                         />
-                        <span className={styles.containerDropdownOptionLabel}>
+                        <span className={styles['container-dropdown-option-label']}>
                           {container.name}
                         </span>
                         {container.deviceName && (
-                          <span className={styles.containerDropdownOptionDevice}>
+                          <span className={styles['container-dropdown-option-device']}>
                             {container.deviceName}
                           </span>
                         )}
@@ -728,10 +728,10 @@ export default function LogsComponent() {
       {activeContainer ? (
         <div className={styles.terminal} data-theme="dark">
           {/* Header */}
-          <div className={styles.terminalHeader}>
-            <div className={styles.terminalTitle}>
+          <div className={styles['terminal-header']}>
+            <div className={styles['terminal-title']}>
               <span
-                className={`${styles.terminalDot} ${connected ? styles.connected : ""}`}
+                className={`${styles['terminal-dot']} ${connected ? styles.connected : ""}`}
               />
               {activeContainerName}
               {connected && (
@@ -739,8 +739,8 @@ export default function LogsComponent() {
               )}
             </div>
 
-            <div className={styles.terminalActions}>
-              <span className={styles.lineCount}>
+            <div className={styles['terminal-actions']}>
+              <span className={styles['line-count']}>
                 {filteredLines.length.toLocaleString()}
               </span>
 
@@ -753,12 +753,12 @@ export default function LogsComponent() {
                   onChange={setSearch}
                   placeholder="Filter…"
                   autoFocus
-                  className={styles.searchInput}
+                  className={styles['search-input']}
                 />
               )}
 
               <button
-                className={`${styles.terminalButton} ${showSearch ? styles.isActiveState : ""}`}
+                className={`${styles['terminal-button']} ${showSearch ? styles['is-active-state'] : ""}`}
                 onClick={() => {
                   setShowSearch((v) => !v);
                   if (showSearch) setSearch("");
@@ -774,7 +774,7 @@ export default function LogsComponent() {
               </button>
 
               <button
-                className={`${styles.terminalButton} ${paused ? styles.isActiveState : ""}`}
+                className={`${styles['terminal-button']} ${paused ? styles['is-active-state'] : ""}`}
                 onClick={() => (paused ? handleResume() : setPaused(true))}
                 title={paused ? "Resume" : "Pause"}
               >
@@ -788,7 +788,7 @@ export default function LogsComponent() {
               <span className={styles.separator} />
 
               <button
-                className={styles.terminalButton}
+                className={styles['terminal-button']}
                 onClick={scrollToBottom}
                 title="Scroll to bottom"
               >
@@ -796,7 +796,7 @@ export default function LogsComponent() {
               </button>
 
               <button
-                className={styles.terminalButton}
+                className={styles['terminal-button']}
                 onClick={handleClear}
                 title="Clear"
               >
@@ -806,7 +806,7 @@ export default function LogsComponent() {
               <span className={styles.separator} />
 
               <button
-                className={`${styles.terminalButton} ${restarting ? styles.restartSpin : ""}`}
+                className={`${styles['terminal-button']} ${restarting ? styles['restart-spin'] : ""}`}
                 onClick={handleRestart}
                 disabled={restarting}
                 title="Restart container"
@@ -817,24 +817,24 @@ export default function LogsComponent() {
           </div>
 
           {/* Error banner */}
-          {error && <div className={styles.errorBanner}>✕ {error}</div>}
+          {error && <div className={styles['error-banner']}>✕ {error}</div>}
 
           {/* Log body */}
           <div
             ref={bodyRef}
-            className={styles.terminalBody}
+            className={styles['terminal-body']}
             onScroll={handleScroll}
           >
             {filteredLines.length === 0 && connected && (
               <div className={styles.connecting}>
-                <span className={styles.connectingDot} />
+                <span className={styles['connecting-dot']} />
                 Waiting for log output…
               </div>
             )}
 
             {filteredLines.length === 0 && !connected && !error && (
               <div className={styles.connecting}>
-                <span className={styles.connectingDot} />
+                <span className={styles['connecting-dot']} />
                 Connecting…
               </div>
             )}
@@ -842,14 +842,14 @@ export default function LogsComponent() {
             {filteredLines.map((line, i) => (
               <div
                 key={i}
-                className={`${styles.logLine} ${LINE_LEVEL_CLASS[line.level || ""] || ""}`}
+                className={`${styles['log-line']} ${LINE_LEVEL_CLASS[line.level || ""] || ""}`}
               >
-                <span className={styles.lineNumber}>{i + 1}</span>
+                <span className={styles['line-number']}>{i + 1}</span>
                 {line.timestamp && (
-                  <span className={styles.lineTimestamp}>{line.timestamp}</span>
+                  <span className={styles['line-timestamp']}>{line.timestamp}</span>
                 )}
                 <span
-                  className={`${styles.lineContent} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
+                  className={`${styles['line-content']} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
                 >
                   {parseAnsi(line.content)}
                 </span>
@@ -859,13 +859,13 @@ export default function LogsComponent() {
 
           {/* Paused indicator */}
           {paused && bufferedCount > 0 && (
-            <div className={styles.pausedBanner}>
+            <div className={styles['paused-banner']}>
               ⏸ Paused — {bufferedCount} new lines buffered
             </div>
           )}
         </div>
       ) : (
-        <div className={styles.emptyTerminal} data-theme="dark">
+        <div className={styles['empty-terminal']} data-theme="dark">
           <ScrollText size={40} strokeWidth={1} />
           <span>Select a container to start streaming logs</span>
         </div>

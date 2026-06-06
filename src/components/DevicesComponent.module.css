@@ -5,7 +5,7 @@
 
 /* ── Device List ── */
 
-.deviceList {
+.device-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -13,13 +13,13 @@
 
 /* ── Device Card ── */
 
-.deviceCard {
+.device-card {
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   padding: 0;
   overflow: hidden;
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -33,7 +33,7 @@
 
 /* ── Device Header ── */
 
-.deviceHeader {
+.device-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,13 +41,13 @@
   border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
-.deviceInfo {
+.device-info {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.deviceIconWrap {
+.device-icon-wrap {
   width: 40px;
   height: 40px;
   display: flex;
@@ -59,25 +59,25 @@
   transition: background var(--transition-fast);
 }
 
-.deviceCard:hover .deviceIconWrap {
+.device-card:hover .device-icon-wrap {
   background: color-mix(in srgb, var(--device-accent) 16%, transparent);
 }
 
-.deviceName {
+.device-name {
   font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
-.deviceMeta {
+.device-meta {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-top: 2px;
 }
 
-.deviceType {
+.device-type {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--device-accent);
@@ -88,38 +88,38 @@
   font-size: var(--font-size-sm);
 }
 
-.deviceOs {
+.device-os {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
 }
 
 /* ── Device Status ── */
 
-.deviceStatus {
+.device-status {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.statusDot {
+.status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.statusDot.healthy {
+.status-dot.healthy {
   background: var(--color-success);
   box-shadow: 0 0 6px oklch(69.6% 0.1491 162.5 / 0.4);
   animation: pulse 2s ease-in-out infinite;
 }
 
-.statusDot.unhealthy {
+.status-dot.unhealthy {
   background: var(--color-danger);
   box-shadow: 0 0 6px oklch(63.7% 0.2078 25.3 / 0.4);
 }
 
-.statusLabel {
+.status-label {
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
@@ -128,7 +128,7 @@
 
 /* ── Hostname ── */
 
-.hostnameRow {
+.hostname-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -136,7 +136,7 @@
   border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
-.hostnameLabel {
+.hostname-label {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
 }
@@ -152,7 +152,7 @@
 
 /* ── Notes ── */
 
-.deviceNotes {
+.device-notes {
   padding: 10px 24px;
   font-size: 0.8125rem;
   color: var(--text-tertiary);
@@ -162,11 +162,11 @@
 
 /* ── Services Section ── */
 
-.servicesSection {
+.services-section {
   padding: 0;
 }
 
-.servicesHeader {
+.services-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -204,34 +204,34 @@
   will-change: transform;
 }
 
-.chevronExpanded {
+.chevron-expanded {
   transform: rotate(0deg);
 }
 
 /* ── Collapsible Wrapper ── */
 
-.servicesCollapsible {
+.services-collapsible {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--transition-normal) ease;
 }
 
-.servicesCollapsible > * {
+.services-collapsible > * {
   overflow: hidden;
 }
 
-.servicesExpanded {
+.services-expanded {
   grid-template-rows: 1fr;
 }
 
-.servicesTable {
+.services-table {
   display: flex;
   flex-direction: column;
 }
 
 /* ── Service Row ── */
 
-.serviceRow {
+.service-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -245,36 +245,36 @@
   }
 }
 
-.serviceLeft {
+.service-left {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
 
-.serviceDot {
+.service-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.serviceDot.healthy {
+.service-dot.healthy {
   background: var(--color-success);
 }
 
-.serviceDot.unhealthy {
+.service-dot.unhealthy {
   background: var(--color-danger);
 }
 
-.serviceName {
+.service-name {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
 }
 
-.stageBadge {
+.stage-badge {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -285,24 +285,24 @@
   white-space: nowrap;
 }
 
-.stageProduction {
+.stage-production {
   color: var(--color-info);
   background: var(--calculated-color-info-subtle);
 }
 
-.stageDevelopment {
+.stage-development {
   color: var(--color-warning);
   background: var(--calculated-color-warning-subtle);
 }
 
-.serviceRight {
+.service-right {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
 }
 
-.servicePort {
+.service-port {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -312,14 +312,14 @@
   border-radius: 2px;
 }
 
-.serviceUrl {
+.service-url {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   white-space: nowrap;
 }
 
-.serviceLatency {
+.service-latency {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -328,7 +328,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.serviceError {
+.service-error {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -339,12 +339,12 @@
 
 /* ── Container Icon ── */
 
-.containerIcon {
+.container-icon {
   color: var(--device-accent);
   flex-shrink: 0;
 }
 
-.containerStatus {
+.container-status {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
@@ -353,13 +353,13 @@
 
 /* ── Metric Badges ── */
 
-.metricBadges {
+.metric-badges {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.metricBadge {
+.metric-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -386,7 +386,7 @@
     color var(--transition-fast);
 }
 
-.metricValue {
+.metric-value {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   letter-spacing: -0.01em;
@@ -394,7 +394,7 @@
 
 /* ── Refresh Button ── */
 
-.refreshButton {
+.refresh-button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -423,7 +423,7 @@
 
 /* ── Loading State ── */
 
-.loadingState {
+.loading-state {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -433,7 +433,7 @@
   font-size: var(--font-size-base);
 }
 
-.loadingDot {
+.loading-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -443,16 +443,16 @@
 
 /* ── Infrastructure Styles ── */
 
-.infraHeader {
+.infra-header {
   color: var(--node-infrastructure);
 }
 
-.stageInfrastructure {
+.stage-infrastructure {
   color: var(--node-infrastructure);
   background: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
-.visibilityExternal {
+.visibility-external {
   color: var(--node-external);
   background: oklch(78.5% 0.1325 181.9 / 0.1);
   display: inline-flex;
@@ -460,7 +460,7 @@
   gap: 3px;
 }
 
-.visibilityInternal {
+.visibility-internal {
   color: var(--text-muted);
   background: var(--background-elevated);
   display: inline-flex;
@@ -468,18 +468,18 @@
   gap: 3px;
 }
 
-.infraRow {
+.infra-row {
   &:hover {
     background: oklch(62.7% 0.2326 303.9 / 0.04);
   }
 }
 
-.infraRowIcon {
+.infra-row-icon {
   color: var(--node-infrastructure);
   flex-shrink: 0;
 }
 
-.infraChip {
+.infra-chip {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   font-weight: 500;
@@ -495,11 +495,11 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .deviceGrid {
+  .device-grid {
     grid-template-columns: 1fr;
   }
 
-  .specGrid {
+  .spec-grid {
     grid-template-columns: 1fr 1fr;
   }
 }

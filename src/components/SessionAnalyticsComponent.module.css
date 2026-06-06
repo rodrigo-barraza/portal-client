@@ -10,13 +10,13 @@
 
 /* ── Header Controls ─────────────────────────────────────────── */
 
-.headerControls {
+.header-controls {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.periodTabs {
+.period-tabs {
   display: flex;
   gap: 2px;
   background: var(--background-elevated);
@@ -24,7 +24,7 @@
   padding: 2px;
 }
 
-.periodTab {
+.period-tab {
   padding: 6px 14px;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -39,14 +39,14 @@
   }
 }
 
-.activeTab {
+.active-tab {
   background: var(--background-surface);
   color: var(--text-primary);
 }
 
 /* ── Realtime Banner ─────────────────────────────────────────── */
 
-.realtimeBanner {
+.realtime-banner {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -54,12 +54,12 @@
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
   position: relative;
   overflow: hidden;
 }
 
-.realtimeBanner::before {
+.realtime-banner::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -71,14 +71,14 @@
   pointer-events: none;
 }
 
-.realtimePulse {
+.realtime-pulse {
   position: relative;
   width: 10px;
   height: 10px;
   flex-shrink: 0;
 }
 
-.realtimePulseDot {
+.realtime-pulse-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -87,16 +87,16 @@
   z-index: 1;
 }
 
-.realtimePulseRing {
+.realtime-pulse-ring {
   position: absolute;
   inset: -4px;
   border-radius: 50%;
   border: 2px solid var(--color-success);
-  animation: realtimePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: realtime-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
   opacity: 0;
 }
 
-@keyframes realtimePing {
+@keyframes realtime-ping {
   0% {
     transform: scale(1);
     opacity: 0.6;
@@ -107,13 +107,13 @@
   }
 }
 
-.realtimeInfo {
+.realtime-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.realtimeLabel {
+.realtime-label {
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-tertiary);
@@ -121,7 +121,7 @@
   letter-spacing: 0.06em;
 }
 
-.realtimeCount {
+.realtime-count {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -130,7 +130,7 @@
   line-height: 1;
 }
 
-.realtimeMeta {
+.realtime-meta {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   margin-left: auto;
@@ -139,31 +139,31 @@
 
 /* ── Summary Cards ───────────────────────────────────────────── */
 
-.summaryGrid {
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
 
 @media (max-width: 1400px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 900px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .summaryGrid {
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.statCard {
+.stat-card {
   display: flex;
   align-items: flex-start;
   gap: 14px;
@@ -171,7 +171,7 @@
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
   transition: border-color var(--transition-fast);
 
   &:hover {
@@ -179,7 +179,7 @@
   }
 }
 
-.statCardIcon {
+.stat-card-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -189,14 +189,14 @@
   flex-shrink: 0;
 }
 
-.statCardContent {
+.stat-card-content {
   display: flex;
   flex-direction: column;
   gap: 1px;
   min-width: 0;
 }
 
-.statCardValue {
+.stat-card-value {
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
@@ -205,7 +205,7 @@
   font-family: var(--font-mono);
 }
 
-.statCardLabel {
+.stat-card-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-tertiary);
@@ -213,7 +213,7 @@
   letter-spacing: 0.04em;
 }
 
-.statCardSub {
+.stat-card-sub {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   margin-top: 2px;
@@ -222,15 +222,15 @@
 
 /* ── Sparkline Chart ─────────────────────────────────────────── */
 
-.chartPanel {
+.chart-panel {
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
 }
 
-.chartHeader {
+.chart-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -238,38 +238,38 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.chartHeaderIcon {
+.chart-header-icon {
   color: var(--text-tertiary);
   flex-shrink: 0;
 }
 
-.chartTitle {
+.chart-title {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
 }
 
-.chartBody {
+.chart-body {
   padding: 16px 18px;
 }
 
-.sparklineStack {
+.sparkline-stack {
   display: grid;
   grid-template: 1fr / 1fr;
 }
 
-.sparklineStack > * {
+.sparkline-stack > * {
   grid-area: 1 / 1;
 }
 
-.chartLegend {
+.chart-legend {
   display: flex;
   gap: 16px;
   padding: 0 18px 14px;
 }
 
-.chartLegendItem {
+.chart-legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -277,7 +277,7 @@
   color: var(--text-tertiary);
 }
 
-.chartLegendDot {
+.chart-legend-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -286,14 +286,14 @@
 
 /* ── Content Grid ────────────────────────────────────────────── */
 
-.contentGrid {
+.content-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
   gap: 16px;
 }
 
 @media (max-width: 1024px) {
-  .contentGrid {
+  .content-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -305,10 +305,10 @@
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
 }
 
-.panelHeader {
+.panel-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -316,50 +316,50 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.panelIcon {
+.panel-icon {
   color: var(--text-tertiary);
   flex-shrink: 0;
 }
 
-.panelTitle {
+.panel-title {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
 }
 
-.panelMeta {
+.panel-meta {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-tertiary);
 }
 
-.panelBody {
+.panel-body {
   padding: 12px 18px;
 }
 
 /* ── Horizontal Bar Chart ────────────────────────────────────── */
 
-.barList {
+.bar-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.barRow {
+.bar-row {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.barInfo {
+.bar-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.barLabel {
+.bar-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-secondary);
@@ -370,7 +370,7 @@
   flex: 1;
 }
 
-.barValue {
+.bar-value {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -378,7 +378,7 @@
   flex-shrink: 0;
 }
 
-.barTrack {
+.bar-track {
   width: 100%;
   height: 4px;
   background: var(--background-elevated);
@@ -386,7 +386,7 @@
   overflow: hidden;
 }
 
-.barFill {
+.bar-fill {
   height: 100%;
   border-radius: 2px;
   transform-origin: left;
@@ -395,7 +395,7 @@
 
 /* ── Donut Chart ─────────────────────────────────────────────── */
 
-.donutWrapper {
+.donut-wrapper {
   display: flex;
   gap: 24px;
   padding: 20px 18px;
@@ -406,11 +406,11 @@
   flex-shrink: 0;
 }
 
-.donutSegment {
-  animation: donutGrow 600ms ease-out both;
+.donut-segment {
+  animation: donut-grow 600ms ease-out both;
 }
 
-@keyframes donutGrow {
+@keyframes donut-grow {
   from {
     stroke-dasharray: 0 9999;
     opacity: 0;
@@ -420,14 +420,14 @@
   }
 }
 
-.donutCenter {
+.donut-center {
   font-size: var(--font-size-base);
   font-weight: 600;
   fill: var(--text-primary);
   font-family: var(--font-mono);
 }
 
-.donutCenterLabel {
+.donut-center-label {
   font-size: 0.625rem;
   fill: var(--text-tertiary);
   text-transform: uppercase;
@@ -435,7 +435,7 @@
   font-weight: 500;
 }
 
-.donutLegend {
+.donut-legend {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -445,7 +445,7 @@
 
 /* ── Back Bar ────────────────────────────────────────────────── */
 
-.backBar {
+.back-bar {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -453,10 +453,10 @@
   background: var(--background-surface);
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
 }
 
-.backButton {
+.back-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -471,13 +471,13 @@
   }
 }
 
-.selectedLabel {
+.selected-label {
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.selectedMeta {
+.selected-meta {
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
@@ -486,18 +486,18 @@
 
 /* ── Sessions Table ──────────────────────────────────────────── */
 
-.sessionsTable {
+.sessions-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.sessionsTableHead {
+.sessions-table-head {
   position: sticky;
   top: 0;
   z-index: 1;
 }
 
-.sessionsTableHead th {
+.sessions-table-head th {
   padding: 10px 14px;
   text-align: left;
   font-size: var(--font-size-xs);
@@ -513,20 +513,20 @@
   transition: color var(--transition-fast);
 }
 
-.sessionsTableHead th:hover {
+.sessions-table-head th:hover {
   color: var(--text-primary);
 }
 
-.sessionsTableBody tr {
+.sessions-table-body tr {
   transition: background var(--transition-fast);
   cursor: pointer;
 }
 
-.sessionsTableBody tr:hover {
+.sessions-table-body tr:hover {
   background: var(--background-surface);
 }
 
-.sessionsTableBody td {
+.sessions-table-body td {
   padding: 10px 14px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
@@ -534,52 +534,52 @@
   white-space: nowrap;
 }
 
-.ipAddressCell {
+.ip-address-cell {
   font-family: var(--font-mono);
   font-weight: 500;
   color: var(--text-primary);
   font-size: var(--font-size-sm);
 }
 
-.geographicCell {
+.geographic-cell {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.countryFlag {
+.country-flag {
   font-size: 1rem;
   line-height: 1;
 }
 
-.geographicLabel {
+.geographic-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
-.deviceCell {
+.device-cell {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.devicePrimary {
+.device-primary {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
-.deviceSecondary {
+.device-secondary {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
-.durationCell {
+.duration-cell {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
-.fingerprintCell {
+.fingerprint-cell {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-muted);
@@ -588,7 +588,7 @@
   text-overflow: ellipsis;
 }
 
-.timestampCell {
+.timestamp-cell {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-muted);
@@ -596,18 +596,18 @@
 
 /* ── Session Detail Expand ───────────────────────────────────── */
 
-.sessionDetailRow td {
+.session-detail-row td {
   padding: 0 !important;
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.sessionDetailContent {
+.session-detail-content {
   padding: 16px 24px;
   background: var(--background-surface);
-  animation: slideDown 200ms ease-out;
+  animation: slide-down 200ms ease-out;
 }
 
-@keyframes slideDown {
+@keyframes slide-down {
   from {
     opacity: 0;
     max-height: 0;
@@ -618,20 +618,20 @@
   }
 }
 
-.sessionDetailGrid {
+.session-detail-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
 
-.sessionDetailItem {
+.session-detail-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.sessionDetailLabel {
+.session-detail-label {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-tertiary);
@@ -639,7 +639,7 @@
   letter-spacing: 0.04em;
 }
 
-.sessionDetailValue {
+.session-detail-value {
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   font-family: var(--font-mono);
@@ -648,13 +648,13 @@
 
 /* ── Events Feed ─────────────────────────────────────────────── */
 
-.eventsList {
+.events-list {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-.eventRow {
+.event-row {
   display: grid;
   grid-template-columns: 140px 120px 140px 1fr auto;
   gap: 12px;
@@ -665,27 +665,27 @@
   font-size: var(--font-size-sm);
 }
 
-.eventRow:hover {
+.event-row:hover {
   background: var(--background-surface);
 }
 
-.eventTimestamp {
+.event-timestamp {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
-.eventCategory {
+.event-category {
   font-weight: 500;
   color: var(--text-secondary);
 }
 
-.eventAction {
+.event-action {
   color: var(--text-primary);
   font-weight: 500;
 }
 
-.eventLabel {
+.event-label {
   color: var(--text-tertiary);
   font-size: var(--font-size-xs);
   overflow: hidden;
@@ -693,7 +693,7 @@
   white-space: nowrap;
 }
 
-.eventSessionId {
+.event-session-id {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-muted);
@@ -703,14 +703,14 @@
 }
 
 @media (max-width: 900px) {
-  .eventRow {
+  .event-row {
     grid-template-columns: 1fr 1fr;
     gap: 4px;
   }
-  .eventTimestamp {
+  .event-timestamp {
     display: none;
   }
-  .eventSessionId {
+  .event-session-id {
     display: none;
   }
 }
@@ -725,18 +725,18 @@
   border-top: 1px solid var(--calculated-border-color);
 }
 
-.paginationInfo {
+.pagination-info {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
-.paginationButtons {
+.pagination-buttons {
   display: flex;
   gap: 6px;
 }
 
-.paginationButton {
+.pagination-button {
   padding: 5px 12px;
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -762,7 +762,7 @@
 
 /* ── Empty State ─────────────────────────────────────────────── */
 
-.emptyState {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -778,18 +778,18 @@
   padding: 40px;
 }
 
-.emptyIcon {
+.empty-icon {
   color: var(--text-muted);
   opacity: 0.5;
 }
 
-.emptyTitle {
+.empty-title {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.emptyDetail {
+.empty-detail {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   max-width: 400px;
@@ -798,28 +798,28 @@
 
 /* ── Sort Icon ───────────────────────────────────────────────── */
 
-.sortIcon {
+.sort-icon {
   display: inline-flex;
   margin-left: 4px;
   opacity: 0.5;
   vertical-align: middle;
 }
 
-.sortActive {
+.sort-active {
   opacity: 1;
   color: var(--accent-primary);
 }
 
 /* ── Table Scroll Container ──────────────────────────────────── */
 
-.tableScroll {
+.table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 /* ── Tab Badges ──────────────────────────────────────────────── */
 
-.viewTabs {
+.view-tabs {
   display: flex;
   gap: 2px;
   background: var(--background-elevated);
@@ -827,7 +827,7 @@
   padding: 2px;
 }
 
-.viewTab {
+.view-tab {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -846,12 +846,12 @@
   }
 }
 
-.viewTabActive {
+.view-tab-active {
   background: var(--background-surface);
   color: var(--text-primary);
 }
 
-.viewTabBadge {
+.view-tab-badge {
   font-size: 0.625rem;
   font-family: var(--font-mono);
   font-weight: 700;

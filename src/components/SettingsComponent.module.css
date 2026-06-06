@@ -5,7 +5,7 @@
   flex-direction: column;
 }
 
-.settingsBody {
+.settings-body {
   display: flex;
   gap: 32px;
   align-items: flex-start;
@@ -24,7 +24,7 @@
   flex-shrink: 0;
 }
 
-.sidebarLink {
+.sidebar-link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -40,28 +40,28 @@
   user-select: none;
 }
 
-.sidebarLink:hover {
+.sidebar-link:hover {
   color: var(--text-secondary);
   background: var(--background-elevated);
 }
 
-.sidebarLink.isActiveState {
+.sidebar-link.is-active-state {
   color: var(--accent-primary);
   background: var(--calculated-accent-primary-subtle);
 }
 
-.sidebarIcon {
+.sidebar-icon {
   flex-shrink: 0;
   opacity: 0.7;
 }
 
-.sidebarLink.isActiveState .sidebarIcon {
+.sidebar-link.is-active-state .sidebar-icon {
   opacity: 1;
 }
 
 /* ── Section Container ── */
 
-.sectionsContainer {
+.sections-container {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -77,10 +77,10 @@
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
-  animation: fadeIn var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) ease-out both;
 }
 
-.sectionHeader {
+.section-header {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -88,7 +88,7 @@
   border-bottom: 1px solid var(--calculated-border-subtle);
 }
 
-.sectionIconWrap {
+.section-icon-wrap {
   width: 34px;
   height: 34px;
   display: flex;
@@ -100,32 +100,32 @@
   flex-shrink: 0;
 }
 
-.sectionTitleGroup {
+.section-title-group {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.sectionTitle {
+.section-title {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
-.sectionDescription {
+.section-description {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   line-height: 1.4;
 }
 
-.sectionBody {
+.section-body {
   padding: 0;
 }
 
 /* ── Setting Row ── */
 
-.settingRow {
+.setting-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,34 +135,34 @@
   transition: background var(--transition-fast);
 }
 
-.settingRow:last-child {
+.setting-row:last-child {
   border-bottom: none;
 }
 
-.settingRow:hover {
+.setting-row:hover {
   background: var(--calculated-accent-primary-subtle);
 }
 
-.settingInfo {
+.setting-info {
   display: flex;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
 }
 
-.settingLabel {
+.setting-label {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.settingHint {
+.setting-hint {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   line-height: 1.4;
 }
 
-.settingControl {
+.setting-control {
   flex-shrink: 0;
 }
 
@@ -198,20 +198,20 @@
   will-change: transform;
 }
 
-.toggle.isActiveState {
+.toggle.is-active-state {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
-.toggle.isActiveState::after {
+.toggle.is-active-state::after {
   transform: translateX(18px);
   background: var(--background-surface);
 }
 
 /* ── Select Dropdown ── */
 
-.selectWrap {
+.select-wrap {
   position: relative;
 }
 
@@ -243,7 +243,7 @@
   box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
 }
 
-.selectChevron {
+.select-chevron {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -254,7 +254,7 @@
 
 /* ── Number Input ── */
 
-.numberInput {
+.number-input {
   width: 70px;
   height: 34px;
   padding: 0 10px;
@@ -271,11 +271,11 @@
     box-shadow var(--transition-fast);
 }
 
-.numberInput:hover {
+.number-input:hover {
   border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
-.numberInput:focus {
+.number-input:focus {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
@@ -283,13 +283,13 @@
 
 /* ── Unit Suffix (e.g. "px", "s") ── */
 
-.unitGroup {
+.unit-group {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.unitLabel {
+.unit-label {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   font-weight: 500;
@@ -297,14 +297,14 @@
 
 /* ── Segmented Control ── */
 
-.segmentedControl {
+.segmented-control {
   display: flex;
   border: 1px solid var(--calculated-border-color);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
 
-.segmentButton {
+.segment-button {
   padding: 6px 14px;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -318,28 +318,28 @@
     background var(--transition-fast);
 }
 
-.segmentButton:last-child {
+.segment-button:last-child {
   border-right: none;
 }
 
-.segmentButton:hover {
+.segment-button:hover {
   color: var(--text-secondary);
   background: var(--background-elevated);
 }
 
-.segmentButton.isActiveState {
+.segment-button.is-active-state {
   color: var(--accent-primary);
   background: var(--calculated-accent-primary-subtle);
 }
 
 /* ── Color Swatch ── */
 
-.colorSwatches {
+.color-swatches {
   display: flex;
   gap: 6px;
 }
 
-.colorSwatch {
+.color-swatch {
   width: 28px;
   height: 28px;
   border-radius: var(--border-radius-sm);
@@ -351,18 +351,18 @@
     box-shadow var(--transition-fast);
 }
 
-.colorSwatch:hover {
+.color-swatch:hover {
   transform: scale(1.1);
 }
 
-.colorSwatch.isActiveState {
+.color-swatch.is-active-state {
   border-color: var(--text-primary);
   box-shadow: 0 0 10px color-mix(in srgb, var(--swatch-color) 40%, transparent);
 }
 
 /* ── Danger Zone ── */
 
-.dangerSection {
+.danger-section {
   border-color: color-mix(
     in srgb,
     var(--color-danger) 25%,
@@ -370,7 +370,7 @@
   );
 }
 
-.dangerSection .sectionHeader {
+.danger-section .section-header {
   border-bottom-color: color-mix(
     in srgb,
     var(--color-danger) 15%,
@@ -378,20 +378,20 @@
   );
 }
 
-.dangerSection .sectionIconWrap {
+.danger-section .section-icon-wrap {
   background: var(--calculated-color-danger-subtle);
   color: var(--color-danger);
 }
 
-.dangerSection .sectionTitle {
+.danger-section .section-title {
   color: var(--color-danger);
 }
 
-.dangerSection .settingRow:hover {
+.danger-section .setting-row:hover {
   background: var(--calculated-color-danger-subtle);
 }
 
-.dangerButton {
+.danger-button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -409,7 +409,7 @@
     box-shadow var(--transition-fast);
 }
 
-.dangerButton:hover {
+.danger-button:hover {
   background: var(--calculated-color-danger-subtle);
   border-color: var(--color-danger);
   box-shadow: 0 0 12px color-mix(in srgb, var(--color-danger) 20%, transparent);
@@ -426,31 +426,31 @@
   justify-content: space-between;
 }
 
-.footerVersion {
+.footer-version {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
-.footerLinks {
+.footer-links {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.footerLink {
+.footer-link {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
   transition: color var(--transition-fast);
 }
 
-.footerLink:hover {
+.footer-link:hover {
   color: var(--accent-primary);
 }
 
 /* ── Keyboard Shortcut Badge ── */
 
-.kbdGroup {
+.kbd-group {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -478,7 +478,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .settingsGrid {
+  .settings-grid {
     grid-template-columns: 1fr;
   }
 
@@ -486,7 +486,7 @@
     padding: 16px;
   }
 
-  .themeGrid {
+  .theme-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

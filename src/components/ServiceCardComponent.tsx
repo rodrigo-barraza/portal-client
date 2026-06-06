@@ -121,9 +121,9 @@ function Sparkline({
 function PercentBar({ percent, color }: { percent: number; color: string }) {
   const clamped = Math.min(percent, 100);
   return (
-    <div className={styles.barTrack}>
+    <div className={styles['bar-track']}>
       <div
-        className={styles.barFill}
+        className={styles['bar-fill']}
         style={{ width: `${clamped}%`, background: color }}
       />
     </div>
@@ -157,7 +157,7 @@ export default function ServiceCardComponent({
   const isNonDeployed = NON_DEPLOYED_TYPES.has(service.projectType as string);
   const isHealthy = isNonDeployed ? true : service.healthy;
   const statusClass = isNonDeployed
-    ? styles.nonDeployed
+    ? styles['non-deployed']
     : isHealthy
       ? styles.healthy
       : styles.unhealthy;
@@ -179,12 +179,12 @@ export default function ServiceCardComponent({
 
   return (
     <div className={`${styles.card} ${statusClass}`}>
-      <div className={styles.cardHeader}>
-        <div className={styles.nameRow}>
+      <div className={styles['card-header']}>
+        <div className={styles['name-row']}>
           <TypeIcon
             size={16}
             strokeWidth={2.6}
-            className={`${styles.infraIcon} ${statusClass}`}
+            className={`${styles['infra-icon']} ${statusClass}`}
           />
           <span className={styles.name}>{service.name}</span>
         </div>
@@ -193,7 +193,7 @@ export default function ServiceCardComponent({
       <div className={styles.details}>
         {/* ── Action Buttons (containerized services only) ── */}
         {service.restartable && (
-          <div className={styles.actionRow}>
+          <div className={styles['action-row']}>
             {isHealthy ? (
               <ButtonComponent
                 variant="outlined"
@@ -209,7 +209,7 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
                   }
                 }}
-                className={`${styles.actionButton} ${styles.stopButton}`}
+                className={`${styles['action-button']} ${styles['stop-button']}`}
               >
                 {stopping ? "Stopping…" : "Stop"}
               </ButtonComponent>
@@ -228,7 +228,7 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
                   }
                 }}
-                className={`${styles.actionButton} ${styles.startButton}`}
+                className={`${styles['action-button']} ${styles['start-button']}`}
               >
                 {starting ? "Starting…" : "Start"}
               </ButtonComponent>
@@ -236,7 +236,7 @@ export default function ServiceCardComponent({
 
             <Link
               href={`/logs?container=${service.dockerProject || service.id}`}
-              className={`${styles.actionButton} ${styles.logsButton}`}
+              className={`${styles['action-button']} ${styles['logs-button']}`}
             >
               <ScrollText size={10} strokeWidth={2.6} />
               Logs
@@ -260,7 +260,7 @@ export default function ServiceCardComponent({
                     );
                   }
                 }}
-                className={`${styles.actionButton} ${styles.rollbackButton}`}
+                className={`${styles['action-button']} ${styles['rollback-button']}`}
               >
                 {rollingBack ? "Rolling back…" : "Rollback"}
               </ButtonComponent>
@@ -280,7 +280,7 @@ export default function ServiceCardComponent({
                   setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
                 }
               }}
-              className={`${styles.actionButton} ${styles.restartButton}`}
+              className={`${styles['action-button']} ${styles['restart-button']}`}
             >
               {restarting ? "Restarting…" : "Restart"}
             </ButtonComponent>
@@ -289,7 +289,7 @@ export default function ServiceCardComponent({
 
         {/* ── Status ── */}
         <div className={styles.detail}>
-          <span className={styles.detailLabel}>Status</span>
+          <span className={styles['detail-label']}>Status</span>
           {isNonDeployed ? (
             <BadgeComponent variant="info">Not Deployed</BadgeComponent>
           ) : (
@@ -300,7 +300,7 @@ export default function ServiceCardComponent({
         {/* ── NPM Package (libraries only) ── */}
         {service.npmPackage && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Package</span>
+            <span className={styles['detail-label']}>Package</span>
             <BadgeComponent variant="info">
               <Package size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
               {service.npmPackage}
@@ -310,23 +310,23 @@ export default function ServiceCardComponent({
 
         {/* ── Container Resource Metrics (inline sparklines) ── */}
         {containerStats && (
-          <div className={styles.metricsSection}>
+          <div className={styles['metrics-section']}>
             {/* CPU */}
-            <div className={styles.metricBlock}>
-              <div className={styles.metricHeader}>
+            <div className={styles['metric-block']}>
+              <div className={styles['metric-header']}>
                 <Cpu
                   size={11}
                   strokeWidth={2.2}
-                  className={styles.metricIcon}
+                  className={styles['metric-icon']}
                 />
-                <span className={styles.metricLabel}>CPU</span>
-                <span className={styles.metricValues}>
+                <span className={styles['metric-label']}>CPU</span>
+                <span className={styles['metric-values']}>
                   <span
                     style={{ color: severityColor(containerStats.cpu.percent) }}
                   >
                     {formatPercent(containerStats.cpu.percent, "adaptive")}
                   </span>
-                  <span className={styles.metricDim}>
+                  <span className={styles['metric-dim']}>
                     · {containerStats.cpu.cores} core
                     {containerStats.cpu.cores !== 1 ? "s" : ""}
                   </span>
@@ -353,15 +353,15 @@ export default function ServiceCardComponent({
             </div>
 
             {/* Memory */}
-            <div className={styles.metricBlock}>
-              <div className={styles.metricHeader}>
+            <div className={styles['metric-block']}>
+              <div className={styles['metric-header']}>
                 <MemoryStick
                   size={11}
                   strokeWidth={2.2}
-                  className={styles.metricIcon}
+                  className={styles['metric-icon']}
                 />
-                <span className={styles.metricLabel}>RAM</span>
-                <span className={styles.metricValues}>
+                <span className={styles['metric-label']}>RAM</span>
+                <span className={styles['metric-values']}>
                   <span
                     style={{
                       color: severityColor(
@@ -372,7 +372,7 @@ export default function ServiceCardComponent({
                   >
                     {formatBytes(containerStats.memory.used)}
                   </span>
-                  <span className={styles.metricDim}>
+                  <span className={styles['metric-dim']}>
                     / {formatBytes(containerStats.memory.limit)}
                   </span>
                   <span
@@ -411,7 +411,7 @@ export default function ServiceCardComponent({
 
         {/* ── Stage / Visibility ── */}
         <div className={styles.detail}>
-          <span className={styles.detailLabel}>Environment</span>
+          <span className={styles['detail-label']}>Environment</span>
           <BadgeComponent variant={isProduction ? "success" : "info"}>
             {service.environment || "Unknown"}
           </BadgeComponent>
@@ -422,7 +422,7 @@ export default function ServiceCardComponent({
             const colors = SERVICE_TYPE_COLORS[service.projectType as string];
             return (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Type</span>
+                <span className={styles['detail-label']}>Type</span>
                 <BadgeComponent
                   variant="info"
                   style={
@@ -446,7 +446,7 @@ export default function ServiceCardComponent({
             const colors = DEPLOY_TIER_COLORS[service.deployTier as number];
             return (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Tier</span>
+                <span className={styles['detail-label']}>Tier</span>
                 <BadgeComponent
                   variant="info"
                   style={
@@ -467,7 +467,7 @@ export default function ServiceCardComponent({
 
         {service.visibility && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Visibility</span>
+            <span className={styles['detail-label']}>Visibility</span>
             <BadgeComponent
               type="visibility"
               visibility={service.visibility}
@@ -478,7 +478,7 @@ export default function ServiceCardComponent({
 
         {service.responseTimeMs != null && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Response</span>
+            <span className={styles['detail-label']}>Response</span>
             <BadgeComponent
               type="responseTime"
               ms={service.responseTimeMs}
@@ -489,7 +489,7 @@ export default function ServiceCardComponent({
 
         {service.device && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Device</span>
+            <span className={styles['detail-label']}>Device</span>
             <BadgeComponent
               type="device"
               device={service.device}
@@ -503,40 +503,40 @@ export default function ServiceCardComponent({
           <>
             {service.metadata.version && (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Version</span>
-                <span className={`${styles.detailValue} ${styles.mono}`}>
+                <span className={styles['detail-label']}>Version</span>
+                <span className={`${styles['detail-value']} ${styles.mono}`}>
                   {service.metadata.version}
                 </span>
               </div>
             )}
             {service.metadata.uptime != null && (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Uptime</span>
-                <span className={styles.detailValue}>
+                <span className={styles['detail-label']}>Uptime</span>
+                <span className={styles['detail-value']}>
                   {formatElapsedTime(service.metadata.uptime)}
                 </span>
               </div>
             )}
             {service.metadata.connections != null && (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Connections</span>
-                <span className={styles.detailValue}>
+                <span className={styles['detail-label']}>Connections</span>
+                <span className={styles['detail-value']}>
                   {service.metadata.connections}
                 </span>
               </div>
             )}
             {service.metadata.databases != null && (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Databases</span>
-                <span className={styles.detailValue}>
+                <span className={styles['detail-label']}>Databases</span>
+                <span className={styles['detail-value']}>
                   {service.metadata.databases}
                 </span>
               </div>
             )}
             {service.metadata.buckets != null && (
               <div className={styles.detail}>
-                <span className={styles.detailLabel}>Buckets</span>
-                <span className={styles.detailValue}>
+                <span className={styles['detail-label']}>Buckets</span>
+                <span className={styles['detail-value']}>
                   {service.metadata.buckets}
                 </span>
               </div>
@@ -544,8 +544,8 @@ export default function ServiceCardComponent({
             {service.metadata.bucketNames &&
               service.metadata.bucketNames.length > 0 && (
                 <div className={styles.detail}>
-                  <span className={styles.detailLabel}>Bucket Names</span>
-                  <span className={`${styles.detailValue} ${styles.mono}`}>
+                  <span className={styles['detail-label']}>Bucket Names</span>
+                  <span className={`${styles['detail-value']} ${styles.mono}`}>
                     {service.metadata.bucketNames.join(", ")}
                   </span>
                 </div>
@@ -556,8 +556,8 @@ export default function ServiceCardComponent({
         {/* ── Standard service metadata ── */}
         {!isInfra && service.metadata?.version && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Version</span>
-            <span className={styles.detailValue}>
+            <span className={styles['detail-label']}>Version</span>
+            <span className={styles['detail-value']}>
               {service.metadata.version}
             </span>
           </div>
@@ -566,8 +566,8 @@ export default function ServiceCardComponent({
         {/* ── Node Version (from health endpoint) ── */}
         {service.metadata?.nodeVersion && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Node</span>
-            <span className={`${styles.detailValue} ${styles.mono}`}>
+            <span className={styles['detail-label']}>Node</span>
+            <span className={`${styles['detail-value']} ${styles.mono}`}>
               {service.metadata.nodeVersion}
             </span>
           </div>
@@ -576,8 +576,8 @@ export default function ServiceCardComponent({
         {/* ── Python Version (from health endpoint, if available) ── */}
         {service.metadata?.pythonVersion && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Python</span>
-            <span className={`${styles.detailValue} ${styles.mono}`}>
+            <span className={styles['detail-label']}>Python</span>
+            <span className={`${styles['detail-value']} ${styles.mono}`}>
               {service.metadata.pythonVersion}
             </span>
           </div>
@@ -585,21 +585,21 @@ export default function ServiceCardComponent({
 
         {service.port && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Port</span>
+            <span className={styles['detail-label']}>Port</span>
             <BadgeComponent type="port" port={service.port} />
           </div>
         )}
 
         {service.url && !isInfra && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Address</span>
+            <span className={styles['detail-label']}>Address</span>
             <BadgeComponent type="address" address={service.url} link />
           </div>
         )}
 
         {service.domain && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Domain</span>
+            <span className={styles['detail-label']}>Domain</span>
             <BadgeComponent
               type="domain"
               domain={service.domain}
@@ -610,7 +610,7 @@ export default function ServiceCardComponent({
 
         {service.repo && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Repository</span>
+            <span className={styles['detail-label']}>Repository</span>
             <BadgeComponent
               type="repository"
               repo={service.repo}
@@ -621,7 +621,7 @@ export default function ServiceCardComponent({
 
         {service.checkedAt && (
           <div className={styles.detail}>
-            <span className={styles.detailLabel}>Checked</span>
+            <span className={styles['detail-label']}>Checked</span>
             <BadgeComponent
               type="dateTime"
               date={service.checkedAt}
@@ -632,7 +632,7 @@ export default function ServiceCardComponent({
       </div>
 
       {service.error && !isHealthy && (
-        <div className={styles.errorBar}>{service.error}</div>
+        <div className={styles['error-bar']}>{service.error}</div>
       )}
     </div>
   );

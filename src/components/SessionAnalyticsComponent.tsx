@@ -85,17 +85,17 @@ function HorizontalBar({
 }) {
   const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <div className={styles.barRow}>
-      <div className={styles.barInfo}>
-        <span className={styles.barLabel}>{label}</span>
-        <span className={styles.barValue}>
+    <div className={styles['bar-row']}>
+      <div className={styles['bar-info']}>
+        <span className={styles['bar-label']}>{label}</span>
+        <span className={styles['bar-value']}>
           {formatNumber(value)}
           {suffix}
         </span>
       </div>
-      <div className={styles.barTrack}>
+      <div className={styles['bar-track']}>
         <div
-          className={styles.barFill}
+          className={styles['bar-fill']}
           style={{ width: `${percentage}%`, background: color }}
         />
       </div>
@@ -160,7 +160,7 @@ function DonutChart({
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
             transform={`rotate(-90 ${center} ${center})`}
-            className={styles.donutSegment}
+            className={styles['donut-segment']}
             style={{ animationDelay: `${i * 100}ms` }}
           />
         );
@@ -169,7 +169,7 @@ function DonutChart({
         x={center}
         y={center - 4}
         textAnchor="middle"
-        className={styles.donutCenter}
+        className={styles['donut-center']}
       >
         {formatNumber(total)}
       </text>
@@ -177,7 +177,7 @@ function DonutChart({
         x={center}
         y={center + 12}
         textAnchor="middle"
-        className={styles.donutCenterLabel}
+        className={styles['donut-center-label']}
       >
         {centerLabel}
       </text>
@@ -201,17 +201,17 @@ function StatCard({
   delay?: number;
 }) {
   return (
-    <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
+    <div className={styles['stat-card']} style={{ animationDelay: `${delay}ms` }}>
       <div
-        className={styles.statCardIcon}
+        className={styles['stat-card-icon']}
         style={{ color, background: `${color}15` }}
       >
         <Icon size={18} strokeWidth={2} />
       </div>
-      <div className={styles.statCardContent}>
-        <span className={styles.statCardValue}>{value}</span>
-        <span className={styles.statCardLabel}>{label}</span>
-        {sub && <span className={styles.statCardSub}>{sub}</span>}
+      <div className={styles['stat-card-content']}>
+        <span className={styles['stat-card-value']}>{value}</span>
+        <span className={styles['stat-card-label']}>{label}</span>
+        {sub && <span className={styles['stat-card-sub']}>{sub}</span>}
       </div>
     </div>
   );
@@ -381,12 +381,12 @@ export default function SessionAnalyticsComponent({
         title="Session Analytics"
         subtitle={`First-party tracking for ${projectId}`}
       >
-        <div className={styles.headerControls}>
-          <div className={styles.periodTabs}>
+        <div className={styles['header-controls']}>
+          <div className={styles['period-tabs']}>
             {["7d", "30d", "90d"].map((presetPeriod) => (
               <button
                 key={presetPeriod}
-                className={`${styles.periodTab} ${period === presetPeriod ? styles.activeTab : ""}`}
+                className={`${styles['period-tab']} ${period === presetPeriod ? styles['active-tab'] : ""}`}
                 onClick={() => setPeriod(presetPeriod)}
               >
                 {presetPeriod}
@@ -397,30 +397,30 @@ export default function SessionAnalyticsComponent({
       </PageHeaderComponent>
 
       {/* ── Back bar ──────────────────────────────────────────── */}
-      <div className={styles.backBar}>
-        <Link href="/web-analytics" className={styles.backButton}>
+      <div className={styles['back-bar']}>
+        <Link href="/web-analytics" className={styles['back-button']}>
           <ArrowLeft size={12} strokeWidth={2.2} />
           All Properties
         </Link>
-        <span className={styles.selectedLabel}>{projectId}</span>
-        <span className={styles.selectedMeta}>First-Party Analytics</span>
+        <span className={styles['selected-label']}>{projectId}</span>
+        <span className={styles['selected-meta']}>First-Party Analytics</span>
       </div>
 
       {/* ── Realtime Banner ───────────────────────────────────── */}
-      <div className={styles.realtimeBanner}>
-        <div className={styles.realtimePulse}>
-          <div className={styles.realtimePulseDot} />
-          <div className={styles.realtimePulseRing} />
+      <div className={styles['realtime-banner']}>
+        <div className={styles['realtime-pulse']}>
+          <div className={styles['realtime-pulse-dot']} />
+          <div className={styles['realtime-pulse-ring']} />
         </div>
-        <div className={styles.realtimeInfo}>
-          <span className={styles.realtimeLabel}>
+        <div className={styles['realtime-info']}>
+          <span className={styles['realtime-label']}>
             Active Sessions Right Now
           </span>
-          <span className={styles.realtimeCount}>
+          <span className={styles['realtime-count']}>
             {live ? formatNumber(live.activeSessions) : "—"}
           </span>
         </div>
-        <span className={styles.realtimeMeta}>
+        <span className={styles['realtime-meta']}>
           {projectId} · sessions-service
         </span>
       </div>
@@ -435,7 +435,7 @@ export default function SessionAnalyticsComponent({
         <>
           {/* ── Overview Cards ────────────────────────────────── */}
           {overview && (
-            <div className={styles.summaryGrid}>
+            <div className={styles['summary-grid']}>
               <StatCard
                 icon={Activity}
                 label="Total Sessions"
@@ -470,17 +470,17 @@ export default function SessionAnalyticsComponent({
 
           {/* ── Sparkline Time Series ────────────────────────── */}
           {timeSeries && timeSeries.length > 0 && (
-            <div className={styles.chartPanel}>
-              <div className={styles.chartHeader}>
+            <div className={styles['chart-panel']}>
+              <div className={styles['chart-header']}>
                 <TrendingUp
                   size={15}
                   strokeWidth={2.2}
-                  className={styles.chartHeaderIcon}
+                  className={styles['chart-header-icon']}
                 />
-                <span className={styles.chartTitle}>Daily Trends</span>
+                <span className={styles['chart-title']}>Daily Trends</span>
               </div>
-              <div className={styles.chartBody}>
-                <div className={styles.sparklineStack}>
+              <div className={styles['chart-body']}>
+                <div className={styles['sparkline-stack']}>
                   {(
                     [
                       { key: "pageViews", color: SPARKLINE_COLORS.pageViews },
@@ -512,24 +512,24 @@ export default function SessionAnalyticsComponent({
                   })}
                 </div>
               </div>
-              <div className={styles.chartLegend}>
-                <div className={styles.chartLegendItem}>
+              <div className={styles['chart-legend']}>
+                <div className={styles['chart-legend-item']}>
                   <div
-                    className={styles.chartLegendDot}
+                    className={styles['chart-legend-dot']}
                     style={{ background: SPARKLINE_COLORS.pageViews }}
                   />
                   Page Views
                 </div>
-                <div className={styles.chartLegendItem}>
+                <div className={styles['chart-legend-item']}>
                   <div
-                    className={styles.chartLegendDot}
+                    className={styles['chart-legend-dot']}
                     style={{ background: SPARKLINE_COLORS.uniqueVisitors }}
                   />
                   Visitors
                 </div>
-                <div className={styles.chartLegendItem}>
+                <div className={styles['chart-legend-item']}>
                   <div
-                    className={styles.chartLegendDot}
+                    className={styles['chart-legend-dot']}
                     style={{ background: SPARKLINE_COLORS.sessions }}
                   />
                   Sessions
@@ -551,22 +551,22 @@ export default function SessionAnalyticsComponent({
           )}
 
           {/* ── Referrers + Events ────────────────────────────── */}
-          <div className={styles.contentGrid}>
+          <div className={styles['content-grid']}>
             {referrers && referrers.length > 0 && (
               <div className={styles.panel}>
-                <div className={styles.panelHeader}>
+                <div className={styles['panel-header']}>
                   <Link2
                     size={15}
                     strokeWidth={2.2}
-                    className={styles.panelIcon}
+                    className={styles['panel-icon']}
                   />
-                  <span className={styles.panelTitle}>Top Referrers</span>
-                  <span className={styles.panelMeta}>
+                  <span className={styles['panel-title']}>Top Referrers</span>
+                  <span className={styles['panel-meta']}>
                     {referrers.length} sources
                   </span>
                 </div>
-                <div className={styles.panelBody}>
-                  <div className={styles.barList}>
+                <div className={styles['panel-body']}>
+                  <div className={styles['bar-list']}>
                     {referrers.slice(0, 10).map((r, i) => (
                       <HorizontalBar
                         key={r.referrer}
@@ -583,19 +583,19 @@ export default function SessionAnalyticsComponent({
 
             {events && events.length > 0 && (
               <div className={styles.panel}>
-                <div className={styles.panelHeader}>
+                <div className={styles['panel-header']}>
                   <Zap
                     size={15}
                     strokeWidth={2.2}
-                    className={styles.panelIcon}
+                    className={styles['panel-icon']}
                   />
-                  <span className={styles.panelTitle}>Top Events</span>
-                  <span className={styles.panelMeta}>
+                  <span className={styles['panel-title']}>Top Events</span>
+                  <span className={styles['panel-meta']}>
                     {events.length} events
                   </span>
                 </div>
-                <div className={styles.panelBody}>
-                  <div className={styles.barList}>
+                <div className={styles['panel-body']}>
+                  <div className={styles['bar-list']}>
                     {events.map((e, i) => (
                       <HorizontalBar
                         key={`${e.category}-${e.action}`}
@@ -614,17 +614,17 @@ export default function SessionAnalyticsComponent({
           {/* ── Geography ─────────────────────────────────────── */}
           {geo && geo.length > 0 && (
             <div className={styles.panel}>
-              <div className={styles.panelHeader}>
+              <div className={styles['panel-header']}>
                 <MapPin
                   size={15}
                   strokeWidth={2.2}
-                  className={styles.panelIcon}
+                  className={styles['panel-icon']}
                 />
-                <span className={styles.panelTitle}>Top Locations</span>
-                <span className={styles.panelMeta}>{geo.length} locations</span>
+                <span className={styles['panel-title']}>Top Locations</span>
+                <span className={styles['panel-meta']}>{geo.length} locations</span>
               </div>
-              <div className={styles.panelBody}>
-                <div className={styles.barList}>
+              <div className={styles['panel-body']}>
+                <div className={styles['bar-list']}>
                   {geo.slice(0, 10).map((g, i) => (
                     <HorizontalBar
                       key={`${g.country}-${g.city}`}
@@ -646,25 +646,25 @@ export default function SessionAnalyticsComponent({
 
           {/* ── Devices + Browsers + OS ────────────────────────── */}
           {devices && (
-            <div className={styles.contentGrid}>
+            <div className={styles['content-grid']}>
               {deviceTypeSegments.length > 0 && (
                 <div className={styles.panel}>
-                  <div className={styles.panelHeader}>
+                  <div className={styles['panel-header']}>
                     <Monitor
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.panelIcon}
+                      className={styles['panel-icon']}
                     />
-                    <span className={styles.panelTitle}>Device Types</span>
+                    <span className={styles['panel-title']}>Device Types</span>
                   </div>
-                  <div className={styles.donutWrapper}>
+                  <div className={styles['donut-wrapper']}>
                     <DonutChart
                       segments={deviceTypeSegments}
                       size={130}
                       strokeWidth={16}
                       centerLabel="Sessions"
                     />
-                    <div className={styles.donutLegend}>
+                    <div className={styles['donut-legend']}>
                       {devices.deviceTypes.map((deviceType, i) => (
                         <HorizontalBar
                           key={deviceType.type}
@@ -684,22 +684,22 @@ export default function SessionAnalyticsComponent({
 
               {browserSegments.length > 0 && (
                 <div className={styles.panel}>
-                  <div className={styles.panelHeader}>
+                  <div className={styles['panel-header']}>
                     <Globe
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.panelIcon}
+                      className={styles['panel-icon']}
                     />
-                    <span className={styles.panelTitle}>Browsers</span>
+                    <span className={styles['panel-title']}>Browsers</span>
                   </div>
-                  <div className={styles.donutWrapper}>
+                  <div className={styles['donut-wrapper']}>
                     <DonutChart
                       segments={browserSegments}
                       size={130}
                       strokeWidth={16}
                       centerLabel="Sessions"
                     />
-                    <div className={styles.donutLegend}>
+                    <div className={styles['donut-legend']}>
                       {devices.browsers.slice(0, 6).map((b, i) => (
                         <HorizontalBar
                           key={b.name}
@@ -722,22 +722,22 @@ export default function SessionAnalyticsComponent({
           {/* ── OS ────────────────────────────────────────────── */}
           {osSegments.length > 0 && devices && (
             <div className={styles.panel}>
-              <div className={styles.panelHeader}>
+              <div className={styles['panel-header']}>
                 <Laptop
                   size={15}
                   strokeWidth={2.2}
-                  className={styles.panelIcon}
+                  className={styles['panel-icon']}
                 />
-                <span className={styles.panelTitle}>Operating Systems</span>
+                <span className={styles['panel-title']}>Operating Systems</span>
               </div>
-              <div className={styles.donutWrapper}>
+              <div className={styles['donut-wrapper']}>
                 <DonutChart
                   segments={osSegments}
                   size={130}
                   strokeWidth={16}
                   centerLabel="Sessions"
                 />
-                <div className={styles.donutLegend}>
+                <div className={styles['donut-legend']}>
                   {devices.operatingSystems.slice(0, 6).map((osItem, i) => (
                     <HorizontalBar
                       key={osItem.name}

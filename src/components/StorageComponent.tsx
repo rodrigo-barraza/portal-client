@@ -101,7 +101,7 @@ function DonutChart({
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
             transform={`rotate(-90 ${center} ${center})`}
-            className={styles.donutSegment}
+            className={styles['donut-segment']}
             style={{ animationDelay: `${i * 100}ms` }}
           />
         );
@@ -111,7 +111,7 @@ function DonutChart({
         x={center}
         y={center - 4}
         textAnchor="middle"
-        className={styles.donutTotal}
+        className={styles['donut-total']}
       >
         {formatBytes(total)}
       </text>
@@ -119,7 +119,7 @@ function DonutChart({
         x={center}
         y={center + 12}
         textAnchor="middle"
-        className={styles.donutLabel}
+        className={styles['donut-label']}
       >
         Total
       </text>
@@ -144,19 +144,19 @@ function UsageBar({
   const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
 
   return (
-    <div className={styles.usageBarRow}>
-      <div className={styles.usageBarInfo}>
-        <span className={styles.usageBarLabel}>{label}</span>
-        <span className={styles.usageBarValue}>
+    <div className={styles['usage-bar-row']}>
+      <div className={styles['usage-bar-info']}>
+        <span className={styles['usage-bar-label']}>{label}</span>
+        <span className={styles['usage-bar-value']}>
           {formatBytes(value)}
           {sublabel && (
-            <span className={styles.usageBarSub}> · {sublabel}</span>
+            <span className={styles['usage-bar-sub']}> · {sublabel}</span>
           )}
         </span>
       </div>
-      <div className={styles.usageBarTrack}>
+      <div className={styles['usage-bar-track']}>
         <div
-          className={styles.usageBarFill}
+          className={styles['usage-bar-fill']}
           style={{ width: `${percentage}%`, background: color }}
         />
       </div>
@@ -662,7 +662,7 @@ export default function StorageComponent() {
 
       {/* ── Storage Overview ────────────────────────────────────── */}
       {view === "buckets" && (
-        <div className={styles.overviewSection}>
+        <div className={styles['overview-section']}>
           {overviewLoading ? (
             <LoadingIndicatorComponent
               size="small"
@@ -670,33 +670,33 @@ export default function StorageComponent() {
               className="is-loading-centered-state"
             />
           ) : (
-            <div className={styles.storageGrid}>
+            <div className={styles['storage-grid']}>
               {/* ── MinIO Buckets ── */}
               {storageSummary && bucketSegments.length > 0 && (
-                <div className={styles.storagePanel}>
-                  <div className={styles.storagePanelHeader}>
+                <div className={styles['storage-panel']}>
+                  <div className={styles['storage-panel-header']}>
                     <Database
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.storagePanelIcon}
+                      className={styles['storage-panel-icon']}
                     />
-                    <span className={styles.storagePanelTitle}>
+                    <span className={styles['storage-panel-title']}>
                       MinIO Object Storage
                     </span>
-                    <span className={styles.storagePanelMeta}>
+                    <span className={styles['storage-panel-meta']}>
                       {storageSummary.totalObjects?.toLocaleString()} objects
                     </span>
                   </div>
 
-                  <div className={styles.storagePanelBody}>
+                  <div className={styles['storage-panel-body']}>
                     <DonutChart
                       segments={bucketSegments}
                       size={130}
                       strokeWidth={16}
                     />
-                    <div className={styles.storageLegend}>
+                    <div className={styles['storage-legend']}>
                       {bucketSegments.map((segment, i) => (
-                        <div key={i} className={styles.legendItem}>
+                        <div key={i} className={styles['legend-item']}>
                           <UsageBar
                             value={segment.value}
                             max={maxBucketSize}
@@ -713,28 +713,28 @@ export default function StorageComponent() {
 
               {/* ── Docker Disk Usage ── */}
               {systemInfo?.disk && (
-                <div className={styles.storagePanel}>
-                  <div className={styles.storagePanelHeader}>
+                <div className={styles['storage-panel']}>
+                  <div className={styles['storage-panel-header']}>
                     <Layers
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.storagePanelIcon}
+                      className={styles['storage-panel-icon']}
                     />
-                    <span className={styles.storagePanelTitle}>
+                    <span className={styles['storage-panel-title']}>
                       Docker Disk Usage
                     </span>
-                    <span className={styles.storagePanelMeta}>
+                    <span className={styles['storage-panel-meta']}>
                       v{systemInfo.serverVersion}
                     </span>
                   </div>
 
-                  <div className={styles.storagePanelBody}>
+                  <div className={styles['storage-panel-body']}>
                     <DonutChart
                       segments={diskSegments}
                       size={130}
                       strokeWidth={16}
                     />
-                    <div className={styles.storageLegend}>
+                    <div className={styles['storage-legend']}>
                       <UsageBar
                         value={systemInfo.disk.images.totalSize}
                         max={systemInfo.disk.totalReclaimable}
@@ -768,8 +768,8 @@ export default function StorageComponent() {
 
                   {/* ── Top Images ── */}
                   {(systemInfo.disk.images.items?.length ?? 0) > 0 && (
-                    <div className={styles.imageList}>
-                      <div className={styles.imageListHeader}>
+                    <div className={styles['image-list']}>
+                      <div className={styles['image-list-header']}>
                         <Package size={12} strokeWidth={2.2} />
                         <span>Largest Images</span>
                       </div>
@@ -780,16 +780,16 @@ export default function StorageComponent() {
                           const displayTag =
                             tag.length > 50 ? `…${tag.slice(-48)}` : tag;
                           return (
-                            <div key={i} className={styles.imageRow}>
+                            <div key={i} className={styles['image-row']}>
                               <Box
                                 size={12}
                                 strokeWidth={1.8}
-                                className={styles.imageIcon}
+                                className={styles['image-icon']}
                               />
-                              <span className={styles.imageName} title={tag}>
+                              <span className={styles['image-name']} title={tag}>
                                 {displayTag}
                               </span>
-                              <span className={styles.imageSize}>
+                              <span className={styles['image-size']}>
                                 {formatBytes(image.size)}
                               </span>
                             </div>
@@ -800,8 +800,8 @@ export default function StorageComponent() {
 
                   {/* ── Volumes ── */}
                   {(systemInfo.disk.volumes.items?.length ?? 0) > 0 && (
-                    <div className={styles.imageList}>
-                      <div className={styles.imageListHeader}>
+                    <div className={styles['image-list']}>
+                      <div className={styles['image-list-header']}>
                         <HardDrive size={12} strokeWidth={2.2} />
                         <span>Volumes</span>
                       </div>
@@ -814,19 +814,19 @@ export default function StorageComponent() {
                               ? `${volName.slice(0, 12)}…${volName.slice(-24)}`
                               : volName;
                           return (
-                            <div key={i} className={styles.imageRow}>
+                            <div key={i} className={styles['image-row']}>
                               <Database
                                 size={12}
                                 strokeWidth={1.8}
-                                className={styles.imageIcon}
+                                className={styles['image-icon']}
                               />
                               <span
-                                className={styles.imageName}
+                                className={styles['image-name']}
                                 title={vol.name}
                               >
                                 {name}
                               </span>
-                              <span className={styles.imageSize}>
+                              <span className={styles['image-size']}>
                                 {formatBytes(vol.size)}
                               </span>
                             </div>
@@ -844,7 +844,7 @@ export default function StorageComponent() {
       {/* ── Breadcrumb Navigation ── */}
       {view === "objects" && (
         <div className={styles.breadcrumb}>
-          <div className={styles.breadcrumbPath}>
+          <div className={styles['breadcrumb-path']}>
             {breadcrumbSegments.map((seg, index) => {
               const isLast = index === breadcrumbSegments.length - 1;
               return (
@@ -853,10 +853,10 @@ export default function StorageComponent() {
                   style={{ display: "flex", alignItems: "center", gap: 4 }}
                 >
                   {index > 0 && (
-                    <ChevronRight size={12} className={styles.breadcrumbSep} />
+                    <ChevronRight size={12} className={styles['breadcrumb-sep']} />
                   )}
                   <button
-                    className={`${styles.breadcrumbItem} ${isLast ? styles.isActiveState : ""}`}
+                    className={`${styles['breadcrumb-item']} ${isLast ? styles['is-active-state'] : ""}`}
                     onClick={() => {
                       if (seg.prefix === null) {
                         setView("buckets");
@@ -877,7 +877,7 @@ export default function StorageComponent() {
           </div>
 
           {/* ── View Mode Toggle ── */}
-          <div className={styles.viewToggle}>
+          <div className={styles['view-toggle']}>
             <SegmentedControlComponent
               value={objectViewMode}
               onChange={(value: string) => setObjectViewMode(value as "table" | "grid")}
@@ -893,7 +893,7 @@ export default function StorageComponent() {
 
       {/* ── Global File Search ── */}
       {view === "buckets" && (
-        <div className={styles.globalSearchSection}>
+        <div className={styles['global-search-section']}>
           <SearchInputComponent
             value={globalSearchQuery}
             onChange={handleGlobalSearchChange}
@@ -919,7 +919,7 @@ export default function StorageComponent() {
       {view === "buckets" && !isGlobalSearchActive && (
         <>
           {/* ── Bucket View Mode Toggle ── */}
-          <div className={styles.bucketViewBar}>
+          <div className={styles['bucket-view-bar']}>
             <SegmentedControlComponent
               value={bucketViewMode}
               onChange={(value: string) => setBucketViewMode(value as "cards" | "table")}
@@ -932,7 +932,7 @@ export default function StorageComponent() {
           </div>
 
           {!streaming && buckets.length === 0 ? (
-            <div className={styles.emptyState}>
+            <div className={styles['empty-state']}>
               <HardDrive size={48} />
               <span>No buckets found</span>
             </div>
@@ -945,39 +945,39 @@ export default function StorageComponent() {
             />
           ) : (
             /* ── Bucket Card Grid View ── */
-            <div className={styles.bucketGrid}>
+            <div className={styles['bucket-grid']}>
               {/* ── Populated bucket cards ── */}
               {buckets.map((bucket, index) => (
                 <div
                   key={bucket.name}
-                  className={styles.bucketCard}
+                  className={styles['bucket-card']}
                   style={{ animationDelay: `${index * 50}ms` }}
                   onClick={() => openBucket(bucket.name)}
                 >
-                  <div className={styles.bucketCardInner}>
-                    <div className={styles.bucketHeader}>
-                      <div className={styles.bucketIconWrap}>
+                  <div className={styles['bucket-card-inner']}>
+                    <div className={styles['bucket-header']}>
+                      <div className={styles['bucket-icon-wrap']}>
                         <HardDrive size={18} strokeWidth={1.8} />
                       </div>
-                      <span className={styles.bucketName}>{bucket.name}</span>
+                      <span className={styles['bucket-name']}>{bucket.name}</span>
                     </div>
-                    <div className={styles.bucketMeta}>
-                      <div className={styles.bucketStat}>
-                        <span className={styles.bucketStatLabel}>Objects</span>
-                        <span className={styles.bucketStatValue}>
+                    <div className={styles['bucket-meta']}>
+                      <div className={styles['bucket-stat']}>
+                        <span className={styles['bucket-stat-label']}>Objects</span>
+                        <span className={styles['bucket-stat-value']}>
                           {bucket.objectCount.toLocaleString()}
                         </span>
                       </div>
-                      <div className={styles.bucketStat}>
-                        <span className={styles.bucketStatLabel}>Size</span>
-                        <span className={styles.bucketStatValue}>
+                      <div className={styles['bucket-stat']}>
+                        <span className={styles['bucket-stat-label']}>Size</span>
+                        <span className={styles['bucket-stat-value']}>
                           {formatBytes(bucket.totalSize)}
                         </span>
                       </div>
                     </div>
                   </div>
                   {bucket.creationDate && (
-                    <div className={styles.bucketDate}>
+                    <div className={styles['bucket-date']}>
                       Created{" "}
                       {new Date(bucket.creationDate).toLocaleDateString()}
                     </div>
@@ -989,41 +989,41 @@ export default function StorageComponent() {
               {Array.from({ length: skeletonCount }, (_, i) => (
                 <div
                   key={`skeleton-${i}`}
-                  className={`${styles.bucketCard} ${styles.bucketCardSkeleton}`}
+                  className={`${styles['bucket-card']} ${styles['bucket-card-skeleton']}`}
                   style={{ animationDelay: `${(buckets.length + i) * 50}ms` }}
                 >
-                  <div className={styles.bucketCardInner}>
-                    <div className={styles.bucketHeader}>
+                  <div className={styles['bucket-card-inner']}>
+                    <div className={styles['bucket-header']}>
                       <div
-                        className={`${styles.bucketIconWrap} ${styles.skeletonIcon}`}
+                        className={`${styles['bucket-icon-wrap']} ${styles['skeleton-icon']}`}
                       >
                         <HardDrive size={18} strokeWidth={1.8} />
                       </div>
                       <div
-                        className={styles.skeletonLine}
+                        className={styles['skeleton-line']}
                         style={{ width: "60%" }}
                       />
                     </div>
-                    <div className={styles.bucketMeta}>
-                      <div className={styles.bucketStat}>
-                        <span className={styles.bucketStatLabel}>Objects</span>
+                    <div className={styles['bucket-meta']}>
+                      <div className={styles['bucket-stat']}>
+                        <span className={styles['bucket-stat-label']}>Objects</span>
                         <div
-                          className={styles.skeletonLine}
+                          className={styles['skeleton-line']}
                           style={{ width: 48 }}
                         />
                       </div>
-                      <div className={styles.bucketStat}>
-                        <span className={styles.bucketStatLabel}>Size</span>
+                      <div className={styles['bucket-stat']}>
+                        <span className={styles['bucket-stat-label']}>Size</span>
                         <div
-                          className={styles.skeletonLine}
+                          className={styles['skeleton-line']}
                           style={{ width: 64 }}
                         />
                       </div>
                     </div>
                   </div>
-                  <div className={styles.bucketDate}>
+                  <div className={styles['bucket-date']}>
                     <div
-                      className={styles.skeletonLine}
+                      className={styles['skeleton-line']}
                       style={{ width: "40%" }}
                     />
                   </div>
@@ -1107,13 +1107,13 @@ function ObjectTableView({
   handleDelete: (storageObject: StorageObject) => void;
 }) {
   return (
-    <div className={styles.objectListContainer}>
-      <div className={styles.objectListHeader}>
-        <span className={styles.objectListTitle}>
+    <div className={styles['object-list-container']}>
+      <div className={styles['object-list-header']}>
+        <span className={styles['object-list-title']}>
           {prefix ? displayName(prefix, "") : "Root"}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span className={styles.totalSize}>
+          <span className={styles['total-size']}>
             {(prefixes.length + objects.length).toLocaleString()} items
           </span>
           <SearchInputComponent
@@ -1126,7 +1126,7 @@ function ObjectTableView({
       </div>
 
       {/* ── Column Headers ── */}
-      <div className={styles.columnHeader}>
+      <div className={styles['column-header']}>
         <span>Name</span>
         <span>Size</span>
         <span>Modified</span>
@@ -1137,18 +1137,18 @@ function ObjectTableView({
       {prefixes.map((pfx: string) => (
         <div
           key={pfx}
-          className={`${styles.objectRow} ${styles.folderRow}`}
+          className={`${styles['object-row']} ${styles['folder-row']}`}
           onClick={() => navigateToPrefix(pfx)}
         >
-          <div className={styles.objectName}>
-            <Folder size={16} className={styles.objectIcon} />
-            <span className={styles.objectNameText}>
+          <div className={styles['object-name']}>
+            <Folder size={16} className={styles['object-icon']} />
+            <span className={styles['object-name-text']}>
               {folderLabel(pfx, prefix)}
             </span>
           </div>
-          <span className={styles.objectSize}>—</span>
-          <span className={styles.objectDate}>—</span>
-          <div className={styles.objectActions} />
+          <span className={styles['object-size']}>—</span>
+          <span className={styles['object-date']}>—</span>
+          <div className={styles['object-actions']} />
         </div>
       ))}
 
@@ -1160,13 +1160,13 @@ function ObjectTableView({
         return (
           <div
             key={object.name}
-            className={styles.objectRow}
+            className={styles['object-row']}
             style={{ animationDelay: `${index * 20}ms` }}
           >
-            <div className={styles.objectName}>
+            <div className={styles['object-name']}>
               {hasThumb ? (
                 <img
-                  className={styles.tableThumb}
+                  className={styles['table-thumb']}
                   src={ApiService.buildStorageDownloadUrl(
                     activeBucket,
                     object.name,
@@ -1176,21 +1176,21 @@ function ObjectTableView({
                   loading="lazy"
                 />
               ) : (
-                <FileIcon size={16} className={styles.objectIcon} />
+                <FileIcon size={16} className={styles['object-icon']} />
               )}
-              <span className={styles.objectNameText}>
+              <span className={styles['object-name-text']}>
                 {displayName(object.name, prefix)}
               </span>
             </div>
-            <span className={styles.objectSize}>
+            <span className={styles['object-size']}>
               {formatBytes(object.size)}
             </span>
-            <span className={styles.objectDate}>
+            <span className={styles['object-date']}>
               {object.lastModified
                 ? new Date(object.lastModified).toLocaleString()
                 : "—"}
             </span>
-            <div className={styles.objectActions}>
+            <div className={styles['object-actions']}>
               {canPreview && (
                 <IconButtonComponent
                   icon={<Eye size={15} />}
@@ -1199,7 +1199,7 @@ function ObjectTableView({
                 />
               )}
               <a
-                className={styles.actionButton}
+                className={styles['action-button']}
                 title="Download"
                 href={ApiService.buildStorageDownloadUrl(
                   activeBucket,
@@ -1223,7 +1223,7 @@ function ObjectTableView({
 
       {/* ── Empty State ── */}
       {prefixes.length === 0 && objects.length === 0 && (
-        <div className={styles.emptyState}>
+        <div className={styles['empty-state']}>
           <Folder size={36} />
           <span>{search ? "No matches found" : "This folder is empty"}</span>
         </div>
@@ -1244,9 +1244,9 @@ function BucketTableView({
   openBucket: (b: string) => void;
 }) {
   return (
-    <div className={styles.objectListContainer}>
+    <div className={styles['object-list-container']}>
       {/* ── Column Headers ── */}
-      <div className={styles.bucketColumnHeader}>
+      <div className={styles['bucket-column-header']}>
         <span>Bucket</span>
         <span>Objects</span>
         <span>Size</span>
@@ -1257,23 +1257,23 @@ function BucketTableView({
       {buckets.map((bucket, index) => (
         <div
           key={bucket.name}
-          className={`${styles.objectRow} ${styles.folderRow}`}
+          className={`${styles['object-row']} ${styles['folder-row']}`}
           style={{ animationDelay: `${index * 30}ms` }}
           onClick={() => openBucket(bucket.name)}
         >
-          <div className={styles.objectName}>
-            <div className={styles.bucketRowIcon}>
+          <div className={styles['object-name']}>
+            <div className={styles['bucket-row-icon']}>
               <HardDrive size={15} strokeWidth={1.8} />
             </div>
-            <span className={styles.objectNameText}>{bucket.name}</span>
+            <span className={styles['object-name-text']}>{bucket.name}</span>
           </div>
-          <span className={styles.objectSize}>
+          <span className={styles['object-size']}>
             {bucket.objectCount.toLocaleString()}
           </span>
-          <span className={styles.objectSize}>
+          <span className={styles['object-size']}>
             {formatBytes(bucket.totalSize)}
           </span>
-          <span className={styles.objectDate}>
+          <span className={styles['object-date']}>
             {bucket.creationDate
               ? new Date(bucket.creationDate).toLocaleDateString()
               : "—"}
@@ -1285,30 +1285,30 @@ function BucketTableView({
       {Array.from({ length: skeletonCount }, (_, i) => (
         <div
           key={`skeleton-row-${i}`}
-          className={`${styles.objectRow} ${styles.bucketSkeletonRow}`}
+          className={`${styles['object-row']} ${styles['bucket-skeleton-row']}`}
           style={{ animationDelay: `${(buckets.length + i) * 30}ms` }}
         >
-          <div className={styles.objectName}>
-            <div className={`${styles.bucketRowIcon} ${styles.skeletonIcon}`}>
+          <div className={styles['object-name']}>
+            <div className={`${styles['bucket-row-icon']} ${styles['skeleton-icon']}`}>
               <HardDrive size={15} strokeWidth={1.8} />
             </div>
-            <div className={styles.skeletonLine} style={{ width: "45%" }} />
+            <div className={styles['skeleton-line']} style={{ width: "45%" }} />
           </div>
-          <div className={styles.objectSize}>
-            <div className={styles.skeletonLine} style={{ width: 40 }} />
+          <div className={styles['object-size']}>
+            <div className={styles['skeleton-line']} style={{ width: 40 }} />
           </div>
-          <div className={styles.objectSize}>
-            <div className={styles.skeletonLine} style={{ width: 56 }} />
+          <div className={styles['object-size']}>
+            <div className={styles['skeleton-line']} style={{ width: 56 }} />
           </div>
-          <div className={styles.objectDate}>
-            <div className={styles.skeletonLine} style={{ width: 72 }} />
+          <div className={styles['object-date']}>
+            <div className={styles['skeleton-line']} style={{ width: 72 }} />
           </div>
         </div>
       ))}
 
       {/* ── Empty State ── */}
       {buckets.length === 0 && skeletonCount === 0 && (
-        <div className={styles.emptyState}>
+        <div className={styles['empty-state']}>
           <HardDrive size={36} />
           <span>No buckets found</span>
         </div>
@@ -1343,12 +1343,12 @@ function ObjectGridView({
   return (
     <>
       {/* ── Header Bar ── */}
-      <div className={styles.gridHeader}>
-        <span className={styles.objectListTitle}>
+      <div className={styles['grid-header']}>
+        <span className={styles['object-list-title']}>
           {prefix ? displayName(prefix, "") : "Root"}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span className={styles.totalSize}>
+          <span className={styles['total-size']}>
             {(prefixes.length + objects.length).toLocaleString()} items
           </span>
           <SearchInputComponent
@@ -1360,19 +1360,19 @@ function ObjectGridView({
         </div>
       </div>
 
-      <div className={styles.objectGrid}>
+      <div className={styles['object-grid']}>
         {/* ── Folders ── */}
         {prefixes.map((pfx) => (
           <div
             key={pfx}
-            className={`${styles.gridCard} ${styles.gridCardFolder}`}
+            className={`${styles['grid-card']} ${styles['grid-card-folder']}`}
             onClick={() => navigateToPrefix(pfx)}
           >
-            <div className={styles.gridCardThumb}>
+            <div className={styles['grid-card-thumb']}>
               <Folder size={36} />
             </div>
-            <div className={styles.gridCardInfo}>
-              <span className={styles.gridCardName}>
+            <div className={styles['grid-card-info']}>
+              <span className={styles['grid-card-name']}>
                 {folderLabel(pfx, prefix)}
               </span>
             </div>
@@ -1387,14 +1387,14 @@ function ObjectGridView({
           return (
             <div
               key={object.name}
-              className={styles.gridCard}
+              className={styles['grid-card']}
               style={{ animationDelay: `${index * 30}ms` }}
               onClick={() => (canPreview ? openPreview(object) : undefined)}
             >
-              <div className={styles.gridCardThumb}>
+              <div className={styles['grid-card-thumb']}>
                 {hasThumb ? (
                   <img
-                    className={styles.gridThumbImg}
+                    className={styles['grid-thumb-img']}
                     src={ApiService.buildStorageDownloadUrl(
                       activeBucket!,
                       object.name,
@@ -1407,20 +1407,20 @@ function ObjectGridView({
                   <FileIcon size={36} />
                 )}
               </div>
-              <div className={styles.gridCardInfo}>
+              <div className={styles['grid-card-info']}>
                 <span
-                  className={styles.gridCardName}
+                  className={styles['grid-card-name']}
                   title={displayName(object.name, prefix)}
                 >
                   {displayName(object.name, prefix)}
                 </span>
-                <span className={styles.gridCardMeta}>
+                <span className={styles['grid-card-meta']}>
                   {formatBytes(object.size)}
                 </span>
               </div>
-              <div className={styles.gridCardActions}>
+              <div className={styles['grid-card-actions']}>
                 <a
-                  className={styles.actionButton}
+                  className={styles['action-button']}
                   title="Download"
                   href={ApiService.buildStorageDownloadUrl(
                     activeBucket,
@@ -1432,7 +1432,7 @@ function ObjectGridView({
                   <Download size={14} />
                 </a>
                 <button
-                  className={`${styles.actionButton} ${styles.danger}`}
+                  className={`${styles['action-button']} ${styles.danger}`}
                   title="Delete"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1448,7 +1448,7 @@ function ObjectGridView({
 
         {/* ── Empty State ── */}
         {prefixes.length === 0 && objects.length === 0 && (
-          <div className={styles.emptyState} style={{ gridColumn: "1 / -1" }}>
+          <div className={styles['empty-state']} style={{ gridColumn: "1 / -1" }}>
             <Folder size={36} />
             <span>{search ? "No matches found" : "This folder is empty"}</span>
           </div>
@@ -1477,7 +1477,7 @@ function GlobalSearchResultsView({
 }) {
   if (isLoading) {
     return (
-      <div className={styles.globalSearchResultsContainer}>
+      <div className={styles['global-search-results-container']}>
         <LoadingIndicatorComponent
           size="small"
           label={`Searching across all stores…`}
@@ -1489,11 +1489,11 @@ function GlobalSearchResultsView({
 
   if (results.length === 0) {
     return (
-      <div className={styles.globalSearchResultsContainer}>
-        <div className={styles.globalSearchEmptyState}>
+      <div className={styles['global-search-results-container']}>
+        <div className={styles['global-search-empty-state']}>
           <SearchX size={36} />
           <span>No files matching "{query}"</span>
-          <span className={styles.globalSearchEmptySubtext}>
+          <span className={styles['global-search-empty-subtext']}>
             Searched {totalScanned.toLocaleString()} objects across all stores
           </span>
         </div>
@@ -1511,25 +1511,25 @@ function GlobalSearchResultsView({
   );
 
   return (
-    <div className={styles.globalSearchResultsContainer}>
-      <div className={styles.globalSearchResultsHeader}>
-        <span className={styles.globalSearchResultsTitle}>
+    <div className={styles['global-search-results-container']}>
+      <div className={styles['global-search-results-header']}>
+        <span className={styles['global-search-results-title']}>
           <Search size={14} />
           {results.length.toLocaleString()} results
           {truncated && "+"} for "{query}"
         </span>
-        <span className={styles.globalSearchResultsMeta}>
+        <span className={styles['global-search-results-meta']}>
           {totalScanned.toLocaleString()} objects scanned
           {truncated && " · results truncated"}
         </span>
       </div>
 
       {Object.entries(bucketGroups).map(([bucketName, bucketResults]) => (
-        <div key={bucketName} className={styles.globalSearchBucketGroup}>
-          <div className={styles.globalSearchBucketLabel}>
+        <div key={bucketName} className={styles['global-search-bucket-group']}>
+          <div className={styles['global-search-bucket-label']}>
             <HardDrive size={13} strokeWidth={2} />
             <span>{bucketName}</span>
-            <span className={styles.globalSearchBucketCount}>
+            <span className={styles['global-search-bucket-count']}>
               {bucketResults.length}
             </span>
           </div>
@@ -1544,25 +1544,25 @@ function GlobalSearchResultsView({
             return (
               <div
                 key={result.name}
-                className={styles.globalSearchResultRow}
+                className={styles['global-search-result-row']}
                 style={{ animationDelay: `${index * 20}ms` }}
                 onClick={() => onResultClick(result)}
               >
-                <div className={styles.globalSearchResultName}>
-                  <FileIcon size={15} className={styles.globalSearchFileIcon} />
-                  <span className={styles.globalSearchFileName}>
+                <div className={styles['global-search-result-name']}>
+                  <FileIcon size={15} className={styles['global-search-file-icon']} />
+                  <span className={styles['global-search-file-name']}>
                     {fileName}
                   </span>
                   {filePath && (
-                    <span className={styles.globalSearchFilePath}>
+                    <span className={styles['global-search-file-path']}>
                       {filePath}
                     </span>
                   )}
                 </div>
-                <span className={styles.objectSize}>
+                <span className={styles['object-size']}>
                   {formatBytes(result.size)}
                 </span>
-                <span className={styles.objectDate}>
+                <span className={styles['object-date']}>
                   {result.lastModified
                     ? new Date(result.lastModified).toLocaleDateString()
                     : "—"}
@@ -1607,62 +1607,62 @@ function PreviewOverlay({
   }, [onClose]);
 
   return (
-    <div className={styles.previousStateiewOverlay} onClick={onClose}>
-      <div className={styles.previousStateiewPanel} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.previousStateiewHeader}>
-          <span className={styles.previousStateiewTitle}>{filename}</span>
-          <button className={styles.previousStateiewCloseButton} onClick={onClose}>
+    <div className={styles['preview-overlay']} onClick={onClose}>
+      <div className={styles['preview-panel']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['preview-header']}>
+          <span className={styles['preview-title']}>{filename}</span>
+          <button className={styles['preview-close-button']} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        <div className={styles.previousStateiewBody}>
+        <div className={styles['preview-body']}>
           {mediaType === "image" && (
             <img
-              className={styles.previousStateiewImage}
+              className={styles['preview-image']}
               src={downloadUrl}
               alt={filename}
             />
           )}
           {mediaType === "audio" && (
-            <audio className={styles.previousStateiewAudio} controls src={downloadUrl} />
+            <audio className={styles['preview-audio']} controls src={downloadUrl} />
           )}
           {mediaType === "video" && (
-            <video className={styles.previousStateiewVideo} controls src={downloadUrl} />
+            <video className={styles['preview-video']} controls src={downloadUrl} />
           )}
           {!mediaType && (
-            <div className={styles.previousStateiewFallback}>
+            <div className={styles['preview-fallback']}>
               <File size={48} />
               <span>No previousStateiew available for this file type</span>
             </div>
           )}
 
           {/* ── Metadata Grid ── */}
-          <div className={styles.previousStateiewMeta}>
-            <span className={styles.previousStateiewMetaLabel}>Key</span>
-            <span className={styles.previousStateiewMetaValue}>{object.name}</span>
-            <span className={styles.previousStateiewMetaLabel}>Size</span>
-            <span className={styles.previousStateiewMetaValue}>
+          <div className={styles['preview-meta']}>
+            <span className={styles['preview-meta-label']}>Key</span>
+            <span className={styles['preview-meta-value']}>{object.name}</span>
+            <span className={styles['preview-meta-label']}>Size</span>
+            <span className={styles['preview-meta-value']}>
               {formatBytes(stat?.size ?? object.size)}
             </span>
             {stat?.contentType && (
               <>
-                <span className={styles.previousStateiewMetaLabel}>Type</span>
-                <span className={styles.previousStateiewMetaValue}>
+                <span className={styles['preview-meta-label']}>Type</span>
+                <span className={styles['preview-meta-value']}>
                   {stat.contentType}
                 </span>
               </>
             )}
             {stat?.etag && (
               <>
-                <span className={styles.previousStateiewMetaLabel}>ETag</span>
-                <span className={styles.previousStateiewMetaValue}>{stat.etag}</span>
+                <span className={styles['preview-meta-label']}>ETag</span>
+                <span className={styles['preview-meta-value']}>{stat.etag}</span>
               </>
             )}
             {(stat?.lastModified || object.lastModified) && (
               <>
-                <span className={styles.previousStateiewMetaLabel}>Modified</span>
-                <span className={styles.previousStateiewMetaValue}>
+                <span className={styles['preview-meta-label']}>Modified</span>
+                <span className={styles['preview-meta-value']}>
                   {new Date(
                     stat?.lastModified ||
                       object.lastModified ||
@@ -1674,7 +1674,7 @@ function PreviewOverlay({
           </div>
         </div>
 
-        <div className={styles.previousStateiewFooter}>
+        <div className={styles['preview-footer']}>
           <ButtonComponent
             variant="secondary"
             icon={Download}

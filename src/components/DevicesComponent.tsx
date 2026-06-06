@@ -164,7 +164,7 @@ export default function DevicesComponent() {
           className="is-loading-centered-state"
         />
       ) : (
-        <div className={styles.deviceList}>
+        <div className={styles['device-list']}>
           {sortedDevices.map((device, index) => (
             <DeviceCard
               key={device.id}
@@ -204,7 +204,7 @@ function DeviceCard({
 
   return (
     <div
-      className={styles.deviceCard}
+      className={styles['device-card']}
       style={
         {
           "--device-accent": accentColor,
@@ -213,46 +213,46 @@ function DeviceCard({
       }
     >
       {/* ── Device Header ── */}
-      <div className={styles.deviceHeader}>
-        <div className={styles.deviceInfo}>
-          <div className={styles.deviceIconWrap}>
+      <div className={styles['device-header']}>
+        <div className={styles['device-info']}>
+          <div className={styles['device-icon-wrap']}>
             <DeviceIcon size={20} strokeWidth={1.6} />
           </div>
           <div>
-            <h3 className={styles.deviceName}>{device.name}</h3>
-            <div className={styles.deviceMeta}>
-              <span className={styles.deviceType}>{device.type}</span>
+            <h3 className={styles['device-name']}>{device.name}</h3>
+            <div className={styles['device-meta']}>
+              <span className={styles['device-type']}>{device.type}</span>
               <span className={styles.separator}>·</span>
-              <span className={styles.deviceOs}>{device.os}</span>
+              <span className={styles['device-os']}>{device.os}</span>
             </div>
           </div>
         </div>
-        <div className={styles.deviceStatus}>
+        <div className={styles['device-status']}>
           <StatusDotComponent
             variant={allRunning ? "healthy" : "unhealthy"}
             size="md"
             pulse={allRunning}
           />
-          <span className={styles.statusLabel}>
+          <span className={styles['status-label']}>
             {runningCount}/{containers.length}
           </span>
         </div>
       </div>
 
       {/* ── Hostname ── */}
-      <div className={styles.hostnameRow}>
-        <span className={styles.hostnameLabel}>Hostname</span>
+      <div className={styles['hostname-row']}>
+        <span className={styles['hostname-label']}>Hostname</span>
         <code className={styles.hostname}>{device.hostname}</code>
       </div>
 
       {/* ── Notes ── */}
-      {device.notes && <p className={styles.deviceNotes}>{device.notes}</p>}
+      {device.notes && <p className={styles['device-notes']}>{device.notes}</p>}
 
       {/* ── Containers Table ── */}
       {containers.length > 0 && (
-        <div className={styles.servicesSection}>
+        <div className={styles['services-section']}>
           <button
-            className={styles.servicesHeader}
+            className={styles['services-header']}
             onClick={() => setContainersExpanded((previousState) => !previousState)}
             aria-expanded={containersExpanded}
           >
@@ -260,13 +260,13 @@ function DeviceCard({
             <ChevronDown
               size={14}
               strokeWidth={2}
-              className={`${styles.chevron} ${containersExpanded ? styles.chevronExpanded : ""}`}
+              className={`${styles.chevron} ${containersExpanded ? styles['chevron-expanded'] : ""}`}
             />
           </button>
           <div
-            className={`${styles.servicesCollapsible} ${containersExpanded ? styles.servicesExpanded : ""}`}
+            className={`${styles['services-collapsible']} ${containersExpanded ? styles['services-expanded'] : ""}`}
           >
-            <div className={styles.servicesTable}>
+            <div className={styles['services-table']}>
               {containers.map((container) => (
                 <ContainerRow key={container.name} container={container} />
               ))}
@@ -289,9 +289,9 @@ function ContainerRow({
 
   return (
     <div
-      className={`${styles.serviceRow} ${isRunning ? styles.healthy : styles.unhealthy}`}
+      className={`${styles['service-row']} ${isRunning ? styles.healthy : styles.unhealthy}`}
     >
-      <div className={styles.serviceLeft}>
+      <div className={styles['service-left']}>
         <StatusDotComponent
           variant={isRunning ? "healthy" : "unhealthy"}
           size="sm"
@@ -300,19 +300,19 @@ function ContainerRow({
         <Container
           size={13}
           strokeWidth={1.8}
-          className={styles.containerIcon}
+          className={styles['container-icon']}
         />
-        <span className={styles.serviceName}>{container.name}</span>
+        <span className={styles['service-name']}>{container.name}</span>
         <BadgeComponent variant={isRunning ? "success" : "danger"}>
           {container.state || "unknown"}
         </BadgeComponent>
       </div>
-      <div className={styles.serviceRight}>
+      <div className={styles['service-right']}>
         {/* ── Docker Metrics ── */}
         {container.cpu && (
-          <div className={styles.metricBadges}>
+          <div className={styles['metric-badges']}>
             <span
-              className={styles.metricBadge}
+              className={styles['metric-badge']}
               style={
                 {
                   "--metric-color": severityColor(container.cpu.percent),
@@ -321,13 +321,13 @@ function ContainerRow({
               title={`CPU: ${formatPercent(container.cpu.percent, "adaptive")} · ${container.cpu.cores} core${container.cpu.cores !== 1 ? "s" : ""}`}
             >
               <Cpu size={10} strokeWidth={2.4} />
-              <span className={styles.metricValue}>
+              <span className={styles['metric-value']}>
                 {formatPercent(container.cpu.percent, "adaptive")}
               </span>
             </span>
             {container.memory && (
               <span
-                className={styles.metricBadge}
+                className={styles['metric-badge']}
                 style={
                   {
                     "--metric-color": severityColor(
@@ -339,7 +339,7 @@ function ContainerRow({
                 title={`RAM: ${formatBytes(container.memory.used)} / ${formatBytes(container.memory.limit)} (${formatPercent(container.memory.percent, "adaptive")})`}
               >
                 <MemoryStick size={10} strokeWidth={2.4} />
-                <span className={styles.metricValue}>
+                <span className={styles['metric-value']}>
                   {formatBytes(container.memory.used)}
                 </span>
               </span>
@@ -348,7 +348,7 @@ function ContainerRow({
         )}
 
         {container.status && (
-          <span className={styles.containerStatus}>{container.status}</span>
+          <span className={styles['container-status']}>{container.status}</span>
         )}
       </div>
     </div>

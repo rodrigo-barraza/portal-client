@@ -100,18 +100,18 @@ function buildColumns(
             SERVICE_TYPE_ICONS[service.projectType as string]) ||
           DEFAULT_SERVICE_TYPE_ICON;
         const iconClass = isNonDeployed
-          ? styles.iconNeutral
+          ? styles['icon-neutral']
           : isHealthy
-            ? styles.iconHealthy
-            : styles.iconUnhealthy;
+            ? styles['icon-healthy']
+            : styles['icon-unhealthy'];
         return (
-          <div className={styles.nameCell}>
+          <div className={styles['name-cell']}>
             <TypeIcon
               size={14}
               strokeWidth={2.6}
-              className={`${styles.typeIcon} ${iconClass}`}
+              className={`${styles['type-icon']} ${iconClass}`}
             />
-            <span className={styles.serviceName}>{service.name}</span>
+            <span className={styles['service-name']}>{service.name}</span>
           </div>
         );
       },
@@ -150,7 +150,7 @@ function buildColumns(
       description: "Core scaffolding required to build & deploy new projects",
       render: (service: PortalService) => {
         if (!service.essential)
-          return <span className={styles.mutedCell}>—</span>;
+          return <span className={styles['muted-cell']}>—</span>;
         return (
           <BadgeComponent
             variant="info"
@@ -205,9 +205,9 @@ function buildColumns(
       sortable: false,
       render: (service: PortalService) =>
         service.description ? (
-          <span className={styles.descriptionCell}>{service.description}</span>
+          <span className={styles['description-cell']}>{service.description}</span>
         ) : (
-          <span className={styles.mutedCell}>—</span>
+          <span className={styles['muted-cell']}>—</span>
         ),
     },
     {
@@ -222,7 +222,7 @@ function buildColumns(
             icons={{ Globe }}
           />
         ) : (
-          <span className={styles.mutedCell}>—</span>
+          <span className={styles['muted-cell']}>—</span>
         ),
       sortValue: (row: PortalService) => row.domain || "",
     },
@@ -231,7 +231,7 @@ function buildColumns(
       label: "Repo",
       sortable: true,
       render: (service: PortalService) => {
-        if (!service.repo) return <span className={styles.mutedCell}>—</span>;
+        if (!service.repo) return <span className={styles['muted-cell']}>—</span>;
         // Extract org/repo from GitHub URL
         const match = service.repo.match(/github\.com\/(.+?)(?:\.git)?$/);
         const slug = match ? match[1] : service.repo;
@@ -240,7 +240,7 @@ function buildColumns(
             href={service.repo}
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.repoLink}
+            className={styles['repo-link']}
             onClick={(e) => e.stopPropagation()}
           >
             <GitBranch size={12} strokeWidth={2.2} />
@@ -248,7 +248,7 @@ function buildColumns(
             <ExternalLink
               size={10}
               strokeWidth={2}
-              className={styles.externalIcon}
+              className={styles['external-icon']}
             />
           </a>
         );
@@ -263,7 +263,7 @@ function buildColumns(
       render: (service: PortalService) => {
         const langData = projectLanguages[service.id];
         if (!langData?.primary)
-          return <span className={styles.mutedCell}>—</span>;
+          return <span className={styles['muted-cell']}>—</span>;
         const color =
           LANGUAGE_COLORS[langData.primary] || DEFAULT_LANGUAGE_COLOR;
         const topLangs = langData.breakdown
@@ -274,12 +274,12 @@ function buildColumns(
           )
           .join(", ");
         return (
-          <span className={styles.languageCell} title={topLangs}>
+          <span className={styles['language-cell']} title={topLangs}>
             <span
-              className={styles.languageDot}
+              className={styles['language-dot']}
               style={{ background: color }}
             />
-            <span className={styles.languageName}>{langData.primary}</span>
+            <span className={styles['language-name']}>{langData.primary}</span>
           </span>
         );
       },
@@ -293,7 +293,7 @@ function buildColumns(
       description: "Number of upstream dependencies",
       render: (service: PortalService) => {
         const count = (service.dependsOn || []).length;
-        if (count === 0) return <span className={styles.mutedCell}>—</span>;
+        if (count === 0) return <span className={styles['muted-cell']}>—</span>;
         return (
           <BadgeComponent variant="info">
             <Link2 size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -308,7 +308,7 @@ function buildColumns(
       label: "Database",
       sortable: true,
       render: (service: PortalService) => {
-        if (!service.db) return <span className={styles.mutedCell}>—</span>;
+        if (!service.db) return <span className={styles['muted-cell']}>—</span>;
         return (
           <BadgeComponent variant="info">
             <Database size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -325,7 +325,7 @@ function buildColumns(
       description: "Number of Docker containers for this project",
       render: (service: PortalService) => {
         if (!service.dockerProject)
-          return <span className={styles.mutedCell}>—</span>;
+          return <span className={styles['muted-cell']}>—</span>;
         return (
           <BadgeComponent variant="info">
             <Container size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -342,7 +342,7 @@ function buildColumns(
       description: "GitHub repository size",
       render: (service: PortalService) => {
         const sizeData = projectSizes[service.id];
-        if (!sizeData) return <span className={styles.mutedCell}>—</span>;
+        if (!sizeData) return <span className={styles['muted-cell']}>—</span>;
         return (
           <BadgeComponent variant="info">
             <HardDrive size={11} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -402,8 +402,8 @@ export default function ProjectTableComponent({
 
   const getRowClassName = useCallback((row: PortalService) => {
     if (NON_DEPLOYED_TYPES.has(row.projectType as string))
-      return styles.statusRowNeutral;
-    return row.healthy ? styles.statusRowHealthy : styles.statusRowUnhealthy;
+      return styles['status-row-neutral'];
+    return row.healthy ? styles['status-row-healthy'] : styles['status-row-unhealthy'];
   }, []);
 
   const handleRowClick = useCallback(
@@ -413,7 +413,7 @@ export default function ProjectTableComponent({
 
   if (services.length === 0) {
     return (
-      <div className={styles.emptyState}>
+      <div className={styles['empty-state']}>
         No projects match the selected filters
       </div>
     );

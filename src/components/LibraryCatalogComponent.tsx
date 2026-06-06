@@ -97,12 +97,12 @@ export default function LibraryCatalogComponent({
           subtitle || `${items.length} ${type}s · ${testedCount} tested`
         }
       >
-        <div className={styles.headerStats}>
-          <div className={styles.statPill}>
+        <div className={styles['header-stats']}>
+          <div className={styles['stat-pill']}>
             <Package size={13} />
             <span>{formatSize(totalSize)}</span>
           </div>
-          <div className={styles.statPill}>
+          <div className={styles['stat-pill']}>
             <FlaskConical size={13} />
             <span>{testedCount} tested</span>
           </div>
@@ -118,7 +118,7 @@ export default function LibraryCatalogComponent({
           compact
           id={`${type}-search`}
         />
-        <div className={styles.countLabel}>
+        <div className={styles['count-label']}>
           {filtered.length} {type}
           {filtered.length !== 1 ? "s" : ""}
           {search && ` matching "${search}"`}
@@ -139,39 +139,39 @@ export default function LibraryCatalogComponent({
               } as React.CSSProperties
             }
           >
-            <div className={styles.cardHeader}>
+            <div className={styles['card-header']}>
               <div
-                className={styles.cardIcon}
+                className={styles['card-icon']}
                 style={{ background: accentSubtle, color: accentColor }}
               >
                 {icon}
               </div>
-              <div className={styles.cardMeta}>
+              <div className={styles['card-meta']}>
                 {item.hasTests && (
-                  <span className={styles.testBadge} title="Has unit tests">
+                  <span className={styles['test-badge']} title="Has unit tests">
                     <FlaskConical size={10} />
                   </span>
                 )}
               </div>
             </div>
 
-            <h3 className={styles.cardName}>{humanize(item.name)}</h3>
-            <code className={styles.cardImport}>{item.name}</code>
+            <h3 className={styles['card-name']}>{humanize(item.name)}</h3>
+            <code className={styles['card-import']}>{item.name}</code>
             {item.description && (
-              <p className={styles.cardDesc}>{item.description}</p>
+              <p className={styles['card-desc']}>{item.description}</p>
             )}
 
-            <div className={styles.cardFooter}>
-              <span className={styles.cardStat}>
+            <div className={styles['card-footer']}>
+              <span className={styles['card-stat']}>
                 <FileCode2 size={11} />
                 {item.files} file{item.files !== 1 ? "s" : ""}
               </span>
-              <span className={styles.cardStat}>
+              <span className={styles['card-stat']}>
                 <Package size={11} />
                 {formatSize(item.sizeKb)}
               </span>
               <span
-                className={styles.typeBadge}
+                className={styles['type-badge']}
                 style={{ color: accentColor, background: accentSubtle }}
               >
                 {type}
@@ -183,7 +183,7 @@ export default function LibraryCatalogComponent({
 
       {/* ── Empty state ── */}
       {filtered.length === 0 && (
-        <div className={styles.emptyState}>
+        <div className={styles['empty-state']}>
           {icon}
           <p>No {type}s match your search</p>
         </div>

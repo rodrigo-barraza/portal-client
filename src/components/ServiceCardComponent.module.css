@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: fade-in var(--transition-normal) ease-out;
   transition:
     border-color var(--transition-fast),
     border-top-color var(--transition-fast),
@@ -39,11 +39,11 @@
   box-shadow: 0 0 12px oklch(63.7% 0.2078 25.3 / 0.08);
 }
 
-.card.nonDeployed {
+.card.non-deployed {
   border-top-color: oklch(71.5% 0.1258 215.2 / 0.5);
 }
 
-.card.nonDeployed:hover {
+.card.non-deployed:hover {
   border-color: oklch(71.5% 0.1258 215.2 / 0.35);
   border-top-color: oklch(71.5% 0.1258 215.2 / 0.7);
   box-shadow: 0 0 12px oklch(71.5% 0.1258 215.2 / 0.06);
@@ -51,12 +51,12 @@
 
 /* ── Header ── */
 
-.cardHeader {
+.card-header {
   display: flex;
   align-items: center;
 }
 
-.nameRow {
+.name-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -92,7 +92,7 @@
   box-shadow:
     0 0 6px oklch(69.6% 0.1491 162.5 / 0.6),
     0 0 12px oklch(69.6% 0.1491 162.5 / 0.25);
-  animation: underlinePulse 2s ease-in-out infinite;
+  animation: underline-pulse 2s ease-in-out infinite;
 }
 
 .unhealthy .name::after {
@@ -103,13 +103,13 @@
     0 0 12px oklch(63.7% 0.2078 25.3 / 0.25);
 }
 
-.nonDeployed .name::after {
+.non-deployed .name::after {
   background: var(--node-service);
   opacity: 0.5;
   box-shadow: none;
 }
 
-.stageBadge {
+.stage-badge {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -119,27 +119,27 @@
   line-height: 1.6;
 }
 
-.stageProduction {
+.stage-production {
   color: var(--color-info);
   background: var(--calculated-color-info-subtle);
 }
 
-.stageDevelopment {
+.stage-development {
   color: var(--color-warning);
   background: var(--calculated-color-warning-subtle);
 }
 
-.stageInfrastructure {
+.stage-infrastructure {
   color: var(--node-infrastructure);
   background: oklch(62.7% 0.2326 303.9 / 0.1);
 }
 
-.serviceTypeBadge {
+.service-type-badge {
   color: var(--component-category-actions);
   background: oklch(76.9% 0.1646 70.1 / 0.1);
 }
 
-.visibilityExternal {
+.visibility-external {
   color: var(--node-external);
   background: oklch(78.5% 0.1325 181.9 / 0.1);
   display: inline-flex;
@@ -147,7 +147,7 @@
   gap: 3px;
 }
 
-.visibilityInternal {
+.visibility-internal {
   color: var(--text-muted);
   background: var(--background-elevated);
   display: inline-flex;
@@ -155,7 +155,7 @@
   gap: 3px;
 }
 
-.infraIcon {
+.infra-icon {
   flex-shrink: 0;
   color: var(--text-muted);
   transition:
@@ -163,18 +163,18 @@
     filter var(--transition-fast);
 }
 
-.infraIcon.healthy {
+.infra-icon.healthy {
   color: var(--color-success);
   filter: drop-shadow(0 0 4px oklch(69.6% 0.1491 162.5 / 0.5));
-  animation: iconPulse 2s ease-in-out infinite;
+  animation: icon-pulse 2s ease-in-out infinite;
 }
 
-.infraIcon.unhealthy {
+.infra-icon.unhealthy {
   color: var(--color-danger);
   filter: drop-shadow(0 0 4px oklch(63.7% 0.2078 25.3 / 0.5));
 }
 
-.infraIcon.nonDeployed {
+.infra-icon.non-deployed {
   color: var(--node-service);
   filter: none;
 }
@@ -194,12 +194,12 @@
   gap: 8px;
 }
 
-.detailLabel {
+.detail-label {
   font-size: var(--font-size-sm);
   color: var(--text-tertiary);
 }
 
-.detailValue {
+.detail-value {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   font-weight: 450;
@@ -212,7 +212,7 @@
 
 /* ── Error Bar ── */
 
-.errorBar {
+.error-bar {
   padding: 8px 10px;
   background: var(--calculated-color-danger-subtle);
   border-radius: var(--border-radius-sm);
@@ -224,7 +224,7 @@
 
 /* ── Action Row ── */
 
-.actionRow {
+.action-row {
   display: flex;
   gap: 6px;
   padding-bottom: 8px;
@@ -232,7 +232,7 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.actionButton {
+.action-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -254,7 +254,7 @@
   }
 }
 
-.actionButtonLoading {
+.action-button-loading {
   opacity: 0.6;
   cursor: not-allowed;
   color: var(--text-muted) !important;
@@ -263,7 +263,7 @@
 }
 
 /* Stop — red */
-.stopButton {
+.stop-button {
   border: 1px solid oklch(63.7% 0.2078 25.3 / 0.25);
   background: oklch(63.7% 0.2078 25.3 / 0.08);
   color: var(--status-stopped);
@@ -276,7 +276,7 @@
 }
 
 /* Start — green */
-.startButton {
+.start-button {
   border: 1px solid oklch(69.6% 0.1491 162.5 / 0.25);
   background: oklch(69.6% 0.1491 162.5 / 0.08);
   color: var(--status-running);
@@ -289,7 +289,7 @@
 }
 
 /* Logs — neutral blue */
-.logsButton {
+.logs-button {
   border: 1px solid oklch(71.1% 0.0352 256.8 / 0.2);
   background: oklch(71.1% 0.0352 256.8 / 0.06);
   color: var(--status-unknown);
@@ -303,7 +303,7 @@
 }
 
 /* Restart — amber */
-.restartButton {
+.restart-button {
   border: 1px solid oklch(83.7% 0.1643 84.4 / 0.25);
   background: oklch(83.7% 0.1643 84.4 / 0.08);
   color: var(--status-paused);
@@ -317,7 +317,7 @@
 }
 
 /* Rollback — violet */
-.rollbackButton {
+.rollback-button {
   border: 1px solid oklch(60.6% 0.219 292.7 / 0.25);
   background: oklch(60.6% 0.219 292.7 / 0.08);
   color: var(--status-building);
@@ -329,7 +329,7 @@
   }
 }
 
-@keyframes iconPulse {
+@keyframes icon-pulse {
   0%,
   100% {
     filter: drop-shadow(0 0 4px oklch(69.6% 0.1491 162.5 / 0.5));
@@ -339,7 +339,7 @@
   }
 }
 
-@keyframes underlinePulse {
+@keyframes underline-pulse {
   0%,
   100% {
     box-shadow:
@@ -382,7 +382,7 @@
 
 /* ── Container Resource Metrics ── */
 
-.metricsSection {
+.metrics-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -392,24 +392,24 @@
   border-radius: var(--border-radius-sm);
 }
 
-.metricBlock {
+.metric-block {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.metricHeader {
+.metric-header {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.metricIcon {
+.metric-icon {
   color: var(--text-muted);
   flex-shrink: 0;
 }
 
-.metricLabel {
+.metric-label {
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -417,7 +417,7 @@
   color: var(--text-muted);
 }
 
-.metricValues {
+.metric-values {
   display: flex;
   align-items: baseline;
   gap: 3px;
@@ -428,14 +428,14 @@
   white-space: nowrap;
 }
 
-.metricDim {
+.metric-dim {
   font-weight: 400;
   color: var(--text-muted);
 }
 
 /* ── Percentage Bar ── */
 
-.barTrack {
+.bar-track {
   width: 100%;
   height: 3px;
   background: var(--background-elevated);
@@ -443,7 +443,7 @@
   overflow: hidden;
 }
 
-.barFill {
+.bar-fill {
   height: 100%;
   border-radius: 2px;
   transform-origin: left;
@@ -468,12 +468,12 @@
     gap: 12px;
   }
 
-  .actionRow {
+  .action-row {
     flex-wrap: wrap;
     gap: 6px;
   }
 
-  .actionButton {
+  .action-button {
     min-height: 36px;
     padding: 6px 14px;
   }

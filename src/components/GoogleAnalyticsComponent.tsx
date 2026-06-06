@@ -103,7 +103,7 @@ function DeltaBadge({ value }: { value?: number | null }) {
   const Icon = isUp ? ArrowUpRight : ArrowDownRight;
   return (
     <span
-      className={`${styles.deltaBadge} ${isUp ? styles.deltaUp : styles.deltaDown}`}
+      className={`${styles['delta-badge']} ${isUp ? styles['delta-up'] : styles['delta-down']}`}
     >
       <Icon size={12} strokeWidth={2.5} />
       {isUp ? "+" : ""}
@@ -130,20 +130,20 @@ function StatCard({
   delta?: number | null;
 }) {
   return (
-    <div className={styles.statCard} style={{ animationDelay: `${delay}ms` }}>
+    <div className={styles['stat-card']} style={{ animationDelay: `${delay}ms` }}>
       <div
-        className={styles.statCardIcon}
+        className={styles['stat-card-icon']}
         style={{ color, background: `${color}15` }}
       >
         <Icon size={18} strokeWidth={2} />
       </div>
-      <div className={styles.statCardContent}>
-        <div className={styles.statCardValueRow}>
-          <span className={styles.statCardValue}>{value}</span>
+      <div className={styles['stat-card-content']}>
+        <div className={styles['stat-card-value-row']}>
+          <span className={styles['stat-card-value']}>{value}</span>
           <DeltaBadge value={delta} />
         </div>
-        <span className={styles.statCardLabel}>{label}</span>
-        {sub && <span className={styles.statCardSub}>{sub}</span>}
+        <span className={styles['stat-card-label']}>{label}</span>
+        {sub && <span className={styles['stat-card-sub']}>{sub}</span>}
       </div>
     </div>
   );
@@ -166,17 +166,17 @@ function HorizontalBar({
 }) {
   const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <div className={styles.barRow}>
-      <div className={styles.barInfo}>
-        <span className={styles.barLabel}>{label}</span>
-        <span className={styles.barValue}>
+    <div className={styles['bar-row']}>
+      <div className={styles['bar-info']}>
+        <span className={styles['bar-label']}>{label}</span>
+        <span className={styles['bar-value']}>
           {formatNumber(value)}
           {suffix}
         </span>
       </div>
-      <div className={styles.barTrack}>
+      <div className={styles['bar-track']}>
         <div
-          className={styles.barFill}
+          className={styles['bar-fill']}
           style={{ width: `${percentage}%`, background: color }}
         />
       </div>
@@ -244,7 +244,7 @@ function DonutChart({
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
             transform={`rotate(-90 ${center} ${center})`}
-            className={styles.donutSegment}
+            className={styles['donut-segment']}
             style={{ animationDelay: `${i * 100}ms` }}
           />
         );
@@ -253,7 +253,7 @@ function DonutChart({
         x={center}
         y={center - 4}
         textAnchor="middle"
-        className={styles.donutCenter}
+        className={styles['donut-center']}
       >
         {formatNumber(total)}
       </text>
@@ -261,7 +261,7 @@ function DonutChart({
         x={center}
         y={center + 12}
         textAnchor="middle"
-        className={styles.donutCenterLabel}
+        className={styles['donut-center-label']}
       >
         {centerLabel}
       </text>
@@ -281,7 +281,7 @@ function SparklineChart({
   if (!series || series.length === 0) return null;
 
   return (
-    <div className={styles.sparklineStack}>
+    <div className={styles['sparkline-stack']}>
       {metrics.map((metric) => {
         const values = series.map(
           (point) => (point as unknown as Record<string, number>)[metric.key] || 0,
@@ -667,10 +667,10 @@ export default function GoogleAnalyticsComponent({
           title="Web Analytics"
           subtitle="Google Analytics (GA4) reports"
         />
-        <div className={styles.emptyState}>
-          <BarChart3 size={40} strokeWidth={1.5} className={styles.emptyIcon} />
-          <span className={styles.emptyTitle}>Analytics Error</span>
-          <span className={styles.emptyDetail}>{`Error: ${error}`}</span>
+        <div className={styles['empty-state']}>
+          <BarChart3 size={40} strokeWidth={1.5} className={styles['empty-icon']} />
+          <span className={styles['empty-title']}>Analytics Error</span>
+          <span className={styles['empty-detail']}>{`Error: ${error}`}</span>
         </div>
       </div>
     );
@@ -698,12 +698,12 @@ export default function GoogleAnalyticsComponent({
         subtitle="First-party session analytics and Google Analytics (GA4) reports"
       >
         {selectedProperty && (
-          <div className={styles.headerControls}>
-            <div className={styles.periodTabs}>
+          <div className={styles['header-controls']}>
+            <div className={styles['period-tabs']}>
               {["7d", "30d", "90d"].map((presetPeriod) => (
                 <button
                   key={presetPeriod}
-                  className={`${styles.periodTab} ${period === presetPeriod ? styles.activeTab : ""}`}
+                  className={`${styles['period-tab']} ${period === presetPeriod ? styles['active-tab'] : ""}`}
                   onClick={() => setPeriod(presetPeriod)}
                 >
                   {presetPeriod}
@@ -731,13 +731,13 @@ export default function GoogleAnalyticsComponent({
 
       {/* ── Back bar + selected property header ────────────────── */}
       {selectedProperty && properties.length > 1 && (
-        <div className={styles.backBar}>
-          <Link href="/web-analytics" className={styles.backButton}>
+        <div className={styles['back-bar']}>
+          <Link href="/web-analytics" className={styles['back-button']}>
             <ArrowLeft size={12} strokeWidth={2.2} />
             All Properties
           </Link>
-          <span className={styles.selectedLabel}>{selectedProperty.label}</span>
-          <span className={styles.selectedMeta}>
+          <span className={styles['selected-label']}>{selectedProperty.label}</span>
+          <span className={styles['selected-meta']}>
             {selectedProperty.measurementId}
           </span>
         </div>
@@ -746,21 +746,21 @@ export default function GoogleAnalyticsComponent({
       {selectedProperty && (
         <>
           {/* ── Realtime Banner ────────────────────────────────────── */}
-          <div className={styles.realtimeBanner}>
-            <div className={styles.realtimePulse}>
-              <div className={styles.realtimePulseDot} />
-              <div className={styles.realtimePulseRing} />
+          <div className={styles['realtime-banner']}>
+            <div className={styles['realtime-pulse']}>
+              <div className={styles['realtime-pulse-dot']} />
+              <div className={styles['realtime-pulse-ring']} />
             </div>
-            <div className={styles.realtimeInfo}>
-              <span className={styles.realtimeLabel}>
+            <div className={styles['realtime-info']}>
+              <span className={styles['realtime-label']}>
                 Active Users Right Now
               </span>
-              <span className={styles.realtimeCount}>
+              <span className={styles['realtime-count']}>
                 {realtime ? formatNumber(realtime.activeUsers) : "—"}
               </span>
             </div>
             {selectedProperty && (
-              <span className={styles.realtimeMeta}>
+              <span className={styles['realtime-meta']}>
                 {selectedProperty.label} · {selectedProperty.measurementId}
               </span>
             )}
@@ -776,7 +776,7 @@ export default function GoogleAnalyticsComponent({
             <>
               {/* ── Overview Cards ────────────────────────────────── */}
               {overview && (
-                <div className={styles.summaryGrid}>
+                <div className={styles['summary-grid']}>
                   <StatCard
                     icon={Users}
                     label="Total Users"
@@ -825,16 +825,16 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Sparkline Time Series ────────────────────────── */}
               {(timeSeries?.series?.length ?? 0) > 0 && (
-                <div className={styles.chartPanel}>
-                  <div className={styles.chartHeader}>
+                <div className={styles['chart-panel']}>
+                  <div className={styles['chart-header']}>
                     <TrendingUp
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.chartHeaderIcon}
+                      className={styles['chart-header-icon']}
                     />
-                    <span className={styles.chartTitle}>Daily Trends</span>
+                    <span className={styles['chart-title']}>Daily Trends</span>
                   </div>
-                  <div className={styles.chartBody}>
+                  <div className={styles['chart-body']}>
                     <SparklineChart
                       series={timeSeries!.series}
                       metrics={[
@@ -844,24 +844,24 @@ export default function GoogleAnalyticsComponent({
                       ]}
                     />
                   </div>
-                  <div className={styles.chartLegend}>
-                    <div className={styles.chartLegendItem}>
+                  <div className={styles['chart-legend']}>
+                    <div className={styles['chart-legend-item']}>
                       <div
-                        className={styles.chartLegendDot}
+                        className={styles['chart-legend-dot']}
                         style={{ background: SPARKLINE_COLORS.pageviews }}
                       />
                       Pageviews
                     </div>
-                    <div className={styles.chartLegendItem}>
+                    <div className={styles['chart-legend-item']}>
                       <div
-                        className={styles.chartLegendDot}
+                        className={styles['chart-legend-dot']}
                         style={{ background: SPARKLINE_COLORS.users }}
                       />
                       Users
                     </div>
-                    <div className={styles.chartLegendItem}>
+                    <div className={styles['chart-legend-item']}>
                       <div
-                        className={styles.chartLegendDot}
+                        className={styles['chart-legend-dot']}
                         style={{ background: SPARKLINE_COLORS.sessions }}
                       />
                       Sessions
@@ -899,26 +899,26 @@ export default function GoogleAnalyticsComponent({
               {/* ── Hourly Traffic Heatmap ────────────────────────── */}
               {heatmapData && (
                 <div className={styles.panel}>
-                  <div className={styles.panelHeader}>
+                  <div className={styles['panel-header']}>
                     <Layers
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.panelIcon}
+                      className={styles['panel-icon']}
                     />
-                    <span className={styles.panelTitle}>
+                    <span className={styles['panel-title']}>
                       Traffic by Hour &amp; Day
                     </span>
                   </div>
-                  <div className={styles.heatmapContainer}>
-                    <div className={styles.heatmapCorner} />
+                  <div className={styles['heatmap-container']}>
+                    <div className={styles['heatmap-corner']} />
                     {Array.from({ length: 24 }, (_, h) => (
-                      <div key={h} className={styles.heatmapColLabel}>
+                      <div key={h} className={styles['heatmap-col-label']}>
                         {h}
                       </div>
                     ))}
                     {heatmapData.dayOrder.map((day) => (
                       <React.Fragment key={day}>
-                        <div className={styles.heatmapRowLabel}>
+                        <div className={styles['heatmap-row-label']}>
                           {day.slice(0, 3)}
                         </div>
                         {Array.from({ length: 24 }, (_, h) => {
@@ -930,7 +930,7 @@ export default function GoogleAnalyticsComponent({
                           return (
                             <div
                               key={h}
-                              className={styles.heatmapCell}
+                              className={styles['heatmap-cell']}
                               style={{
                                 background: `rgba(99, 102, 241, ${0.06 + intensity * 0.84})`,
                               }}
@@ -945,24 +945,24 @@ export default function GoogleAnalyticsComponent({
               )}
 
               {/* ── Channel Grouping + Sources ─────────────────────── */}
-              <div className={styles.contentGrid}>
+              <div className={styles['content-grid']}>
                 {(channels?.channels?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <Layers
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>
+                      <span className={styles['panel-title']}>
                         Channel Grouping
                       </span>
-                      <span className={styles.panelMeta}>
+                      <span className={styles['panel-meta']}>
                         {channels!.channels.length} channels
                       </span>
                     </div>
-                    <div className={styles.panelBody}>
-                      <div className={styles.barList}>
+                    <div className={styles['panel-body']}>
+                      <div className={styles['bar-list']}>
                         {channels!.channels.map((channel, i) => (
                           <HorizontalBar
                             key={channel.channel}
@@ -979,19 +979,19 @@ export default function GoogleAnalyticsComponent({
 
                 {(sources?.sources?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <Link2
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>Traffic Sources</span>
-                      <span className={styles.panelMeta}>
+                      <span className={styles['panel-title']}>Traffic Sources</span>
+                      <span className={styles['panel-meta']}>
                         {sources!.sources.length} sources
                       </span>
                     </div>
-                    <div className={styles.panelBody}>
-                      <div className={styles.barList}>
+                    <div className={styles['panel-body']}>
+                      <div className={styles['bar-list']}>
                         {sources!.sources.slice(0, 10).map((s, i) => (
                           <HorizontalBar
                             key={`${s.source}-${s.medium}`}
@@ -1008,22 +1008,22 @@ export default function GoogleAnalyticsComponent({
               </div>
 
               {/* ── Geography + Events ─────────────────────────────── */}
-              <div className={styles.contentGrid}>
+              <div className={styles['content-grid']}>
                 {(geography?.locations?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <MapPin
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>Top Locations</span>
-                      <span className={styles.panelMeta}>
+                      <span className={styles['panel-title']}>Top Locations</span>
+                      <span className={styles['panel-meta']}>
                         {geography!.locations.length} locations
                       </span>
                     </div>
-                    <div className={styles.panelBody}>
-                      <div className={styles.barList}>
+                    <div className={styles['panel-body']}>
+                      <div className={styles['bar-list']}>
                         {geography!.locations.slice(0, 10).map((l, i) => (
                           <HorizontalBar
                             key={`${l.country}-${l.city}`}
@@ -1045,19 +1045,19 @@ export default function GoogleAnalyticsComponent({
 
                 {(events?.events?.length ?? 0) > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <Zap
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>Top Events</span>
-                      <span className={styles.panelMeta}>
+                      <span className={styles['panel-title']}>Top Events</span>
+                      <span className={styles['panel-meta']}>
                         {events!.events.length} events
                       </span>
                     </div>
-                    <div className={styles.panelBody}>
-                      <div className={styles.barList}>
+                    <div className={styles['panel-body']}>
+                      <div className={styles['bar-list']}>
                         {events!.events.map((e, i) => (
                           <HorizontalBar
                             key={e.eventName}
@@ -1075,27 +1075,27 @@ export default function GoogleAnalyticsComponent({
 
               {/* ── Devices + Browsers + OS ────────────────────────── */}
               {devices && (
-                <div className={styles.contentGrid}>
+                <div className={styles['content-grid']}>
                   {deviceSegments.length > 0 && (
                     <div className={styles.panel}>
-                      <div className={styles.panelHeader}>
+                      <div className={styles['panel-header']}>
                         <Monitor
                           size={15}
                           strokeWidth={2.2}
-                          className={styles.panelIcon}
+                          className={styles['panel-icon']}
                         />
-                        <span className={styles.panelTitle}>
+                        <span className={styles['panel-title']}>
                           Device Categories
                         </span>
                       </div>
-                      <div className={styles.donutWrapper}>
+                      <div className={styles['donut-wrapper']}>
                         <DonutChart
                           segments={deviceSegments}
                           size={130}
                           strokeWidth={16}
                           centerLabel="Sessions"
                         />
-                        <div className={styles.donutLegend}>
+                        <div className={styles['donut-legend']}>
                           {devices.categories.map(
                             (deviceCategory: GADeviceCategory, i: number) => (
                               <HorizontalBar
@@ -1119,22 +1119,22 @@ export default function GoogleAnalyticsComponent({
 
                   {browserSegments.length > 0 && (
                     <div className={styles.panel}>
-                      <div className={styles.panelHeader}>
+                      <div className={styles['panel-header']}>
                         <Globe
                           size={15}
                           strokeWidth={2.2}
-                          className={styles.panelIcon}
+                          className={styles['panel-icon']}
                         />
-                        <span className={styles.panelTitle}>Browsers</span>
+                        <span className={styles['panel-title']}>Browsers</span>
                       </div>
-                      <div className={styles.donutWrapper}>
+                      <div className={styles['donut-wrapper']}>
                         <DonutChart
                           segments={browserSegments}
                           size={130}
                           strokeWidth={16}
                           centerLabel="Sessions"
                         />
-                        <div className={styles.donutLegend}>
+                        <div className={styles['donut-legend']}>
                           {devices.browsers
                             .slice(0, 6)
                             .map((b: GABrowser, i: number) => (
@@ -1161,27 +1161,27 @@ export default function GoogleAnalyticsComponent({
               )}
 
               {/* ── OS + New vs Returning + Screen Resolution ──────── */}
-              <div className={styles.contentGrid}>
+              <div className={styles['content-grid']}>
                 {osSegments.length > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <Laptop
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>
+                      <span className={styles['panel-title']}>
                         Operating Systems
                       </span>
                     </div>
-                    <div className={styles.donutWrapper}>
+                    <div className={styles['donut-wrapper']}>
                       <DonutChart
                         segments={osSegments}
                         size={130}
                         strokeWidth={16}
                         centerLabel="Sessions"
                       />
-                      <div className={styles.donutLegend}>
+                      <div className={styles['donut-legend']}>
                         {devices?.operatingSystems
                           ?.slice(0, 6)
                           .map((osItem: GAOperatingSystem, i: number) => (
@@ -1207,24 +1207,24 @@ export default function GoogleAnalyticsComponent({
 
                 {nvrSegments.length > 0 && (
                   <div className={styles.panel}>
-                    <div className={styles.panelHeader}>
+                    <div className={styles['panel-header']}>
                       <RefreshCw
                         size={15}
                         strokeWidth={2.2}
-                        className={styles.panelIcon}
+                        className={styles['panel-icon']}
                       />
-                      <span className={styles.panelTitle}>
+                      <span className={styles['panel-title']}>
                         New vs Returning
                       </span>
                     </div>
-                    <div className={styles.donutWrapper}>
+                    <div className={styles['donut-wrapper']}>
                       <DonutChart
                         segments={nvrSegments}
                         size={130}
                         strokeWidth={16}
                         centerLabel="Users"
                       />
-                      <div className={styles.donutLegend}>
+                      <div className={styles['donut-legend']}>
                         {newVsReturning?.segments?.map(
                           (s: GANewVsReturningSegment, i: number) => (
                             <HorizontalBar
@@ -1256,21 +1256,21 @@ export default function GoogleAnalyticsComponent({
               {/* ── Screen Resolution ──────────────────────────────── */}
               {(devices?.screenResolutions?.length ?? 0) > 0 && (
                 <div className={styles.panel}>
-                  <div className={styles.panelHeader}>
+                  <div className={styles['panel-header']}>
                     <Ruler
                       size={15}
                       strokeWidth={2.2}
-                      className={styles.panelIcon}
+                      className={styles['panel-icon']}
                     />
-                    <span className={styles.panelTitle}>
+                    <span className={styles['panel-title']}>
                       Screen Resolutions
                     </span>
-                    <span className={styles.panelMeta}>
+                    <span className={styles['panel-meta']}>
                       {devices!.screenResolutions.length} resolutions
                     </span>
                   </div>
-                  <div className={styles.panelBody}>
-                    <div className={styles.barList}>
+                  <div className={styles['panel-body']}>
+                    <div className={styles['bar-list']}>
                       {devices!.screenResolutions.map((r, i) => (
                         <HorizontalBar
                           key={r.resolution}
