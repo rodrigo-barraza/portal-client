@@ -1052,7 +1052,7 @@ export default function ExpandedProjectPanel({
   });
 
   return (
-    <div className={styles['panel']}>
+    <div className={`expanded-project-panel-component ${styles['panel']}`}>
       {/* ── Tab Bar ── */}
       <div className={styles['tab-bar']}>
         {visibleTabs.map((tab) => {

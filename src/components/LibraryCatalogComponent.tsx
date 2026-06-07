@@ -89,7 +89,7 @@ export default function LibraryCatalogComponent({
   );
 
   return (
-    <div className={styles['catalog']}>
+    <div className={`library-catalog-component ${styles['catalog']}`}>
       <PageHeaderComponent
         sticky={false}
         title={title}

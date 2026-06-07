@@ -97,7 +97,7 @@ function PreviewStack({
   gap?: number;
 }) {
   return (
-    <div className={styles['preview-stack']} style={{ gap }}>
+    <div className={`component-preview-registry-component ${styles['preview-stack']}`} style={{ gap }}>
       {children}
     </div>
   );

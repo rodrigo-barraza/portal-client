@@ -289,7 +289,7 @@ function ContainerRow({
 
   return (
     <div
-      className={`${styles['service-row']} ${isRunning ? styles['healthy'] : styles['unhealthy']}`}
+      className={`devices-component ${styles['service-row']} ${isRunning ? styles['healthy'] : styles['unhealthy']}`}
     >
       <div className={styles['service-left']}>
         <StatusDotComponent

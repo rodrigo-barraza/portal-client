@@ -1607,7 +1607,7 @@ function PreviewOverlay({
   }, [onClose]);
 
   return (
-    <div className={styles['preview-overlay']} onClick={onClose}>
+    <div className={`storage-component ${styles['preview-overlay']}`} onClick={onClose}>
       <div className={styles['preview-panel']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['preview-header']}>
           <span className={styles['preview-title']}>{filename}</span>

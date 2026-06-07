@@ -173,7 +173,7 @@ export default function ComponentsComponent({
   const totalSize = components.reduce((sum, c) => sum + c.sizeKb, 0);
 
   return (
-    <div className={styles['components']}>
+    <div className={`components-component ${styles['components']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Components"

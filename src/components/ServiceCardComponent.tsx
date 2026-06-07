@@ -178,7 +178,7 @@ export default function ServiceCardComponent({
   }, [service.id, service.restartable]);
 
   return (
-    <div className={`${styles['card']} ${statusClass}`}>
+    <div className={`service-card-component ${styles['card']} ${statusClass}`}>
       <div className={styles['card-header']}>
         <div className={styles['name-row']}>
           <TypeIcon

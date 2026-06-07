@@ -199,7 +199,7 @@ export default function PropertyListingComponent({
   return (
     <>
       {/* ── Toolbar ── */}
-      <div className={styles['toolbar']}>
+      <div className={`property-listing-component ${styles['toolbar']}`}>
         <div className={styles['toolbar-label']}>
           <span>View</span>
         </div>

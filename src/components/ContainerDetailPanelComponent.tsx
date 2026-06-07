@@ -179,7 +179,7 @@ export default function ContainerDetailPanel({
   const uptime = uptimeMatch ? uptimeMatch[1].trim() : null;
 
   return (
-    <div className={styles['panel']}>
+    <div className={`container-detail-panel-component ${styles['panel']}`}>
       {/* ── Identity & Status ── */}
       <div className={styles['section']}>
         <h4 className={styles['section-title']}>Status</h4>

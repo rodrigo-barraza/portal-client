@@ -426,6 +426,7 @@ export default function ProjectTableComponent({
   return (
     <>
       <TableComponent
+        className="project-table-component"
         title={title}
         subtitle={subtitle}
         columns={columns}

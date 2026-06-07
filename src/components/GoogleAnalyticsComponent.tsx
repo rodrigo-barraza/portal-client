@@ -691,7 +691,7 @@ export default function GoogleAnalyticsComponent({
   }
 
   return (
-    <div className={styles['dashboard']}>
+    <div className={`google-analytics-component ${styles['dashboard']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Web Analytics"

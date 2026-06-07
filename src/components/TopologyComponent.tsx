@@ -1148,7 +1148,7 @@ export default function TopologyComponent() {
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div className={styles['topology']}>
+    <div className={`topology-component ${styles['topology']}`}>
       {/* Header */}
       <div className={styles['header']}>
         <div className={styles['header-inner']}>

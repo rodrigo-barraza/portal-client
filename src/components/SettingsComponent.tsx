@@ -139,7 +139,7 @@ export default function SettingsComponent() {
   }, []);
 
   return (
-    <div className={styles['settings']}>
+    <div className={`settings-component ${styles['settings']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Settings"

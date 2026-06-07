@@ -375,7 +375,7 @@ export default function SessionAnalyticsComponent({
   // ── Render ────────────────────────────────────────────────
 
   return (
-    <div className={styles['dashboard']}>
+    <div className={`session-analytics-component ${styles['dashboard']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Session Analytics"

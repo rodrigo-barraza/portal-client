@@ -90,7 +90,7 @@ export default function WorkspaceSettingsSectionComponent() {
   const downloadUrl = ApiService.getWorkspaceAgentDownloadUrl();
 
   return (
-    <div className={styles["workspace-section-content"]}>
+    <div className={`workspace-settings-section-component ${styles["workspace-section-content"]}`}>
       {/* ── Explainer Banner ── */}
       <div className={styles["explainer-banner"]}>
         <div className={styles["explainer-icon-container"]}>

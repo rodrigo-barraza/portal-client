@@ -1056,7 +1056,7 @@ export default function SessionExplorerComponent({
   // ══════════════════════════════════════════════════════════
 
   return (
-    <div className={styles['explorer']}>
+    <div className={`session-explorer-component ${styles['explorer']}`}>
       {/* ── Controls Section ── */}
       <section className={styles["controls-container"]}>
         {/* ── Tab Bar Navigation ── */}

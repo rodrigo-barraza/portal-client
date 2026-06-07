@@ -606,7 +606,7 @@ export default function LogsComponent() {
   const activeContainerName = activeContainer || "";
 
   return (
-    <div className={styles['logs']}>
+    <div className={`logs-component ${styles['logs']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Logs"

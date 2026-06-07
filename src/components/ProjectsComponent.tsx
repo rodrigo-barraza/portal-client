@@ -294,7 +294,7 @@ export default function ProjectsComponent() {
   );
 
   return (
-    <div className={styles['services']}>
+    <div className={`projects-component ${styles['services']}`}>
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
         <div className={styles['sort-bar']}>

@@ -1002,7 +1002,7 @@ export default function ContainerStatsComponent() {
   }
 
   return (
-    <div className={styles['section']}>
+    <div className={`container-stats-component ${styles['section']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Containers"

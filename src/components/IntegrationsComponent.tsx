@@ -182,7 +182,7 @@ export default function IntegrationsComponent() {
     .filter((cat: IntegrationCategory) => cat.integrations.length > 0);
 
   return (
-    <div className={styles['integrations']}>
+    <div className={`integrations-component ${styles['integrations']}`}>
       <PageHeaderComponent
         sticky={false}
         title="Integrations"
