@@ -12,11 +12,19 @@ import {
   X,
   RotateCw,
   ChevronDown,
+  Check,
+  Cpu,
+  MemoryStick,
+  Globe,
 } from "lucide-react";
 import {
   PageHeaderComponent,
   SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
+import {
+  formatBytes,
+  formatPercent,
+} from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import styles from "./LogsComponent.module.css";
@@ -26,6 +34,7 @@ const MAX_LINES = 5000;
 const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
 
 // ── ANSI escape-code → React span parser ──────────────────────
+// eslint-disable-next-line no-control-regex
 const ANSI_RE = /\x1b\[([0-9;]*)m/g;
 
 const ANSI_COLORS = [
@@ -72,6 +81,7 @@ function ansi256ToHex(n: number) {
  * Strip ANSI escape codes from a string.
  */
 function stripAnsi(text: string) {
+  // eslint-disable-next-line no-control-regex
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
@@ -206,7 +216,7 @@ function parseAnsi(text: string) {
           ? style.textDecoration + " line-through"
           : "line-through";
       parts.push(
-        <span key={key++} style={style}>
+        <span key={key} style={style}>
           {chunk}
         </span>,
       );
@@ -262,6 +272,15 @@ function parseLine(raw: string) {
   return { timestamp: null, content: raw, level: detectLevel(raw) };
 }
 
+function getSeverityState(
+  percentage: number,
+  thresholds: [number, number] = [40, 80],
+): string {
+  if (percentage > thresholds[1]) return styles['state-danger'];
+  if (percentage > thresholds[0]) return styles['state-warning'];
+  return styles['state-success'];
+}
+
 interface LogLine {
   timestamp: string | null;
   content: string;
@@ -290,6 +309,7 @@ export default function LogsComponent() {
   const [restarting, setRestarting] = useState(false);
   const [containerDropdownOpen, setContainerDropdownOpen] = useState(false);
   const [containerSearchQuery, setContainerSearchQuery] = useState("");
+  const [activeContainerStatistics, setActiveContainerStatistics] = useState<any | null>(null);
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -312,6 +332,35 @@ export default function LogsComponent() {
       })
       .catch((error) => console.error("Failed to fetch containers:", error));
   }, []);
+
+  // ── Poll statistics for the active container ─────────────────
+  useEffect(() => {
+    if (!activeContainer || !activeDevice) {
+      setActiveContainerStatistics(null);
+      return;
+    }
+
+    const fetchContainerStatistics = async () => {
+      try {
+        const containerStatisticsResponse = await ApiService.getContainerStats(activeDevice);
+        const matchedContainerStatistics = containerStatisticsResponse?.containers?.find(
+          (container: any) => container.name === activeContainer,
+        );
+        if (matchedContainerStatistics) {
+          setActiveContainerStatistics(matchedContainerStatistics);
+        }
+      } catch (error) {
+        console.error("Failed to fetch container statistics:", error);
+      }
+    };
+
+    fetchContainerStatistics();
+    const statisticsPollingInterval = setInterval(fetchContainerStatistics, 5000);
+
+    return () => {
+      clearInterval(statisticsPollingInterval);
+    };
+  }, [activeContainer, activeDevice]);
 
   // ── Auto-scroll to bottom ────────────────────────────────────
   useEffect(() => {
@@ -726,7 +775,106 @@ export default function LogsComponent() {
 
       {/* ── Terminal Viewer ── */}
       {activeContainer ? (
-        <div className={styles['terminal']} data-theme="dark">
+        <>
+          {/* ── Container Statistics Panel ── */}
+          {activeContainerStatistics && (
+            <div className={styles['container-statistics-panel']}>
+              {/* Status Card */}
+              <div className={styles['statistics-card']}>
+                <div
+                  className={`${styles['statistics-card-icon']} ${
+                    activeContainerStatistics.state === "running"
+                      ? styles['state-success']
+                      : styles['state-danger']
+                  }`}
+                >
+                  {activeContainerStatistics.state === "running" ? (
+                    <Check size={16} strokeWidth={2.5} />
+                  ) : (
+                    <X size={16} strokeWidth={2.5} />
+                  )}
+                </div>
+                <div className={styles['statistics-card-content']}>
+                  <span className={styles['statistics-card-value']}>
+                    {activeContainerStatistics.state || "unknown"}
+                  </span>
+                  <span className={styles['statistics-card-label']}>Status</span>
+                  <span
+                    className={styles['statistics-card-description']}
+                    title={activeContainerStatistics.status || ""}
+                  >
+                    {activeContainerStatistics.status || "No status"}
+                  </span>
+                </div>
+              </div>
+
+              {/* CPU Usage Card */}
+              <div className={styles['statistics-card']}>
+                <div
+                  className={`${styles['statistics-card-icon']} ${getSeverityState(
+                    activeContainerStatistics.cpu?.percent || 0,
+                  )}`}
+                >
+                  <Cpu size={16} strokeWidth={2.5} />
+                </div>
+                <div className={styles['statistics-card-content']}>
+                  <span className={styles['statistics-card-value']}>
+                    {formatPercent(activeContainerStatistics.cpu?.percent || 0, "adaptive")}
+                  </span>
+                  <span className={styles['statistics-card-label']}>CPU Usage</span>
+                  <span className={styles['statistics-card-description']}>
+                    {activeContainerStatistics.cpu?.cores || 0} core
+                    {activeContainerStatistics.cpu?.cores !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+
+              {/* Memory Card */}
+              <div className={styles['statistics-card']}>
+                <div
+                  className={`${styles['statistics-card-icon']} ${getSeverityState(
+                    activeContainerStatistics.memory?.percent || 0,
+                    [60, 85],
+                  )}`}
+                >
+                  <MemoryStick size={16} strokeWidth={2.5} />
+                </div>
+                <div className={styles['statistics-card-content']}>
+                  <span className={styles['statistics-card-value']}>
+                    {formatBytes(activeContainerStatistics.memory?.used || 0)}
+                  </span>
+                  <span className={styles['statistics-card-label']}>Memory Used</span>
+                  <span className={styles['statistics-card-description']}>
+                    {activeContainerStatistics.memory?.limit
+                      ? `Limit: ${formatBytes(activeContainerStatistics.memory.limit)}`
+                      : "No limit"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Network I/O Card */}
+              <div className={styles['statistics-card']}>
+                <div className={`${styles['statistics-card-icon']} ${styles['state-accent']}`}>
+                  <Globe size={16} strokeWidth={2.5} />
+                </div>
+                <div className={styles['statistics-card-content']}>
+                  <span className={styles['statistics-card-value']}>
+                    {formatBytes(
+                      (activeContainerStatistics.network?.rx || 0) +
+                        (activeContainerStatistics.network?.tx || 0),
+                    )}
+                  </span>
+                  <span className={styles['statistics-card-label']}>Network I/O</span>
+                  <span className={styles['statistics-card-description']}>
+                    ↓ {formatBytes(activeContainerStatistics.network?.rx || 0)} · ↑{" "}
+                    {formatBytes(activeContainerStatistics.network?.tx || 0)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={styles['terminal']} data-theme="dark">
           {/* Header */}
           <div className={styles['terminal-header']}>
             <div className={styles['terminal-title']}>
@@ -864,6 +1012,7 @@ export default function LogsComponent() {
             </div>
           )}
         </div>
+      </>
       ) : (
         <div className={styles['empty-terminal']} data-theme="dark">
           <ScrollText size={40} strokeWidth={1} />

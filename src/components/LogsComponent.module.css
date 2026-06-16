@@ -653,3 +653,110 @@
     display: none;
   }
 }
+
+/* ── Container Statistics Panel ── */
+
+.container-statistics-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  animation: fade-in var(--transition-normal) ease-out;
+}
+
+@media (max-width: 1200px) {
+  .container-statistics-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .container-statistics-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statistics-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.statistics-card:hover {
+  border-color: var(--calculated-border-subtle);
+}
+
+.statistics-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+}
+
+/* Icon States using oklch() */
+.state-success {
+  color: var(--color-success);
+  background: oklch(0.723 0.191 142 / 0.08);
+}
+
+.state-warning {
+  color: var(--color-warning);
+  background: oklch(0.837 0.164 84 / 0.08);
+}
+
+.state-danger {
+  color: var(--color-danger);
+  background: oklch(0.628 0.258 29 / 0.08);
+}
+
+.state-neutral {
+  color: var(--text-secondary);
+  background: oklch(1 0 0 / 0.04);
+}
+
+.state-accent {
+  color: var(--accent-primary);
+  background: oklch(0.585 0.204 277 / 0.08);
+}
+
+.statistics-card-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.statistics-card-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.statistics-card-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1px;
+}
+
+.statistics-card-description {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
