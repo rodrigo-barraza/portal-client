@@ -22,8 +22,8 @@ import {
   formatDuration,
   formatElapsedTime,
   formatPercent,
-  ACTION_COOLDOWN_MS,
-  ACTION_COOLDOWN_LONG_MS,
+  ACTION_COOLDOWN_MILLISECONDS,
+  ACTION_COOLDOWN_LONG_MILLISECONDS,
 } from "@rodrigo-barraza/utilities-library";
 import {
   SERVICE_TYPE_ICONS,
@@ -206,7 +206,7 @@ export default function ServiceCardComponent({
                   try {
                     await onStop?.(service.id);
                   } finally {
-                    setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
+                    setTimeout(() => setStopping(false), ACTION_COOLDOWN_MILLISECONDS);
                   }
                 }}
                 className={`${styles['action-button']} ${styles['stop-button']}`}
@@ -225,7 +225,7 @@ export default function ServiceCardComponent({
                   try {
                     await onStart?.(service.id);
                   } finally {
-                    setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
+                    setTimeout(() => setStarting(false), ACTION_COOLDOWN_MILLISECONDS);
                   }
                 }}
                 className={`${styles['action-button']} ${styles['start-button']}`}
@@ -256,7 +256,7 @@ export default function ServiceCardComponent({
                   } finally {
                     setTimeout(
                       () => setRollingBack(false),
-                      ACTION_COOLDOWN_LONG_MS,
+                      ACTION_COOLDOWN_LONG_MILLISECONDS,
                     );
                   }
                 }}
@@ -277,7 +277,7 @@ export default function ServiceCardComponent({
                 try {
                   await onRestart?.(service.id);
                 } finally {
-                  setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
+                  setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MILLISECONDS);
                 }
               }}
               className={`${styles['action-button']} ${styles['restart-button']}`}

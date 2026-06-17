@@ -36,9 +36,9 @@ import {
   formatDuration,
   formatPercent,
   getRootDomain,
-  ACTION_COOLDOWN_MS,
-  ACTION_COOLDOWN_LONG_MS,
-  HIGHLIGHT_DURATION_MS,
+  ACTION_COOLDOWN_MILLISECONDS,
+  ACTION_COOLDOWN_LONG_MILLISECONDS,
+  HIGHLIGHT_DURATION_MILLISECONDS,
 } from "@rodrigo-barraza/utilities-library";
 import type {
   ContainerRow,
@@ -120,7 +120,7 @@ function ActionCell({
               try {
                 await onStop?.(service.id, service);
               } finally {
-                setTimeout(() => setStopping(false), ACTION_COOLDOWN_MS);
+                setTimeout(() => setStopping(false), ACTION_COOLDOWN_MILLISECONDS);
               }
             })();
           }}
@@ -142,7 +142,7 @@ function ActionCell({
               try {
                 await onStart?.(service.id, service);
               } finally {
-                setTimeout(() => setStarting(false), ACTION_COOLDOWN_MS);
+                setTimeout(() => setStarting(false), ACTION_COOLDOWN_MILLISECONDS);
               }
             })();
           }}
@@ -177,7 +177,7 @@ function ActionCell({
               try {
                 await onRollback?.(service.id, service);
               } finally {
-                setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MS);
+                setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MILLISECONDS);
               }
             })();
           }}
@@ -200,7 +200,7 @@ function ActionCell({
             try {
               await onRestart?.(service.id, service);
             } finally {
-              setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MS);
+              setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MILLISECONDS);
             }
           })();
         }}
@@ -775,7 +775,7 @@ export default function ContainerStatsComponent() {
       } else {
         await ApiService.restartContainer(row.containerName, row.device || "");
       }
-      setTimeout(fetchData, ACTION_COOLDOWN_MS);
+      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
     } catch (error) {
       console.error("Restart failed:", error);
     }
@@ -788,7 +788,7 @@ export default function ContainerStatsComponent() {
       } else {
         await ApiService.stopContainer(row.containerName, row.device || "");
       }
-      setTimeout(fetchData, ACTION_COOLDOWN_MS);
+      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
     } catch (error) {
       console.error("Stop failed:", error);
     }
@@ -801,7 +801,7 @@ export default function ContainerStatsComponent() {
       } else {
         await ApiService.startContainer(row.containerName, row.device || "");
       }
-      setTimeout(fetchData, ACTION_COOLDOWN_MS);
+      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
     } catch (error) {
       console.error("Start failed:", error);
     }
@@ -810,11 +810,11 @@ export default function ContainerStatsComponent() {
   const handleRollback = async (serviceId: string) => {
     try {
       await ApiService.rollbackService(serviceId);
-      setTimeout(fetchData, ACTION_COOLDOWN_MS);
+      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
       // Refresh rollback availability
       setTimeout(
         () => checkRollbackAvailability(containerRows),
-        HIGHLIGHT_DURATION_MS,
+        HIGHLIGHT_DURATION_MILLISECONDS,
       );
     } catch (error) {
       console.error("Rollback failed:", error);
