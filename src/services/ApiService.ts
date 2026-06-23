@@ -772,4 +772,32 @@ export default class ApiService {
   static getWorkspaceAgentDownloadUrl() {
     return `${PORTAL_SERVICE_URL}/workspaces/download/agent`;
   }
+
+  // ── Cloud Usage (Google Cloud Monitoring) ───────────────────
+
+  /**
+   * Get aggregated usage summary for all tracked Google Cloud APIs.
+   */
+  static async getCloudUsageSummary(period = "30d") {
+    return ApiService._request(`/cloud-usage?period=${period}`);
+  }
+
+  /**
+   * Get daily time-series for a specific Google Cloud API service.
+   */
+  static async getCloudUsageTimeSeries(
+    serviceIdentifier: string,
+    period = "30d",
+  ) {
+    return ApiService._request(
+      `/cloud-usage/timeseries?service=${encodeURIComponent(serviceIdentifier)}&period=${period}`,
+    );
+  }
+
+  /**
+   * Get the static list of tracked Google Cloud API definitions.
+   */
+  static async getCloudUsageApis() {
+    return ApiService._request("/cloud-usage/apis");
+  }
 }

@@ -66,6 +66,12 @@ export const NAV_SECTIONS = [
         icon: "KeyRound",
       },
       { id: "providers", label: "Providers", href: "/providers", icon: "Plug" },
+      {
+        id: "cloud-usage",
+        label: "Cloud Usage",
+        href: "/cloud-usage",
+        icon: "BarChart3",
+      },
     ],
   },
   {

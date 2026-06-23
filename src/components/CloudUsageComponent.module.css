@@ -1,0 +1,380 @@
+/* ─── Cloud Usage Component ─────────────────────────────────── */
+
+/* ── Summary Header ─────────────────────────────────────────── */
+
+.summary-header-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-block-end: 2rem;
+}
+
+.summary-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  background: var(--surface-raised, oklch(0.2 0 0 / 0.5));
+  border: 1px solid var(--border-subtle, oklch(1 0 0 / 0.06));
+  min-inline-size: 140px;
+}
+
+.summary-stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, oklch(0.65 0 0));
+}
+
+.summary-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary, oklch(0.95 0 0));
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-stat-value-accent {
+  composes: summary-stat-value;
+  color: oklch(0.7 0.15 250);
+}
+
+.summary-stat-value-error {
+  composes: summary-stat-value;
+  color: oklch(0.65 0.2 25);
+}
+
+/* ── Period Selector ────────────────────────────────────────── */
+
+.period-selector-container {
+  margin-inline-start: auto;
+}
+
+/* ── API Cards Grid ─────────────────────────────────────────── */
+
+.api-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+}
+
+/* ── Individual API Card ────────────────────────────────────── */
+
+.api-card-container {
+  position: relative;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: var(--surface-raised, oklch(0.15 0 0));
+  border: 1px solid var(--border-subtle, oklch(1 0 0 / 0.06));
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    translate 0.2s ease,
+    box-shadow 0.2s ease;
+  overflow: hidden;
+
+  &:hover {
+    border-color: oklch(0.6 0.12 250 / 0.4);
+    translate: 0 -2px;
+    box-shadow: 0 8px 24px oklch(0 0 0 / 0.15);
+  }
+
+  &.is-expanded-state {
+    border-color: oklch(0.6 0.12 250 / 0.3);
+  }
+}
+
+.api-card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-end: 1rem;
+}
+
+.api-card-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 10px;
+  background: oklch(0.6 0.12 250 / 0.12);
+  color: oklch(0.7 0.15 250);
+  flex-shrink: 0;
+}
+
+.api-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.api-card-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, oklch(0.95 0 0));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.api-card-category-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, oklch(0.55 0 0));
+}
+
+.api-card-expand-indicator {
+  margin-inline-start: auto;
+  color: var(--text-muted, oklch(0.45 0 0));
+  transition: rotate 0.25s ease;
+  flex-shrink: 0;
+
+  &.is-expanded-state {
+    rotate: 180deg;
+  }
+}
+
+/* ── Metrics Row ────────────────────────────────────────────── */
+
+.api-card-metrics-row {
+  display: flex;
+  gap: 1.25rem;
+  margin-block-end: 0.75rem;
+}
+
+.metric-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.metric-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, oklch(0.55 0 0));
+}
+
+.metric-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary, oklch(0.95 0 0));
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value-success {
+  composes: metric-value;
+  color: oklch(0.72 0.18 155);
+}
+
+.metric-value-error {
+  composes: metric-value;
+  color: oklch(0.65 0.2 25);
+}
+
+/* ── Success/Error Bar ──────────────────────────────────────── */
+
+.success-error-bar-container {
+  display: flex;
+  block-size: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-inset, oklch(0 0 0 / 0.2));
+  margin-block-end: 0.75rem;
+}
+
+.success-bar-segment {
+  background: oklch(0.72 0.18 155);
+  transition: inline-size 0.4s ease;
+}
+
+.error-bar-segment {
+  background: oklch(0.65 0.2 25);
+  transition: inline-size 0.4s ease;
+}
+
+/* ── Sparkline Container ────────────────────────────────────── */
+
+.sparkline-container {
+  block-size: 48px;
+  margin-block-end: 0.5rem;
+}
+
+.sparkline-svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.sparkline-area-path {
+  fill: oklch(0.6 0.12 250 / 0.08);
+}
+
+.sparkline-line-path {
+  fill: none;
+  stroke: oklch(0.7 0.15 250);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Card Footer ────────────────────────────────────────────── */
+
+.api-card-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.consumer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  background: oklch(0.5 0.1 250 / 0.1);
+  color: oklch(0.65 0.1 250);
+}
+
+.docs-link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted, oklch(0.55 0 0));
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: oklch(0.7 0.15 250);
+  }
+}
+
+/* ── Expanded Detail Panel ──────────────────────────────────── */
+
+.expanded-detail-panel {
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--border-subtle, oklch(1 0 0 / 0.06));
+  animation: detail-panel-slide-in 0.3s ease forwards;
+}
+
+@keyframes detail-panel-slide-in {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.detail-chart-container {
+  block-size: 200px;
+  margin-block-end: 1rem;
+}
+
+.detail-chart-svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.detail-chart-success-area {
+  fill: oklch(0.72 0.18 155 / 0.08);
+}
+
+.detail-chart-success-line {
+  fill: none;
+  stroke: oklch(0.72 0.18 155);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.detail-chart-error-area {
+  fill: oklch(0.65 0.2 25 / 0.08);
+}
+
+.detail-chart-error-line {
+  fill: none;
+  stroke: oklch(0.65 0.2 25);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.detail-chart-grid-line {
+  stroke: var(--border-subtle, oklch(1 0 0 / 0.04));
+  stroke-width: 1;
+}
+
+.detail-chart-axis-label {
+  fill: var(--text-muted, oklch(0.45 0 0));
+  font-size: 10px;
+  font-family: inherit;
+}
+
+/* ── Empty State ────────────────────────────────────────────── */
+
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-state-icon {
+  color: var(--text-muted, oklch(0.45 0 0));
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-secondary, oklch(0.7 0 0));
+}
+
+.empty-state-description {
+  font-size: 0.875rem;
+  color: var(--text-muted, oklch(0.55 0 0));
+  max-inline-size: 40ch;
+}
+
+/* ── Loading Overlay ────────────────────────────────────────── */
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .api-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-header-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .period-selector-container {
+    margin-inline-start: 0;
+  }
+}
