@@ -242,7 +242,7 @@
   color: oklch(0.65 0.1 250);
 }
 
-.docs-link-button {
+.documentation-link-button {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;

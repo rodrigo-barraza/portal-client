@@ -32,7 +32,7 @@ interface ApiUsageSummary {
   displayName: string;
   category: string;
   consumer: string;
-  docsUrl: string;
+  documentationUrl: string;
   totalRequests: number;
   successRequests: number;
   errorRequests: number;
@@ -610,10 +610,10 @@ export default function CloudUsageComponent() {
                 </BadgeComponent>
 
                 <a
-                  href={apiService.docsUrl}
+                  href={apiService.documentationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={styles["docs-link-button"]}
+                  className={styles["documentation-link-button"]}
                   onClick={(event) => event.stopPropagation()}
                 >
                   <ExternalLink size={11} />

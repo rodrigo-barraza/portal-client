@@ -793,11 +793,4 @@ export default class ApiService {
       `/cloud-usage/timeseries?service=${encodeURIComponent(serviceIdentifier)}&period=${period}`,
     );
   }
-
-  /**
-   * Get the static list of tracked Google Cloud API definitions.
-   */
-  static async getCloudUsageApis() {
-    return ApiService._request("/cloud-usage/apis");
-  }
 }
