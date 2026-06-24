@@ -198,9 +198,8 @@ export default function SettingsComponent() {
                       setTheme(selectedValue);
                     }}
                     options={[
-                      { value: "dark", label: "Dark" },
-                      { value: "light", label: "Daylight" },
                       { value: "twilight", label: "Twilight" },
+                      { value: "light", label: "Daylight" },
                       { value: "muted", label: "Overcast" },
                       { value: "tropical", label: "Tropical" },
                       { value: "oceanic", label: "Oceanic" },
@@ -209,6 +208,7 @@ export default function SettingsComponent() {
                       { value: "arctic", label: "Arctic" },
                       { value: "forest", label: "Forest" },
                       { value: "mono", label: "Mono" },
+                      { value: "regal", label: "Regal" },
                     ]}
                   />
                 </div>

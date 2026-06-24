@@ -874,7 +874,7 @@ export default function LogsComponent() {
             </div>
           )}
 
-          <div className={styles['terminal']} data-theme="dark">
+          <div className={styles['terminal']} data-theme="twilight">
           {/* Header */}
           <div className={styles['terminal-header']}>
             <div className={styles['terminal-title']}>
@@ -1014,7 +1014,7 @@ export default function LogsComponent() {
         </div>
       </>
       ) : (
-        <div className={styles['empty-terminal']} data-theme="dark">
+        <div className={styles['empty-terminal']} data-theme="twilight">
           <ScrollText size={40} strokeWidth={1} />
           <span>Select a container to start streaming logs</span>
         </div>
