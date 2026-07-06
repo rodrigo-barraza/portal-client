@@ -1225,6 +1225,7 @@ export default function ContainerStatsComponent() {
           onRowClick={(row: ContainerRow) => setSelectedContainer(row)}
           activeRowKey={selectedContainer?.id}
           storageKey="container-table"
+          sortPinBottom={(row: ContainerRow) => !row.healthy}
         />
       ) : (
         /* ── Cards Grid View ────────────────────────────────────── */
