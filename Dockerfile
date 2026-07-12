@@ -40,6 +40,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 ENV HOSTNAME=0.0.0.0
+ENV AUTH_URL=https://portal.rod.dev
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
