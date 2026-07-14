@@ -168,7 +168,7 @@ function ActionCell({
           iconSize={9}
           loading={rollingBack}
           disabled={rollingBack || restarting || stopping || starting}
-          title="Rollback to previousStateious build"
+          title="Rollback to previous build"
           className={styles['action-button']}
           onClick={(event: React.MouseEvent<HTMLElement>) => {
             event.stopPropagation();

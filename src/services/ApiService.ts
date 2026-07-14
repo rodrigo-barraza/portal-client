@@ -9,6 +9,11 @@ import type { BucketStreamEvent } from "../types/portal";
 
 const request = createApiClient(PORTAL_SERVICE_URL, { noCache: true });
 
+/** Encode an object key for use in a URL path, preserving `/` separators. */
+function encodeObjectPath(objectName: string) {
+  return objectName.split("/").map(encodeURIComponent).join("/");
+}
+
 export default class ApiService {
   /**
    * Shared fetch helper — delegates to components-library.
@@ -336,15 +341,19 @@ export default class ApiService {
     });
 
     es.addEventListener("error", (e: Event) => {
-      // EventSource fires a generic error on close — only report if we have data
+      // Fired both for server-sent `event: error` (has data) and for
+      // connection failures (no data). Either way the stream is over —
+      // always notify so the UI doesn't hang in its loading state.
       const me = e as MessageEvent;
+      let message = "Connection to bucket stream lost";
       if (me.data) {
         try {
-          onEvent({ type: "error", ...JSON.parse(me.data) });
+          message = JSON.parse(me.data).message || message;
         } catch {
-          onEvent({ type: "error", message: "Stream error" });
+          // fall through with the generic message
         }
       }
+      onEvent({ type: "error", message });
       es.close();
     });
 
@@ -378,7 +387,7 @@ export default class ApiService {
    */
   static async statStorageObject(bucketName: string, objectName: string) {
     return ApiService._request(
-      `/object-store/buckets/${bucketName}/stat/${objectName}`,
+      `/object-store/buckets/${encodeURIComponent(bucketName)}/stat/${encodeObjectPath(objectName)}`,
     );
   }
 
@@ -393,7 +402,7 @@ export default class ApiService {
     { inline = false }: { inline?: boolean } = {},
   ) {
     const queryString = inline ? "?inline=true" : "";
-    return `${PORTAL_SERVICE_URL}/object-store/buckets/${bucketName}/download/${objectName}${queryString}`;
+    return `${PORTAL_SERVICE_URL}/object-store/buckets/${encodeURIComponent(bucketName)}/download/${encodeObjectPath(objectName)}${queryString}`;
   }
 
   /**
@@ -403,7 +412,7 @@ export default class ApiService {
    */
   static async deleteStorageObject(bucketName: string, objectName: string) {
     return ApiService._request(
-      `/object-store/buckets/${bucketName}/${objectName}`,
+      `/object-store/buckets/${encodeURIComponent(bucketName)}/${encodeObjectPath(objectName)}`,
       { method: "DELETE" },
     );
   }

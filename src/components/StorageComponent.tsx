@@ -316,10 +316,10 @@ export default function StorageComponent() {
   const globalSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Preview state
-  const [previousStateiewObject, setPreviewObject] = useState<StorageObject | null>(
+  const [previewObject, setPreviewObject] = useState<StorageObject | null>(
     null,
   );
-  const [previousStateiewStat, setPreviewStat] = useState<StorageObject | null>(null);
+  const [previewStat, setPreviewStat] = useState<StorageObject | null>(null);
 
   // Storage overview state
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -384,7 +384,10 @@ export default function StorageComponent() {
     didFetch.current = true;
     streamBuckets();
     loadOverviewData();
-    return () => streamRef.current?.close();
+    return () => {
+      streamRef.current?.close();
+      if (globalSearchTimerRef.current) clearTimeout(globalSearchTimerRef.current);
+    };
   }, [streamBuckets, loadOverviewData]);
 
   // ── Object listing ───────────────────────────────────────────
@@ -1071,11 +1074,11 @@ export default function StorageComponent() {
         ))}
 
       {/* ── Preview Overlay ── */}
-      {previousStateiewObject && (
+      {previewObject && (
         <PreviewOverlay
           bucketName={activeBucket!}
-          object={previousStateiewObject}
-          stat={previousStateiewStat}
+          object={previewObject}
+          stat={previewStat}
           onClose={closePreview}
         />
       )}
@@ -1628,12 +1631,18 @@ function PreviewOverlay({
             <audio className={styles['preview-audio']} controls src={downloadUrl} />
           )}
           {mediaType === "video" && (
-            <video className={styles['preview-video']} controls src={downloadUrl} />
+            <video
+              className={styles['preview-video']}
+              controls
+              playsInline
+              preload="metadata"
+              src={downloadUrl}
+            />
           )}
           {!mediaType && (
             <div className={styles['preview-fallback']}>
               <File size={48} />
-              <span>No previousStateiew available for this file type</span>
+              <span>No preview available for this file type</span>
             </div>
           )}
 
