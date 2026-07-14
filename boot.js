@@ -1,16 +1,20 @@
 // ============================================================
-// Portal Client — Standalone Boot Script
+// Client — Standalone Boot Script
 // ============================================================
-// Bootstraps secrets from Vault into process.env before
-// starting the Next.js standalone server.
+// CANONICAL COPY: deploy-kit/templates/client-boot.js
+// deploy-kit/lib.sh syncs this file into each client repo as
+// boot.js before every Docker build — edit it HERE, not in the
+// client repos.
 //
-// In standalone mode, next.config.mjs does NOT run at startup,
-// so runtime secrets (like auth credentials) must be fetched
-// here. Uses only Node.js built-ins — no external dependencies.
+// Bootstraps secrets from Vault into process.env before
+// starting the Next.js standalone server. In standalone mode,
+// next.config does NOT run at startup, so runtime secrets
+// (service URLs, auth credentials) must be fetched here.
+// Uses only Node.js built-ins — no external dependencies.
 //
 // Required env vars (from .env.deploy → Docker .env):
 //   VAULT_SERVICE_URL    — e.g. http://192.168.86.2:5599
-//   VAULT_SERVICE_TOKEN  — bearer token for vault auth
+//   VAULT_SERVICE_TOKEN  — bearer token for the vault service
 // ============================================================
 
 const VAULT_URL = process.env.VAULT_SERVICE_URL;
@@ -34,7 +38,6 @@ async function fetchVaultSecrets(attempt = 1) {
     let injected = 0;
 
     for (const [key, value] of Object.entries(secrets)) {
-      // Don't overwrite values already set by Docker env / .env
       if (process.env[key] === undefined || process.env[key] === "") {
         process.env[key] = value;
         injected++;
