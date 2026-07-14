@@ -766,22 +766,6 @@ export default class ApiService {
     );
   }
 
-  // ── Workspaces ──────────────────────────────────────────────
-
-  /**
-   * Fetch connected workspace agents.
-   */
-  static async getWorkspaceAgents() {
-    return ApiService._request("/workspaces/agents");
-  }
-
-  /**
-   * Get the download URL for the workspace agent file.
-   */
-  static getWorkspaceAgentDownloadUrl() {
-    return `${PORTAL_SERVICE_URL}/workspaces/download/agent`;
-  }
-
   // ── Cloud Usage (Google Cloud Monitoring) ───────────────────
 
   /**
