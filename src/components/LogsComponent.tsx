@@ -34,7 +34,6 @@ const MAX_LINES = 5000;
 const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
 
 // ── ANSI escape-code → React span parser ──────────────────────
-// eslint-disable-next-line no-control-regex
 const ANSI_RE = /\x1b\[([0-9;]*)m/g;
 
 const ANSI_COLORS = [
@@ -81,7 +80,6 @@ function ansi256ToHex(n: number) {
  * Strip ANSI escape codes from a string.
  */
 function stripAnsi(text: string) {
-  // eslint-disable-next-line no-control-regex
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
@@ -336,7 +334,6 @@ export default function LogsComponent() {
   // ── Poll statistics for the active container ─────────────────
   useEffect(() => {
     if (!activeContainer || !activeDevice) {
-      setActiveContainerStatistics(null);
       return;
     }
 
@@ -390,6 +387,7 @@ export default function LogsComponent() {
 
       setActiveContainer(containerName);
       setActiveDevice(device);
+      setActiveContainerStatistics(null);
       setLines([]);
       setConnected(false);
       setError(null);
@@ -428,6 +426,10 @@ export default function LogsComponent() {
       });
 
       es.addEventListener("end", () => {
+        // Close for real — otherwise EventSource auto-reconnects to a
+        // finished stream and re-appends the tail lines forever.
+        es.close();
+        if (eventSourceRef.current === es) eventSourceRef.current = null;
         setConnected(false);
       });
 

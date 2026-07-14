@@ -461,6 +461,67 @@ function edgePath(anchor: PortResult): string {
 }
 
 // ── Main Component ───────────────────────────────────────────────
+/**
+ * Supplement service dependsOn with analysis-detected dependencies.
+ * Keeps ALL original deps (hard-coded in registry) and adds any
+ * newly detected imports/API calls that aren't already present.
+ * If analysis found nothing for a project, deps are unchanged.
+ */
+function mergeAnalysisDeps(
+  services: PortalService[],
+  analysis: ProjectAnalysis | null,
+): PortalService[] {
+  if (!analysis?.dependencies) return services;
+
+  return services.map((service) => {
+    const detected = analysis.dependencies[service.id];
+    if (!detected) return service;
+
+    // If analysis found nothing, keep original deps unchanged
+    const hasDetected =
+      detected.imports?.length > 0 || detected.apiCalls?.length > 0;
+    if (!hasDetected) return service;
+
+    // Build a set of existing dep IDs for dedup
+    const existingIds = new Set(
+      (service.dependsOn || []).map((dep) =>
+        typeof dep === "string" ? dep : dep.id,
+      ),
+    );
+
+    // Add detected deps that aren't already present
+    const newDeps: DependencyRef[] = [];
+    for (const imp of detected.imports || []) {
+      if (!existingIds.has(imp.target)) {
+        newDeps.push({
+          id: imp.target,
+          name: imp.target,
+          criticality: "required",
+          source: "detected",
+        });
+        existingIds.add(imp.target);
+      }
+    }
+    for (const api of detected.apiCalls || []) {
+      if (!existingIds.has(api.target)) {
+        newDeps.push({
+          id: api.target,
+          name: api.target,
+          criticality: "required",
+          source: "detected",
+        });
+        existingIds.add(api.target);
+      }
+    }
+
+    if (newDeps.length === 0) return service;
+    return {
+      ...service,
+      dependsOn: [...(service.dependsOn || []), ...newDeps],
+    };
+  });
+}
+
 export default function TopologyComponent() {
   const [allServices, setAllServices] = useState<PortalService[]>([]);
   const [tierColors, setTierColors] =
@@ -541,68 +602,8 @@ export default function TopologyComponent() {
     zoomRef.current = zoom;
   }, [zoom]);
 
-  /**
-   * Supplement service dependsOn with analysis-detected dependencies.
-   * Keeps ALL original deps (hard-coded in registry) and adds any
-   * newly detected imports/API calls that aren't already present.
-   * If analysis found nothing for a project, deps are unchanged.
-   */
-  function mergeAnalysisDeps(
-    services: PortalService[],
-    analysis: ProjectAnalysis | null,
-  ): PortalService[] {
-    if (!analysis?.dependencies) return services;
 
-    return services.map((service) => {
-      const detected = analysis.dependencies[service.id];
-      if (!detected) return service;
-
-      // If analysis found nothing, keep original deps unchanged
-      const hasDetected =
-        detected.imports?.length > 0 || detected.apiCalls?.length > 0;
-      if (!hasDetected) return service;
-
-      // Build a set of existing dep IDs for dedup
-      const existingIds = new Set(
-        (service.dependsOn || []).map((dep) =>
-          typeof dep === "string" ? dep : dep.id,
-        ),
-      );
-
-      // Add detected deps that aren't already present
-      const newDeps: DependencyRef[] = [];
-      for (const imp of detected.imports || []) {
-        if (!existingIds.has(imp.target)) {
-          newDeps.push({
-            id: imp.target,
-            name: imp.target,
-            criticality: "required",
-            source: "detected",
-          });
-          existingIds.add(imp.target);
-        }
-      }
-      for (const api of detected.apiCalls || []) {
-        if (!existingIds.has(api.target)) {
-          newDeps.push({
-            id: api.target,
-            name: api.target,
-            criticality: "required",
-            source: "detected",
-          });
-          existingIds.add(api.target);
-        }
-      }
-
-      if (newDeps.length === 0) return service;
-      return {
-        ...service,
-        dependsOn: [...(service.dependsOn || []), ...newDeps],
-      };
-    });
-  }
-
-  async function loadData(refresh = false) {
+  const loadData = useCallback(async (refresh = false) => {
     try {
       const [servicesRes, analysisRes] = await Promise.all([
         ApiService.getServices(refresh) as Promise<ServicesResponse>,
@@ -638,7 +639,7 @@ export default function TopologyComponent() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }
+  }, []);
 
   const didCenterRef = useRef(false);
 
@@ -646,7 +647,7 @@ export default function TopologyComponent() {
     if (hasFetchedDataRef.current) return;
     hasFetchedDataRef.current = true;
     loadData(true);
-  }, []);
+  }, [loadData]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -788,7 +789,7 @@ export default function TopologyComponent() {
       if (haystack.includes(normalizedSearch)) matched.add(service.id);
     }
     return matched;
-  }, [searchQuery, allServices]);
+  }, [searchQuery, filteredServices]);
 
   // Which tier clusters have at least one visible node under search
   const searchVisibleTiers = useMemo(() => {

@@ -7,7 +7,6 @@ import {
   ExternalLink,
   RefreshCw,
   Server,
-  BarChart3,
 } from "lucide-react";
 import {
   BadgeComponent,
@@ -492,7 +491,7 @@ export default function CloudUsageComponent() {
 
         <div className={styles["period-selector-container"]}>
           <SegmentedControlComponent
-            options={PERIOD_OPTIONS}
+            segments={PERIOD_OPTIONS}
             value={selectedPeriod}
             onChange={handlePeriodChange}
             compact

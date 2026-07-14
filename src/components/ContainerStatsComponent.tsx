@@ -519,16 +519,12 @@ export default function ContainerStatsComponent() {
     useState<ContainerRow | null>(null);
   const [activeDevices, setActiveDevices] = useState<string[]>([]);
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Load view preference from localStorage on mount
-  useEffect(() => {
+  const [viewMode, setViewMode] = useState<"table" | "cards">(() => {
+    if (typeof window === "undefined") return "table";
     const saved = localStorage.getItem("portal-container-view-mode");
-    if (saved === "table" || saved === "cards") {
-      setViewMode(saved);
-    }
-  }, []);
+    return saved === "table" || saved === "cards" ? saved : "table";
+  });
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleToggleViewMode = (mode: "table" | "cards") => {
     setViewMode(mode);
@@ -813,7 +809,10 @@ export default function ContainerStatsComponent() {
       setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
       // Refresh rollback availability
       setTimeout(
-        () => checkRollbackAvailability(containerRows),
+        () =>
+          checkRollbackAvailability(
+            containerRows.filter((row) => row.restartable).map((row) => row.id),
+          ),
         HIGHLIGHT_DURATION_MILLISECONDS,
       );
     } catch (error) {
@@ -823,9 +822,7 @@ export default function ContainerStatsComponent() {
 
   // Check rollback availability for all restartable containers
   const checkRollbackAvailability = useCallback(
-    async (rows: ContainerRow[]) => {
-      const restartableIds = rows.filter((r) => r.restartable).map((r) => r.id);
-
+    async (restartableIds: string[]) => {
       if (restartableIds.length === 0) return;
 
       const results = await Promise.allSettled(
@@ -901,12 +898,23 @@ export default function ContainerStatsComponent() {
   });
   const healthyCount = filteredRows.filter((r) => r.healthy).length;
 
-  // Check rollback availability once data loads
+  // Check rollback availability when the set of restartable services changes
+  // (NOT on every poll — containerRows is a fresh array every 5 s).
+  const restartableIdsSignature = useMemo(
+    () =>
+      containerRows
+        .filter((row) => row.restartable)
+        .map((row) => row.id)
+        .sort()
+        .join(","),
+    [containerRows],
+  );
+
   useEffect(() => {
-    if (containerRows.length > 0) {
-      checkRollbackAvailability(containerRows);
+    if (restartableIdsSignature) {
+      checkRollbackAvailability(restartableIdsSignature.split(","));
     }
-  }, [containerRows, checkRollbackAvailability]);
+  }, [restartableIdsSignature, checkRollbackAvailability]);
 
   // ── Container-centric summary computed values ──────────────────
   const filteredStats = useMemo(() => {
@@ -1386,6 +1394,7 @@ export default function ContainerStatsComponent() {
       >
         {selectedContainer && (
           <ContainerDetailPanel
+            key={selectedContainer.id}
             container={selectedContainer}
             stats={selectedStats}
           />

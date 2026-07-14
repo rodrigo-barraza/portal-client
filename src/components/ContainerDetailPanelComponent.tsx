@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Box,
-  Clock,
   Cpu,
   Database,
   Globe,
@@ -12,13 +11,11 @@ import {
   Lock,
   MemoryStick,
   Server,
-  Terminal,
   Unplug,
 } from "lucide-react";
 import {
   BadgeComponent,
   ChartLineComponent,
-  LoadingIndicatorComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,

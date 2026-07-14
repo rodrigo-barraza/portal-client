@@ -9,7 +9,7 @@
  */
 
 import { useState, useMemo } from "react";
-import { Search, FlaskConical, Package, FileCode2 } from "lucide-react";
+import { FlaskConical, Package, FileCode2 } from "lucide-react";
 import {
   PageHeaderComponent,
   SearchInputComponent,

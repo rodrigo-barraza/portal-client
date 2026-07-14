@@ -63,7 +63,16 @@ function DonutChart({
   const center = size / 2;
   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
-  let accumulated = 0;
+  // Precompute each segment's starting offset (cumulative value before it)
+  const arcs = useMemo(() => {
+    const result: (DonutSegment & { startValue: number })[] = [];
+    let accumulated = 0;
+    for (const segment of segments) {
+      result.push({ ...segment, startValue: accumulated });
+      accumulated += segment.value;
+    }
+    return result;
+  }, [segments]);
 
   return (
     <svg
@@ -82,11 +91,10 @@ function DonutChart({
         strokeWidth={strokeWidth}
       />
       {/* Segments */}
-      {segments.map((segment, i) => {
+      {arcs.map((segment, i) => {
         const percentage = total > 0 ? segment.value / total : 0;
         const dashLength = percentage * circumference;
-        const dashOffset = -(accumulated / total) * circumference;
-        accumulated += segment.value;
+        const dashOffset = total > 0 ? -(segment.startValue / total) * circumference : 0;
 
         return (
           <circle
@@ -1495,7 +1503,7 @@ function GlobalSearchResultsView({
       <div className={styles['global-search-results-container']}>
         <div className={styles['global-search-empty-state']}>
           <SearchX size={36} />
-          <span>No files matching "{query}"</span>
+          <span>No files matching &ldquo;{query}&rdquo;</span>
           <span className={styles['global-search-empty-subtext']}>
             Searched {totalScanned.toLocaleString()} objects across all stores
           </span>
@@ -1519,7 +1527,7 @@ function GlobalSearchResultsView({
         <span className={styles['global-search-results-title']}>
           <Search size={14} />
           {results.length.toLocaleString()} results
-          {truncated && "+"} for "{query}"
+          {truncated && "+"} for &ldquo;{query}&rdquo;
         </span>
         <span className={styles['global-search-results-meta']}>
           {totalScanned.toLocaleString()} objects scanned

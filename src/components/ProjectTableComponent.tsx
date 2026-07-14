@@ -28,7 +28,7 @@ import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import styles from "./ProjectTableComponent.module.css";
 
 // ── GitHub Linguist Language Colors ────────────────────────────────
-// Official columnors from github/linguist for the most common languages.
+// Official colors from github/linguist for the most common languages.
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: "#3178c6",
   JavaScript: "#f1e05a",
@@ -74,7 +74,7 @@ const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
 
 /**
  * Column definitions for the centralized TableComponent.
- * Each columnumn maps to a field on the service status object.
+ * Each column maps to a field on the service status object.
 
  */
 function buildColumns(
@@ -452,6 +452,7 @@ export default function ProjectTableComponent({
       >
         {selectedProject && (
           <ExpandedProjectPanel
+            key={selectedProject.id}
             service={selectedProject}
             stats={stats ?? undefined}
             allServices={allServices}

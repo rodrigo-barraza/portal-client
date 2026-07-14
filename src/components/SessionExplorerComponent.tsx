@@ -652,6 +652,8 @@ export default function SessionExplorerComponent({
 
   // ── Effects ───────────────────────────────────────────────
 
+  // The parent keys this component by `${projectId}-${period}`, so a period
+  // change remounts it with fresh state — one initial load is all we need.
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
@@ -659,16 +661,6 @@ export default function SessionExplorerComponent({
     loadVisitors(0);
     loadSessions(0);
   }, [loadIps, loadVisitors, loadSessions]);
-
-  useEffect(() => {
-    didFetch.current = false;
-    loadIps(0);
-    loadVisitors(0);
-    loadSessions(0);
-    setSelectedSession(null);
-    setSelectedIp(null);
-    setSearchQuery("");
-  }, [period, loadIps, loadVisitors, loadSessions]);
 
   // ── Back handler ──────────────────────────────────────────
 
@@ -746,7 +738,9 @@ export default function SessionExplorerComponent({
   // ── IP DETAIL VIEW ────────────────────────────────────────
   // ══════════════════════════════════════════════════════════
 
-  if (selectedIp) {
+  // Session detail (rendered below) takes precedence — clicking a session
+  // pill inside the IP profile must actually navigate to that session.
+  if (selectedIp && !selectedSession) {
     const ip = selectedIp;
     return (
       <div className={styles['explorer']}>

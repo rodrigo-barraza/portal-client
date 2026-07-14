@@ -384,7 +384,7 @@ export default function GoogleAnalyticsComponent({
         setLoading(false);
       }
     })();
-  }, []);
+  }, [propertyId]);
 
   // ── Load Reports ──────────────────────────────────────────
 

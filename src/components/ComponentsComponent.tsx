@@ -2,7 +2,6 @@
 
 import { useState, useMemo, Component } from "react";
 import {
-  Search,
   Blocks,
   LayoutGrid,
   List,

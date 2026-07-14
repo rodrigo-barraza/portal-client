@@ -237,14 +237,15 @@ export default function SessionAnalyticsComponent({
   const [live, setLive] = useState<SessionLiveResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const didFetch = useRef(false);
   const liveTimer = useRef<NodeJS.Timeout | null>(null);
 
   // ── Load Reports ──────────────────────────────────────────
 
+  const reportsRequestSequence = useRef(0);
+
   const loadReports = useCallback(
     async (selectedPeriod: string) => {
-      setLoading(true);
+      const requestId = ++reportsRequestSequence.current;
       try {
         const [
           overviewRes,
@@ -264,17 +265,20 @@ export default function SessionAnalyticsComponent({
           ApiService.getSessionEvents(projectId, selectedPeriod).catch(() => null),
         ]);
 
+        // Drop stale responses when the user switched periods mid-flight
+        if (requestId !== reportsRequestSequence.current) return;
+
         setOverview(overviewRes?.data ?? overviewRes);
-        setPages(overviewRes?.data ? pagesRes?.data : pagesRes);
-        setReferrers(overviewRes?.data ? referrersRes?.data : referrersRes);
-        setGeo(overviewRes?.data ? geoRes?.data : geoRes);
-        setDevices(overviewRes?.data ? devicesRes?.data : devicesRes);
-        setTimeSeries(overviewRes?.data ? tsRes?.data : tsRes);
-        setEvents(overviewRes?.data ? eventsRes?.data : eventsRes);
+        setPages(pagesRes?.data ?? pagesRes);
+        setReferrers(referrersRes?.data ?? referrersRes);
+        setGeo(geoRes?.data ?? geoRes);
+        setDevices(devicesRes?.data ?? devicesRes);
+        setTimeSeries(tsRes?.data ?? tsRes);
+        setEvents(eventsRes?.data ?? eventsRes);
       } catch (error) {
         console.error("Session reports fetch failed:", error);
       } finally {
-        setLoading(false);
+        if (requestId === reportsRequestSequence.current) setLoading(false);
       }
     },
     [projectId],
@@ -292,6 +296,8 @@ export default function SessionAnalyticsComponent({
   // ── Effects ───────────────────────────────────────────────
 
   useEffect(() => {
+    // Fetch-on-mount/period-change: loaders only set state after awaits
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadReports(period);
     loadLive();
 
@@ -304,9 +310,6 @@ export default function SessionAnalyticsComponent({
   }, [period, loadReports, loadLive]);
 
   // ── Computed ──────────────────────────────────────────────
-
-  const maxPageViews =
-    pages && pages.length > 0 ? Math.max(...pages.map((property) => property.views)) : 0;
 
   const maxReferrerSessions =
     referrers && referrers.length > 0
@@ -387,7 +390,10 @@ export default function SessionAnalyticsComponent({
               <button
                 key={presetPeriod}
                 className={`${styles['period-tab']} ${period === presetPeriod ? styles['active-tab'] : ""}`}
-                onClick={() => setPeriod(presetPeriod)}
+                onClick={() => {
+                  setLoading(true);
+                  setPeriod(presetPeriod);
+                }}
               >
                 {presetPeriod}
               </button>
@@ -756,7 +762,11 @@ export default function SessionAnalyticsComponent({
           )}
 
           {/* ── Session Explorer (Visitors + Sessions + Timeline) ── */}
-          <SessionExplorerComponent projectId={projectId} period={period} />
+          <SessionExplorerComponent
+            key={`${projectId}-${period}`}
+            projectId={projectId}
+            period={period}
+          />
         </>
       )}
     </div>

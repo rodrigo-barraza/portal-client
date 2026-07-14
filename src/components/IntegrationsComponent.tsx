@@ -7,7 +7,6 @@ import {
   Check,
   X,
   Key,
-  Search,
   ChevronDown,
   ChevronRight,
   LayoutGrid,
@@ -16,7 +15,6 @@ import {
 import {
   BadgeComponent,
   ButtonComponent,
-  InputComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
   TableComponent,
