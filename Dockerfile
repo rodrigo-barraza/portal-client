@@ -12,7 +12,11 @@ FROM node:26-alpine AS base
 # --- Dependencies ---
 FROM base AS deps
 WORKDIR /app
-RUN npm install -g pnpm
+# Pin to the version in package.json's packageManager field and disable
+# pnpm's self-provisioning — otherwise pnpm re-fetches itself into the
+# cache-mounted store's .tmp and fails with an ENOENT rename on lock.yaml.
+ENV npm_config_manage_package_manager_versions=false
+RUN npm install -g pnpm@11.8.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN apk add --no-cache git
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
