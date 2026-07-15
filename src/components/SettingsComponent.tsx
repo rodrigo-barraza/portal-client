@@ -22,6 +22,7 @@ import {
   ButtonComponent,
   DialogComponent,
   THEME_CATALOG,
+  getReadableTextColor,
   type ThemeCatalogEntry,
 } from "@rodrigo-barraza/components-library";
 import {
@@ -222,7 +223,10 @@ export default function SettingsComponent() {
                         {isActive && (
                           <span
                             className={styles['theme-active-badge']}
-                            style={{ background: meta.primary }}
+                            style={{
+                              background: meta.primary,
+                              color: getReadableTextColor(meta.primary),
+                            }}
                           >
                             <Check size={9} strokeWidth={3.5} />
                           </span>

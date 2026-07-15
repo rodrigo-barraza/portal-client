@@ -149,7 +149,8 @@
   --calculated-accent-primary-hover: oklch(60.6% 0.2371 358.9);
   --calculated-accent-primary-glow: oklch(66.7% 0.2514 355.4 / 0.45);
   --calculated-accent-primary-subtle: oklch(66.7% 0.2514 355.4 / 0.12);
-  --calculated-accent-primary-contrast: oklch(100.0% 0.0001 263.3 / 0.92);
+  /* Dark label on the hot-fuchsia accent — white only hits ~3.1:1 */
+  --calculated-accent-primary-contrast: oklch(0.0% 0.0 0.0 / 0.87);
   --calculated-shadow-glow: 0 0 24px oklch(66.7% 0.2514 355.4 / 0.22);
 
   --accent-secondary: oklch(80.4% 0.1557 82.5);
@@ -249,6 +250,67 @@ html[data-theme="mono"] {
   --calculated-accent-secondary-glow: oklch(70.9% 0.1592 293.5 / 0.4);
   --calculated-accent-secondary-subtle: oklch(70.9% 0.1592 293.5 / 0.12);
   --accent-tertiary: oklch(75.3% 0.1391 232.7);
+}
+
+/* ── Twilight Mode ───────────────────────────────────────── */
+/* Dark-mode sibling of Daylight — achromatic silver-gray accents over
+   cool dark surfaces (mirrors prism-client and the THEME_CATALOG swatch;
+   previously Twilight fell through to the indigo :root accents). */
+
+[data-theme="twilight"] {
+  --accent-primary: oklch(65.0% 0.0 0.0);
+  --calculated-accent-primary-hover: oklch(75.0% 0.0 0.0);
+  --calculated-accent-primary-glow: oklch(65.0% 0.0 0.0 / 0.2);
+  --calculated-accent-primary-subtle: oklch(65.0% 0.0 0.0 / 0.08);
+  --calculated-accent-primary-contrast: oklch(0.0% 0.0 0.0 / 0.87);
+  --calculated-shadow-glow: 0 0 20px oklch(65.0% 0.0 0.0 / 0.1);
+
+  /* Near-black surface for sidebar/header containers */
+  --calculated-accent-surface: oklch(22.0% 0.0 0.0);
+
+  --accent-secondary: oklch(55.0% 0.0 0.0);
+  --calculated-accent-secondary-hover: oklch(65.0% 0.0 0.0);
+  --calculated-accent-secondary-glow: oklch(55.0% 0.0 0.0 / 0.2);
+  --calculated-accent-secondary-subtle: oklch(55.0% 0.0 0.0 / 0.08);
+  --accent-tertiary: oklch(45.0% 0.0 0.0);
+}
+
+/* ── Daylight/Overcast Palette Corrections ─────────────────── */
+/* The :root status/log/node/category palette is tuned for dark surfaces
+   (70–88% lightness) and drops below 2:1 on light ones. Same hues at
+   ~52% lightness — ≥ 4.4:1 on both Daylight and Overcast surfaces. */
+
+[data-theme="light"],
+[data-theme="muted"] {
+  --status-running: oklch(51.3% 0.1095 163.3);
+  --status-running-hover: oklch(46.0% 0.1095 163.3);
+  --status-stopped: oklch(54.6% 0.1661 22.2);
+  --status-stopped-hover: oklch(49.5% 0.1661 22.2);
+  --status-paused: oklch(52.7% 0.1063 84.4);
+  --status-paused-hover: oklch(47.5% 0.1063 84.4);
+  --status-unknown: oklch(52.6% 0.0352 256.8);
+  --status-unknown-hover: oklch(47.5% 0.0352 256.8);
+  --status-building: oklch(53.9% 0.1592 293.5);
+  --status-building-hover: oklch(49.0% 0.1592 293.5);
+
+  --node-infrastructure: oklch(55.2% 0.2326 303.9);
+  --node-external: oklch(51.5% 0.0905 181.9);
+  --node-service: oklch(51.5% 0.0898 215.2);
+
+  --log-error: oklch(54.6% 0.1661 22.2);
+  --log-warning: oklch(52.7% 0.1063 84.4);
+  --log-information: oklch(52.9% 0.1435 254.6);
+  --log-debug: oklch(51.3% 0.1095 163.3);
+  --log-verbose: oklch(53.9% 0.1592 293.5);
+  --log-default: oklch(52.4% 0.007 286.0);
+
+  --component-category-actions: oklch(52.9% 0.1146 70.1);
+  --component-category-communication: oklch(53.3% 0.1881 259.8);
+  --component-category-containment: oklch(55.2% 0.2326 303.9);
+  --component-category-inputs: oklch(51.1% 0.1111 162.5);
+  --component-category-navigation: oklch(55.1% 0.2118 354.3);
+  --component-category-indicators: oklch(51.5% 0.0898 215.2);
+  --component-category-layout: oklch(55.1% 0.219 292.7);
 }
 
 /* ── Body Overrides ────────────────────────────────────────── */
