@@ -7,7 +7,7 @@ import { PORTAL_SERVICE_URL } from "@/config";
 import { createApiClient } from "@rodrigo-barraza/components-library";
 import type { BucketStreamEvent } from "../types/portal";
 
-const request = createApiClient(PORTAL_SERVICE_URL, { noCache: true });
+const request = createApiClient(PORTAL_SERVICE_URL ?? "", { noCache: true });
 
 /** Encode an object key for use in a URL path, preserving `/` separators. */
 function encodeObjectPath(objectName: string) {
@@ -17,16 +17,21 @@ function encodeObjectPath(objectName: string) {
 export default class ApiService {
   /**
    * Shared fetch helper — delegates to components-library.
+   *
+   * Response payloads are untyped (`any`) — callers narrow the shape they
+   * consume. Tightening this to per-endpoint response types is a separate
+   * project; `unknown` here would force casts at every call site.
    */
-  static async _request(
+   
+  static async _request<T = any>(
     endpoint: string,
     { method = "GET", body }: { method?: string; body?: unknown } = {},
-  ) {
-    return request(
+  ): Promise<T> {
+    return (await request(
       method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
       endpoint,
-      body,
-    );
+      body as object | undefined,
+    )) as T;
   }
 
   // ── Root ──────────────────────────────────────────────────────

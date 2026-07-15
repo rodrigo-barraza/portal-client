@@ -11,7 +11,6 @@ import {
   Search,
   X,
   RotateCw,
-  ChevronDown,
   Check,
   Cpu,
   MemoryStick,
@@ -20,6 +19,9 @@ import {
 import {
   PageHeaderComponent,
   SearchInputComponent,
+  SelectComponent,
+  IconButtonComponent,
+  StatsCardComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -270,13 +272,17 @@ function parseLine(raw: string) {
   return { timestamp: null, content: raw, level: detectLevel(raw) };
 }
 
-function getSeverityState(
+/**
+ * Map a usage percentage to a StatsCardComponent variant.
+ * Note: the library's error-styled variant class is "danger".
+ */
+function getSeverityVariant(
   percentage: number,
   thresholds: [number, number] = [40, 80],
-): string {
-  if (percentage > thresholds[1]) return styles['state-danger'];
-  if (percentage > thresholds[0]) return styles['state-warning'];
-  return styles['state-success'];
+): "success" | "warning" | "danger" {
+  if (percentage > thresholds[1]) return "danger";
+  if (percentage > thresholds[0]) return "warning";
+  return "success";
 }
 
 interface LogLine {
@@ -305,8 +311,6 @@ export default function LogsComponent() {
   const [showSearch, setShowSearch] = useState(false);
   const [bufferedCount, setBufferedCount] = useState(0);
   const [restarting, setRestarting] = useState(false);
-  const [containerDropdownOpen, setContainerDropdownOpen] = useState(false);
-  const [containerSearchQuery, setContainerSearchQuery] = useState("");
   const [activeContainerStatistics, setActiveContainerStatistics] = useState<any | null>(null);
 
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -315,8 +319,6 @@ export default function LogsComponent() {
   const didFetch = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const didAutoConnect = useRef(false);
-  const containerDropdownRef = useRef<HTMLDivElement>(null);
-  const containerSearchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
 
   // ── Fetch containers on mount ────────────────────────────────
@@ -489,52 +491,11 @@ export default function LogsComponent() {
     };
   }, []);
 
-  // ── Close container dropdown on outside click ───────────────
-  useEffect(() => {
-    if (!containerDropdownOpen) return;
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        containerDropdownRef.current &&
-        !containerDropdownRef.current.contains(event.target as Node)
-      ) {
-        setContainerDropdownOpen(false);
-        setContainerSearchQuery("");
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [containerDropdownOpen]);
-
-  // ── Close container dropdown on Escape ──────────────────────
-  useEffect(() => {
-    if (!containerDropdownOpen) return;
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setContainerDropdownOpen(false);
-        setContainerSearchQuery("");
-      }
-    };
-    document.addEventListener("keydown", handleEscapeKey);
-    return () => document.removeEventListener("keydown", handleEscapeKey);
-  }, [containerDropdownOpen]);
-
-  // ── Auto-focus search input when dropdown opens ─────────────
-  useEffect(() => {
-    if (containerDropdownOpen) {
-      setTimeout(() => containerSearchInputRef.current?.focus(), 50);
-    }
-  }, [containerDropdownOpen]);
-
-  // ── Filtered + grouped container list for dropdown ──────────
-  const filteredContainerGroups = useMemo(() => {
-    const normalizedQuery = containerSearchQuery.toLowerCase().trim();
-    const matchingContainers = normalizedQuery
-      ? containers.filter((container) =>
-          container.name.toLowerCase().includes(normalizedQuery),
-        )
-      : containers;
-
-    const sortedContainers = [...matchingContainers].sort(
+  // ── Container options for the selector ──────────────────────
+  // Sorted by device, running containers first, then by name —
+  // same ordering the old hand-rolled dropdown used.
+  const { containerOptions, containersByValue } = useMemo(() => {
+    const sortedContainers = [...containers].sort(
       (a: LoggableContainer, b: LoggableContainer) => {
         if (a.device !== b.device) return a.device.localeCompare(b.device);
         if (a.state === "running" && b.state !== "running") return -1;
@@ -543,23 +504,35 @@ export default function LogsComponent() {
       },
     );
 
-    const groups: { device: string; deviceName: string; containers: LoggableContainer[] }[] = [];
-    let currentGroup: (typeof groups)[number] | null = null;
-
+    const nameCounts = new Map<string, number>();
     for (const container of sortedContainers) {
-      if (!currentGroup || currentGroup.device !== container.device) {
-        currentGroup = {
-          device: container.device,
-          deviceName: container.deviceName || container.device,
-          containers: [],
-        };
-        groups.push(currentGroup);
-      }
-      currentGroup.containers.push(container);
+      nameCounts.set(container.name, (nameCounts.get(container.name) || 0) + 1);
     }
 
-    return groups;
-  }, [containers, containerSearchQuery]);
+    const byValue = new Map<string, LoggableContainer>();
+    const options = sortedContainers.map((container) => {
+      const optionValue = `${container.device}::${container.name}`;
+      byValue.set(optionValue, container);
+      const isDuplicatedName = (nameCounts.get(container.name) || 0) > 1;
+      return {
+        value: optionValue,
+        label: isDuplicatedName
+          ? `${container.name} (${container.deviceName || container.device})`
+          : container.name,
+        icon: (
+          <span
+            className={`${styles['status-dot']} ${
+              container.state === "running"
+                ? styles['status-dot-healthy']
+                : styles['status-dot-unhealthy']
+            }`}
+          />
+        ),
+      };
+    });
+
+    return { containerOptions: options, containersByValue: byValue };
+  }, [containers]);
 
   // ── Re-wire the onmessage handler when `paused` changes ─────
   useEffect(() => {
@@ -655,6 +628,8 @@ export default function LogsComponent() {
   }, [showSearch]);
 
   const activeContainerName = activeContainer || "";
+  const selectedContainerValue =
+    activeContainer && activeDevice ? `${activeDevice}::${activeContainer}` : "";
 
   return (
     <div className={`logs-component ${styles['logs']}`}>
@@ -668,111 +643,19 @@ export default function LogsComponent() {
         }
       />
 
-      {/* ── Container Selector Dropdown ── */}
-      <div className={styles['container-dropdown']} ref={containerDropdownRef}>
-        <button
-          type="button"
-          className={`${styles['container-dropdown-trigger']} ${containerDropdownOpen ? styles['container-dropdown-trigger-open'] : ""}`}
-          onClick={() => setContainerDropdownOpen((previous) => !previous)}
-        >
-          <span className={styles['container-dropdown-trigger-content']}>
-            {activeContainer ? (
-              <>
-                <span
-                  className={`${styles['container-dropdown-status-dot']} ${
-                    containers.find((c) => c.name === activeContainer)?.state === "running"
-                      ? styles['container-dropdown-status-dot-healthy']
-                      : styles['container-dropdown-status-dot-unhealthy']
-                  }`}
-                />
-                <span className={styles['container-dropdown-trigger-label']}>
-                  {activeContainer}
-                </span>
-              </>
-            ) : (
-              <span className={styles['container-dropdown-trigger-placeholder']}>
-                Select a container…
-              </span>
-            )}
-          </span>
-          <ChevronDown
-            size={14}
-            className={`${styles['container-dropdown-chevron']} ${containerDropdownOpen ? styles['container-dropdown-chevron-open'] : ""}`}
-          />
-        </button>
-
-        {containerDropdownOpen && (
-          <div className={styles['container-dropdown-menu']}>
-            <div className={styles['container-dropdown-search-wrapper']}>
-              <Search size={13} className={styles['container-dropdown-search-icon']} />
-              <input
-                ref={containerSearchInputRef}
-                type="text"
-                className={styles['container-dropdown-search-input']}
-                placeholder="Search containers…"
-                value={containerSearchQuery}
-                onChange={(event) => setContainerSearchQuery(event.target.value)}
-              />
-              {containerSearchQuery && (
-                <button
-                  type="button"
-                  className={styles['container-dropdown-search-clear']}
-                  onClick={() => setContainerSearchQuery("")}
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-
-            <div className={styles['container-dropdown-options-list']}>
-              {filteredContainerGroups.length === 0 && (
-                <div className={styles['container-dropdown-empty-state']}>
-                  No containers match &ldquo;{containerSearchQuery}&rdquo;
-                </div>
-              )}
-
-              {filteredContainerGroups.map((group) => (
-                <div key={group.device}>
-                  <span className={styles['container-dropdown-device-label']}>
-                    {group.deviceName}
-                  </span>
-                  {group.containers.map((container) => {
-                    const isRunning = container.state === "running";
-                    const isSelected = activeContainer === container.name;
-                    return (
-                      <button
-                        key={`${container.device}-${container.name}`}
-                        type="button"
-                        className={`${styles['container-dropdown-option']} ${isSelected ? styles['container-dropdown-option-selected'] : ""} ${!isRunning ? styles['container-dropdown-option-stopped'] : ""}`}
-                        onClick={() => {
-                          connectToContainer(container.name, container.device);
-                          setContainerDropdownOpen(false);
-                          setContainerSearchQuery("");
-                        }}
-                      >
-                        <span
-                          className={`${styles['container-dropdown-status-dot']} ${
-                            isRunning
-                              ? styles['container-dropdown-status-dot-healthy']
-                              : styles['container-dropdown-status-dot-unhealthy']
-                          }`}
-                        />
-                        <span className={styles['container-dropdown-option-label']}>
-                          {container.name}
-                        </span>
-                        {container.deviceName && (
-                          <span className={styles['container-dropdown-option-device']}>
-                            {container.deviceName}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* ── Container Selector ── */}
+      <div className={styles['container-select']}>
+        <SelectComponent
+          value={selectedContainerValue}
+          options={containerOptions}
+          onChange={(value: string) => {
+            const match = containersByValue.get(value);
+            if (match) connectToContainer(match.name, match.device);
+          }}
+          placeholder="Select a container…"
+          searchable
+          triggerClassName={styles['container-select-trigger']}
+        />
       </div>
 
       {/* ── Terminal Viewer ── */}
@@ -781,98 +664,62 @@ export default function LogsComponent() {
           {/* ── Container Statistics Panel ── */}
           {activeContainerStatistics && (
             <div className={styles['container-statistics-panel']}>
-              {/* Status Card */}
-              <div className={styles['statistics-card']}>
-                <div
-                  className={`${styles['statistics-card-icon']} ${
-                    activeContainerStatistics.state === "running"
-                      ? styles['state-success']
-                      : styles['state-danger']
-                  }`}
-                >
-                  {activeContainerStatistics.state === "running" ? (
-                    <Check size={16} strokeWidth={2.5} />
-                  ) : (
-                    <X size={16} strokeWidth={2.5} />
-                  )}
-                </div>
-                <div className={styles['statistics-card-content']}>
-                  <span className={styles['statistics-card-value']}>
-                    {activeContainerStatistics.state || "unknown"}
-                  </span>
-                  <span className={styles['statistics-card-label']}>Status</span>
-                  <span
-                    className={styles['statistics-card-description']}
-                    title={activeContainerStatistics.status || ""}
-                  >
+              <StatsCardComponent
+                label="Status"
+                value={activeContainerStatistics.state || "unknown"}
+                subtitle={
+                  <span title={activeContainerStatistics.status || ""}>
                     {activeContainerStatistics.status || "No status"}
                   </span>
-                </div>
-              </div>
+                }
+                icon={activeContainerStatistics.state === "running" ? Check : X}
+                variant={
+                  activeContainerStatistics.state === "running"
+                    ? "success"
+                    : "danger"
+                }
+              />
 
-              {/* CPU Usage Card */}
-              <div className={styles['statistics-card']}>
-                <div
-                  className={`${styles['statistics-card-icon']} ${getSeverityState(
-                    activeContainerStatistics.cpu?.percent || 0,
-                  )}`}
-                >
-                  <Cpu size={16} strokeWidth={2.5} />
-                </div>
-                <div className={styles['statistics-card-content']}>
-                  <span className={styles['statistics-card-value']}>
-                    {formatPercent(activeContainerStatistics.cpu?.percent || 0, "adaptive")}
-                  </span>
-                  <span className={styles['statistics-card-label']}>CPU Usage</span>
-                  <span className={styles['statistics-card-description']}>
-                    {activeContainerStatistics.cpu?.cores || 0} core
-                    {activeContainerStatistics.cpu?.cores !== 1 ? "s" : ""}
-                  </span>
-                </div>
-              </div>
+              <StatsCardComponent
+                label="CPU Usage"
+                value={formatPercent(
+                  activeContainerStatistics.cpu?.percent || 0,
+                  "adaptive",
+                )}
+                subtitle={`${activeContainerStatistics.cpu?.cores || 0} core${
+                  activeContainerStatistics.cpu?.cores !== 1 ? "s" : ""
+                }`}
+                icon={Cpu}
+                variant={getSeverityVariant(
+                  activeContainerStatistics.cpu?.percent || 0,
+                )}
+              />
 
-              {/* Memory Card */}
-              <div className={styles['statistics-card']}>
-                <div
-                  className={`${styles['statistics-card-icon']} ${getSeverityState(
-                    activeContainerStatistics.memory?.percent || 0,
-                    [60, 85],
-                  )}`}
-                >
-                  <MemoryStick size={16} strokeWidth={2.5} />
-                </div>
-                <div className={styles['statistics-card-content']}>
-                  <span className={styles['statistics-card-value']}>
-                    {formatBytes(activeContainerStatistics.memory?.used || 0)}
-                  </span>
-                  <span className={styles['statistics-card-label']}>Memory Used</span>
-                  <span className={styles['statistics-card-description']}>
-                    {activeContainerStatistics.memory?.limit
-                      ? `Limit: ${formatBytes(activeContainerStatistics.memory.limit)}`
-                      : "No limit"}
-                  </span>
-                </div>
-              </div>
+              <StatsCardComponent
+                label="Memory Used"
+                value={formatBytes(activeContainerStatistics.memory?.used || 0)}
+                subtitle={
+                  activeContainerStatistics.memory?.limit
+                    ? `Limit: ${formatBytes(activeContainerStatistics.memory.limit)}`
+                    : "No limit"
+                }
+                icon={MemoryStick}
+                variant={getSeverityVariant(
+                  activeContainerStatistics.memory?.percent || 0,
+                  [60, 85],
+                )}
+              />
 
-              {/* Network I/O Card */}
-              <div className={styles['statistics-card']}>
-                <div className={`${styles['statistics-card-icon']} ${styles['state-accent']}`}>
-                  <Globe size={16} strokeWidth={2.5} />
-                </div>
-                <div className={styles['statistics-card-content']}>
-                  <span className={styles['statistics-card-value']}>
-                    {formatBytes(
-                      (activeContainerStatistics.network?.rx || 0) +
-                        (activeContainerStatistics.network?.tx || 0),
-                    )}
-                  </span>
-                  <span className={styles['statistics-card-label']}>Network I/O</span>
-                  <span className={styles['statistics-card-description']}>
-                    ↓ {formatBytes(activeContainerStatistics.network?.rx || 0)} · ↑{" "}
-                    {formatBytes(activeContainerStatistics.network?.tx || 0)}
-                  </span>
-                </div>
-              </div>
+              <StatsCardComponent
+                label="Network I/O"
+                value={formatBytes(
+                  (activeContainerStatistics.network?.rx || 0) +
+                    (activeContainerStatistics.network?.tx || 0),
+                )}
+                subtitle={`↓ ${formatBytes(activeContainerStatistics.network?.rx || 0)} · ↑ ${formatBytes(activeContainerStatistics.network?.tx || 0)}`}
+                icon={Globe}
+                variant="accent"
+              />
             </div>
           )}
 
@@ -907,62 +754,59 @@ export default function LogsComponent() {
                 />
               )}
 
-              <button
-                className={`${styles['terminal-button']} ${showSearch ? styles['is-active-state'] : ""}`}
+              <IconButtonComponent
+                icon={
+                  showSearch ? (
+                    <X size={13} strokeWidth={1.8} />
+                  ) : (
+                    <Search size={13} strokeWidth={1.8} />
+                  )
+                }
+                active={showSearch}
+                tooltip="Search (Ctrl+F)"
                 onClick={() => {
                   setShowSearch((v) => !v);
                   if (showSearch) setSearch("");
                   else setTimeout(() => searchInputRef.current?.focus(), 50);
                 }}
-                title="Search (Ctrl+F)"
-              >
-                {showSearch ? (
-                  <X size={13} strokeWidth={1.8} />
-                ) : (
-                  <Search size={13} strokeWidth={1.8} />
-                )}
-              </button>
+              />
 
-              <button
-                className={`${styles['terminal-button']} ${paused ? styles['is-active-state'] : ""}`}
+              <IconButtonComponent
+                icon={
+                  paused ? (
+                    <Play size={13} strokeWidth={1.8} />
+                  ) : (
+                    <Pause size={13} strokeWidth={1.8} />
+                  )
+                }
+                active={paused}
+                tooltip={paused ? "Resume" : "Pause"}
                 onClick={() => (paused ? handleResume() : setPaused(true))}
-                title={paused ? "Resume" : "Pause"}
-              >
-                {paused ? (
-                  <Play size={13} strokeWidth={1.8} />
-                ) : (
-                  <Pause size={13} strokeWidth={1.8} />
-                )}
-              </button>
+              />
 
               <span className={styles['separator']} />
 
-              <button
-                className={styles['terminal-button']}
+              <IconButtonComponent
+                icon={<ArrowDown size={13} strokeWidth={1.8} />}
+                tooltip="Scroll to bottom"
                 onClick={scrollToBottom}
-                title="Scroll to bottom"
-              >
-                <ArrowDown size={13} strokeWidth={1.8} />
-              </button>
+              />
 
-              <button
-                className={styles['terminal-button']}
+              <IconButtonComponent
+                icon={<Trash2 size={13} strokeWidth={1.8} />}
+                tooltip="Clear"
                 onClick={handleClear}
-                title="Clear"
-              >
-                <Trash2 size={13} strokeWidth={1.8} />
-              </button>
+              />
 
               <span className={styles['separator']} />
 
-              <button
-                className={`${styles['terminal-button']} ${restarting ? styles['restart-spin'] : ""}`}
+              <IconButtonComponent
+                icon={<RotateCw size={13} strokeWidth={1.8} />}
+                tooltip="Restart container"
                 onClick={handleRestart}
                 disabled={restarting}
-                title="Restart container"
-              >
-                <RotateCw size={13} strokeWidth={1.8} />
-              </button>
+                className={restarting ? styles['restart-spin'] : undefined}
+              />
             </div>
           </div>
 

@@ -16,6 +16,7 @@ import {
 import {
   BadgeComponent,
   LoadingIndicatorComponent,
+  TabBarComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
@@ -1054,21 +1055,20 @@ export default function ExpandedProjectPanel({
   return (
     <div className={`expanded-project-panel-component ${styles['panel']}`}>
       {/* ── Tab Bar ── */}
-      <div className={styles['tab-bar']}>
-        {visibleTabs.map((tab) => {
+      <TabBarComponent
+        ariaLabel="Project detail sections"
+        variant="secondary"
+        tabs={visibleTabs.map((tab) => {
           const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              className={`${styles['tab']} ${activeTab === tab.id ? styles['tab-active'] : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <Icon size={12} strokeWidth={2.2} />
-              {tab.label}
-            </button>
-          );
+          return {
+            key: tab.id,
+            label: tab.label,
+            icon: <Icon size={12} strokeWidth={2.2} />,
+          };
         })}
-      </div>
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
 
       {/* ── Tab Content ── */}
       <div className={styles['tab-content']}>

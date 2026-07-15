@@ -18,8 +18,7 @@ export default function ServicesLibraryPage() {
         title="Services"
         subtitle={`${catalog.filter((c) => c.type === "service").length} shared services`}
         icon={<Cog size={18} />}
-        accentColor="#a855f7"
-        accentSubtle="rgba(168, 85, 247, 0.1)"
+        accentColor="var(--component-category-containment)"
       />
     </PageLayoutComponent>
   );

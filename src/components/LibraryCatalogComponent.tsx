@@ -31,9 +31,7 @@ function formatSize(kb: number) {
   return `${kb.toFixed(1)} KB`;
 }
 
-/**
- * }} props
- */
+/** Catalog entry emitted by the component-catalog generator. */
 export interface CatalogItem {
   name: string;
   type: string;
@@ -51,15 +49,17 @@ export default function LibraryCatalogComponent({
   title,
   subtitle,
   icon,
-  accentColor = "#6366f1",
-  accentSubtle = "rgba(99, 102, 241, 0.1)",
+  accentColor = "var(--accent-primary)",
+  accentSubtle,
 }: {
   catalog?: CatalogItem[];
   type: string;
   title: string;
   subtitle?: string;
   icon: React.ReactNode;
+  /** Card accent — any CSS color, including a design-token var() reference. */
   accentColor?: string;
+  /** Optional override; defaults to a 10% color-mix of the accent. */
   accentSubtle?: string;
 }) {
   const [search, setSearch] = useState("");
@@ -135,17 +135,12 @@ export default function LibraryCatalogComponent({
               {
                 animationDelay: `${Math.min(i * 30, 600)}ms`,
                 "--card-accent": accentColor,
-                "--card-accent-subtle": accentSubtle,
+                ...(accentSubtle && { "--card-accent-subtle": accentSubtle }),
               } as React.CSSProperties
             }
           >
             <div className={styles['card-header']}>
-              <div
-                className={styles['card-icon']}
-                style={{ background: accentSubtle, color: accentColor }}
-              >
-                {icon}
-              </div>
+              <div className={styles['card-icon']}>{icon}</div>
               <div className={styles['card-meta']}>
                 {item.hasTests && (
                   <span className={styles['test-badge']} title="Has unit tests">
@@ -170,12 +165,7 @@ export default function LibraryCatalogComponent({
                 <Package size={11} />
                 {formatSize(item.sizeKb)}
               </span>
-              <span
-                className={styles['type-badge']}
-                style={{ color: accentColor, background: accentSubtle }}
-              >
-                {type}
-              </span>
+              <span className={styles['type-badge']}>{type}</span>
             </div>
           </div>
         ))}

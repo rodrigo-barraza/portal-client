@@ -16,11 +16,11 @@ import {
   Cpu,
   MemoryStick,
   Container,
-  ChevronDown,
 } from "lucide-react";
 import {
   BadgeComponent,
   ButtonComponent,
+  CollapsibleBlockComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
   StatusDotComponent,
@@ -192,7 +192,6 @@ function DeviceCard({
     Partial<ContainerStats> & { name: string; device?: string }
   >;
 }) {
-  const [containersExpanded, setContainersExpanded] = useState(false);
   const DeviceIcon =
     DEVICE_ICON_MAP[device.type as keyof typeof DEVICE_ICON_MAP] || Monitor;
   const accentColor =
@@ -251,27 +250,17 @@ function DeviceCard({
       {/* ── Containers Table ── */}
       {containers.length > 0 && (
         <div className={styles['services-section']}>
-          <button
-            className={styles['services-header']}
-            onClick={() => setContainersExpanded((previousState) => !previousState)}
-            aria-expanded={containersExpanded}
-          >
-            <span>Containers ({containers.length})</span>
-            <ChevronDown
-              size={14}
-              strokeWidth={2}
-              className={`${styles['chevron']} ${containersExpanded ? styles['chevron-expanded'] : ""}`}
-            />
-          </button>
-          <div
-            className={`${styles['services-collapsible']} ${containersExpanded ? styles['services-expanded'] : ""}`}
+          <CollapsibleBlockComponent
+            label="Containers"
+            badge={containers.length}
+            defaultCollapsed
           >
             <div className={styles['services-table']}>
               {containers.map((container) => (
                 <ContainerRow key={container.name} container={container} />
               ))}
             </div>
-          </div>
+          </CollapsibleBlockComponent>
         </div>
       )}
     </div>
@@ -288,9 +277,7 @@ function ContainerRow({
   const isRunning = container.state === "running";
 
   return (
-    <div
-      className={`devices-component ${styles['service-row']} ${isRunning ? styles['healthy'] : styles['unhealthy']}`}
-    >
+    <div className={`devices-component ${styles['service-row']}`}>
       <div className={styles['service-left']}>
         <StatusDotComponent
           variant={isRunning ? "healthy" : "unhealthy"}

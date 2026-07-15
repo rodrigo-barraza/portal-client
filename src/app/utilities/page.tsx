@@ -18,8 +18,7 @@ export default function UtilitiesPage() {
         title="Utilities"
         subtitle={`${catalog.filter((c) => c.type === "utility").length} shared utility modules`}
         icon={<Wrench size={18} />}
-        accentColor="#10b981"
-        accentSubtle="rgba(16, 185, 129, 0.1)"
+        accentColor="var(--component-category-inputs)"
       />
     </PageLayoutComponent>
   );

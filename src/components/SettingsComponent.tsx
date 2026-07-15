@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   Palette,
-  Bell,
   RefreshCw,
   LayoutGrid,
   Shield,
   Gauge,
   Trash2,
   Table2,
-
+  Check,
 } from "lucide-react";
+import * as Icons from "lucide-react";
 import {
   PageHeaderComponent,
   useTheme,
@@ -20,102 +20,74 @@ import {
   InputComponent,
   SegmentedControlComponent,
   ButtonComponent,
+  DialogComponent,
+  THEME_CATALOG,
+  type ThemeCatalogEntry,
 } from "@rodrigo-barraza/components-library";
+import {
+  usePortalSettings,
+  updateSettings,
+  resetSettings,
+  LANDING_PAGES,
+  type PortalSettings,
+} from "@/lib/settings";
 import styles from "./SettingsComponent.module.css";
-
 
 // ── Section Definitions ──────────────────────────────────────────
 const SECTIONS = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "dashboard", label: "Dashboard", icon: LayoutGrid },
   { id: "monitoring", label: "Monitoring", icon: Gauge },
-
-  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "data", label: "Data & Privacy", icon: Shield },
 ];
 
-// ── Accent Color Options ─────────────────────────────────────────
-const ACCENT_COLORS = [
-  { id: "indigo", value: "#6366f1" },
-  { id: "violet", value: "#8b5cf6" },
-  { id: "fuchsia", value: "#d946ef" },
-  { id: "rose", value: "#f43f5e" },
-  { id: "orange", value: "#f97316" },
-  { id: "amber", value: "#f59e0b" },
-  { id: "emerald", value: "#10b981" },
-  { id: "cyan", value: "#06b6d4" },
-  { id: "blue", value: "#3b82f6" },
-];
+const DEFAULT_THEME = "twilight";
 
-// ── Default Settings ─────────────────────────────────────────────
-const DEFAULT_SETTINGS = {
-  // Appearance
-  accentColor: "indigo",
-  fontScale: "default",
-  sidebarCollapsed: false,
-  animationsEnabled: true,
-  reducedMotion: false,
-
-  // Dashboard
-  defaultView: "table",
-  defaultPage: "/projects",
-  cardDensity: "comfortable",
-  showSystemSummary: true,
-  showInfrastructure: true,
-
-  // Monitoring
-  healthCheckInterval: 30,
-  autoRefreshEnabled: true,
-  containerPollingInterval: 5,
-  showResponseTimes: true,
-  alertThresholdCpu: 80,
-  alertThresholdMemory: 85,
-
-  // Notifications
-  browserNotifications: false,
-  downAlerts: true,
-  performanceAlerts: false,
-  notificationSound: false,
-
-  // Data
-  telemetryEnabled: true,
-  retainLogs: "30d",
+// Fallback metadata for themes missing from THEME_CATALOG (e.g. custom themes)
+const FALLBACK_THEME_META: ThemeCatalogEntry = {
+  label: "Theme",
+  icon: "Palette",
+  backgroundBase: "#222",
+  backgroundSurface: "#333",
+  backgroundElevated: "#444",
+  primary: "#888",
+  secondary: "#aaa",
+  tertiary: "#666",
+  textPrimary: "#eee",
+  textSecondary: "#aaa",
+  textMuted: "#666",
+  borderColor: "#888",
+  success: "#10b981",
+  danger: "#ef4444",
+  warning: "#f59e0b",
+  info: "#3b82f6",
 };
 
-const STORAGE_KEY = "portal:settings";
+type LucideIconComponent = React.ComponentType<{
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+}>;
+
+function themeIcon(name: string): LucideIconComponent {
+  return (
+    (Icons as unknown as Record<string, LucideIconComponent>)[name] || Palette
+  );
+}
 
 export default function SettingsComponent() {
-  const { theme, setTheme } = useTheme();
+  const { theme, themes, setTheme } = useTheme();
+  const settings = usePortalSettings();
   const [activeSection, setActiveSection] = useState("appearance");
-  const [settings, setSettings] = useState(() => {
-    if (typeof window === "undefined") return DEFAULT_SETTINGS;
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored
-        ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
-        : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  const [confirmAction, setConfirmAction] = useState<"reset" | "clear" | null>(
+    null,
+  );
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  // Persist settings to localStorage on change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {
-      // Silently ignore — localStorage quota exceeded
-    }
-  }, [settings]);
-
   const updateSetting = useCallback(
-    (key: string, value: string | number | boolean) => {
-      setSettings((previousSettings: typeof DEFAULT_SETTINGS) => ({
-        ...previousSettings,
-        [key]: value,
-      }));
+    <K extends keyof PortalSettings>(key: K, value: PortalSettings[K]) => {
+      updateSettings({ [key]: value });
     },
     [],
   );
@@ -128,15 +100,26 @@ export default function SettingsComponent() {
     });
   }, []);
 
-  const resetSettings = useCallback(() => {
-    setSettings(DEFAULT_SETTINGS);
+  const handleResetSettings = useCallback(() => {
+    resetSettings();
+    setConfirmAction(null);
   }, []);
 
-  const clearLocalData = useCallback(() => {
-    // In a real impl this would clear caches, localStorage, etc.
-    localStorage.removeItem(STORAGE_KEY);
-    setSettings(DEFAULT_SETTINGS);
-  }, []);
+  const handleClearLocalData = useCallback(() => {
+    try {
+      const portalKeys: string[] = [];
+      for (let index = 0; index < window.localStorage.length; index++) {
+        const key = window.localStorage.key(index);
+        if (key && key.startsWith("portal:")) portalKeys.push(key);
+      }
+      portalKeys.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+      // localStorage unavailable — nothing to clear
+    }
+    resetSettings();
+    setTheme(DEFAULT_THEME);
+    setConfirmAction(null);
+  }, [setTheme]);
 
   return (
     <div className={`settings-component ${styles['settings']}`}>
@@ -178,121 +161,86 @@ export default function SettingsComponent() {
               <div className={styles['section-title-group']}>
                 <h2 className={styles['section-title']}>Appearance</h2>
                 <p className={styles['section-description']}>
-                  Theme, colors, and visual preferences
+                  Pick a theme — each theme defines its own colors, accents,
+                  and contrast
                 </p>
               </div>
             </div>
             <div className={styles['section-body']}>
-              {/* Theme */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Theme</span>
-                  <span className={styles['setting-hint']}>
-                    Switch between color schemes
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SelectComponent
-                    value={theme}
-                    onChange={(selectedValue: string) => {
-                      setTheme(selectedValue);
-                    }}
-                    options={[
-                      { value: "twilight", label: "Twilight" },
-                      { value: "light", label: "Daylight" },
-                      { value: "muted", label: "Overcast" },
-                      { value: "tropical", label: "Tropical" },
-                      { value: "oceanic", label: "Oceanic" },
-                      { value: "punk", label: "Punk" },
-                      { value: "ember", label: "Ember" },
-                      { value: "arctic", label: "Arctic" },
-                      { value: "forest", label: "Forest" },
-                      { value: "mono", label: "Mono" },
-                      { value: "regal", label: "Regal" },
-                    ]}
-                  />
-                </div>
-              </div>
+              <div className={styles['theme-grid']}>
+                {themes.map((themeName) => {
+                  const meta = THEME_CATALOG[themeName] || FALLBACK_THEME_META;
+                  const ThemeIcon = themeIcon(meta.icon);
+                  const isActive = themeName === theme;
 
-              {/* Accent Color */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Accent Color</span>
-                  <span className={styles['setting-hint']}>
-                    Primary highlight and interactive element color
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <div className={styles['color-swatches']}>
-                    {ACCENT_COLORS.map((accentColor) => (
-                      <button
-                        key={accentColor.id}
-                        className={`${styles['color-swatch']} ${settings.accentColor === accentColor.id ? styles['is-active-state'] : ""}`}
-                        style={
-                          {
-                            background: accentColor.value,
-                            "--swatch-color": accentColor.value,
-                          } as React.CSSProperties
-                        }
-                        onClick={() => updateSetting("accentColor", accentColor.id)}
-                        title={accentColor.id}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Font Scale */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Font Scale</span>
-                  <span className={styles['setting-hint']}>
-                    Adjust interface text size
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SegmentedControlComponent
-                    value={settings.fontScale}
-                    onChange={(value: string) => updateSetting("fontScale", value)}
-                    segments={[
-                      { value: "compact", label: "Compact" },
-                      { value: "default", label: "Default" },
-                      { value: "large", label: "Large" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {/* Animations */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Animations</span>
-                  <span className={styles['setting-hint']}>
-                    Enable micro-animations and transitions
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.animationsEnabled}
-                    onChange={(checked: boolean) => updateSetting("animationsEnabled", checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Reduced Motion */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Reduced Motion</span>
-                  <span className={styles['setting-hint']}>
-                    Respect prefers-reduced-motion accessibility setting
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.reducedMotion}
-                    onChange={(checked: boolean) => updateSetting("reducedMotion", checked)}
-                  />
-                </div>
+                  return (
+                    <button
+                      key={themeName}
+                      className={`${styles['theme-tile']} ${isActive ? styles['is-active-state'] : ""}`}
+                      onClick={() => setTheme(themeName)}
+                      title={`Switch to ${meta.label} theme`}
+                      type="button"
+                      style={{ "--tile-accent": meta.primary } as React.CSSProperties}
+                    >
+                      <span
+                        className={styles['theme-preview']}
+                        style={{
+                          background: meta.backgroundBase,
+                          borderColor: isActive
+                            ? meta.primary
+                            : meta.borderColor,
+                        }}
+                      >
+                        <span
+                          className={styles['theme-preview-header']}
+                          style={{ background: meta.backgroundSurface }}
+                        >
+                          <span
+                            className={styles['theme-preview-dot']}
+                            style={{ background: meta.primary }}
+                          />
+                          <span
+                            className={styles['theme-preview-line']}
+                            style={{ background: meta.textMuted, width: 22 }}
+                          />
+                        </span>
+                        <span className={styles['theme-preview-body']}>
+                          <span
+                            className={styles['theme-preview-line']}
+                            style={{ background: meta.textPrimary, width: 34 }}
+                          />
+                          <span
+                            className={styles['theme-preview-line']}
+                            style={{ background: meta.textMuted, width: 26 }}
+                          />
+                          <span className={styles['theme-preview-accents']}>
+                            <span style={{ background: meta.primary }} />
+                            <span style={{ background: meta.secondary }} />
+                            <span style={{ background: meta.tertiary }} />
+                          </span>
+                        </span>
+                        {isActive && (
+                          <span
+                            className={styles['theme-active-badge']}
+                            style={{ background: meta.primary }}
+                          >
+                            <Check size={9} strokeWidth={3.5} />
+                          </span>
+                        )}
+                      </span>
+                      <span className={styles['theme-tile-meta']}>
+                        <ThemeIcon
+                          size={13}
+                          strokeWidth={1.8}
+                          className={styles['theme-tile-icon']}
+                        />
+                        <span className={styles['theme-tile-label']}>
+                          {meta.label}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -328,7 +276,9 @@ export default function SettingsComponent() {
                 <div className={styles['setting-control']}>
                   <SegmentedControlComponent
                     value={settings.defaultView}
-                    onChange={(value: string) => updateSetting("defaultView", value)}
+                    onChange={(value: string) =>
+                      updateSetting("defaultView", value as "card" | "table")
+                    }
                     segments={[
                       { value: "card", label: "Cards", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
                       { value: "table", label: "Table", icon: <Table2 size={12} strokeWidth={2.2} /> },
@@ -349,35 +299,7 @@ export default function SettingsComponent() {
                   <SelectComponent
                     value={settings.defaultPage}
                     onChange={(value: string) => updateSetting("defaultPage", value)}
-                    options={[
-                      { value: "/projects", label: "Projects" },
-                      { value: "/containers", label: "Containers" },
-                      { value: "/devices", label: "Devices" },
-                      { value: "/topology", label: "Topology" },
-                      { value: "/logs", label: "Logs" },
-                      { value: "/object-store", label: "Object Store" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {/* Card Density */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Card Density</span>
-                  <span className={styles['setting-hint']}>
-                    Spacing between card elements in grid views
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SegmentedControlComponent
-                    value={settings.cardDensity}
-                    onChange={(value: string) => updateSetting("cardDensity", value)}
-                    segments={[
-                      { value: "compact", label: "Compact" },
-                      { value: "comfortable", label: "Comfortable" },
-                      { value: "spacious", label: "Spacious" },
-                    ]}
+                    options={LANDING_PAGES.map((page) => ({ ...page }))}
                   />
                 </div>
               </div>
@@ -469,10 +391,11 @@ export default function SettingsComponent() {
                     <InputComponent
                       type="number"
                       value={settings.healthCheckInterval}
+                      disabled={!settings.autoRefreshEnabled}
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "healthCheckInterval",
-                          Math.max(5, Number((event.target as HTMLInputElement).value)),
+                          Math.max(5, Number(event.target.value)),
                         )
                       }
                       min={5}
@@ -502,7 +425,7 @@ export default function SettingsComponent() {
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "containerPollingInterval",
-                          Math.max(1, Number((event.target as HTMLInputElement).value)),
+                          Math.max(1, Number(event.target.value)),
                         )
                       }
                       min={1}
@@ -548,7 +471,7 @@ export default function SettingsComponent() {
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "alertThresholdCpu",
-                          Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
+                          Math.max(10, Math.min(100, Number(event.target.value))),
                         )
                       }
                       min={10}
@@ -578,7 +501,7 @@ export default function SettingsComponent() {
                       onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                         updateSetting(
                           "alertThresholdMemory",
-                          Math.max(10, Math.min(100, Number((event.target as HTMLInputElement).value))),
+                          Math.max(10, Math.min(100, Number(event.target.value))),
                         )
                       }
                       min={10}
@@ -587,98 +510,6 @@ export default function SettingsComponent() {
                     />
                     <span className={styles['unit-label']}>%</span>
                   </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-
-
-          {/* ═══ Notifications ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.notifications = element;
-            }}
-            className={styles['section']}
-            id="settings-notifications"
-          >
-            <div className={styles['section-header']}>
-              <div className={styles['section-icon-wrap']}>
-                <Bell size={17} strokeWidth={2} />
-              </div>
-              <div className={styles['section-title-group']}>
-                <h2 className={styles['section-title']}>Notifications</h2>
-                <p className={styles['section-description']}>
-                  Alert preferences and notification channels
-                </p>
-              </div>
-            </div>
-            <div className={styles['section-body']}>
-              {/* Browser Notifications */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Browser Notifications
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Enable native browser push notifications
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.browserNotifications}
-                    onChange={(checked: boolean) => updateSetting("browserNotifications", checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Down Alerts */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Down Alerts</span>
-                  <span className={styles['setting-hint']}>
-                    Get notified when a project goes offline
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.downAlerts}
-                    onChange={(checked: boolean) => updateSetting("downAlerts", checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Performance Alerts */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Performance Alerts
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Notify when CPU or memory exceeds thresholds
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.performanceAlerts}
-                    onChange={(checked: boolean) => updateSetting("performanceAlerts", checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Notification Sound */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Sound</span>
-                  <span className={styles['setting-hint']}>
-                    Play a sound effect when alerts are triggered
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.notificationSound}
-                    onChange={(checked: boolean) => updateSetting("notificationSound", checked)}
-                  />
                 </div>
               </div>
             </div>
@@ -699,7 +530,7 @@ export default function SettingsComponent() {
               <div className={styles['section-title-group']}>
                 <h2 className={styles['section-title']}>Data & Privacy</h2>
                 <p className={styles['section-description']}>
-                  Telemetry, log retention, and data management
+                  Session tracking and local data management
                 </p>
               </div>
             </div>
@@ -707,38 +538,15 @@ export default function SettingsComponent() {
               {/* Telemetry */}
               <div className={styles['setting-row']}>
                 <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Usage Telemetry</span>
+                  <span className={styles['setting-label']}>Session Tracking</span>
                   <span className={styles['setting-hint']}>
-                    Send anonymized usage data to improve the portal
+                    Record page navigation for the session explorer
                   </span>
                 </div>
                 <div className={styles['setting-control']}>
                   <SwitchComponent
                     checked={settings.telemetryEnabled}
                     onChange={(checked: boolean) => updateSetting("telemetryEnabled", checked)}
-                  />
-                </div>
-              </div>
-
-              {/* Log Retention */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Log Retention</span>
-                  <span className={styles['setting-hint']}>
-                    How long to keep request logs before auto-pruning
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SelectComponent
-                    value={settings.retainLogs}
-                    onChange={(value: string) => updateSetting("retainLogs", value)}
-                    options={[
-                      { value: "7d", label: "7 days" },
-                      { value: "14d", label: "14 days" },
-                      { value: "30d", label: "30 days" },
-                      { value: "90d", label: "90 days" },
-                      { value: "forever", label: "Forever" },
-                    ]}
                   />
                 </div>
               </div>
@@ -758,7 +566,7 @@ export default function SettingsComponent() {
                     variant="outlined"
                     size="small"
                     icon={RefreshCw}
-                    onClick={resetSettings}
+                    onClick={() => setConfirmAction("reset")}
                     className={styles['danger-button']}
                   >
                     Reset
@@ -779,7 +587,7 @@ export default function SettingsComponent() {
                     variant="outlined"
                     size="small"
                     icon={Trash2}
-                    onClick={clearLocalData}
+                    onClick={() => setConfirmAction("clear")}
                     className={styles['danger-button']}
                   >
                     Clear
@@ -791,19 +599,29 @@ export default function SettingsComponent() {
 
           {/* ── Footer ── */}
           <div className={styles['footer']}>
-            <span className={styles['footer-version']}>Portal v1.0.0</span>
-            <div className={styles['footer-links']}>
-              <span className={styles['footer-link']}>
-                Keyboard shortcuts
-                <span className={styles['kbd-group']} style={{ marginLeft: 6 }}>
-                  <kbd className={styles['kbd']}>⌘</kbd>
-                  <kbd className={styles['kbd']}>K</kbd>
-                </span>
-              </span>
-            </div>
+            <span className={styles['footer-version']}>Portal v0.1.0</span>
           </div>
         </div>
       </div>
+
+      {/* ── Destructive-action confirmation ── */}
+      <DialogComponent
+        open={confirmAction !== null}
+        onClose={() => setConfirmAction(null)}
+        icon={confirmAction === "clear" ? <Trash2 size={22} /> : <RefreshCw size={22} />}
+        headline={
+          confirmAction === "clear" ? "Clear local data?" : "Reset all settings?"
+        }
+        onConfirm={
+          confirmAction === "clear" ? handleClearLocalData : handleResetSettings
+        }
+        confirmLabel={confirmAction === "clear" ? "Clear data" : "Reset"}
+        confirmVariant="destructive"
+      >
+        {confirmAction === "clear"
+          ? "This wipes every portal preference stored in this browser — settings, theme, and cached table layouts — and restores the defaults."
+          : "Every setting returns to its default value. Your theme choice is kept."}
+      </DialogComponent>
     </div>
   );
 }

@@ -7,11 +7,13 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  ButtonComponent,
   ChartLineComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
+  TabBarComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
 import {
@@ -224,6 +226,7 @@ export default function SessionAnalyticsComponent({
 }: {
   projectId: string;
 }) {
+  const router = useRouter();
   const [period, setPeriod] = useState("30d");
   const [overview, setOverview] = useState<SessionOverview | null>(null);
   const [pages, setPages] = useState<SessionPageRow[] | null>(null);
@@ -364,13 +367,13 @@ export default function SessionAnalyticsComponent({
     {
       key: "views",
       label: "Views",
-      align: "right",
+      align: "right" as const,
       render: (row: SessionPageRow) => formatNumber(row.views),
     },
     {
       key: "uniqueVisitors",
       label: "Visitors",
-      align: "right",
+      align: "right" as const,
       render: (row: SessionPageRow) => formatNumber(row.uniqueVisitors),
     },
   ];
@@ -385,29 +388,31 @@ export default function SessionAnalyticsComponent({
         subtitle={`First-party tracking for ${projectId}`}
       >
         <div className={styles['header-controls']}>
-          <div className={styles['period-tabs']}>
-            {["7d", "30d", "90d"].map((presetPeriod) => (
-              <button
-                key={presetPeriod}
-                className={`${styles['period-tab']} ${period === presetPeriod ? styles['active-tab'] : ""}`}
-                onClick={() => {
-                  setLoading(true);
-                  setPeriod(presetPeriod);
-                }}
-              >
-                {presetPeriod}
-              </button>
-            ))}
-          </div>
+          <TabBarComponent
+            ariaLabel="Report period"
+            tabs={["7d", "30d", "90d"].map((presetPeriod) => ({
+              key: presetPeriod,
+              label: presetPeriod,
+            }))}
+            activeTab={period}
+            onChange={(key) => {
+              setLoading(true);
+              setPeriod(key);
+            }}
+          />
         </div>
       </PageHeaderComponent>
 
       {/* ── Back bar ──────────────────────────────────────────── */}
       <div className={styles['back-bar']}>
-        <Link href="/web-analytics" className={styles['back-button']}>
-          <ArrowLeft size={12} strokeWidth={2.2} />
+        <ButtonComponent
+          variant="text"
+          size="small"
+          icon={ArrowLeft}
+          onClick={() => router.push("/web-analytics")}
+        >
           All Properties
-        </Link>
+        </ButtonComponent>
         <span className={styles['selected-label']}>{projectId}</span>
         <span className={styles['selected-meta']}>First-Party Analytics</span>
       </div>

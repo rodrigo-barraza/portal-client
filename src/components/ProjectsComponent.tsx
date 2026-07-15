@@ -20,12 +20,14 @@ import {
   SelectComponent,
   SearchInputComponent,
   SegmentedControlComponent,
+  StatsCardComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
+import { usePortalSettings, getSettings } from "@/lib/settings";
 import styles from "./ProjectsComponent.module.css";
 import type { PortalService } from "../types/portal";
 
@@ -128,6 +130,7 @@ function buildFilterOptions(items: PortalService[]) {
 }
 
 export default function ProjectsComponent() {
+  const settings = usePortalSettings();
   const [services, setServices] = useState<PortalService[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -158,17 +161,15 @@ export default function ProjectsComponent() {
   // ── Search state ───────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ── View mode state ────────────────────────────────────────────
-  const [viewMode, setViewMode] = useState("table");
+  // ── View mode state (initial mode comes from settings) ────────
+  const [viewMode, setViewMode] = useState<string>(
+    () => getSettings().defaultView,
+  );
 
   async function loadServices(refresh = false) {
     try {
       const servicesResponse = await ApiService.getServices(refresh);
-      setServices(
-        (servicesResponse.services || []).filter(
-          (s: PortalService) => s.projectType !== "Infrastructure",
-        ),
-      );
+      setServices(servicesResponse.services || []);
     } catch (error) {
       console.error("Services fetch failed:", error);
     } finally {
@@ -203,6 +204,15 @@ export default function ProjectsComponent() {
     loadLanguages();
   }, []);
 
+  // ── Auto-refresh health polling (Settings → Monitoring) ────────
+  const { autoRefreshEnabled, healthCheckInterval } = settings;
+  useEffect(() => {
+    if (!autoRefreshEnabled) return;
+    const everyMs = Math.max(5, healthCheckInterval) * 1000;
+    const intervalId = window.setInterval(() => loadServices(true), everyMs);
+    return () => window.clearInterval(intervalId);
+  }, [autoRefreshEnabled, healthCheckInterval]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     loadServices(true);
@@ -213,7 +223,12 @@ export default function ProjectsComponent() {
   };
 
   // ── Apply filters & sort ────────────────────────────────────────
-  const allItems = services;
+  // Infrastructure projects (databases, stores) are opt-in via Settings
+  const allItems = settings.showInfrastructure
+    ? services
+    : services.filter(
+        (s: PortalService) => s.projectType !== "Infrastructure",
+      );
   const filterOptions = buildFilterOptions(allItems);
 
   const filtered = allItems
@@ -329,8 +344,9 @@ export default function ProjectsComponent() {
           ))}
 
           {hasActiveFilter && (
-            <button
-              className={styles['clear-button']}
+            <ButtonComponent
+              variant="text"
+              size="small"
               onClick={() => {
                 setSearchQuery("");
                 setFilters({
@@ -343,7 +359,7 @@ export default function ProjectsComponent() {
               }}
             >
               Clear
-            </button>
+            </ButtonComponent>
           )}
 
           {/* ── Divider ── */}
@@ -391,95 +407,48 @@ export default function ProjectsComponent() {
         }
       />
 
-      {/* ── Project Summary Cards ───────────────────────────────── */}
-      {!loading && (
+      {/* ── Project Summary Cards (Settings → Dashboard) ─────────── */}
+      {!loading && settings.showSystemSummary && (
         <div className={styles['summary-grid']}>
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
-            >
-              <FolderKanban size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>{allItems.length}</span>
-              <span className={styles['stat-card-label']}>Projects</span>
-              <span className={styles['stat-card-sub']}>
-                {allDeployed.length} deployed · {allNonDeployed.length}{" "}
-                libraries & tools
-              </span>
-            </div>
-          </div>
-
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#10b981", background: "rgba(16,185,129,0.08)" }}
-            >
-              <HeartPulse size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>{healthyCount}</span>
-              <span className={styles['stat-card-label']}>Healthy</span>
-              <span className={styles['stat-card-sub']}>
-                {unhealthyCount > 0
-                  ? `${unhealthyCount} unhealthy`
-                  : "All systems nominal"}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#3b82f6", background: "rgba(59,130,246,0.08)" }}
-            >
-              <Server size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>
-                {uniqueDevices.length}
-              </span>
-              <span className={styles['stat-card-label']}>Devices</span>
-              <span className={styles['stat-card-sub']}>
-                {uniqueDevices.join(" · ") || "No devices"}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
-            >
-              <Layers size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>{uniqueTypes.length}</span>
-              <span className={styles['stat-card-label']}>Types</span>
-              <span className={styles['stat-card-sub']}>
-                {uniqueTypes.join(" · ") || "No types"}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#06b6d4", background: "rgba(6,182,212,0.08)" }}
-            >
-              <HardDrive size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>
-                {totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}
-              </span>
-              <span className={styles['stat-card-label']}>Total Code</span>
-              <span className={styles['stat-card-sub']}>
-                {Object.keys(projectSizes).length} repos measured
-              </span>
-            </div>
-          </div>
+          <StatsCardComponent
+            label="Projects"
+            value={allItems.length}
+            subtitle={`${allDeployed.length} deployed · ${allNonDeployed.length} libraries & tools`}
+            icon={FolderKanban}
+            variant="accent"
+          />
+          <StatsCardComponent
+            label="Healthy"
+            value={healthyCount}
+            subtitle={
+              unhealthyCount > 0
+                ? `${unhealthyCount} unhealthy`
+                : "All systems nominal"
+            }
+            icon={HeartPulse}
+            variant={unhealthyCount > 0 ? "warning" : "success"}
+          />
+          <StatsCardComponent
+            label="Devices"
+            value={uniqueDevices.length}
+            subtitle={uniqueDevices.join(" · ") || "No devices"}
+            icon={Server}
+            variant="info"
+          />
+          <StatsCardComponent
+            label="Types"
+            value={uniqueTypes.length}
+            subtitle={uniqueTypes.join(" · ") || "No types"}
+            icon={Layers}
+            color="var(--accent-secondary)"
+          />
+          <StatsCardComponent
+            label="Total Code"
+            value={totalSizeBytes ? formatBytes(totalSizeBytes) : "—"}
+            subtitle={`${Object.keys(projectSizes).length} repos measured`}
+            icon={HardDrive}
+            color="var(--accent-tertiary)"
+          />
         </div>
       )}
 

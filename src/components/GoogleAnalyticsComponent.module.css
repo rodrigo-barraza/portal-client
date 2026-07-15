@@ -27,34 +27,6 @@
   min-width: 140px;
 }
 
-.period-tabs {
-  display: flex;
-  gap: 2px;
-  background: var(--background-elevated);
-  border-radius: var(--border-radius-sm);
-  padding: 2px;
-}
-
-.period-tab {
-  padding: 6px 14px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-tertiary);
-  border-radius: var(--border-radius-sm);
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-
-  &:hover {
-    color: var(--text-primary);
-  }
-}
-
-.active-tab {
-  background: var(--background-surface);
-  color: var(--text-primary);
-}
-
 /* ── Realtime Banner ─────────────────────────────────────────── */
 
 .realtime-banner {
@@ -76,7 +48,7 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    oklch(69.6% 0.1491 162.5 / 0.04),
+    color-mix(in srgb, var(--color-success) 4%, transparent),
     transparent 60%
   );
   pointer-events: none;
@@ -553,12 +525,12 @@
 
 .delta-up {
   color: var(--color-success);
-  background: oklch(69.6% 0.1491 162.5 / 0.12);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
 }
 
 .delta-down {
   color: var(--color-danger);
-  background: oklch(63.7% 0.2078 25.3 / 0.12);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 
 /* ── Property Pills ──────────────────────────────────────────── */
@@ -736,7 +708,7 @@
     inset: 0;
     background: linear-gradient(
       135deg,
-      oklch(58.5% 0.2041 277.1 / 0.03),
+      color-mix(in srgb, var(--accent-primary) 3%, transparent),
       transparent 60%
     );
     pointer-events: none;
@@ -768,7 +740,7 @@
   width: 38px;
   height: 38px;
   border-radius: var(--border-radius-sm);
-  background: oklch(58.5% 0.2041 277.1 / 0.08);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
   color: var(--accent-primary);
   flex-shrink: 0;
 }
@@ -1007,29 +979,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-tertiary);
-  background: var(--background-elevated);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-
-  &:hover {
-    color: var(--text-primary);
-    border-color: var(--calculated-border-subtle);
-  }
 }
 
 .selected-label {

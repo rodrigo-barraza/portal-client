@@ -3,5 +3,7 @@ declare module "*.css" {
   export default classes;
 }
 
-declare module "@rodrigo-barraza/components-library";
+// utilities-library still ships loosely-typed API clients; keep it ambient
+// until its createApiClient returns typed responses. The components-library
+// declaration was removed on purpose so its real dist/index.d.ts types apply.
 declare module "@rodrigo-barraza/utilities-library";

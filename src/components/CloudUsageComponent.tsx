@@ -405,25 +405,18 @@ export default function CloudUsageComponent() {
         <PageHeaderComponent
           title="Cloud Usage"
           subtitle="Google Cloud API consumption metrics"
-          actions={
-            <ButtonComponent
-              variant="outlined"
-              compact
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw
-                size={14}
-                style={{
-                  animation: isRefreshing
-                    ? "spin 1s linear infinite"
-                    : "none",
-                }}
-              />
-              Refresh
-            </ButtonComponent>
-          }
-        />
+        >
+          <ButtonComponent
+            variant="outlined"
+            size="small"
+            icon={RefreshCw}
+            loading={isRefreshing}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            Refresh
+          </ButtonComponent>
+        </PageHeaderComponent>
         <div className={styles["empty-state-container"]}>
           <Cloud size={48} className={styles["empty-state-icon"]} />
           <div className={styles["empty-state-title"]}>
@@ -446,25 +439,18 @@ export default function CloudUsageComponent() {
       <PageHeaderComponent
         title="Cloud Usage"
         subtitle={`Google Cloud API consumption · Project: ${data.projectId}`}
-        actions={
-          <ButtonComponent
-            variant="outlined"
-            compact
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw
-              size={14}
-              style={{
-                animation: isRefreshing
-                  ? "spin 1s linear infinite"
-                  : "none",
-              }}
-            />
-            Refresh
-          </ButtonComponent>
-        }
-      />
+      >
+        <ButtonComponent
+          variant="outlined"
+          size="small"
+          icon={RefreshCw}
+          loading={isRefreshing}
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          Refresh
+        </ButtonComponent>
+      </PageHeaderComponent>
 
       {/* ── Summary + Period Selector ── */}
       <div className={styles["summary-header-container"]}>

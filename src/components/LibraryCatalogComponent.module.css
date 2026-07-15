@@ -44,48 +44,6 @@
   flex-wrap: wrap;
 }
 
-/* ── Search ────────────────────────────────────────────────────── */
-
-.search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 220px;
-  height: 32px;
-  padding: 0 10px 0 30px;
-  font-size: var(--font-size-sm);
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  color: var(--text-primary);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    width var(--transition-normal);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--calculated-accent-primary-subtle);
-  width: 280px;
-}
-
-.search-input::placeholder {
-  color: var(--text-muted);
-}
-
 /* ── Count Label ─────────────────────────────────────────────── */
 
 .count-label {
@@ -105,6 +63,12 @@
 /* ── Card ─────────────────────────────────────────────────────── */
 
 .card {
+  /* Accent is injected per-page as --card-accent (token var() references
+     work fine in custom-property assignment); the subtle tint derives
+     from it unless explicitly overridden. */
+  --card-accent: var(--accent-primary);
+  --card-accent-subtle: color-mix(in srgb, var(--card-accent) 10%, transparent);
+
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -120,9 +84,9 @@
 }
 
 .card:hover {
-  border-color: var(--card-accent, var(--accent-primary));
+  border-color: var(--card-accent);
   box-shadow:
-    0 0 0 1px var(--card-accent-subtle, var(--calculated-accent-primary-subtle)),
+    0 0 0 1px var(--card-accent-subtle),
     var(--calculated-shadow-md);
   transform: translateY(-1px);
 }
@@ -152,6 +116,8 @@
   width: 36px;
   height: 36px;
   border-radius: var(--border-radius-sm);
+  color: var(--card-accent);
+  background: var(--card-accent-subtle);
 }
 
 .card-meta {
@@ -220,6 +186,8 @@
   white-space: nowrap;
   letter-spacing: 0.02em;
   text-transform: capitalize;
+  color: var(--card-accent);
+  background: var(--card-accent-subtle);
 }
 
 /* ── Empty State ──────────────────────────────────────────────── */

@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { LoadingIndicatorComponent, SearchInputComponent, TableComponent } from "@rodrigo-barraza/components-library";
+import {
+  ButtonComponent,
+  LoadingIndicatorComponent,
+  PaginationComponent,
+  SearchInputComponent,
+  TabBarComponent,
+  TableComponent,
+} from "@rodrigo-barraza/components-library";
 import {
   Users,
   Clock,
@@ -144,6 +151,8 @@ interface SessionDetail extends SessionRow {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+
+const PAGE_SIZE = 50;
 
 function formatTimeAgo(dateString: string): string {
   const delta = Date.now() - new Date(dateString).getTime();
@@ -314,7 +323,7 @@ export default function SessionExplorerComponent({
         const ipUsersResponse = await ApiService.getSessionIpUsers(
           projectId,
           period,
-          50,
+          PAGE_SIZE,
           offset,
         );
         const data = ipUsersResponse?.data ?? ipUsersResponse;
@@ -352,7 +361,7 @@ export default function SessionExplorerComponent({
         const visitorsResponse = await ApiService.getSessionVisitors(
           projectId,
           period,
-          50,
+          PAGE_SIZE,
           offset,
         );
         const data = visitorsResponse?.data ?? visitorsResponse;
@@ -375,7 +384,7 @@ export default function SessionExplorerComponent({
         const sessionsResponse = await ApiService.getSessionsList(
           projectId,
           period,
-          50,
+          PAGE_SIZE,
           offset,
         );
         const data = sessionsResponse?.data ?? sessionsResponse;
@@ -745,10 +754,14 @@ export default function SessionExplorerComponent({
     return (
       <div className={styles['explorer']}>
         <div className={styles['detail-header']}>
-          <button className={styles['back-button']} onClick={handleBack}>
-            <ArrowLeft size={14} strokeWidth={2.2} />
+          <ButtonComponent
+            variant="text"
+            size="small"
+            icon={ArrowLeft}
+            onClick={handleBack}
+          >
             Back to list
-          </button>
+          </ButtonComponent>
           <span className={styles['detail-session-id']}>
             <Network size={14} strokeWidth={2.2} />
             {ip.ip}
@@ -911,10 +924,14 @@ export default function SessionExplorerComponent({
     return (
       <div className={styles['explorer']}>
         <div className={styles['detail-header']}>
-          <button className={styles['back-button']} onClick={handleBack}>
-            <ArrowLeft size={14} strokeWidth={2.2} />
+          <ButtonComponent
+            variant="text"
+            size="small"
+            icon={ArrowLeft}
+            onClick={handleBack}
+          >
             Back to list
-          </button>
+          </ButtonComponent>
           <span className={styles['detail-session-id']}>
             {currentSession.sessionId.slice(0, 8)}…
           </span>
@@ -1054,42 +1071,31 @@ export default function SessionExplorerComponent({
       {/* ── Controls Section ── */}
       <section className={styles["controls-container"]}>
         {/* ── Tab Bar Navigation ── */}
-        <nav className={styles['tab-bar']}>
-          <button
-            className={`${styles['tab']} ${tab === "ips" ? styles['tab-active'] : ""}`}
-            onClick={() => setTab("ips")}
-          >
-            <Network size={13} strokeWidth={2.2} />
-            IPs
-            {ipsTotal > 0 && (
-              <span className={styles['tab-badge']}>{formatNumber(ipsTotal)}</span>
-            )}
-          </button>
-          <button
-            className={`${styles['tab']} ${tab === "visitors" ? styles['tab-active'] : ""}`}
-            onClick={() => setTab("visitors")}
-          >
-            <Users size={13} strokeWidth={2.2} />
-            Visitors
-            {visitorsTotal > 0 && (
-              <span className={styles['tab-badge']}>
-                {formatNumber(visitorsTotal)}
-              </span>
-            )}
-          </button>
-          <button
-            className={`${styles['tab']} ${tab === "sessions" ? styles['tab-active'] : ""}`}
-            onClick={() => setTab("sessions")}
-          >
-            <Clock size={13} strokeWidth={2.2} />
-            Sessions
-            {sessionsTotal > 0 && (
-              <span className={styles['tab-badge']}>
-                {formatNumber(sessionsTotal)}
-              </span>
-            )}
-          </button>
-        </nav>
+        <TabBarComponent
+          ariaLabel="Session explorer views"
+          tabs={[
+            {
+              key: "ips",
+              label: "IPs",
+              icon: <Network size={13} strokeWidth={2.2} />,
+              badge: ipsTotal > 0 ? formatNumber(ipsTotal) : undefined,
+            },
+            {
+              key: "visitors",
+              label: "Visitors",
+              icon: <Users size={13} strokeWidth={2.2} />,
+              badge: visitorsTotal > 0 ? formatNumber(visitorsTotal) : undefined,
+            },
+            {
+              key: "sessions",
+              label: "Sessions",
+              icon: <Clock size={13} strokeWidth={2.2} />,
+              badge: sessionsTotal > 0 ? formatNumber(sessionsTotal) : undefined,
+            },
+          ]}
+          activeTab={tab}
+          onChange={(key) => setTab(key as Tab)}
+        />
 
         <div className={styles["controls-right"]}>
           {/* ── View Mode Toggle ── */}
@@ -1212,28 +1218,13 @@ export default function SessionExplorerComponent({
                 />
               )}
 
-              {ipsTotal > 50 && (
-                <div className={styles['pagination']}>
-                  <button
-                    className={styles['page-button']}
-                    disabled={ipsOffset === 0}
-                    onClick={() => loadIps(Math.max(0, ipsOffset - 50))}
-                  >
-                    Previous
-                  </button>
-                  <span className={styles['page-info']}>
-                    {ipsOffset + 1}–{Math.min(ipsOffset + 50, ipsTotal)} of{" "}
-                    {formatNumber(ipsTotal)}
-                  </span>
-                  <button
-                    className={styles['page-button']}
-                    disabled={ipsOffset + 50 >= ipsTotal}
-                    onClick={() => loadIps(ipsOffset + 50)}
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationComponent
+                page={Math.floor(ipsOffset / PAGE_SIZE) + 1}
+                totalPages={Math.ceil(ipsTotal / PAGE_SIZE)}
+                totalItems={ipsTotal}
+                limit={PAGE_SIZE}
+                onPageChange={(page) => loadIps((page - 1) * PAGE_SIZE)}
+              />
             </>
           )}
         </>
@@ -1343,31 +1334,13 @@ export default function SessionExplorerComponent({
                 />
               )}
 
-              {visitorsTotal > 50 && (
-                <div className={styles['pagination']}>
-                  <button
-                    className={styles['page-button']}
-                    disabled={visitorsOffset === 0}
-                    onClick={() =>
-                      loadVisitors(Math.max(0, visitorsOffset - 50))
-                    }
-                  >
-                    Previous
-                  </button>
-                  <span className={styles['page-info']}>
-                    {visitorsOffset + 1}–
-                    {Math.min(visitorsOffset + 50, visitorsTotal)} of{" "}
-                    {formatNumber(visitorsTotal)}
-                  </span>
-                  <button
-                    className={styles['page-button']}
-                    disabled={visitorsOffset + 50 >= visitorsTotal}
-                    onClick={() => loadVisitors(visitorsOffset + 50)}
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationComponent
+                page={Math.floor(visitorsOffset / PAGE_SIZE) + 1}
+                totalPages={Math.ceil(visitorsTotal / PAGE_SIZE)}
+                totalItems={visitorsTotal}
+                limit={PAGE_SIZE}
+                onPageChange={(page) => loadVisitors((page - 1) * PAGE_SIZE)}
+              />
             </>
           )}
         </>
@@ -1458,31 +1431,13 @@ export default function SessionExplorerComponent({
                 </div>
               )}
 
-              {sessionsTotal > 50 && (
-                <div className={styles['pagination']}>
-                  <button
-                    className={styles['page-button']}
-                    disabled={sessionsOffset === 0}
-                    onClick={() =>
-                      loadSessions(Math.max(0, sessionsOffset - 50))
-                    }
-                  >
-                    Previous
-                  </button>
-                  <span className={styles['page-info']}>
-                    {sessionsOffset + 1}–
-                    {Math.min(sessionsOffset + 50, sessionsTotal)} of{" "}
-                    {formatNumber(sessionsTotal)}
-                  </span>
-                  <button
-                    className={styles['page-button']}
-                    disabled={sessionsOffset + 50 >= sessionsTotal}
-                    onClick={() => loadSessions(sessionsOffset + 50)}
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationComponent
+                page={Math.floor(sessionsOffset / PAGE_SIZE) + 1}
+                totalPages={Math.ceil(sessionsTotal / PAGE_SIZE)}
+                totalItems={sessionsTotal}
+                limit={PAGE_SIZE}
+                onPageChange={(page) => loadSessions((page - 1) * PAGE_SIZE)}
+              />
             </>
           )}
         </>

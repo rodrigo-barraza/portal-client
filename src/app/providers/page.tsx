@@ -18,8 +18,7 @@ export default function ProvidersPage() {
         title="Providers"
         subtitle={`${catalog.filter((c) => c.type === "provider").length} context providers`}
         icon={<Plug size={18} />}
-        accentColor="#f97316"
-        accentSubtle="rgba(249, 115, 22, 0.1)"
+        accentColor="var(--component-category-actions)"
       />
     </PageLayoutComponent>
   );

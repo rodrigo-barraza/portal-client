@@ -19,41 +19,6 @@
   }
 }
 
-/* ── Tab Bar ───────────────────────────────────────────────────── */
-
-.tab-bar {
-  display: flex;
-  gap: 2px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--calculated-border-color);
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  font-size: var(--font-size-xs);
-  font-weight: 550;
-  color: var(--text-tertiary);
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-  white-space: nowrap;
-
-  &:hover {
-    color: var(--text-secondary);
-    background: var(--background-elevated);
-  }
-}
-
-.tab-active {
-  color: var(--text-primary);
-  background: var(--background-elevated);
-}
-
 /* ── Tab Content ───────────────────────────────────────────────── */
 
 .tab-content {
@@ -274,21 +239,21 @@
   color: var(--color-success);
 }
 .mini-node-internal {
-  border-color: oklch(69.6% 0.1491 162.5 / 0.1);
+  border-color: color-mix(in srgb, var(--color-success) 10%, transparent);
 }
 
 .mini-node-external .mini-node-icon-wrap {
   color: var(--node-external);
 }
 .mini-node-external {
-  border-color: oklch(78.5% 0.1325 181.9 / 0.1);
+  border-color: color-mix(in srgb, var(--node-external) 10%, transparent);
 }
 
 .mini-node-infra .mini-node-icon-wrap {
   color: var(--node-infrastructure);
 }
 .mini-node-infra {
-  border-color: oklch(62.7% 0.2326 303.9 / 0.1);
+  border-color: color-mix(in srgb, var(--node-infrastructure) 10%, transparent);
 }
 
 .mini-node-self {
@@ -329,12 +294,12 @@
 
 .mini-status-healthy {
   background: var(--color-success);
-  box-shadow: 0 0 4px oklch(69.6% 0.1491 162.5 / 0.5);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--color-success) 50%, transparent);
 }
 
 .mini-status-down {
   background: var(--color-danger);
-  box-shadow: 0 0 4px oklch(63.7% 0.2078 25.3 / 0.5);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--color-danger) 50%, transparent);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -463,8 +428,8 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: oklch(69.6% 0.1491 162.5 / 0.08);
-  border: 1px solid oklch(69.6% 0.1491 162.5 / 0.2);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
   border-radius: 100px;
   align-self: flex-start;
 }

@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import {
+  ButtonComponent,
   PageHeaderComponent,
   SearchInputComponent,
   IconButtonComponent,
@@ -205,27 +206,37 @@ export default function ComponentsComponent({
           id="component-search"
         />
 
-        {/* Category pills */}
+        {/* Category filter buttons (M3 outlined → tonal when selected) */}
         <div className={styles['category-pills']}>
-          <button
-            className={`${styles['pill']} ${activeCategory === "all" ? styles['pill-active'] : ""}`}
+          <ButtonComponent
+            size="small"
+            variant={activeCategory === "all" ? "tonal" : "outlined"}
+            aria-pressed={activeCategory === "all"}
             onClick={() => setActiveCategory("all")}
           >
             All
-            <span className={styles['pill-count']}>{categoryCounts.all}</span>
-          </button>
+            <span
+              className={`${styles['pill-count']}${activeCategory === "all" ? ` ${styles['pill-count-active']}` : ""}`}
+            >
+              {categoryCounts.all}
+            </span>
+          </ButtonComponent>
           {Object.entries(CATEGORIES).map(([key, cat]) => (
-            <button
+            <ButtonComponent
               key={key}
-              className={`${styles['pill']} ${activeCategory === key ? styles['pill-active'] : ""}`}
+              size="small"
+              variant={activeCategory === key ? "tonal" : "outlined"}
+              aria-pressed={activeCategory === key}
               onClick={() => setActiveCategory(key)}
             >
               <span className={styles['pill-emoji']}>{cat.icon}</span>
               {cat.label}
-              <span className={styles['pill-count']}>
+              <span
+                className={`${styles['pill-count']}${activeCategory === key ? ` ${styles['pill-count-active']}` : ""}`}
+              >
                 {categoryCounts[key] || 0}
               </span>
-            </button>
+            </ButtonComponent>
           ))}
         </div>
 

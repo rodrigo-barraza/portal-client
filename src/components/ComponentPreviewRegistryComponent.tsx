@@ -195,11 +195,7 @@ const PREVIEWS = {
   ),
 
   DatePickerComponent: () => (
-    <DatePickerComponent
-      value=""
-      onChange={() => {}}
-      placeholder="Select date…"
-    />
+    <DatePickerComponent onChange={() => {}} placeholder="Select date…" />
   ),
 
   DialogComponent: () => (
@@ -397,8 +393,9 @@ const PREVIEWS = {
 
   PaginationComponent: () => (
     <PaginationComponent
-      currentPage={3}
+      page={3}
       totalPages={10}
+      totalItems={100}
       onPageChange={() => {}}
     />
   ),
@@ -631,12 +628,12 @@ const PREVIEWS = {
       position="static"
     >
       <TopAppBarComponent.Action
-        icon={<Search size={20} />}
+        icon={Search}
         ariaLabel="Search"
         onClick={() => {}}
       />
       <TopAppBarComponent.Action
-        icon={<MoreVertical size={20} />}
+        icon={MoreVertical}
         ariaLabel="More"
         onClick={() => {}}
       />

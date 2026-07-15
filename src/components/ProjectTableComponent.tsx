@@ -29,6 +29,8 @@ import styles from "./ProjectTableComponent.module.css";
 
 // ── GitHub Linguist Language Colors ────────────────────────────────
 // Official colors from github/linguist for the most common languages.
+// Intentionally literal: these are external canonical colors with no
+// design-token counterpart (they must match GitHub's language palette).
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: "#3178c6",
   JavaScript: "#f1e05a",
@@ -66,8 +68,8 @@ const LANGUAGE_COLORS: Record<string, string> = {
   MDX: "#fcb32c",
 };
 
-/** Fallback columnor for unlisted languages */
-const DEFAULT_LANGUAGE_COLOR = "#8b8b8b";
+/** Fallback color for unlisted languages */
+const DEFAULT_LANGUAGE_COLOR = "var(--text-muted)";
 
 // ── Formatting helpers ─────────────────────────────────────────────
 const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
@@ -155,9 +157,10 @@ function buildColumns(
           <BadgeComponent
             variant="info"
             style={{
-              color: "#f59e0b",
-              background: "rgba(245, 158, 11, 0.10)",
-              borderColor: "rgba(245, 158, 11, 0.25)",
+              color: "var(--color-warning)",
+              background: "var(--calculated-color-warning-subtle)",
+              borderColor:
+                "color-mix(in srgb, var(--color-warning) 25%, transparent)",
             }}
           >
             <ShieldCheck

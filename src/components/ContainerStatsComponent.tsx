@@ -28,6 +28,8 @@ import {
   SelectComponent,
   PageHeaderComponent,
   ChartLineComponent,
+  SegmentedControlComponent,
+  StatsCardComponent,
   TableComponent,
   SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
@@ -50,10 +52,10 @@ import type {
 } from "../types/portal";
 import ApiService from "../services/ApiService";
 import ContainerDetailPanel from "./ContainerDetailPanelComponent";
+import { usePortalSettings } from "@/lib/settings";
 import styles from "./ContainerStatsComponent.module.css";
 
-const POLL_INTERVAL = 5_000;
-const HISTORY_MAX = 60; // 60 samples × 5s = 5 minutes
+const HISTORY_MAX = 60; // e.g. 60 samples × 5s = 5 minutes at default polling
 
 function severityColor(
   percentage: number,
@@ -219,6 +221,9 @@ function buildColumns({
   rollbackMap,
   systemInfo,
   containerHistory,
+  cpuAlertAt,
+  memoryAlertAt,
+  showResponseTimes,
 }: {
   onRestart: (serviceId: string, row: ContainerRow) => Promise<void>;
   onStop: (serviceId: string, row: ContainerRow) => Promise<void>;
@@ -227,6 +232,9 @@ function buildColumns({
   rollbackMap: Record<string, boolean>;
   systemInfo: SystemInfo | SystemInfo[] | null;
   containerHistory: Record<string, ContainerHistory>;
+  cpuAlertAt: number;
+  memoryAlertAt: number;
+  showResponseTimes: boolean;
 }) {
   // Build per-device host RAM lookup for detecting uncapped containers
   const sysDevices: SystemInfo[] = systemInfo
@@ -239,7 +247,7 @@ function buildColumns({
     hostRamByDevice[deviceInfo.deviceId] = deviceInfo.totalMemory || 0;
   }
 
-  return [
+  const columns = [
     {
       key: "name",
       label: "Container",
@@ -277,7 +285,7 @@ function buildColumns({
       render: (row: ContainerRow) => {
         const cpuPercent = row._stats?.cpu?.percent;
         if (cpuPercent == null) return <span className={styles['dim-text']}>—</span>;
-        const color = severityColor(cpuPercent);
+        const color = severityColor(cpuPercent, [40, cpuAlertAt]);
         return (
           <div className={styles['metric-cell']}>
             <span className={styles['metric-value']} style={{ color }}>
@@ -301,7 +309,7 @@ function buildColumns({
           <div className={styles['inline-sparkline']}>
             <ChartLineComponent
               data={history}
-              color="#10b981"
+              color="var(--color-success)"
               maxValue={100}
               height={24}
               historyMax={HISTORY_MAX}
@@ -327,7 +335,7 @@ function buildColumns({
         const percentage = isCapped
           ? (memoryStats.used / memoryStats.limit) * 100
           : memoryStats.percent;
-        const color = severityColor(percentage, [60, 85]);
+        const color = severityColor(percentage, [60, memoryAlertAt]);
         return (
           <div className={styles['metric-cell']}>
             <span className={styles['metric-value']} style={{ color }}>
@@ -356,7 +364,7 @@ function buildColumns({
           <div className={styles['inline-sparkline']}>
             <ChartLineComponent
               data={history}
-              color="#3b82f6"
+              color="var(--color-info)"
               maxValue={maximumValue}
               height={24}
               historyMax={HISTORY_MAX}
@@ -448,9 +456,9 @@ function buildColumns({
       sortable: true,
       description: "Registrable root domain",
       render: (row: ContainerRow) => {
-        const root = getRootDomain(row.domain);
-        return root ? (
-          <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />
+        const domain = row.domain;
+        return domain && getRootDomain(domain) ? (
+          <BadgeComponent type="domain" domain={domain} icons={{ Globe }} />
         ) : null;
       },
       sortValue: (row: ContainerRow) => getRootDomain(row.domain),
@@ -487,7 +495,7 @@ function buildColumns({
       key: "actions",
       label: "Actions",
       sortable: false,
-      align: "right",
+      align: "right" as const,
       render: (row: ContainerRow) => (
         <ActionCell
           service={row}
@@ -500,11 +508,17 @@ function buildColumns({
       ),
     },
   ];
+
+  // Response-time visibility is a user setting (Settings → Monitoring)
+  return showResponseTimes
+    ? columns
+    : columns.filter((column) => column.key !== "response");
 }
 
 // ── Main Component ──────────────────────────────────────────────
 
 export default function ContainerStatsComponent() {
+  const settings = usePortalSettings();
   const [containerRows, setContainerRows] = useState<ContainerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [systemInfo, setSystemInfo] = useState<
@@ -755,14 +769,16 @@ export default function ContainerStatsComponent() {
     })();
   }, [fetchData, fetchSystemInfo]);
 
-  // Poll every 5s (includes systemInfo retry if initial call was slow)
+  // Poll on the user-configured interval (Settings → Monitoring);
+  // includes systemInfo retry if the initial call was slow
+  const pollMs = Math.max(1, settings.containerPollingInterval) * 1000;
   useEffect(() => {
     const timer = setInterval(() => {
       fetchData();
       if (!systemInfo) fetchSystemInfo();
-    }, POLL_INTERVAL);
+    }, pollMs);
     return () => clearInterval(timer);
-  }, [fetchData, fetchSystemInfo, systemInfo]);
+  }, [fetchData, fetchSystemInfo, systemInfo, pollMs]);
 
   const handleRestart = async (serviceId: string, row: ContainerRow) => {
     try {
@@ -895,6 +911,9 @@ export default function ContainerStatsComponent() {
     rollbackMap,
     systemInfo,
     containerHistory,
+    cpuAlertAt: settings.alertThresholdCpu,
+    memoryAlertAt: settings.alertThresholdMemory,
+    showResponseTimes: settings.showResponseTimes,
   });
   const healthyCount = filteredRows.filter((r) => r.healthy).length;
 
@@ -1060,76 +1079,58 @@ export default function ContainerStatsComponent() {
         </div>
 
         {/* ── View Mode Switcher ──────────────────────────────────── */}
-        <div className={styles['view-mode-toggle']}>
-          <button
-            className={`${styles['toggle-button']} ${viewMode === "table" ? styles['toggle-btn-active'] : ""}`}
-            onClick={() => handleToggleViewMode("table")}
-            title="Table View"
-          >
-            <List size={14} strokeWidth={2.4} />
-          </button>
-          <button
-            className={`${styles['toggle-button']} ${viewMode === "cards" ? styles['toggle-btn-active'] : ""}`}
-            onClick={() => handleToggleViewMode("cards")}
-            title="Cards View"
-          >
-            <LayoutGrid size={14} strokeWidth={2.4} />
-          </button>
-        </div>
+        <SegmentedControlComponent
+          value={viewMode}
+          onChange={(value: string) =>
+            handleToggleViewMode(value as "table" | "cards")
+          }
+          segments={[
+            { value: "table", icon: <List size={12} strokeWidth={2.4} /> },
+            { value: "cards", icon: <LayoutGrid size={12} strokeWidth={2.4} /> },
+          ]}
+          compact
+        />
       </div>
 
       {/* ── Infrastructure Summary Cards ──────────────────────────── */}
       {!loading && (
         <div className={styles['summary-grid']}>
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#6366f1", background: "rgba(99,102,241,0.08)" }}
-            >
-              <Server size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>
-                {filteredRows.length}
-              </span>
-              <span className={styles['stat-card-label']}>Containers</span>
-              <span className={styles['stat-card-sub']}>
-                {activeDevices.length > 0
-                  ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
-                  : systemInfo
-                    ? `${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
-                    : `${healthyCount} healthy`}
-              </span>
-            </div>
-          </div>
+          <StatsCardComponent
+            label="Containers"
+            value={filteredRows.length}
+            subtitle={
+              activeDevices.length > 0
+                ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
+                : systemInfo
+                  ? `${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
+                  : `${healthyCount} healthy`
+            }
+            icon={Server}
+            variant="accent"
+          />
 
-          <div className={`${styles['stat-card']} ${styles['stat-card-with-chart']}`}>
-            <div className={styles['stat-card-header']}>
-              <div
-                className={styles['stat-card-icon']}
-                style={{
-                  color: "#10b981",
-                  background: "rgba(16,185,129,0.08)",
-                }}
-              >
-                <Cpu size={18} strokeWidth={2} />
-              </div>
-              <div className={styles['stat-card-content']}>
-                <span
-                  className={styles['stat-card-value']}
-                  style={{ color: severityColor(avgCpuUsage) }}
-                >
-                  {totalCpuUsage.toFixed(1)}%
-                </span>
-                <span className={styles['stat-card-label']}>CPU Usage</span>
-                <span className={styles['stat-card-sub']}>
-                  {avgCpuUsage.toFixed(1)}% avg per container
-                </span>
+          <div
+            className={styles['chart-stat-card']}
+            style={{ "--chart-stat-accent": "var(--color-success)" } as React.CSSProperties}
+          >
+            <div className={styles['chart-stat-header']}>
+              <span className={styles['chart-stat-label']}>CPU Usage</span>
+              <div className={styles['chart-stat-icon']}>
+                <Cpu size={14} strokeWidth={2} />
               </div>
             </div>
+            <span
+              className={styles['chart-stat-value']}
+              style={{ color: severityColor(avgCpuUsage, [40, settings.alertThresholdCpu]) }}
+            >
+              {totalCpuUsage.toFixed(1)}%
+            </span>
+            <span className={styles['chart-stat-subtitle']}>
+              {avgCpuUsage.toFixed(1)}% avg per container
+            </span>
             <ChartLineComponent
               data={cpuHistory}
-              color="#10b981"
+              color="var(--color-success)"
               maxValue={100}
               height={48}
               historyMax={HISTORY_MAX}
@@ -1138,35 +1139,32 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          <div className={`${styles['stat-card']} ${styles['stat-card-with-chart']}`}>
-            <div className={styles['stat-card-header']}>
-              <div
-                className={styles['stat-card-icon']}
-                style={{
-                  color: "#3b82f6",
-                  background: "rgba(59,130,246,0.08)",
-                }}
-              >
-                <MemoryStick size={18} strokeWidth={2} />
-              </div>
-              <div className={styles['stat-card-content']}>
-                <span
-                  className={styles['stat-card-value']}
-                  style={{ color: severityColor(memoryPercent, [60, 85]) }}
-                >
-                  {formatBytes(totalMemoryUsed)}
-                </span>
-                <span className={styles['stat-card-label']}>Memory Used</span>
-                <span className={styles['stat-card-sub']}>
-                  {totalMemoryLimit
-                    ? `${formatPercent(memoryPercent, "adaptive")} of ${formatBytes(totalMemoryLimit)} total`
-                    : "—"}
-                </span>
+          <div
+            className={styles['chart-stat-card']}
+            style={{ "--chart-stat-accent": "var(--color-info)" } as React.CSSProperties}
+          >
+            <div className={styles['chart-stat-header']}>
+              <span className={styles['chart-stat-label']}>Memory Used</span>
+              <div className={styles['chart-stat-icon']}>
+                <MemoryStick size={14} strokeWidth={2} />
               </div>
             </div>
+            <span
+              className={styles['chart-stat-value']}
+              style={{
+                color: severityColor(memoryPercent, [60, settings.alertThresholdMemory]),
+              }}
+            >
+              {formatBytes(totalMemoryUsed)}
+            </span>
+            <span className={styles['chart-stat-subtitle']}>
+              {totalMemoryLimit
+                ? `${formatPercent(memoryPercent, "adaptive")} of ${formatBytes(totalMemoryLimit)} total`
+                : "—"}
+            </span>
             <ChartLineComponent
               data={memoryHistory}
-              color="#3b82f6"
+              color="var(--color-info)"
               maxValue={totalMemoryLimit || 1}
               height={48}
               historyMax={HISTORY_MAX}
@@ -1175,45 +1173,31 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#a855f7", background: "rgba(168,85,247,0.08)" }}
-            >
-              <Network size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>
-                {formatBytes(totalNetRx + totalNetTx)}
-              </span>
-              <span className={styles['stat-card-label']}>Network I/O</span>
-              <span className={styles['stat-card-sub']}>
-                ↓ {formatBytes(totalNetRx)} rx · ↑ {formatBytes(totalNetTx)} tx
-              </span>
-            </div>
-          </div>
+          <StatsCardComponent
+            label="Network I/O"
+            value={formatBytes(totalNetRx + totalNetTx)}
+            subtitle={`↓ ${formatBytes(totalNetRx)} rx · ↑ ${formatBytes(totalNetTx)} tx`}
+            icon={Network}
+            color="var(--accent-secondary)"
+          />
 
-          <div className={styles['stat-card']}>
-            <div
-              className={styles['stat-card-icon']}
-              style={{ color: "#f97316", background: "rgba(249,115,22,0.08)" }}
-            >
-              <Clock size={18} strokeWidth={2} />
-            </div>
-            <div className={styles['stat-card-content']}>
-              <span className={styles['stat-card-value']}>
-                {averageResponseTime > 0
+          {settings.showResponseTimes && (
+            <StatsCardComponent
+              label="Avg Response"
+              value={
+                averageResponseTime > 0
                   ? formatDuration(averageResponseTime)
-                  : "—"}
-              </span>
-              <span className={styles['stat-card-label']}>Avg Response</span>
-              <span className={styles['stat-card-sub']}>
-                {rowsWithResponseTime.length > 0
+                  : "—"
+              }
+              subtitle={
+                rowsWithResponseTime.length > 0
                   ? `Based on ${rowsWithResponseTime.length} active service${rowsWithResponseTime.length === 1 ? "" : "s"}`
-                  : "No services with active responses"}
-              </span>
-            </div>
-          </div>
+                  : "No services with active responses"
+              }
+              icon={Clock}
+              variant="warning"
+            />
+          )}
         </div>
       )}
 

@@ -7,11 +7,13 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  ButtonComponent,
   ChartLineComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
+  TabBarComponent,
   TableComponent,
   DatePickerComponent,
 } from "@rodrigo-barraza/components-library";
@@ -311,6 +313,7 @@ export default function GoogleAnalyticsComponent({
 }: {
   propertyId?: string;
 } = {}) {
+  const router = useRouter();
   const [properties, setProperties] = useState<GAProperty[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<GAProperty | null>(
     null,
@@ -581,25 +584,25 @@ export default function GoogleAnalyticsComponent({
     {
       key: "pageviews",
       label: "Views",
-      align: "right",
+      align: "right" as const,
       render: (row: GAPageRow) => formatNumber(row.pageviews),
     },
     {
       key: "users",
       label: "Users",
-      align: "right",
+      align: "right" as const,
       render: (row: GAPageRow) => formatNumber(row.users),
     },
     {
       key: "avgDuration",
       label: "Avg Duration",
-      align: "right",
+      align: "right" as const,
       render: (row: GAPageRow) => formatElapsedTime(row.avgDuration),
     },
     {
       key: "bounceRate",
       label: "Bounce",
-      align: "right",
+      align: "right" as const,
       render: (row: GAPageRow) => formatPercent(row.bounceRate),
     },
   ];
@@ -617,25 +620,25 @@ export default function GoogleAnalyticsComponent({
     {
       key: "sessions",
       label: "Sessions",
-      align: "right",
+      align: "right" as const,
       render: (row: GALandingPageRow) => formatNumber(row.sessions),
     },
     {
       key: "users",
       label: "Users",
-      align: "right",
+      align: "right" as const,
       render: (row: GALandingPageRow) => formatNumber(row.users),
     },
     {
       key: "avgDuration",
       label: "Avg Duration",
-      align: "right",
+      align: "right" as const,
       render: (row: GALandingPageRow) => formatElapsedTime(row.avgDuration),
     },
     {
       key: "bounceRate",
       label: "Bounce",
-      align: "right",
+      align: "right" as const,
       render: (row: GALandingPageRow) => formatPercent(row.bounceRate),
     },
   ];
@@ -699,17 +702,15 @@ export default function GoogleAnalyticsComponent({
       >
         {selectedProperty && (
           <div className={styles['header-controls']}>
-            <div className={styles['period-tabs']}>
-              {["7d", "30d", "90d"].map((presetPeriod) => (
-                <button
-                  key={presetPeriod}
-                  className={`${styles['period-tab']} ${period === presetPeriod ? styles['active-tab'] : ""}`}
-                  onClick={() => setPeriod(presetPeriod)}
-                >
-                  {presetPeriod}
-                </button>
-              ))}
-            </div>
+            <TabBarComponent
+              ariaLabel="Report period"
+              tabs={["7d", "30d", "90d"].map((presetPeriod) => ({
+                key: presetPeriod,
+                label: presetPeriod,
+              }))}
+              activeTab={period}
+              onChange={setPeriod}
+            />
             <DatePickerComponent
               from={startDate}
               to={endDate}
@@ -732,10 +733,14 @@ export default function GoogleAnalyticsComponent({
       {/* ── Back bar + selected property header ────────────────── */}
       {selectedProperty && properties.length > 1 && (
         <div className={styles['back-bar']}>
-          <Link href="/web-analytics" className={styles['back-button']}>
-            <ArrowLeft size={12} strokeWidth={2.2} />
+          <ButtonComponent
+            variant="text"
+            size="small"
+            icon={ArrowLeft}
+            onClick={() => router.push("/web-analytics")}
+          >
             All Properties
-          </Link>
+          </ButtonComponent>
           <span className={styles['selected-label']}>{selectedProperty.label}</span>
           <span className={styles['selected-meta']}>
             {selectedProperty.measurementId}

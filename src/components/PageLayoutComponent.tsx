@@ -32,7 +32,6 @@ export default function PageLayoutComponent({
 
   return (
     <LibraryPageLayout
-      className="page-layout-component"
       brandIcon="/brand-icon.png"
       brandLabel="Portal"
       sections={NAV_SECTIONS}

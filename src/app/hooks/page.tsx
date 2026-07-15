@@ -18,8 +18,7 @@ export default function HooksPage() {
         title="Hooks"
         subtitle={`${catalog.filter((c) => c.type === "hook").length} custom React hooks`}
         icon={<Anchor size={18} />}
-        accentColor="#06b6d4"
-        accentSubtle="rgba(6, 182, 212, 0.1)"
+        accentColor="var(--component-category-indicators)"
       />
     </PageLayoutComponent>
   );

@@ -25,7 +25,7 @@
 .card.healthy:hover {
   border-color: var(--color-success);
   border-top-color: var(--color-success);
-  box-shadow: 0 0 12px oklch(69.6% 0.1491 162.5 / 0.08);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .card.unhealthy {
@@ -36,17 +36,17 @@
 .card.unhealthy:hover {
   border-color: var(--color-danger);
   border-top-color: var(--color-danger);
-  box-shadow: 0 0 12px oklch(63.7% 0.2078 25.3 / 0.08);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
 .card.non-deployed {
-  border-top-color: oklch(71.5% 0.1258 215.2 / 0.5);
+  border-top-color: color-mix(in srgb, var(--node-service) 50%, transparent);
 }
 
 .card.non-deployed:hover {
-  border-color: oklch(71.5% 0.1258 215.2 / 0.35);
-  border-top-color: oklch(71.5% 0.1258 215.2 / 0.7);
-  box-shadow: 0 0 12px oklch(71.5% 0.1258 215.2 / 0.06);
+  border-color: color-mix(in srgb, var(--node-service) 35%, transparent);
+  border-top-color: color-mix(in srgb, var(--node-service) 70%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--node-service) 6%, transparent);
 }
 
 /* ── Header ── */
@@ -90,8 +90,8 @@
   background: var(--color-success);
   opacity: 1;
   box-shadow:
-    0 0 6px oklch(69.6% 0.1491 162.5 / 0.6),
-    0 0 12px oklch(69.6% 0.1491 162.5 / 0.25);
+    0 0 6px color-mix(in srgb, var(--color-success) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--color-success) 25%, transparent);
   animation: underline-pulse 2s ease-in-out infinite;
 }
 
@@ -99,60 +99,14 @@
   background: var(--color-danger);
   opacity: 1;
   box-shadow:
-    0 0 6px oklch(63.7% 0.2078 25.3 / 0.6),
-    0 0 12px oklch(63.7% 0.2078 25.3 / 0.25);
+    0 0 6px color-mix(in srgb, var(--color-danger) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
 .non-deployed .name::after {
   background: var(--node-service);
   opacity: 0.5;
   box-shadow: none;
-}
-
-.stage-badge {
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 2px 8px;
-  border-radius: 2px;
-  line-height: 1.6;
-}
-
-.stage-production {
-  color: var(--color-info);
-  background: var(--calculated-color-info-subtle);
-}
-
-.stage-development {
-  color: var(--color-warning);
-  background: var(--calculated-color-warning-subtle);
-}
-
-.stage-infrastructure {
-  color: var(--node-infrastructure);
-  background: oklch(62.7% 0.2326 303.9 / 0.1);
-}
-
-.service-type-badge {
-  color: var(--component-category-actions);
-  background: oklch(76.9% 0.1646 70.1 / 0.1);
-}
-
-.visibility-external {
-  color: var(--node-external);
-  background: oklch(78.5% 0.1325 181.9 / 0.1);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.visibility-internal {
-  color: var(--text-muted);
-  background: var(--background-elevated);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
 }
 
 .infra-icon {
@@ -165,13 +119,13 @@
 
 .infra-icon.healthy {
   color: var(--color-success);
-  filter: drop-shadow(0 0 4px oklch(69.6% 0.1491 162.5 / 0.5));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-success) 50%, transparent));
   animation: icon-pulse 2s ease-in-out infinite;
 }
 
 .infra-icon.unhealthy {
   color: var(--color-danger);
-  filter: drop-shadow(0 0 4px oklch(63.7% 0.2078 25.3 / 0.5));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-danger) 50%, transparent));
 }
 
 .infra-icon.non-deployed {
@@ -232,110 +186,38 @@
   border-bottom: 1px solid var(--calculated-border-color);
 }
 
-.action-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+/* Semantic action colors.
+   ButtonComponent (variant="outlined") derives its label, state layer,
+   ripple and focus ring from --accent-primary, so scoping that token to
+   the button element is the whole override — no specificity fights. */
 
-  &:active:not(:disabled) {
-    transform: scale(0.96);
-  }
-}
-
-.action-button-loading {
-  opacity: 0.6;
-  cursor: not-allowed;
-  color: var(--text-muted) !important;
-  border-color: var(--calculated-border-color) !important;
-  background: var(--background-elevated) !important;
-}
-
-/* Stop — red */
+/* Stop — danger */
 .stop-button {
-  border: 1px solid oklch(63.7% 0.2078 25.3 / 0.25);
-  background: oklch(63.7% 0.2078 25.3 / 0.08);
-  color: var(--status-stopped);
-
-  &:hover:not(:disabled) {
-    background: oklch(63.7% 0.2078 25.3 / 0.15);
-    border-color: oklch(63.7% 0.2078 25.3 / 0.4);
-    color: var(--status-stopped-hover);
-  }
+  --accent-primary: var(--color-danger);
 }
 
-/* Start — green */
+/* Start — success */
 .start-button {
-  border: 1px solid oklch(69.6% 0.1491 162.5 / 0.25);
-  background: oklch(69.6% 0.1491 162.5 / 0.08);
-  color: var(--status-running);
-
-  &:hover:not(:disabled) {
-    background: oklch(69.6% 0.1491 162.5 / 0.15);
-    border-color: oklch(69.6% 0.1491 162.5 / 0.4);
-    color: var(--status-running-hover);
-  }
+  --accent-primary: var(--color-success);
 }
 
-/* Logs — neutral blue */
-.logs-button {
-  border: 1px solid oklch(71.1% 0.0352 256.8 / 0.2);
-  background: oklch(71.1% 0.0352 256.8 / 0.06);
-  color: var(--status-unknown);
-  text-decoration: none;
-
-  &:hover {
-    background: oklch(71.1% 0.0352 256.8 / 0.14);
-    border-color: oklch(71.1% 0.0352 256.8 / 0.35);
-    color: var(--status-unknown-hover);
-  }
-}
-
-/* Restart — amber */
-.restart-button {
-  border: 1px solid oklch(83.7% 0.1643 84.4 / 0.25);
-  background: oklch(83.7% 0.1643 84.4 / 0.08);
-  color: var(--status-paused);
-  margin-left: auto;
-
-  &:hover:not(:disabled) {
-    background: oklch(83.7% 0.1643 84.4 / 0.15);
-    border-color: oklch(83.7% 0.1643 84.4 / 0.4);
-    color: var(--status-paused-hover);
-  }
-}
-
-/* Rollback — violet */
+/* Rollback — warning */
 .rollback-button {
-  border: 1px solid oklch(60.6% 0.219 292.7 / 0.25);
-  background: oklch(60.6% 0.219 292.7 / 0.08);
-  color: var(--status-building);
+  --accent-primary: var(--color-warning);
+}
 
-  &:hover:not(:disabled) {
-    background: oklch(60.6% 0.219 292.7 / 0.15);
-    border-color: oklch(60.6% 0.219 292.7 / 0.4);
-    color: var(--status-building-hover);
-  }
+/* Restart — default accent, pinned to the right edge */
+.restart-button {
+  margin-left: auto;
 }
 
 @keyframes icon-pulse {
   0%,
   100% {
-    filter: drop-shadow(0 0 4px oklch(69.6% 0.1491 162.5 / 0.5));
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-success) 50%, transparent));
   }
   50% {
-    filter: drop-shadow(0 0 8px oklch(69.6% 0.1491 162.5 / 0.8));
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-success) 80%, transparent));
   }
 }
 
@@ -343,41 +225,14 @@
   0%,
   100% {
     box-shadow:
-      0 0 6px oklch(69.6% 0.1491 162.5 / 0.6),
-      0 0 12px oklch(69.6% 0.1491 162.5 / 0.25);
+      0 0 6px color-mix(in srgb, var(--color-success) 60%, transparent),
+      0 0 12px color-mix(in srgb, var(--color-success) 25%, transparent);
   }
   50% {
     box-shadow:
-      0 0 10px oklch(69.6% 0.1491 162.5 / 0.8),
-      0 0 20px oklch(69.6% 0.1491 162.5 / 0.4);
+      0 0 10px color-mix(in srgb, var(--color-success) 80%, transparent),
+      0 0 20px color-mix(in srgb, var(--color-success) 40%, transparent);
   }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(-360deg);
-  }
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.pulse {
-  animation: pulse 1.2s ease-in-out infinite;
 }
 
 /* ── Container Resource Metrics ── */
@@ -471,10 +326,5 @@
   .action-row {
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .action-button {
-    min-height: 36px;
-    padding: 6px 14px;
   }
 }

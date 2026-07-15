@@ -33,75 +33,77 @@
   }
 }
 
-.stat-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 18px 20px;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  animation: fade-in var(--transition-normal) ease-out both;
-  transition: border-color var(--transition-fast);
+/* ── Chart Stat Card ──
+   Mirrors the library StatsCardComponent anatomy (header → value →
+   subtitle) with a sparkline appended; kept local because the library
+   card has no chart slot. Metrics match StatsCardComponent.module.css. */
 
-  &:hover {
-    border-color: var(--calculated-border-subtle);
-  }
-}
-
-.stat-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--border-radius-sm);
-  flex-shrink: 0;
-}
-
-.stat-card-content {
+.chart-stat-card {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  min-width: 0;
+  padding: 6px 12px;
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-md, var(--border-radius-sm));
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--chart-stat-accent, var(--accent-primary)) 30%,
+      var(--calculated-border-color)
+    );
+  }
 }
 
-.stat-card-value {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  font-family: var(--font-mono);
-}
-
-.stat-card-label {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.stat-card-sub {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  margin-top: 2px;
-  line-height: 1.3;
-}
-
-/* ── Stat Card with Sparkline Chart ── */
-
-.stat-card-with-chart {
-  flex-direction: column;
-  gap: 10px;
-}
-
-.stat-card-header {
+.chart-stat-header {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chart-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chart-stat-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chart-stat-accent, var(--accent-primary));
+  background: color-mix(
+    in srgb,
+    var(--chart-stat-accent, var(--accent-primary)) 10%,
+    transparent
+  );
+  flex-shrink: 0;
+}
+
+.chart-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.chart-stat-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
 }
 
 /* ── Sparkline Canvas ── */
@@ -373,50 +375,6 @@
 }
 
 
-/* ── View Mode Switcher Toggle ── */
-
-.view-mode-toggle {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: calc(var(--border-radius-sm) - 2px);
-}
-
-.toggle-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: calc(var(--border-radius-sm) - 4px);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
-
-  &:hover {
-    color: var(--text-secondary);
-    background: oklch(100.0% 0.0001 263.3 / 0.02);
-  }
-
-  &:active {
-    transform: scale(0.92);
-  }
-}
-
-.toggle-btn-active {
-  background: var(--background-surface);
-  color: var(--text-primary) !important;
-  box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.15);
-  border: 1px solid var(--calculated-border-color);
-}
-
 /* ── Container Cards View ──────────────────────────────────────── */
 
 .cards-grid {
@@ -460,8 +418,8 @@
 }
 
 .card-active {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 12px oklch(58.5% 0.2041 277.1 / 0.15);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
 }
 
 .card-header {

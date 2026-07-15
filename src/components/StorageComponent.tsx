@@ -15,7 +15,6 @@ import {
   Download,
   Eye,
   Trash2,
-  X,
   Search,
   ChevronRight,
   Database,
@@ -29,6 +28,7 @@ import {
 import {
   ButtonComponent,
   LoadingIndicatorComponent,
+  ModalComponent,
   PageHeaderComponent,
   SearchInputComponent,
   SegmentedControlComponent,
@@ -288,6 +288,19 @@ function displayName(fullKey: string, prefix: string) {
 function folderLabel(prefix: string, currentPrefix: string) {
   const relative = currentPrefix ? prefix.slice(currentPrefix.length) : prefix;
   return relative.replace(/\/$/, "");
+}
+
+/**
+ * Trigger a browser download via a transient anchor element —
+ * preserves `<a download>` semantics for button-based actions.
+ */
+function triggerDownload(url: string) {
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.setAttribute("download", "");
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 }
 
 // ── Component ────────────────────────────────────────────────────
@@ -1209,18 +1222,16 @@ function ObjectTableView({
                   onClick={() => openPreview(object)}
                 />
               )}
-              <a
-                className={styles['action-button']}
-                title="Download"
-                href={ApiService.buildStorageDownloadUrl(
-                  activeBucket,
-                  object.name,
-                )}
-                download
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Download size={15} />
-              </a>
+              <IconButtonComponent
+                icon={<Download size={15} />}
+                tooltip="Download"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  triggerDownload(
+                    ApiService.buildStorageDownloadUrl(activeBucket, object.name),
+                  );
+                }}
+              />
               <IconButtonComponent
                 icon={<Trash2 size={15} />}
                 tooltip="Delete"
@@ -1430,28 +1441,27 @@ function ObjectGridView({
                 </span>
               </div>
               <div className={styles['grid-card-actions']}>
-                <a
-                  className={styles['action-button']}
-                  title="Download"
-                  href={ApiService.buildStorageDownloadUrl(
-                    activeBucket,
-                    object.name,
-                  )}
-                  download
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Download size={14} />
-                </a>
-                <button
-                  className={`${styles['action-button']} ${styles['danger']}`}
-                  title="Delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                <IconButtonComponent
+                  icon={<Download size={14} />}
+                  tooltip="Download"
+                  className={styles['grid-action-button']}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    triggerDownload(
+                      ApiService.buildStorageDownloadUrl(activeBucket, object.name),
+                    );
+                  }}
+                />
+                <IconButtonComponent
+                  icon={<Trash2 size={14} />}
+                  tooltip="Delete"
+                  variant="destructive"
+                  className={`${styles['grid-action-button']} ${styles['grid-action-button-danger']}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
                     handleDelete(object);
                   }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                />
               </div>
             </div>
           );
@@ -1587,7 +1597,7 @@ function GlobalSearchResultsView({
   );
 }
 
-// ── Preview Overlay ──────────────────────────────────────────────
+// ── Preview Modal ────────────────────────────────────────────────
 
 function PreviewOverlay({
   bucketName,
@@ -1608,99 +1618,85 @@ function PreviewOverlay({
   );
   const filename = object.name.split("/").pop();
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
   return (
-    <div className={`storage-component ${styles['preview-overlay']}`} onClick={onClose}>
-      <div className={styles['preview-panel']} onClick={(e) => e.stopPropagation()}>
-        <div className={styles['preview-header']}>
-          <span className={styles['preview-title']}>{filename}</span>
-          <button className={styles['preview-close-button']} onClick={onClose}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className={styles['preview-body']}>
-          {mediaType === "image" && (
-            <img
-              className={styles['preview-image']}
-              src={downloadUrl}
-              alt={filename}
-            />
-          )}
-          {mediaType === "audio" && (
-            <audio className={styles['preview-audio']} controls src={downloadUrl} />
-          )}
-          {mediaType === "video" && (
-            <video
-              className={styles['preview-video']}
-              controls
-              playsInline
-              preload="metadata"
-              src={downloadUrl}
-            />
-          )}
-          {!mediaType && (
-            <div className={styles['preview-fallback']}>
-              <File size={48} />
-              <span>No preview available for this file type</span>
-            </div>
-          )}
-
-          {/* ── Metadata Grid ── */}
-          <div className={styles['preview-meta']}>
-            <span className={styles['preview-meta-label']}>Key</span>
-            <span className={styles['preview-meta-value']}>{object.name}</span>
-            <span className={styles['preview-meta-label']}>Size</span>
-            <span className={styles['preview-meta-value']}>
-              {formatBytes(stat?.size ?? object.size)}
-            </span>
-            {stat?.contentType && (
-              <>
-                <span className={styles['preview-meta-label']}>Type</span>
-                <span className={styles['preview-meta-value']}>
-                  {stat.contentType}
-                </span>
-              </>
-            )}
-            {stat?.etag && (
-              <>
-                <span className={styles['preview-meta-label']}>ETag</span>
-                <span className={styles['preview-meta-value']}>{stat.etag}</span>
-              </>
-            )}
-            {(stat?.lastModified || object.lastModified) && (
-              <>
-                <span className={styles['preview-meta-label']}>Modified</span>
-                <span className={styles['preview-meta-value']}>
-                  {new Date(
-                    stat?.lastModified ||
-                      object.lastModified ||
-                      new Date().toISOString(),
-                  ).toLocaleString()}
-                </span>
-              </>
-            )}
+    <ModalComponent
+      title={filename || object.name}
+      onClose={onClose}
+      size="xl"
+      className="storage-component"
+      footer={
+        <ButtonComponent
+          variant="secondary"
+          icon={Download}
+          href={ApiService.buildStorageDownloadUrl(bucketName, object.name)}
+        >
+          Download
+        </ButtonComponent>
+      }
+    >
+      <div className={styles['preview-body']}>
+        {mediaType === "image" && (
+          <img
+            className={styles['preview-image']}
+            src={downloadUrl}
+            alt={filename}
+          />
+        )}
+        {mediaType === "audio" && (
+          <audio className={styles['preview-audio']} controls src={downloadUrl} />
+        )}
+        {mediaType === "video" && (
+          <video
+            className={styles['preview-video']}
+            controls
+            playsInline
+            preload="metadata"
+            src={downloadUrl}
+          />
+        )}
+        {!mediaType && (
+          <div className={styles['preview-fallback']}>
+            <File size={48} />
+            <span>No preview available for this file type</span>
           </div>
-        </div>
+        )}
 
-        <div className={styles['preview-footer']}>
-          <ButtonComponent
-            variant="secondary"
-            icon={Download}
-            href={ApiService.buildStorageDownloadUrl(bucketName, object.name)}
-          >
-            Download
-          </ButtonComponent>
+        {/* ── Metadata Grid ── */}
+        <div className={styles['preview-meta']}>
+          <span className={styles['preview-meta-label']}>Key</span>
+          <span className={styles['preview-meta-value']}>{object.name}</span>
+          <span className={styles['preview-meta-label']}>Size</span>
+          <span className={styles['preview-meta-value']}>
+            {formatBytes(stat?.size ?? object.size)}
+          </span>
+          {stat?.contentType && (
+            <>
+              <span className={styles['preview-meta-label']}>Type</span>
+              <span className={styles['preview-meta-value']}>
+                {stat.contentType}
+              </span>
+            </>
+          )}
+          {stat?.etag && (
+            <>
+              <span className={styles['preview-meta-label']}>ETag</span>
+              <span className={styles['preview-meta-value']}>{stat.etag}</span>
+            </>
+          )}
+          {(stat?.lastModified || object.lastModified) && (
+            <>
+              <span className={styles['preview-meta-label']}>Modified</span>
+              <span className={styles['preview-meta-value']}>
+                {new Date(
+                  stat?.lastModified ||
+                    object.lastModified ||
+                    new Date().toISOString(),
+                ).toLocaleString()}
+              </span>
+            </>
+          )}
         </div>
       </div>
-    </div>
+    </ModalComponent>
   );
 }

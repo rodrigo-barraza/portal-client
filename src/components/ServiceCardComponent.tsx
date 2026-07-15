@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Cpu,
   GitFork,
@@ -32,6 +32,7 @@ import {
   DEFAULT_SERVICE_TYPE_ICON,
 } from "../constants";
 import ApiService from "../services/ApiService";
+import { usePortalSettings } from "@/lib/settings";
 import styles from "./ServiceCardComponent.module.css";
 import type { PortalService, ContainerStats } from "../types/portal";
 
@@ -44,17 +45,27 @@ function severityColor(pct: number, thresholds = [40, 80]) {
   return "var(--color-success)";
 }
 
+/**
+ * Resolve a CSS custom-property reference ("var(--color-danger)") to a
+ * concrete color — canvas 2D contexts cannot resolve var() strings.
+ */
+function resolveCanvasColor(element: HTMLElement, color: string) {
+  const varMatch = color.match(/^var\((--[^,)]+)\)$/);
+  if (!varMatch) return color;
+  return getComputedStyle(element).getPropertyValue(varMatch[1]).trim() || color;
+}
+
 // ── Inline Sparkline Canvas ────────────────────────────────────────
 function Sparkline({
   data,
   color,
-  fillColor,
+  fill = false,
   max,
   height = 20,
 }: {
   data: number[];
   color: string;
-  fillColor?: string;
+  fill?: boolean;
   max?: number;
   height?: number;
 }) {
@@ -89,24 +100,27 @@ function Sparkline({
       else context.lineTo(x, y);
     }
 
-    context.strokeStyle = color;
+    const strokeColor = resolveCanvasColor(canvas, color);
+    context.strokeStyle = strokeColor;
     context.lineWidth = 1.5;
     context.lineJoin = "round";
     context.lineCap = "round";
     context.stroke();
 
-    if (fillColor) {
+    if (fill) {
       const lastX = startX + (data.length - 1) * step;
       context.lineTo(lastX, canvasHeight);
       context.lineTo(startX, canvasHeight);
       context.closePath();
       const grad = context.createLinearGradient(0, 0, 0, canvasHeight);
-      grad.addColorStop(0, fillColor);
+      grad.addColorStop(0, strokeColor);
       grad.addColorStop(1, "transparent");
+      context.globalAlpha = 0.12;
       context.fillStyle = grad;
       context.fill();
+      context.globalAlpha = 1;
     }
-  }, [data, color, fillColor, max, height]);
+  }, [data, color, fill, max, height]);
 
   return (
     <canvas
@@ -149,6 +163,8 @@ export default function ServiceCardComponent({
   onStart?: (id: string) => Promise<void>;
   onRollback?: (id: string) => Promise<void>;
 }) {
+  const router = useRouter();
+  const { showResponseTimes } = usePortalSettings();
   const [restarting, setRestarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -209,7 +225,7 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStopping(false), ACTION_COOLDOWN_MILLISECONDS);
                   }
                 }}
-                className={`${styles['action-button']} ${styles['stop-button']}`}
+                className={styles['stop-button']}
               >
                 {stopping ? "Stopping…" : "Stop"}
               </ButtonComponent>
@@ -228,19 +244,24 @@ export default function ServiceCardComponent({
                     setTimeout(() => setStarting(false), ACTION_COOLDOWN_MILLISECONDS);
                   }
                 }}
-                className={`${styles['action-button']} ${styles['start-button']}`}
+                className={styles['start-button']}
               >
                 {starting ? "Starting…" : "Start"}
               </ButtonComponent>
             )}
 
-            <Link
-              href={`/logs?container=${service.dockerProject || service.id}`}
-              className={`${styles['action-button']} ${styles['logs-button']}`}
+            <ButtonComponent
+              variant="outlined"
+              size="small"
+              icon={ScrollText}
+              onClick={() =>
+                router.push(
+                  `/logs?container=${service.dockerProject || service.id}`,
+                )
+              }
             >
-              <ScrollText size={10} strokeWidth={2.6} />
               Logs
-            </Link>
+            </ButtonComponent>
 
             {rollbackAvailable && (
               <ButtonComponent
@@ -260,7 +281,7 @@ export default function ServiceCardComponent({
                     );
                   }
                 }}
-                className={`${styles['action-button']} ${styles['rollback-button']}`}
+                className={styles['rollback-button']}
               >
                 {rollingBack ? "Rolling back…" : "Rollback"}
               </ButtonComponent>
@@ -280,7 +301,7 @@ export default function ServiceCardComponent({
                   setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MILLISECONDS);
                 }
               }}
-              className={`${styles['action-button']} ${styles['restart-button']}`}
+              className={styles['restart-button']}
             >
               {restarting ? "Restarting…" : "Restart"}
             </ButtonComponent>
@@ -340,13 +361,7 @@ export default function ServiceCardComponent({
                 <Sparkline
                   data={containerStats.spark!.cpu!}
                   color={severityColor(containerStats.cpu.percent)}
-                  fillColor={
-                    containerStats.cpu.percent > 80
-                      ? "rgba(239,68,68,0.12)"
-                      : containerStats.cpu.percent > 40
-                        ? "rgba(245,158,11,0.12)"
-                        : "rgba(16,185,129,0.12)"
-                  }
+                  fill
                   max={100}
                 />
               )}
@@ -395,13 +410,7 @@ export default function ServiceCardComponent({
                 <Sparkline
                   data={containerStats.spark!.mem!}
                   color={severityColor(containerStats.memory.percent, [60, 85])}
-                  fillColor={
-                    containerStats.memory.percent > 85
-                      ? "rgba(239,68,68,0.12)"
-                      : containerStats.memory.percent > 60
-                        ? "rgba(245,158,11,0.12)"
-                        : "rgba(16,185,129,0.12)"
-                  }
+                  fill
                   max={containerStats.memory.limit}
                 />
               )}
@@ -476,7 +485,7 @@ export default function ServiceCardComponent({
           </div>
         )}
 
-        {service.responseTimeMs != null && (
+        {showResponseTimes && service.responseTimeMs != null && (
           <div className={styles['detail']}>
             <span className={styles['detail-label']}>Response</span>
             <BadgeComponent

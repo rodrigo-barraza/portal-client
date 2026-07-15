@@ -7,8 +7,6 @@ import {
   ZoomOut,
   Maximize2,
   Move,
-  Eye,
-  EyeOff,
   Layers,
   Grid3X3,
   ArrowDown,
@@ -22,6 +20,7 @@ import {
   SearchInputComponent,
   SegmentedControlComponent,
   IconButtonComponent,
+  ToggleComponent,
 } from "@rodrigo-barraza/components-library";
 import {
   SERVICE_TYPE_ICONS,
@@ -1664,7 +1663,7 @@ export default function TopologyComponent() {
                 className={styles['legend-dot']}
                 style={{
                   background: "var(--color-success)",
-                  boxShadow: "0 0 6px var(--success-subtle)",
+                  boxShadow: "0 0 6px var(--calculated-color-success-subtle)",
                 }}
               />
               <span>Healthy</span>
@@ -1674,7 +1673,7 @@ export default function TopologyComponent() {
                 className={styles['legend-dot']}
                 style={{
                   background: "var(--color-danger)",
-                  boxShadow: "0 0 6px var(--danger-subtle)",
+                  boxShadow: "0 0 6px var(--calculated-color-danger-subtle)",
                 }}
               />
               <span>Down</span>
@@ -1683,35 +1682,28 @@ export default function TopologyComponent() {
             {Object.entries(SERVICE_TYPE_COLORS).map(([type, colors]) => {
               const visible = typeVisibility[type] ?? true;
               return (
-                <div
+                <ToggleComponent
                   key={type}
-                  className={`${styles['legend-item']} ${styles['legend-toggle']}${!visible ? ` ${styles['legend-toggle-off']}` : ""}`}
-                  onClick={() => toggleTypeVisibility(type)}
-                  title={`${visible ? "Hide" : "Show"} ${type}s`}
-                >
-                  <div
-                    className={styles['legend-dot']}
-                    style={{
-                      background: colors.color,
-                      boxShadow: `0 0 6px ${colors.subtle}`,
-                      opacity: visible ? 1 : 0.3,
-                    }}
-                  />
-                  <span>{type}</span>
-                  {visible ? (
-                    <Eye
-                      size={11}
-                      strokeWidth={1.5}
-                      className={styles['legend-eye-icon']}
-                    />
-                  ) : (
-                    <EyeOff
-                      size={11}
-                      strokeWidth={1.5}
-                      className={styles['legend-eye-icon']}
-                    />
-                  )}
-                </div>
+                  size="mini"
+                  checked={visible}
+                  onChange={() => toggleTypeVisibility(type)}
+                  label={
+                    <span
+                      className={styles['legend-toggle-label']}
+                      title={`${visible ? "Hide" : "Show"} ${type}s`}
+                    >
+                      <span
+                        className={styles['legend-dot']}
+                        style={{
+                          background: colors.color,
+                          boxShadow: `0 0 6px ${colors.subtle}`,
+                          opacity: visible ? 1 : 0.3,
+                        }}
+                      />
+                      <span>{type}</span>
+                    </span>
+                  }
+                />
               );
             })}
             <div className={styles['legend-sep']} />
@@ -1725,37 +1717,30 @@ export default function TopologyComponent() {
               const visible = edgeVisibility[type];
               const count = edgeTypeCounts[type] || 0;
               return (
-                <div
+                <ToggleComponent
                   key={type}
-                  className={`${styles['legend-item']} ${styles['legend-toggle']}${!visible ? ` ${styles['legend-toggle-off']}` : ""}`}
-                  onClick={() => toggleEdgeType(type)}
-                  title={`${visible ? "Hide" : "Show"} ${config.label} (${count})`}
-                >
-                  <div
-                    className={styles['legend-edge-line']}
-                    style={{
-                      borderTopColor: config.color,
-                      borderTopStyle: config.dash === "none" ? "solid" : "dashed",
-                      borderTopWidth: `${Math.max(config.width, 1.5)}px`,
-                      opacity: visible ? 1 : 0.3,
-                    }}
-                  />
-                  <span>{config.label}</span>
-                  <span className={styles['legend-count']}>{count}</span>
-                  {visible ? (
-                    <Eye
-                      size={11}
-                      strokeWidth={1.5}
-                      className={styles['legend-eye-icon']}
-                    />
-                  ) : (
-                    <EyeOff
-                      size={11}
-                      strokeWidth={1.5}
-                      className={styles['legend-eye-icon']}
-                    />
-                  )}
-                </div>
+                  size="mini"
+                  checked={visible}
+                  onChange={() => toggleEdgeType(type)}
+                  label={
+                    <span
+                      className={styles['legend-toggle-label']}
+                      title={`${visible ? "Hide" : "Show"} ${config.label} (${count})`}
+                    >
+                      <span
+                        className={styles['legend-edge-line']}
+                        style={{
+                          borderTopColor: config.color,
+                          borderTopStyle: config.dash === "none" ? "solid" : "dashed",
+                          borderTopWidth: `${Math.max(config.width, 1.5)}px`,
+                          opacity: visible ? 1 : 0.3,
+                        }}
+                      />
+                      <span>{config.label}</span>
+                      <span className={styles['legend-count']}>{count}</span>
+                    </span>
+                  }
+                />
               );
             })}
             <div className={styles['legend-sep']} />

@@ -54,42 +54,12 @@
   user-select: none;
 }
 
-/* ── View Mode Toggle ── */
+/* ── View Mode Toggle (SegmentedControlComponent) ── */
 
 .view-toggle {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-}
-
-.segmented-control {
-  display: flex;
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  overflow: hidden;
-}
-
-.segment-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 28px;
-  color: var(--text-muted);
-  background: transparent;
-  transition:
-    color var(--transition-fast),
-    background var(--transition-fast);
-}
-
-.segment-button:hover:not(.segment-active) {
-  color: var(--text-secondary);
-  background: oklch(100.0% 0.0001 263.3 / 0.04);
-}
-
-.segment-active {
-  color: var(--accent-primary);
-  background: var(--calculated-accent-primary-subtle);
 }
 
 /* ── Bucket Grid ── */
@@ -328,12 +298,6 @@
   letter-spacing: 0.04em;
 }
 
-.object-count {
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-}
-
 /* ── Column Header ── */
 
 .column-header {
@@ -438,34 +402,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--border-radius-sm);
-  color: var(--text-tertiary);
-  transition:
-    color var(--transition-fast),
-    background var(--transition-fast);
-  opacity: 0;
-}
-
-.object-row:hover .action-button {
-  opacity: 1;
-}
-
-.action-button:hover {
-  color: var(--accent-primary);
-  background: var(--calculated-accent-primary-subtle);
-}
-
-.action-button.danger:hover {
-  color: var(--color-danger);
-  background: var(--calculated-color-danger-subtle);
 }
 
 /* ── Grid View Header ── */
@@ -582,8 +518,9 @@
   opacity: 1;
 }
 
-.grid-card-actions .action-button {
-  opacity: 1;
+/* Scrim-style overrides for IconButtonComponent over thumbnails —
+   bespoke black/white scrim colors stay theme-independent on imagery. */
+.grid-card-actions .grid-action-button {
   width: 26px;
   height: 26px;
   background: oklch(0.0% 0.0 0.0 / 0.55);
@@ -593,85 +530,18 @@
   color: oklch(100.0% 0.0001 263.3 / 0.8);
 }
 
-.grid-card-actions .action-button:hover {
+.grid-card-actions .grid-action-button:hover {
   background: oklch(0.0% 0.0 0.0 / 0.75);
   color: var(--accent-primary);
 }
 
-.grid-card-actions .action-button.danger:hover {
+.grid-card-actions .grid-action-button-danger:hover {
   color: var(--color-danger);
 }
 
-/* ── Preview Panel ── */
-
-.preview-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: oklch(0.0% 0.0 0.0 / 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  animation: fade-in-pure 200ms ease-out;
-}
-
-.preview-panel {
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  width: 90vw;
-  max-width: 800px;
-  max-height: 85vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: popover-in-up 250ms ease-out;
-  box-shadow: var(--calculated-shadow-lg);
-}
-
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--calculated-border-color);
-  flex-shrink: 0;
-}
-
-.preview-title {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.preview-close-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--border-radius-sm);
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  transition:
-    color var(--transition-fast),
-    background var(--transition-fast);
-}
-
-.preview-close-button:hover {
-  color: var(--text-primary);
-  background: oklch(100.0% 0.0001 263.3 / 0.08);
-}
+/* ── Preview (body content inside ModalComponent) ── */
 
 .preview-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -732,16 +602,6 @@
   word-break: break-all;
 }
 
-.preview-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 20px;
-  border-top: 1px solid var(--calculated-border-color);
-  flex-shrink: 0;
-}
-
 /* ── Empty State ── */
 
 .empty-state {
@@ -757,42 +617,6 @@
 
 .empty-state svg {
   opacity: 0.3;
-}
-
-/* ── Search Input ── */
-
-.search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.search-input {
-  height: 34px;
-  padding: 0 10px 0 32px;
-  font-size: 0.8125rem;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  color: var(--text-primary);
-  width: 240px;
-  transition:
-    width var(--transition-fast),
-    border-color var(--transition-fast);
-}
-
-.search-input:focus {
-  width: 300px;
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--calculated-accent-primary-glow);
 }
 
 /* ── Total Size Badge ── */
