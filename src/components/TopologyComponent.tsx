@@ -350,6 +350,7 @@ function collectEdges(services: PortalService[]): TopologyEdge[] {
   for (const service of services) {
     for (const dep of service.dependsOn || []) {
       const depId = typeof dep === "string" ? dep : dep.id;
+      if (depId === service.id) continue; // guard against self-loops in registry data
       const criticality =
         typeof dep === "string"
           ? "required"
@@ -1158,6 +1159,24 @@ export default function TopologyComponent() {
               {isLoading
                 ? "Loading…"
                 : `${filteredServices.length} services · ${healthyCount} healthy`}
+              {!isLoading &&
+                analysisData?.github &&
+                analysisData.github.status !== "ok" && (
+                  <span
+                    className={styles['subtitle-warning']}
+                    title={
+                      analysisData.github.tokenConfigured
+                        ? "GitHub requests are failing — detected connections may be incomplete"
+                        : "GITHUB_PAT is not configured on portal-service, so code-analysis connections (imports & API calls) can't be detected for private repos"
+                    }
+                  >
+                    {" "}
+                    · code analysis{" "}
+                    {analysisData.github.status === "unavailable"
+                      ? "offline"
+                      : "degraded"}
+                  </span>
+                )}
             </p>
           </div>
           <div className={styles['header-actions']}>

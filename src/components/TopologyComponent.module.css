@@ -57,6 +57,11 @@
   color: var(--text-secondary);
 }
 
+.subtitle-warning {
+  color: var(--color-warning, #f59e0b);
+  cursor: help;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
