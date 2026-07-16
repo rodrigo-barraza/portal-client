@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  LayoutGrid,
-  Table2,
-  TrendingUp,
-  ArrowRight,
-  Activity,
-} from "lucide-react";
+import { LayoutGrid, Table2, TrendingUp, ArrowRight, Activity } from "lucide-react";
 import {
   LoadingIndicatorComponent,
   TableComponent,
@@ -17,20 +11,17 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
-import type { GAOverview, SessionProject } from "../types/portal";
-import styles from "./GoogleAnalyticsComponent.module.css";
+import { SOURCE_COLORS, SourceBadges } from "./AnalyticsPrimitives";
+import type { GAOverview, GAProperty, SessionProject } from "../types/portal";
+import styles from "./WebAnalytics.module.css";
 
 /**
- * PropertyListingComponent — multi-property landing page.
- * Shows all GA4 properties in a card grid or list/table view,
- * plus tracked sessions-service projects below.
+ * PropertyListingComponent — unified web-analytics landing page.
+ * A "property" is one site: it may be tracked by GA4, by our first-party
+ * sessions-service, or both. GA properties join to session projects via
+ * the registry serviceId, so a site with both trackers renders as ONE
+ * card/row with both sources' numbers instead of two disconnected entries.
  */
-interface GAProperty {
-  id: string;
-  label: string;
-  measurementId?: string;
-  domain?: string | null;
-}
 
 interface GASummary {
   overview: GAOverview | null;
@@ -38,15 +29,14 @@ interface GASummary {
   loaded: boolean;
 }
 
-interface CombinedPropertyRow {
-  id: string;
-  type: "ga" | "session";
+/** One site in the unified listing — GA property, sessions project, or both. */
+interface UnifiedProperty {
+  key: string;
   label: string;
-  subtitle: string;
-  users: number | null;
-  pageviews: number | null;
-  sessions: number | null;
-  activeNow: number | null;
+  meta: string;
+  domain?: string | null;
+  ga?: GAProperty;
+  sessions?: SessionProject;
   linkHref: string;
 }
 
@@ -61,7 +51,7 @@ export default function PropertyListingComponent({
   const [sessionProjects, setSessionProjects] = useState<SessionProject[]>([]);
   const didFetch = useRef(false);
 
-  // Fetch overview + realtime for each property in parallel + session projects
+  // Fetch overview + realtime for each GA property in parallel + session projects
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
@@ -78,7 +68,6 @@ export default function PropertyListingComponent({
       });
     }
 
-    // Fetch sessions-service projects
     ApiService.getSessionProjects("30d")
       .then((projectsResponse) => {
         if (projectsResponse?.data && Array.isArray(projectsResponse.data)) {
@@ -88,88 +77,133 @@ export default function PropertyListingComponent({
       .catch(() => {});
   }, [properties]);
 
-  const tableData: CombinedPropertyRow[] = [
-    ...properties.map((prop) => {
-      const propertySummary = summaries[prop.id];
+  // ── Merge GA properties and session projects into one list ──
+
+  const unifiedProperties = useMemo<UnifiedProperty[]>(() => {
+    const sessionsByProjectId = new Map(
+      sessionProjects.map((project) => [project.projectId, project]),
+    );
+
+    const merged: UnifiedProperty[] = properties.map((property) => {
+      const linkedSessions = property.serviceId
+        ? sessionsByProjectId.get(property.serviceId)
+        : undefined;
+      if (linkedSessions) sessionsByProjectId.delete(linkedSessions.projectId);
       return {
-        id: prop.id,
-        type: "ga" as const,
-        label: prop.label,
-        subtitle: prop.measurementId || prop.id,
-        users: propertySummary?.overview
-          ? propertySummary.overview.totalUsers
-          : null,
-        pageviews: propertySummary?.overview
-          ? propertySummary.overview.pageviews
-          : null,
-        sessions: propertySummary?.overview
-          ? propertySummary.overview.sessions
-          : null,
-        activeNow: propertySummary?.realtime
-          ? propertySummary.realtime.activeUsers
-          : null,
-        linkHref: `/web-analytics/${prop.id}`,
+        key: `ga-${property.id}`,
+        label: property.label,
+        meta: [property.measurementId || property.id, linkedSessions?.projectId]
+          .filter(Boolean)
+          .join(" · "),
+        domain: property.domain,
+        ga: property,
+        sessions: linkedSessions,
+        linkHref: `/web-analytics/${property.id}`,
       };
-    }),
-    ...sessionProjects.map((proj) => ({
-      id: proj.projectId,
-      type: "session" as const,
-      label: proj.projectId,
-      subtitle: "sessions-service",
-      users: proj.uniqueVisitors,
-      pageviews: null,
-      sessions: proj.sessionCount,
-      activeNow: null,
-      linkHref: `/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`,
-    })),
-  ];
+    });
+
+    // Remaining session projects have no GA counterpart — first-party only
+    for (const project of sessionsByProjectId.values()) {
+      merged.push({
+        key: `fp-${project.projectId}`,
+        label: project.projectId,
+        meta: "sessions-service",
+        sessions: project,
+        linkHref: `/web-analytics/sessions/${encodeURIComponent(project.projectId)}`,
+      });
+    }
+
+    return merged;
+  }, [properties, sessionProjects]);
+
+  const unifiedCount = unifiedProperties.filter((p) => p.ga && p.sessions).length;
+
+  // ── Table columns ─────────────────────────────────────────
 
   const columns = [
     {
       key: "label",
       label: "Property",
       sortable: true,
-      sortValue: (row: CombinedPropertyRow) => row.label,
-      render: (row: CombinedPropertyRow) => (
+      sortValue: (row: UnifiedProperty) => row.label,
+      render: (row: UnifiedProperty) => (
         <div className={styles['property-list-name']}>
-          <span className={styles['property-list-label']}>{row.label}</span>
-          <span className={styles['property-list-id']}>{row.subtitle}</span>
+          <span className={styles['property-list-label']}>
+            {row.label} <SourceBadges hasGA={!!row.ga} hasSessions={!!row.sessions} />
+          </span>
+          <span className={styles['property-list-id']}>{row.meta}</span>
         </div>
       ),
     },
     {
       key: "users",
-      label: "Users",
+      label: "GA4 Users",
       sortable: true,
       align: "left" as const,
-      sortValue: (row: CombinedPropertyRow) => row.users ?? -1,
-      render: (row: CombinedPropertyRow) => (
-        <span className={styles['property-list-value']}>
-          {row.users !== null ? formatNumber(row.users) : "—"}
-        </span>
-      ),
+      sortValue: (row: UnifiedProperty) =>
+        summaries[row.ga?.id || ""]?.overview?.totalUsers ?? -1,
+      render: (row: UnifiedProperty) => {
+        const overview = summaries[row.ga?.id || ""]?.overview;
+        return (
+          <span className={styles['property-list-value']}>
+            {overview ? formatNumber(overview.totalUsers) : "—"}
+          </span>
+        );
+      },
     },
     {
       key: "pageviews",
-      label: "Pageviews",
+      label: "GA4 Pageviews",
       sortable: true,
       align: "left" as const,
-      sortValue: (row: CombinedPropertyRow) => row.pageviews ?? -1,
-      render: (row: CombinedPropertyRow) => (
+      sortValue: (row: UnifiedProperty) =>
+        summaries[row.ga?.id || ""]?.overview?.pageviews ?? -1,
+      render: (row: UnifiedProperty) => {
+        const overview = summaries[row.ga?.id || ""]?.overview;
+        return (
+          <span className={styles['property-list-value']}>
+            {overview ? formatNumber(overview.pageviews) : "—"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "sessions",
+      label: "GA4 Sessions",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: UnifiedProperty) =>
+        summaries[row.ga?.id || ""]?.overview?.sessions ?? -1,
+      render: (row: UnifiedProperty) => {
+        const overview = summaries[row.ga?.id || ""]?.overview;
+        return (
+          <span className={styles['property-list-value']}>
+            {overview ? formatNumber(overview.sessions) : "—"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "fpVisitors",
+      label: "1P Visitors",
+      sortable: true,
+      align: "left" as const,
+      sortValue: (row: UnifiedProperty) => row.sessions?.uniqueVisitors ?? -1,
+      render: (row: UnifiedProperty) => (
         <span className={styles['property-list-value']}>
-          {row.pageviews !== null ? formatNumber(row.pageviews) : "—"}
+          {row.sessions ? formatNumber(row.sessions.uniqueVisitors) : "—"}
         </span>
       ),
     },
     {
-      key: "sessions",
-      label: "Sessions",
+      key: "fpSessions",
+      label: "1P Sessions",
       sortable: true,
       align: "left" as const,
-      sortValue: (row: CombinedPropertyRow) => row.sessions ?? -1,
-      render: (row: CombinedPropertyRow) => (
+      sortValue: (row: UnifiedProperty) => row.sessions?.sessionCount ?? -1,
+      render: (row: UnifiedProperty) => (
         <span className={styles['property-list-value']}>
-          {row.sessions !== null ? formatNumber(row.sessions) : "—"}
+          {row.sessions ? formatNumber(row.sessions.sessionCount) : "—"}
         </span>
       ),
     },
@@ -178,23 +212,29 @@ export default function PropertyListingComponent({
       label: "Active Now",
       sortable: true,
       align: "left" as const,
-      sortValue: (row: CombinedPropertyRow) => row.activeNow ?? -1,
-      render: (row: CombinedPropertyRow) => (
-        <div
-          className={`${styles['property-list-value']} ${styles['property-list-realtime']}`}
-        >
-          {row.activeNow !== null ? (
-            <>
-              <div className={styles['property-list-realtime-dot']} />
-              {formatNumber(row.activeNow)}
-            </>
-          ) : (
-            "—"
-          )}
-        </div>
-      ),
+      sortValue: (row: UnifiedProperty) =>
+        summaries[row.ga?.id || ""]?.realtime?.activeUsers ?? -1,
+      render: (row: UnifiedProperty) => {
+        const realtime = summaries[row.ga?.id || ""]?.realtime;
+        return (
+          <div
+            className={`${styles['property-list-value']} ${styles['property-list-realtime']}`}
+          >
+            {realtime ? (
+              <>
+                <div className={styles['property-list-realtime-dot']} />
+                {formatNumber(realtime.activeUsers)}
+              </>
+            ) : (
+              "—"
+            )}
+          </div>
+        );
+      },
     },
   ];
+
+  // ── Render ────────────────────────────────────────────────
 
   return (
     <>
@@ -213,165 +253,154 @@ export default function PropertyListingComponent({
           compact
         />
         <span className={styles['property-summary']}>
-          {properties.length}{" "}
-          {properties.length === 1 ? "property" : "properties"}
-          {sessionProjects.length > 0 &&
-            ` · ${sessionProjects.length} session ${sessionProjects.length === 1 ? "project" : "projects"}`}
+          {unifiedProperties.length}{" "}
+          {unifiedProperties.length === 1 ? "property" : "properties"}
+          {unifiedCount > 0 && ` · ${unifiedCount} unified (GA4 + first-party)`}
         </span>
       </div>
 
       {/* ── Card View ── */}
       {viewMode === "card" && (
         <div className={styles['property-grid']}>
-          {properties.map((prop: GAProperty) => {
-            const propertySummary = summaries[prop.id];
-            return (
-              <Link
-                key={prop.id}
-                href={`/web-analytics/${prop.id}`}
-                className={styles['property-card']}
-              >
-                <div className={styles['property-card-header']}>
-                  <div className={styles['property-card-icon']}>
-                    <TrendingUp size={18} strokeWidth={2} />
-                  </div>
-                  <div className={styles['property-card-info']}>
-                    <span className={styles['property-card-name']}>
-                      {prop.label}
-                    </span>
-                    <span className={styles['property-card-meta']}>
-                      {prop.measurementId || prop.id}
-                    </span>
-                  </div>
-                  <ArrowRight
-                    size={14}
-                    strokeWidth={2}
-                    className={styles['property-card-arrow']}
-                  />
-                </div>
-
-                {prop.domain && (
-                  <div className={styles['property-card-preview-container']}>
-                    <iframe
-                      src={`https://${prop.domain}`}
-                      className={styles['property-card-preview-iframe']}
-                      title={`Preview of ${prop.domain}`}
-                      loading="lazy"
-                      tabIndex={-1}
-                      sandbox="allow-scripts allow-same-origin"
-                    />
-                    <div className={styles['property-card-preview-overlay']} />
-                  </div>
-                )}
-
-                {propertySummary?.loaded ? (
-                  <>
-                    {propertySummary.overview && (
-                      <div className={styles['property-card-stats']}>
-                        <div className={styles['property-card-stat']}>
-                          <span className={styles['property-card-stat-value']}>
-                            {formatNumber(propertySummary.overview.totalUsers)}
-                          </span>
-                          <span className={styles['property-card-stat-label']}>
-                            Users
-                          </span>
-                        </div>
-                        <div className={styles['property-card-stat']}>
-                          <span className={styles['property-card-stat-value']}>
-                            {formatNumber(propertySummary.overview.pageviews)}
-                          </span>
-                          <span className={styles['property-card-stat-label']}>
-                            Pageviews
-                          </span>
-                        </div>
-                        <div className={styles['property-card-stat']}>
-                          <span className={styles['property-card-stat-value']}>
-                            {formatNumber(propertySummary.overview.sessions)}
-                          </span>
-                          <span className={styles['property-card-stat-label']}>
-                            Sessions
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {propertySummary.realtime && (
-                      <div className={styles['property-card-realtime']}>
-                        <div className={styles['property-card-realtime-dot']} />
-                        <span className={styles['property-card-realtime-value']}>
-                          {formatNumber(propertySummary.realtime.activeUsers)}
-                        </span>
-                        <span>active now</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <LoadingIndicatorComponent size="small" label="Loading…" />
-                )}
-              </Link>
-            );
-          })}
-
-          {/* ── Sessions Projects Cards ── */}
-          {sessionProjects.map((proj) => (
-            <Link
-              key={proj.projectId}
-              href={`/web-analytics/sessions/${encodeURIComponent(proj.projectId)}`}
-              className={styles['property-card']}
-            >
-              <div className={styles['property-card-header']}>
-                <div
-                  className={styles['property-card-icon']}
-                  style={{
-                    background: "rgba(16, 185, 129, 0.08)",
-                    color: "#10b981",
-                  }}
-                >
-                  <Activity size={18} strokeWidth={2} />
-                </div>
-                <div className={styles['property-card-info']}>
-                  <span className={styles['property-card-name']}>
-                    {proj.projectId}
-                  </span>
-                  <span className={styles['property-card-meta']}>
-                    sessions-service
-                  </span>
-                </div>
-                <ArrowRight
-                  size={14}
-                  strokeWidth={2}
-                  className={styles['property-card-arrow']}
-                />
-              </div>
-
-              <div className={styles['property-card-stats']}>
-                <div className={styles['property-card-stat']}>
-                  <span className={styles['property-card-stat-value']}>
-                    {formatNumber(proj.uniqueVisitors)}
-                  </span>
-                  <span className={styles['property-card-stat-label']}>Visitors</span>
-                </div>
-                <div className={styles['property-card-stat']}>
-                  <span className={styles['property-card-stat-value']}>
-                    {formatNumber(proj.sessionCount)}
-                  </span>
-                  <span className={styles['property-card-stat-label']}>Sessions</span>
-                </div>
-              </div>
-            </Link>
+          {unifiedProperties.map((property) => (
+            <PropertyCard
+              key={property.key}
+              property={property}
+              summary={property.ga ? summaries[property.ga.id] : undefined}
+            />
           ))}
         </div>
       )}
 
       {/* ── List / Table View ── */}
       {viewMode === "list" && (
-        <TableComponent<CombinedPropertyRow>
+        <TableComponent<UnifiedProperty>
           columns={columns}
-          data={tableData}
-          getRowKey={(row: CombinedPropertyRow) => row.id}
-          onRowClick={(row: CombinedPropertyRow) => router.push(row.linkHref)}
+          data={unifiedProperties}
+          getRowKey={(row: UnifiedProperty) => row.key}
+          onRowClick={(row: UnifiedProperty) => router.push(row.linkHref)}
           emptyText="No properties or projects found"
         />
       )}
     </>
+  );
+}
+
+// ── Property Card ─────────────────────────────────────────────
+
+function PropertyCard({
+  property,
+  summary,
+}: {
+  property: UnifiedProperty;
+  summary?: GASummary;
+}) {
+  const sessionsOnly = !property.ga;
+
+  return (
+    <Link href={property.linkHref} className={styles['property-card']}>
+      <div className={styles['property-card-header']}>
+        <div
+          className={styles['property-card-icon']}
+          style={
+            sessionsOnly
+              ? {
+                  background: `color-mix(in srgb, ${SOURCE_COLORS.sessions} 8%, transparent)`,
+                  color: SOURCE_COLORS.sessions,
+                }
+              : undefined
+          }
+        >
+          {sessionsOnly ? (
+            <Activity size={18} strokeWidth={2} />
+          ) : (
+            <TrendingUp size={18} strokeWidth={2} />
+          )}
+        </div>
+        <div className={styles['property-card-info']}>
+          <span className={styles['property-card-name']}>{property.label}</span>
+          <span className={styles['property-card-meta']}>{property.meta}</span>
+        </div>
+        <SourceBadges hasGA={!!property.ga} hasSessions={!!property.sessions} />
+        <ArrowRight size={14} strokeWidth={2} className={styles['property-card-arrow']} />
+      </div>
+
+      {property.domain && (
+        <div className={styles['property-card-preview-container']}>
+          <iframe
+            src={`https://${property.domain}`}
+            className={styles['property-card-preview-iframe']}
+            title={`Preview of ${property.domain}`}
+            loading="lazy"
+            tabIndex={-1}
+            sandbox="allow-scripts allow-same-origin"
+          />
+          <div className={styles['property-card-preview-overlay']} />
+        </div>
+      )}
+
+      {/* ── Google Analytics stats ── */}
+      {property.ga &&
+        (summary?.loaded ? (
+          summary.overview && (
+            <div className={styles['property-card-stat-group']}>
+              {property.sessions && (
+                <span className={styles['property-card-stat-caption']}>
+                  <span
+                    className={styles['property-card-stat-caption-dot']}
+                    style={{ background: SOURCE_COLORS.ga }}
+                  />
+                  Google Analytics
+                </span>
+              )}
+              <div className={styles['property-card-stats']}>
+                <CardStat value={summary.overview.totalUsers} label="Users" />
+                <CardStat value={summary.overview.pageviews} label="Pageviews" />
+                <CardStat value={summary.overview.sessions} label="Sessions" />
+              </div>
+            </div>
+          )
+        ) : (
+          <LoadingIndicatorComponent size="small" label="Loading…" />
+        ))}
+
+      {/* ── First-party stats ── */}
+      {property.sessions && (
+        <div className={styles['property-card-stat-group']}>
+          {property.ga && (
+            <span className={styles['property-card-stat-caption']}>
+              <span
+                className={styles['property-card-stat-caption-dot']}
+                style={{ background: SOURCE_COLORS.sessions }}
+              />
+              First-Party
+            </span>
+          )}
+          <div className={styles['property-card-stats']}>
+            <CardStat value={property.sessions.uniqueVisitors} label="Visitors" />
+            <CardStat value={property.sessions.sessionCount} label="Sessions" />
+          </div>
+        </div>
+      )}
+
+      {property.ga && summary?.realtime && (
+        <div className={styles['property-card-realtime']}>
+          <div className={styles['property-card-realtime-dot']} />
+          <span className={styles['property-card-realtime-value']}>
+            {formatNumber(summary.realtime.activeUsers)}
+          </span>
+          <span>active now</span>
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function CardStat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className={styles['property-card-stat']}>
+      <span className={styles['property-card-stat-value']}>{formatNumber(value)}</span>
+      <span className={styles['property-card-stat-label']}>{label}</span>
+    </div>
   );
 }

@@ -1,15 +1,16 @@
 import PageLayoutComponent from "@/components/PageLayoutComponent";
-import GoogleAnalyticsComponent from "@/components/GoogleAnalyticsComponent";
+import WebAnalyticsComponent from "@/components/WebAnalyticsComponent";
 
 export const metadata = {
   title: "Web Analytics — Portal",
-  description: "Google Analytics (GA4) reports and real-time visitor data.",
+  description:
+    "Unified web analytics: Google Analytics (GA4) and first-party session tracking per property.",
 };
 
 export default function WebAnalyticsPage() {
   return (
     <PageLayoutComponent>
-      <GoogleAnalyticsComponent />
+      <WebAnalyticsComponent />
     </PageLayoutComponent>
   );
 }

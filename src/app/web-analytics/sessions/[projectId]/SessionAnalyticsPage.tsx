@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import PageLayoutComponent from "../../../../components/PageLayoutComponent";
-import SessionAnalyticsComponent from "../../../../components/SessionAnalyticsComponent";
+import PropertyDashboardComponent from "../../../../components/PropertyDashboardComponent";
 
 export default function SessionAnalyticsPage({
   params,
@@ -13,7 +13,7 @@ export default function SessionAnalyticsPage({
 
   return (
     <PageLayoutComponent>
-      <SessionAnalyticsComponent projectId={decodeURIComponent(projectId)} />
+      <PropertyDashboardComponent projectId={decodeURIComponent(projectId)} />
     </PageLayoutComponent>
   );
 }

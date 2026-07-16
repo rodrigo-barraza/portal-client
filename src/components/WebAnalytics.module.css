@@ -1,4 +1,4 @@
-/* ── Google Analytics Dashboard ──────────────────────────────── */
+/* ── Web Analytics (GA4 + first-party sessions) ──────────────── */
 
 .dashboard {
   display: flex;
@@ -991,6 +991,118 @@
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   font-family: var(--font-mono);
+}
+
+/* ── Source Badges (GA4 / first-party) ───────────────────────── */
+
+.source-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.source-badge-ga {
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.source-badge-fp {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+/* ── Per-source stat groups on property cards ────────────────── */
+
+.property-card-stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.property-card-stat-caption {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.property-card-stat-caption-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Source Comparison Panel (GA4 vs first-party) ────────────── */
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  column-gap: 24px;
+  row-gap: 0;
+  padding: 6px 18px 12px;
+}
+
+.compare-head {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 0 6px;
+  text-align: right;
+
+  &:first-child {
+    text-align: left;
+  }
+}
+
+.compare-metric {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 6px 0;
+}
+
+.compare-value {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  text-align: right;
+  padding: 6px 0;
+}
+
+.compare-delta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 0;
+}
+
+.compare-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  padding: 0 18px 14px;
+  line-height: 1.5;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

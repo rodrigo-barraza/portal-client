@@ -45,7 +45,9 @@ export interface DependencyRef {
   id: string;
   name: string;
   criticality?: "required" | "optional";
-  source?: "detected" | "registry";
+  /** Edge provenance: "registry" (hand-declared), "derived" (computed from
+   *  db/minioBucket registry fields), or "detected" (found by code analysis). */
+  source?: "detected" | "registry" | "derived";
 }
 
 export type DependsOnEntry = string | DependencyRef;
@@ -308,11 +310,26 @@ export interface ProjectDependencies {
   apiCalls: DetectedApiCall[];
 }
 
+export interface GitHubAnalysisHealth {
+  tokenConfigured: boolean;
+  status: "ok" | "degraded" | "unavailable";
+  stats?: {
+    requests: number;
+    failures: number;
+    unauthorized: number;
+    rateLimited: number;
+    notFound: number;
+  };
+}
+
 export interface ProjectAnalysis {
   dependencies: Record<string, ProjectDependencies>;
   repoSizes?: Record<string, RepoSize>;
   owners?: Record<string, string>;
   analyzedAt?: string;
+  /** Health of the GitHub-backed code analysis — lets the UI distinguish
+   *  "no detected edges" from "detection was unavailable". */
+  github?: GitHubAnalysisHealth;
 }
 
 export interface RepoSize {
@@ -362,6 +379,8 @@ export interface GAProperty {
   id: string;
   label: string;
   measurementId: string;
+  /** Registry project id (e.g. "rod-dev-client") — joins a GA property to its sessions-service projectId. */
+  serviceId?: string;
   domain?: string | null;
 }
 
@@ -568,6 +587,11 @@ export interface SessionOverview {
   totalPageViews: number;
   totalDuration: number;
   avgSessionDuration: number;
+  engagedSessions: number;
+  /** Percentage 0–100 (unlike GA's 0–1 ratios). */
+  engagementRate: number;
+  /** Percentage 0–100 (unlike GA's 0–1 ratios). */
+  bounceRate: number;
 }
 
 /** Geo location from IP geolocation. */

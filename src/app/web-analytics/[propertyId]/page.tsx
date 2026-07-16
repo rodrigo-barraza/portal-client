@@ -1,9 +1,10 @@
 import PageLayoutComponent from "@/components/PageLayoutComponent";
-import GoogleAnalyticsComponent from "@/components/GoogleAnalyticsComponent";
+import PropertyDashboardComponent from "@/components/PropertyDashboardComponent";
 
 export const metadata = {
   title: "Property Analytics — Portal",
-  description: "Google Analytics (GA4) detailed reports for a single property.",
+  description:
+    "Unified property analytics: Google Analytics (GA4) reports plus first-party session tracking.",
 };
 
 export default async function WebAnalyticsDetailPage({
@@ -15,7 +16,7 @@ export default async function WebAnalyticsDetailPage({
 
   return (
     <PageLayoutComponent>
-      <GoogleAnalyticsComponent propertyId={propertyId} />
+      <PropertyDashboardComponent propertyId={propertyId} />
     </PageLayoutComponent>
   );
 }
