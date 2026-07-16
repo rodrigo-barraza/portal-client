@@ -638,6 +638,24 @@ export default function ServiceCardComponent({
             />
           </div>
         )}
+
+        {service.lastHeartbeatAt && (
+          <div className={styles['detail']}>
+            <span className={styles['detail-label']}>Heartbeat</span>
+            <BadgeComponent
+              type="dateTime"
+              date={service.lastHeartbeatAt}
+              highlightNew
+            />
+          </div>
+        )}
+
+        {service.downSince && (
+          <div className={styles['detail']}>
+            <span className={styles['detail-label']}>Down since</span>
+            <BadgeComponent type="dateTime" date={service.downSince} />
+          </div>
+        )}
       </div>
 
       {service.error && !isHealthy && (

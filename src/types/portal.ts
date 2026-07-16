@@ -70,6 +70,12 @@ export interface PortalService {
   dockerProject?: string;
   restartable?: boolean;
   checkedAt?: string;
+  /** Watchdog state (portal-service /watchdog): pending | up | down. */
+  watchdogStatus?: "pending" | "up" | "down";
+  /** Last push heartbeat received (dead-man's-switch services only). */
+  lastHeartbeatAt?: string | null;
+  /** Start of the current unhealthy stretch, if any. */
+  downSince?: string | null;
   isInfrastructure?: boolean;
   essential?: boolean;
   db?: string;
