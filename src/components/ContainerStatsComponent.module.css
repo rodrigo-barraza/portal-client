@@ -471,7 +471,7 @@
   align-items: center;
 }
 
-/* ── Live Site Preview Thumbnail (scaled iframe) ── */
+/* ── Site Preview Thumbnail (screenshot, live iframe on hover) ── */
 
 .card-preview-container {
   position: relative;
@@ -485,6 +485,27 @@
   container-type: inline-size;
 }
 
+/* Cached screenshot from portal-service — captured at 1280×800, the same
+   16:10 ratio as the container, so cover crops nothing. */
+.card-preview-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-preview-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
 .card-preview-iframe {
   position: absolute;
   inset-block-start: 0;
@@ -494,9 +515,20 @@
   border: none;
   transform-origin: top left;
   /* Dynamically scale the 1280px viewport to fit the card's content width.
-     100cqi = container query inline size (from .container-card's container-type) */
-  scale: calc(100cqi / 1280);
+     100cqi = container query inline size (from .card-preview-container's
+     container-type). Dividing by 1280px (not 1280) is required: length ÷ length
+     is a <number>, which `scale` accepts — length ÷ number is a length, which
+     gets dropped as invalid and left the iframe unscaled. */
+  scale: calc(100cqi / 1280px);
   pointer-events: none;
+  /* Sits above the screenshot; stays invisible until the site has loaded
+     so hover shows screenshot → live without a white flash. */
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.card-preview-iframe-ready {
+  opacity: 1;
 }
 
 .card-preview-overlay {
