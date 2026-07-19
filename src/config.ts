@@ -53,7 +53,10 @@ function resolvePortalServiceUrl() {
   // env vars were not inlined at build time (vault unreachable during build).
   if (isProduction) return `https://api.${window.location.hostname}`;
 
-  return RAW_PORTAL_SERVICE_URL;
+  // Same fallback for LAN/localhost access: without this, an empty base URL
+  // makes every API call fetch the Next.js app itself (HTML instead of JSON)
+  // and every page silently renders its empty state.
+  return `${window.location.protocol}//${window.location.hostname}:4001`;
 }
 
 export const PORTAL_SERVICE_URL = resolvePortalServiceUrl();
