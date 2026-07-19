@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Search,
   Server,
+  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
@@ -31,7 +32,7 @@ import { formatNumber } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import { StatCard, BarListPanel, DonutPanel, TrendsPanel } from "./AnalyticsPrimitives";
 import webStyles from "./WebAnalytics.module.css";
-import styles from "./CloudUsageComponent.module.css";
+import styles from "./ExternalApisComponent.module.css";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ interface ApiUsageSummary {
   dailySeries: DailySeries[];
 }
 
-interface CloudUsageData {
+interface ExternalApiUsageData {
   services: ApiUsageSummary[];
   totalRequests: number;
   totalErrors: number;
@@ -95,6 +96,7 @@ interface CategoryMeta {
 }
 
 const CATEGORY_META: Record<string, CategoryMeta> = {
+  "AI / LLM": { icon: Sparkles, color: "#ec4899" },
   "Maps & Location": { icon: MapPin, color: "#6366f1" },
   Environmental: { icon: Leaf, color: "#10b981" },
   Search: { icon: Search, color: "#f59e0b" },
@@ -375,8 +377,8 @@ function ApiCard({
 
 // ── Main Component ─────────────────────────────────────────────────
 
-export default function CloudUsageComponent() {
-  const [data, setData] = useState<CloudUsageData | null>(null);
+export default function ExternalApisComponent() {
+  const [data, setData] = useState<ExternalApiUsageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -399,7 +401,7 @@ export default function CloudUsageComponent() {
       }
 
       try {
-        const response = await ApiService.getCloudUsageSummary(period);
+        const response = await ApiService.getExternalApiUsageSummary(period);
         setData(response);
         setLoadError(null);
       } catch (error: unknown) {
@@ -447,7 +449,7 @@ export default function CloudUsageComponent() {
       setIsTimeSeriesLoading(true);
 
       try {
-        const response = await ApiService.getCloudUsageTimeSeries(
+        const response = await ApiService.getExternalApiUsageTimeSeries(
           serviceIdentifier,
           selectedPeriod,
         );
@@ -520,11 +522,11 @@ export default function CloudUsageComponent() {
   const header = (
     <PageHeaderComponent
       sticky={false}
-      title="Cloud Usage"
+      title="External APIs"
       subtitle={
         data
-          ? `Google Cloud API consumption · ${data.projectId}`
-          : "Google Cloud API consumption metrics"
+          ? `Third-party API consumption · Google Cloud (${data.projectId})`
+          : "Third-party API consumption metrics"
       }
     >
       <div className={webStyles["header-controls"]}>
@@ -552,7 +554,7 @@ export default function CloudUsageComponent() {
 
   if (isLoading) {
     return (
-      <div className={`cloud-usage-component ${webStyles["dashboard"]}`}>
+      <div className={`external-apis-component ${webStyles["dashboard"]}`}>
         {header}
         <LoadingIndicatorComponent
           size="small"
@@ -567,7 +569,7 @@ export default function CloudUsageComponent() {
 
   if (loadError && !data) {
     return (
-      <div className={`cloud-usage-component ${webStyles["dashboard"]}`}>
+      <div className={`external-apis-component ${webStyles["dashboard"]}`}>
         {header}
         <div className={webStyles["empty-state"]}>
           <AlertTriangle size={32} strokeWidth={1.5} className={webStyles["empty-icon"]} />
@@ -590,7 +592,7 @@ export default function CloudUsageComponent() {
 
   if (!data || data.services.length === 0) {
     return (
-      <div className={`cloud-usage-component ${webStyles["dashboard"]}`}>
+      <div className={`external-apis-component ${webStyles["dashboard"]}`}>
         {header}
         <div className={webStyles["empty-state"]}>
           <Cloud size={32} strokeWidth={1.5} className={webStyles["empty-icon"]} />
@@ -607,7 +609,7 @@ export default function CloudUsageComponent() {
   // ── Main Render ─────────────────────────────────────────────────
 
   return (
-    <div className={`cloud-usage-component ${webStyles["dashboard"]}`}>
+    <div className={`external-apis-component ${webStyles["dashboard"]}`}>
       {header}
 
       {/* ── Overview Cards ── */}

@@ -20,6 +20,13 @@ const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: [],
   turbopack: {},
+
+  async redirects() {
+    return [
+      // Page renamed 2026-07: our consumption of third-party APIs.
+      { source: "/cloud-usage", destination: "/external-apis", permanent: true },
+    ];
+  },
   transpilePackages: [
     "@rodrigo-barraza/components-library",
     "@rodrigo-barraza/utilities-library",

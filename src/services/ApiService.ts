@@ -771,24 +771,24 @@ export default class ApiService {
     );
   }
 
-  // ── Cloud Usage (Google Cloud Monitoring) ───────────────────
+  // ── External APIs (Google Cloud Monitoring) ─────────────────
 
   /**
-   * Get aggregated usage summary for all tracked Google Cloud APIs.
+   * Get aggregated usage summary for external APIs with traffic.
    */
-  static async getCloudUsageSummary(period = "30d") {
-    return ApiService._request(`/cloud-usage?period=${period}`);
+  static async getExternalApiUsageSummary(period = "30d") {
+    return ApiService._request(`/external-apis?period=${period}`);
   }
 
   /**
-   * Get daily time-series for a specific Google Cloud API service.
+   * Get daily time-series for a specific external API service.
    */
-  static async getCloudUsageTimeSeries(
+  static async getExternalApiUsageTimeSeries(
     serviceIdentifier: string,
     period = "30d",
   ) {
     return ApiService._request(
-      `/cloud-usage/timeseries?service=${encodeURIComponent(serviceIdentifier)}&period=${period}`,
+      `/external-apis/timeseries?service=${encodeURIComponent(serviceIdentifier)}&period=${period}`,
     );
   }
 }

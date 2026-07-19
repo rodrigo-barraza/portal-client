@@ -1,14 +1,14 @@
 import PageLayoutComponent from "@/components/PageLayoutComponent";
-import CloudUsageComponent from "@/components/CloudUsageComponent";
+import ExternalApisComponent from "@/components/ExternalApisComponent";
 
 export const metadata = {
-  title: "Cloud Usage — Portal",
+  title: "External APIs — Portal",
 };
 
-export default function CloudUsagePage() {
+export default function ExternalApisPage() {
   return (
     <PageLayoutComponent>
-      <CloudUsageComponent />
+      <ExternalApisComponent />
     </PageLayoutComponent>
   );
 }

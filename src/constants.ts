@@ -67,9 +67,9 @@ export const NAV_SECTIONS = [
       },
       { id: "providers", label: "Providers", href: "/providers", icon: "Plug" },
       {
-        id: "cloud-usage",
-        label: "Cloud Usage",
-        href: "/cloud-usage",
+        id: "external-apis",
+        label: "External APIs",
+        href: "/external-apis",
         icon: "BarChart3",
       },
     ],
