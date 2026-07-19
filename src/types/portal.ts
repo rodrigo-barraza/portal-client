@@ -258,8 +258,9 @@ export interface SystemInfo {
 export interface StorageBucket {
   name: string;
   creationDate?: string;
-  objectCount: number;
-  totalSize: number;
+  /** null while stats are still being collected for this bucket */
+  objectCount: number | null;
+  totalSize: number | null;
 }
 
 export interface StorageObject {
@@ -279,6 +280,8 @@ export interface StorageSummary {
 export interface BucketStreamEvent {
   type: "init" | "bucket" | "done" | "error";
   totalBuckets?: number;
+  /** init now carries every bucket's name/date up front (stats null) */
+  buckets?: StorageBucket[];
   bucket?: StorageBucket;
   message?: string;
 }

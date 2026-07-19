@@ -362,10 +362,29 @@ export default function StorageComponent() {
         switch (event.type) {
           case "init":
             setTotalExpected(event.totalBuckets || 0);
-            setSkeletonCount(event.totalBuckets || 0);
+            if (event.buckets?.length) {
+              // Names + dates arrive up front — render every card now and
+              // fill stats in as `bucket` events land. No skeletons needed.
+              setBuckets(event.buckets);
+              setSkeletonCount(0);
+            } else {
+              // Older service: buckets trickle in one by one
+              setSkeletonCount(event.totalBuckets || 0);
+            }
             break;
           case "bucket":
-            if (event.bucket) setBuckets((previousState) => [...previousState, event.bucket!]);
+            if (event.bucket) {
+              setBuckets((previousState) => {
+                const incoming = event.bucket!;
+                const existingIndex = previousState.findIndex(
+                  (bucket) => bucket.name === incoming.name,
+                );
+                if (existingIndex === -1) return [...previousState, incoming];
+                const next = [...previousState];
+                next[existingIndex] = incoming;
+                return next;
+              });
+            }
             setSkeletonCount((previousState) => Math.max(0, previousState - 1));
             break;
           case "done":
@@ -628,13 +647,13 @@ export default function StorageComponent() {
   const bucketSegments = useMemo(() => {
     if (!storageSummary?.buckets) return [];
     return storageSummary.buckets
-      .filter((bucket) => bucket.totalSize > 0)
-      .sort((firstBucket, secondBucket) => secondBucket.totalSize - firstBucket.totalSize)
+      .filter((bucket) => (bucket.totalSize ?? 0) > 0)
+      .sort((firstBucket, secondBucket) => (secondBucket.totalSize ?? 0) - (firstBucket.totalSize ?? 0))
       .map((bucket, i) => ({
-        value: bucket.totalSize,
+        value: bucket.totalSize ?? 0,
         color: BUCKET_COLORS[i % BUCKET_COLORS.length],
         label: bucket.name,
-        objectCount: bucket.objectCount,
+        objectCount: bucket.objectCount ?? 0,
       }));
   }, [storageSummary]);
 
@@ -988,15 +1007,23 @@ export default function StorageComponent() {
                     <div className={styles['bucket-meta']}>
                       <div className={styles['bucket-stat']}>
                         <span className={styles['bucket-stat-label']}>Objects</span>
-                        <span className={styles['bucket-stat-value']}>
-                          {bucket.objectCount.toLocaleString()}
-                        </span>
+                        {bucket.objectCount != null ? (
+                          <span className={styles['bucket-stat-value']}>
+                            {bucket.objectCount.toLocaleString()}
+                          </span>
+                        ) : (
+                          <div className={styles['skeleton-line']} style={{ width: 48 }} />
+                        )}
                       </div>
                       <div className={styles['bucket-stat']}>
                         <span className={styles['bucket-stat-label']}>Size</span>
-                        <span className={styles['bucket-stat-value']}>
-                          {formatBytes(bucket.totalSize)}
-                        </span>
+                        {bucket.totalSize != null ? (
+                          <span className={styles['bucket-stat-value']}>
+                            {formatBytes(bucket.totalSize)}
+                          </span>
+                        ) : (
+                          <div className={styles['skeleton-line']} style={{ width: 64 }} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1290,10 +1317,18 @@ function BucketTableView({
             <span className={styles['object-name-text']}>{bucket.name}</span>
           </div>
           <span className={styles['object-size']}>
-            {bucket.objectCount.toLocaleString()}
+            {bucket.objectCount != null ? (
+              bucket.objectCount.toLocaleString()
+            ) : (
+              <div className={styles['skeleton-line']} style={{ width: 40 }} />
+            )}
           </span>
           <span className={styles['object-size']}>
-            {formatBytes(bucket.totalSize)}
+            {bucket.totalSize != null ? (
+              formatBytes(bucket.totalSize)
+            ) : (
+              <div className={styles['skeleton-line']} style={{ width: 56 }} />
+            )}
           </span>
           <span className={styles['object-date']}>
             {bucket.creationDate
