@@ -19,6 +19,7 @@ import {
   TabBarComponent,
 } from "@rodrigo-barraza/components-library";
 import {
+  clamp,
   formatBytes,
   formatDuration,
   formatElapsedTime,
@@ -743,7 +744,7 @@ function TopologyTab({
   // Layout by deployTier
   const tiers: PortalService[][] = [[], [], []];
   for (const currentService of graphServices) {
-    const tier = Math.min(Math.max((currentService.deployTier as number) ?? 2, 0), 2);
+    const tier = clamp((currentService.deployTier as number) ?? 2, 0, 2);
     tiers[tier].push(currentService);
   }
   for (const tier of tiers)

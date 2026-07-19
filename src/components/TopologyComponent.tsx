@@ -38,6 +38,8 @@ import type {
   DeployTierColor,
   ServicesResponse,
 } from "../types/portal";
+import { clamp } from "@rodrigo-barraza/utilities-library";
+import { formatSize } from "@/lib/format";
 import styles from "./TopologyComponent.module.css";
 
 // ── Dimensions ───────────────────────────────────────────────────
@@ -72,13 +74,6 @@ const TYPE_ORDER = [
 
 // ── Non-tiered project types (rendered independently) ────────
 const NON_TIERED_TYPES = new Set(["Library", "Kit", "Tool"]);
-
-// ── Size formatter ──────────────────────────────────────────
-function formatSize(kb: number): string {
-  if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(1)} GB`;
-  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
-  return `${kb} KB`;
-}
 
 // ── Edge type taxonomy ──────────────────────────────────────────
 type EdgeType = "api" | "import" | "tooling" | "infra";
@@ -260,7 +255,7 @@ function computeLayers(services: PortalService[]) {
 
   for (const service of services) {
     if (NON_TIERED_TYPES.has(service.projectType || "")) continue;
-    const tier = Math.min(Math.max(service.deployTier ?? 2, 0), 2);
+    const tier = clamp(service.deployTier ?? 2, 0, 2);
     tiers[tier].push(service);
   }
 
@@ -1045,7 +1040,7 @@ export default function TopologyComponent() {
     const mouseY = event.clientY - rect.top;
     const currentZoom = zoomRef.current;
     const delta = event.deltaY > 0 ? 0.9 : 1.1;
-    const next = Math.min(3, Math.max(0.2, currentZoom * delta));
+    const next = clamp(currentZoom * delta, 0.2, 3);
     const ratio = next / currentZoom;
     zoomRef.current = next;
     setPan((previousPan) => ({

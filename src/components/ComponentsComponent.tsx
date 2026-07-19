@@ -21,6 +21,7 @@ import {
   IconButtonComponent,
 } from "@rodrigo-barraza/components-library";
 import { getPreview } from "./ComponentPreviewRegistryComponent";
+import { formatSize } from "@/lib/format";
 import styles from "./ComponentsComponent.module.css";
 
 // ── Error boundary for individual preview isolation ─────────────
@@ -96,12 +97,6 @@ const CATEGORIES: Record<string, Category> = {
 /** Human-readable name from component folder name. */
 function humanize(name: string): string {
   return name.replace(/Component$/, "").replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-/** Format KB size. */
-function formatSize(kb: number): string {
-  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
-  return `${kb.toFixed(1)} KB`;
 }
 
 interface CatalogItem {

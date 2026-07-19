@@ -14,6 +14,7 @@ import {
   PageHeaderComponent,
   SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
+import { formatSize } from "@/lib/format";
 import styles from "./LibraryCatalogComponent.module.css";
 
 /** Human-readable name from export name. */
@@ -23,12 +24,6 @@ function humanize(name: string) {
     .replace(/Service$/, "")
     .replace(/^use/, "use\u200B") // zero-width space for visual break after "use"
     .replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-/** Format KB size. */
-function formatSize(kb: number) {
-  if (kb >= 100) return `${(kb / 1024).toFixed(1)} MB`;
-  return `${kb.toFixed(1)} KB`;
 }
 
 /** Catalog entry emitted by the component-catalog generator. */
