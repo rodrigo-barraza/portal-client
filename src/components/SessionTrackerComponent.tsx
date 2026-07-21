@@ -13,7 +13,7 @@ import { useAuthEnabled } from "@/providers/AuthProvider";
 function AuthedSessionTracker() {
   const { data: session } = useSession();
   const userId = session?.user?.email || session?.user?.name || null;
-  return <LibrarySessionTracker projectId={PROJECT_NAME} userId={userId} />;
+  return <LibrarySessionTracker projectId={PROJECT_NAME} userId={userId} replay heatmap />;
 }
 
 export default function SessionTrackerComponent() {
@@ -23,6 +23,6 @@ export default function SessionTrackerComponent() {
   if (!telemetryEnabled) return null;
   // With auth disabled there is no SessionProvider in the tree, so
   // useSession() would throw — fall back to anonymous-only tracking.
-  if (!authEnabled) return <LibrarySessionTracker projectId={PROJECT_NAME} />;
+  if (!authEnabled) return <LibrarySessionTracker projectId={PROJECT_NAME} replay heatmap />;
   return <AuthedSessionTracker />;
 }
