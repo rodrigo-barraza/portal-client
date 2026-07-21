@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
     // ── Sessions ──────────────────────────────────────────────
     SESSIONS_SERVICE_URL: secrets.SESSIONS_SERVICE_URL,
     SESSIONS_SERVICE_PUBLIC_URL: secrets.SESSIONS_SERVICE_PUBLIC_URL,
+    // ── Accounts (admin-role lookup at sign-in) ───────────────
+    // Secret is read from process.env at runtime (server only) — never
+    // listed here, so it is not inlined into any bundle.
+    ACCOUNTS_SERVICE_URL: secrets.ACCOUNTS_SERVICE_URL,
+    NEXT_PUBLIC_ACCOUNTS_SERVICE_URL: secrets.ACCOUNTS_SERVICE_URL,
     PORTAL_CLIENT_PORT: secrets.PORTAL_CLIENT_PORT,
     PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL,
     PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL,

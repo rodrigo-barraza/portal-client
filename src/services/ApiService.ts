@@ -717,6 +717,41 @@ export default class ApiService {
   }
 
   /**
+   * Get the full ordered rrweb event stream for a session's replay playback.
+   */
+  static async getSessionReplay(sessionId: string) {
+    return ApiService._request(
+      `/session-analytics/session/${encodeURIComponent(sessionId)}/replay`,
+    );
+  }
+
+  /**
+   * Get the normalized cursor/click/scroll density grid for one page path.
+   * Pass a viewport band (mobile/tablet/desktop) so a phone and a desktop
+   * layout aren't averaged into the same grid.
+   */
+  static async getSessionHeatmap(
+    projectId: string,
+    path: string,
+    period = "30d",
+    type: "move" | "click" | "scroll" = "move",
+    band?: "mobile" | "tablet" | "desktop",
+    grid = 50,
+  ) {
+    const queryString = new URLSearchParams({
+      projectId,
+      path,
+      period,
+      type,
+      grid: String(grid),
+    });
+    if (band) queryString.set("band", band);
+    return ApiService._request(
+      `/session-analytics/heatmap?${queryString.toString()}`,
+    );
+  }
+
+  /**
    * Get distinct visitors with session counts and device metadata.
    */
   static async getSessionVisitors(

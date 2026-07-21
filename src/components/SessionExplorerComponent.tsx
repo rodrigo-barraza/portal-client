@@ -32,6 +32,7 @@ import {
   formatElapsedTime,
   formatNumber,
 } from "@rodrigo-barraza/utilities-library";
+import SessionReplayComponent from "./SessionReplayComponent";
 import styles from "./SessionExplorerComponent.module.css";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -148,6 +149,8 @@ interface SessionDetail extends SessionRow {
     timestamp: string;
   }>;
   timeline: TimelineEntry[];
+  /** True when a rrweb recording exists for this session (play button gate). */
+  hasReplay?: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -1047,6 +1050,10 @@ export default function SessionExplorerComponent({
                   ))}
                 </div>
               )}
+
+            {currentSession.hasReplay && (
+              <SessionReplayComponent sessionId={currentSession.sessionId} />
+            )}
 
             <TimelineView timeline={currentSession.timeline} />
 

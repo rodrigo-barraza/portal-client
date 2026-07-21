@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import ApiService from "../services/ApiService";
 import SessionExplorerComponent from "./SessionExplorerComponent";
+import HeatmapPanelComponent from "./HeatmapPanelComponent";
 import {
   formatElapsedTime,
   formatNumber,
@@ -336,6 +337,13 @@ export default function SessionReportComponent({
 
           {/* ── OS ────────────────────────────────────────────── */}
           <DonutPanel icon={Laptop} title="Operating Systems" segments={osSegments} />
+
+          {/* ── Page Heatmap (cursor / click / scroll density) ── */}
+          <HeatmapPanelComponent
+            projectId={projectId}
+            period={period}
+            paths={(pages ?? []).map((row) => row.path).filter(Boolean).slice(0, 30)}
+          />
 
           {/* ── Session Explorer (Visitors + Sessions + Timeline) ── */}
           <SessionExplorerComponent

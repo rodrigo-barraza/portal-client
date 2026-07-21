@@ -1,0 +1,137 @@
+/* ── Page Heatmap panel ────────────────────────────────────── */
+
+.panel {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  background: var(--surface-raised, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.count {
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+  background: var(--surface-sunken, rgba(0, 0, 0, 0.2));
+  border-radius: 999px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.select {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text-primary, rgba(255, 255, 255, 0.9));
+  background: var(--surface-sunken, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--surface-sunken, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+}
+
+.toggleButton {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.55));
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toggleButton:hover {
+  color: var(--text-primary, rgba(255, 255, 255, 0.9));
+}
+
+.toggleActive {
+  color: #fff;
+  background: var(--accent, rgba(99, 102, 241, 0.85));
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0a0a0f;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+}
+
+.legend {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.legendBar {
+  width: 64px;
+  height: 8px;
+  border-radius: 999px;
+  /* Matches the cold→hot hue ramp painted on the canvas. */
+  background: linear-gradient(
+    to right,
+    hsl(240, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(0, 100%, 50%)
+  );
+}

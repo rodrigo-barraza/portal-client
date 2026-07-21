@@ -1,0 +1,49 @@
+/* ── Session Replay player ─────────────────────────────────── */
+
+.replay-section {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: var(--surface-raised, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+}
+
+.replay-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.replay-count {
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+  background: var(--surface-sunken, rgba(0, 0, 0, 0.2));
+  border-radius: 999px;
+}
+
+.replay-message {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+}
+
+/* rrweb-player renders its own fixed-width canvas + controller; center it and
+   let it scroll horizontally on narrow viewports rather than overflowing. */
+.replay-canvas {
+  display: none;
+  overflow-x: auto;
+}
+
+.replay-canvas[data-active="true"] {
+  display: flex;
+  justify-content: center;
+}

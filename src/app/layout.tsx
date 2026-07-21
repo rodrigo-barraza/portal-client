@@ -6,6 +6,8 @@ import {
 } from "@rodrigo-barraza/components-library";
 import "./globals.css";
 import SessionTrackerComponent from "@/components/SessionTrackerComponent";
+import AuthProvider from "@/providers/AuthProvider";
+import { AUTH_ENABLED } from "@/auth";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -36,8 +38,10 @@ export default function RootLayout({
       <body className={inter.variable}>
         <ThemeProvider storageKey="portal:theme">
           <ComponentsProvider>
-            {children}
-            <SessionTrackerComponent />
+            <AuthProvider authEnabled={AUTH_ENABLED}>
+              {children}
+              <SessionTrackerComponent />
+            </AuthProvider>
           </ComponentsProvider>
         </ThemeProvider>
       </body>

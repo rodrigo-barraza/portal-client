@@ -60,3 +60,15 @@ function resolvePortalServiceUrl() {
 }
 
 export const PORTAL_SERVICE_URL = resolvePortalServiceUrl();
+
+// ── Accounts service (role lookup at sign-in) ──────────────────
+// Used server-side by the NextAuth callbacks to resolve persisted
+// roles (e.g. "admin"). The URL may be public; the secret is not.
+export const ACCOUNTS_SERVICE_URL =
+  process.env.NEXT_PUBLIC_ACCOUNTS_SERVICE_URL ||
+  process.env.ACCOUNTS_SERVICE_URL;
+
+// Server-only shared secret for accounts-service internal endpoints.
+// NO NEXT_PUBLIC_ fallback — must never be inlined into a client bundle.
+export const ACCOUNTS_SERVICE_API_SECRET =
+  process.env.ACCOUNTS_SERVICE_API_SECRET || "";

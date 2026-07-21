@@ -8,6 +8,7 @@ import {
   useTheme,
 } from "@rodrigo-barraza/components-library";
 import { NAV_SECTIONS } from "../constants";
+import SidebarAuthControlComponent from "./SidebarAuthControlComponent";
 
 /**
  * PageLayoutComponent — Thin wrapper around the library PageLayoutComponent,
@@ -40,6 +41,7 @@ export default function PageLayoutComponent({
       themes={themes}
       setTheme={setTheme}
       LinkComponent={Link}
+      bottomActions={<SidebarAuthControlComponent />}
       storageKey="portal-nav-collapsed"
       mainStyle={mainStyle}
       mainClassName={mainClassName}
