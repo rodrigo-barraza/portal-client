@@ -173,6 +173,10 @@
   filter: drop-shadow(0 0 3px oklch(63.7% 0.2078 25.3 / 0.4));
 }
 
+.icon-unknown {
+  color: var(--text-muted);
+}
+
 /* ── Circular Status Indicator ── */
 
 .status-indicator {
@@ -203,6 +207,11 @@
   box-shadow: 0 0 6px oklch(63.7% 0.2078 25.3 / 0.45);
 }
 
+.status-unknown {
+  background: var(--text-muted);
+  opacity: 0.7;
+}
+
 /* ── Row health border ── */
 
 .status-row-healthy {
@@ -211,6 +220,10 @@
 
 .status-row-unhealthy {
   border-left: 3px solid var(--color-danger);
+}
+
+.status-row-unknown {
+  border-left: 3px solid var(--calculated-border-color);
 }
 
 /* ── Inline Metric Cell (CPU / RAM columns) ── */
@@ -415,6 +428,20 @@
 
 .card-unhealthy {
   border-left: 3px solid var(--color-danger);
+}
+
+.card-unknown {
+  border-left: 3px solid var(--calculated-border-color);
+}
+
+.card-status-unknown-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .card-active {

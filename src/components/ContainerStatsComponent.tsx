@@ -11,6 +11,7 @@ import {
   List,
   Lock,
   MemoryStick,
+  Minus,
   Network,
   Play,
   RotateCcw,
@@ -44,6 +45,7 @@ import {
 } from "@rodrigo-barraza/utilities-library";
 import type {
   ContainerRow,
+  ContainerStatusKind,
   ContainerHistory,
   ContainerStats,
   ContainerMetricsData,
@@ -127,6 +129,41 @@ function CardSitePreview({ domain }: { domain: string }) {
       )}
       <div className={styles['card-preview-overlay']} />
     </div>
+  );
+}
+
+const STATUS_ICON_CLASS: Record<ContainerStatusKind, string> = {
+  healthy: "icon-healthy",
+  down: "icon-unhealthy",
+  unknown: "icon-unknown",
+};
+
+function StatusIndicator({ statusKind }: { statusKind: ContainerStatusKind }) {
+  const title =
+    statusKind === "healthy"
+      ? "Healthy"
+      : statusKind === "down"
+        ? "Down"
+        : "Not yet checked";
+  return (
+    <span
+      className={`${styles['status-indicator']} ${
+        statusKind === "healthy"
+          ? styles['status-healthy']
+          : statusKind === "down"
+            ? styles['status-down']
+            : styles['status-unknown']
+      }`}
+      title={title}
+    >
+      {statusKind === "healthy" ? (
+        <Check size={12} strokeWidth={3} />
+      ) : statusKind === "down" ? (
+        <X size={12} strokeWidth={3} />
+      ) : (
+        <Minus size={12} strokeWidth={3} />
+      )}
+    </span>
   );
 }
 
@@ -330,7 +367,7 @@ function buildColumns({
           <Container
             size={14}
             strokeWidth={2.6}
-            className={`${styles['type-icon']} ${row.healthy ? styles['icon-healthy'] : styles['icon-unhealthy']}`}
+            className={`${styles['type-icon']} ${styles[STATUS_ICON_CLASS[row.statusKind]]}`}
           />
           <span className={styles['container-name']}>{row.containerName}</span>
         </div>
@@ -342,14 +379,10 @@ function buildColumns({
       label: "Status",
       sortable: true,
       render: (row: ContainerRow) => (
-        <span
-          className={`${styles['status-indicator']} ${row.healthy ? styles['status-healthy'] : styles['status-down']}`}
-          title={row.healthy ? "Healthy" : "Down"}
-        >
-          {row.healthy ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
-        </span>
+        <StatusIndicator statusKind={row.statusKind} />
       ),
-      sortValue: (row: ContainerRow) => (row.healthy ? 1 : 0),
+      sortValue: (row: ContainerRow) =>
+        row.statusKind === "healthy" ? 2 : row.statusKind === "unknown" ? 1 : 0,
     },
     {
       key: "cpu",
@@ -658,6 +691,16 @@ export default function ContainerStatsComponent() {
             type = "service";
           }
 
+          const healthy = matchedService?.healthy ?? container.state === "running";
+          // A registered service that hasn't been health-checked yet
+          // (portal-service just booted) is "unknown", not "down".
+          const statusKind: ContainerStatusKind =
+            matchedService && matchedService.checkedAt == null
+              ? "unknown"
+              : healthy
+                ? "healthy"
+                : "down";
+
           return {
             // Container identity
             id:
@@ -665,7 +708,8 @@ export default function ContainerStatsComponent() {
               `${(container.device as string) || "unknown"}-${container.name}`,
             containerName: container.name as string,
             // Project registry fields
-            healthy: matchedService?.healthy ?? container.state === "running",
+            healthy,
+            statusKind,
             registered: !!matchedService,
             visibility: matchedService?.visibility || null,
             port: matchedService?.port || null,
@@ -763,13 +807,25 @@ export default function ContainerStatsComponent() {
     }
   }, []);
 
-  // Fetch system info for container count breakdown
+  // Fetch system info for container count breakdown. The call can take
+  // 30s+ server-side, so guard against stacking a new request on every
+  // poll tick while one is still in flight.
+  const systemInfoInflightRef = useRef(false);
   const fetchSystemInfo = useCallback(async () => {
+    if (systemInfoInflightRef.current) return;
+    systemInfoInflightRef.current = true;
     try {
       const systemInfoResponse = await ApiService.getSystemInfo().catch(() => null);
-      setSystemInfo(systemInfoResponse as SystemInfo | SystemInfo[] | null);
+      // An empty array means every Docker host failed — keep it null so
+      // the next poll retries (served from the service-side cache).
+      const hasData =
+        systemInfoResponse &&
+        (!Array.isArray(systemInfoResponse) || systemInfoResponse.length > 0);
+      setSystemInfo(hasData ? (systemInfoResponse as SystemInfo | SystemInfo[]) : null);
     } catch {
       // Supplementary — silently ignore
+    } finally {
+      systemInfoInflightRef.current = false;
     }
   }, []);
 
@@ -1084,7 +1140,11 @@ export default function ContainerStatsComponent() {
   );
 
   const getRowClassName = (row: ContainerRow) =>
-    row.healthy ? styles['status-row-healthy'] : styles['status-row-unhealthy'];
+    row.statusKind === "healthy"
+      ? styles['status-row-healthy']
+      : row.statusKind === "down"
+        ? styles['status-row-unhealthy']
+        : styles['status-row-unknown'];
 
   // Build full stats object for drawer
   const selectedStats = selectedContainer?._stats || null;
@@ -1290,7 +1350,6 @@ export default function ContainerStatsComponent() {
           onRowClick={(row: ContainerRow) => setSelectedContainer(row)}
           activeRowKey={selectedContainer?.id}
           storageKey="container-table"
-          sortPinBottom={(row: ContainerRow) => !row.healthy}
         />
       ) : (
         /* ── Cards Grid View ────────────────────────────────────── */
@@ -1298,7 +1357,13 @@ export default function ContainerStatsComponent() {
           {filteredRows.map((row) => (
             <div
               key={row.id}
-              className={`${styles['container-card']} ${row.healthy ? styles['card-healthy'] : styles['card-unhealthy']} ${selectedContainer?.id === row.id ? styles['card-active'] : ""}`}
+              className={`${styles['container-card']} ${
+                row.statusKind === "healthy"
+                  ? styles['card-healthy']
+                  : row.statusKind === "down"
+                    ? styles['card-unhealthy']
+                    : styles['card-unknown']
+              } ${selectedContainer?.id === row.id ? styles['card-active'] : ""}`}
               onClick={() => setSelectedContainer(row)}
             >
               <div className={styles['card-header']}>
@@ -1306,12 +1371,21 @@ export default function ContainerStatsComponent() {
                   <Container
                     size={14}
                     strokeWidth={2.6}
-                    className={`${styles['type-icon']} ${row.healthy ? styles['icon-healthy'] : styles['icon-unhealthy']}`}
+                    className={`${styles['type-icon']} ${styles[STATUS_ICON_CLASS[row.statusKind]]}`}
                   />
                   <span className={styles['card-name']}>{row.containerName}</span>
                 </div>
                 <div className={styles['card-badge-section']}>
-                  <BadgeComponent type="status" healthy={row.healthy} />
+                  {row.statusKind === "unknown" ? (
+                    <span
+                      className={styles['card-status-unknown-pill']}
+                      title="Not yet checked"
+                    >
+                      Checking…
+                    </span>
+                  ) : (
+                    <BadgeComponent type="status" healthy={row.healthy} />
+                  )}
                   {row.device && (
                     <span className={styles['card-device-pill']}>{row.device}</span>
                   )}

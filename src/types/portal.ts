@@ -183,11 +183,16 @@ export interface ContainerStats {
   labels?: Record<string, string>;
 }
 
+/** Health status shown for a container row. `unknown` means the service is
+ * registered but its first health check hasn't completed yet. */
+export type ContainerStatusKind = "healthy" | "down" | "unknown";
+
 /** A merged container row — project registry data + Docker stats. */
 export interface ContainerRow {
   id: string;
   containerName: string;
   healthy: boolean;
+  statusKind: ContainerStatusKind;
   registered: boolean;
   visibility: string | null;
   port: number | null;

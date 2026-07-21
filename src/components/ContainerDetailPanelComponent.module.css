@@ -480,3 +480,9 @@
     }
   }
 }
+
+.status-unknown-text {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}

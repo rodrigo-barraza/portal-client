@@ -183,7 +183,13 @@ export default function ContainerDetailPanel({
         <div className={styles['field-grid']}>
           <div className={styles['field']}>
             <span className={styles['field-label']}>Health</span>
-            <BadgeComponent type="status" healthy={container.healthy} />
+            {container.statusKind === "unknown" ? (
+              <span className={styles['status-unknown-text']} title="Not yet checked">
+                Checking…
+              </span>
+            ) : (
+              <BadgeComponent type="status" healthy={container.healthy} />
+            )}
           </div>
           {container.visibility && (
             <div className={styles['field']}>
