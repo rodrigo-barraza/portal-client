@@ -35,7 +35,6 @@ import type {
   NodePosition,
   TopologyEdge,
   ProjectAnalysis,
-  DeployTierColor,
   ServicesResponse,
 } from "../types/portal";
 import { clamp } from "@rodrigo-barraza/utilities-library";
@@ -519,8 +518,6 @@ function mergeAnalysisDeps(
 
 export default function TopologyComponent() {
   const [allServices, setAllServices] = useState<PortalService[]>([]);
-  const [tierColors, setTierColors] =
-    useState<Record<number, DeployTierColor>>(DEPLOY_TIER_COLORS);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [analysisData, setAnalysisData] = useState<ProjectAnalysis | null>(
@@ -625,9 +622,6 @@ export default function TopologyComponent() {
       }
 
       setAllServices([...servicesList, ...infrastructureServices]);
-      if (servicesRes.deployTierColors) {
-        setTierColors(servicesRes.deployTierColors);
-      }
     } catch (error) {
       console.error("Topology fetch failed:", error);
     } finally {
@@ -1457,7 +1451,6 @@ export default function TopologyComponent() {
                     {dynamicClusterRects.map((clusterRect, tierIndex) => {
                       if (!clusterRect) return null;
                       const typeConfig =
-                        tierColors[tierIndex] ||
                         DEPLOY_TIER_COLORS[tierIndex] ||
                         DEPLOY_TIER_COLORS[0];
                       return (

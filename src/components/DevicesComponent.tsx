@@ -244,6 +244,24 @@ function DeviceCard({
         <code className={styles['hostname']}>{device.hostname}</code>
       </div>
 
+      {/* ── Live specs (reported by the device's Docker Engine) ── */}
+      {device.specs && (
+        <div className={styles['specs-row']}>
+          <span className={styles['spec-item']} title="CPU cores">
+            <Cpu size={13} strokeWidth={1.8} />
+            {device.specs.cpus} cores
+          </span>
+          <span className={styles['spec-item']} title="Total memory">
+            <MemoryStick size={13} strokeWidth={1.8} />
+            {formatBytes(device.specs.memoryBytes)}
+          </span>
+          <span className={styles['spec-item']} title="Docker Engine version">
+            <Container size={13} strokeWidth={1.8} />
+            Docker {device.specs.dockerVersion}
+          </span>
+        </div>
+      )}
+
       {/* ── Notes ── */}
       {device.notes && <p className={styles['device-notes']}>{device.notes}</p>}
 

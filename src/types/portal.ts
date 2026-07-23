@@ -349,7 +349,6 @@ export interface RepoSize {
 export interface ServicesResponse {
   services: PortalService[];
   infrastructure: PortalService[];
-  deployTierColors?: Record<number, DeployTierColor>;
 }
 
 // ─── Topology ───────────────────────────────────────────────
@@ -531,7 +530,18 @@ export interface Device {
   arch?: string;
   type?: string;
   notes?: string;
+  specs?: DeviceSpecs | null;
   services?: PortalService[];
+}
+
+/** Live hardware specs collected server-side from the device's Docker Engine. */
+export interface DeviceSpecs {
+  cpus: number;
+  memoryBytes: number;
+  os: string;
+  architecture: string;
+  dockerVersion: string;
+  collectedAt: string;
 }
 
 // ─── Component Props Patterns ───────────────────────────────
