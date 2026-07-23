@@ -4,20 +4,30 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   AlertTriangle,
   BarChart3,
+  BookOpen,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
   Clapperboard,
   Cloud,
+  CloudSun,
   ExternalLink,
   Layers,
   Leaf,
+  LineChart,
   MapPin,
+  MessagesSquare,
+  Mic,
+  Music2,
   RefreshCw,
+  Rocket,
   Search,
   Server,
+  ShoppingCart,
   Sparkles,
+  Ticket,
   TrendingUp,
+  Wrench,
 } from "lucide-react";
 import {
   BadgeComponent,
@@ -51,6 +61,7 @@ interface ApiUsageSummary {
   successRequests: number;
   errorRequests: number;
   errorRate: number;
+  estimatedCost?: number;
   dailySeries: DailySeries[];
 }
 
@@ -103,6 +114,16 @@ const CATEGORY_META: Record<string, CategoryMeta> = {
   Media: { icon: Clapperboard, color: "#ef4444" },
   Productivity: { icon: CalendarDays, color: "#3b82f6" },
   Analytics: { icon: BarChart3, color: "#8b5cf6" },
+  Voice: { icon: Mic, color: "#d946ef" },
+  Commerce: { icon: ShoppingCart, color: "#f97316" },
+  Music: { icon: Music2, color: "#22c55e" },
+  Social: { icon: MessagesSquare, color: "#0ea5e9" },
+  Finance: { icon: LineChart, color: "#84cc16" },
+  Events: { icon: Ticket, color: "#eab308" },
+  Knowledge: { icon: BookOpen, color: "#a855f7" },
+  Weather: { icon: CloudSun, color: "#38bdf8" },
+  Space: { icon: Rocket, color: "#f43f5e" },
+  Utility: { icon: Wrench, color: "#64748b" },
 };
 
 const DEFAULT_CATEGORY_META: CategoryMeta = { icon: Cloud, color: "#14b8a6" };
@@ -115,6 +136,10 @@ function getCategoryMeta(category: string): CategoryMeta {
 
 function formatPercentValue(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatCostValue(value: number): string {
+  return value >= 0.01 ? `$${value.toFixed(2)}` : "<$0.01";
 }
 
 function periodToDays(period: string): number {
@@ -266,6 +291,15 @@ function ApiCard({
             <span className={styles["metric-label"]}>Error Rate</span>
             <span className={styles["metric-value-error"]}>
               {formatPercentValue(apiService.errorRate)}
+            </span>
+          </div>
+        )}
+
+        {apiService.estimatedCost !== undefined && apiService.estimatedCost > 0 && (
+          <div className={styles["metric-block"]}>
+            <span className={styles["metric-label"]}>Est. Cost</span>
+            <span className={styles["metric-value"]}>
+              {formatCostValue(apiService.estimatedCost)}
             </span>
           </div>
         )}
@@ -525,7 +559,7 @@ export default function ExternalApisComponent() {
       title="External APIs"
       subtitle={
         data
-          ? `Third-party API consumption · Google Cloud (${data.projectId})`
+          ? "Third-party API consumption · Google Cloud, LLM providers & tools-service"
           : "Third-party API consumption metrics"
       }
     >
@@ -598,7 +632,7 @@ export default function ExternalApisComponent() {
           <Cloud size={32} strokeWidth={1.5} className={webStyles["empty-icon"]} />
           <span className={webStyles["empty-title"]}>No API usage data</span>
           <span className={webStyles["empty-detail"]}>
-            No Google Cloud API requests were recorded for the selected period.
+            No external API requests were recorded for the selected period.
             Usage data may take a few minutes to appear after API calls are made.
           </span>
         </div>
