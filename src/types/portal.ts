@@ -216,14 +216,6 @@ export interface ContainerHistory {
   mem: number[];
 }
 
-/** Sparkline history including network data (used in detail panel). */
-export interface ContainerDetailHistory {
-  cpu: number[];
-  mem: number[];
-  netRx: number[];
-  netTx: number[];
-}
-
 // ─── System Info ────────────────────────────────────────────
 
 export interface DiskCategory {
@@ -306,14 +298,18 @@ export interface StorageSearchResponse {
 
 // ─── Project Analysis (Topology) ────────────────────────────
 
+/** An internal package import found by code analysis. */
 export interface DetectedImport {
   target: string;
-  type?: string;
+  /** The npm package name the import resolved through. */
+  package?: string;
 }
 
+/** An HTTP call to another service found by code analysis. */
 export interface DetectedApiCall {
   target: string;
-  endpoint?: string;
+  /** The env var holding the target's base URL. */
+  envVar?: string;
 }
 
 export interface ProjectDependencies {
@@ -368,19 +364,6 @@ export interface TopologyEdge {
 export interface NodePosition {
   x: number;
   y: number;
-}
-
-export interface DragState {
-  nodeId: string;
-  offsetX: number;
-  offsetY: number;
-}
-
-export interface ClusterDragState {
-  startX: number;
-  startY: number;
-  memberIds: string[];
-  origPositions: Record<string, NodePosition>;
 }
 
 // ─── Google Analytics ───────────────────────────────────────
@@ -504,33 +487,13 @@ export interface DonutSegment {
   objectCount?: number;
 }
 
-export interface SparklineMetric {
-  key: string;
-  color: string;
-}
-
-// ─── Integrations ───────────────────────────────────────────
-
-export interface Integration {
-  id: string;
-  name: string;
-  description?: string;
-  configured: boolean;
-  category?: string;
-  provider?: string;
-  status?: "active" | "inactive" | "error";
-  services?: string[];
-}
-
 // ─── Device ─────────────────────────────────────────────────
 
 export interface Device {
   id: string;
   name: string;
   hostname?: string;
-  ip?: string;
   os?: string;
-  arch?: string;
   type?: string;
   notes?: string;
   specs?: DeviceSpecs | null;
@@ -547,50 +510,11 @@ export interface DeviceSpecs {
   collectedAt: string;
 }
 
-// ─── Component Props Patterns ───────────────────────────────
-
 // ─── Breadcrumb ─────────────────────────────────────────────
 
 export interface BreadcrumbSegment {
   label: string;
   prefix: string | null;
-}
-
-// ─── Container Metrics (persistent MongoDB time-series) ─────
-
-export interface ContainerMetricsPoint {
-  cpu: number;
-  mem: number;
-  netRx?: number;
-  netTx?: number;
-  timestamp?: string;
-}
-
-export interface ContainerMetricsData {
-  /** Device id the series was recorded on. */
-  device?: string;
-  points: ContainerMetricsPoint[];
-}
-
-// ─── Settings ───────────────────────────────────────────────
-
-export interface PortalSettings {
-  theme?: "light" | "dark" | "system";
-  [key: string]: unknown;
-}
-
-// ─── Library Catalog ────────────────────────────────────────
-
-export interface LibraryExport {
-  name: string;
-  type: "component" | "hook" | "service" | "utility" | string;
-  description?: string;
-  source?: string;
-}
-
-export interface LibraryCatalog {
-  name: string;
-  exports: LibraryExport[];
 }
 
 // ─── Session Analytics (First-Party) ────────────────────────
@@ -654,34 +578,6 @@ export interface SessionRecord {
   updatedAt: string;
 }
 
-/** Paginated sessions response. */
-export interface SessionsListResponse {
-  sessions: SessionRecord[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-/** A single event record. */
-export interface SessionEventRecord {
-  sessionId: string;
-  visitorId: string | null;
-  projectId: string | null;
-  category: string;
-  action: string;
-  label: string | null;
-  value: unknown;
-  timestamp: string;
-}
-
-/** Paginated events feed response. */
-export interface EventsFeedResponse {
-  events: SessionEventRecord[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
 /** Top page entry from sessions-service. */
 export interface SessionPageRow {
   path: string;
@@ -730,20 +626,4 @@ export interface SessionTopEvent {
   category: string;
   action: string;
   count: number;
-}
-
-/** Cross-client visitor entry. */
-export interface CrossClientVisitor {
-  fingerprintId: string;
-  projects: string[];
-  projectCount: number;
-  totalSessions: number;
-  totalDuration: number;
-  firstSeen: string;
-  lastSeen: string;
-  ips: string[];
-  browsers: string[];
-  oses: string[];
-  devices: string[];
-  geo: { countries: string[]; cities: string[] };
 }
