@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import { Box, Database, HardDrive, Layers, Package } from "lucide-react";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import type { StorageSummary } from "../../types/portal";
-import { DonutChart, UsageBar } from "./StorageCharts";
+import { DonutChart } from "../AnalyticsPrimitives";
+import { UsageBar } from "./StorageUsageBar";
 import {
   bucketSegments,
   diskSegments,
@@ -47,7 +48,7 @@ function MinioPanel({ summary }: { summary: StorageSummary }) {
         meta={`${(summary.totalObjects ?? 0).toLocaleString()} objects`}
       />
       <div className={styles["storage-panel-body"]}>
-        <DonutChart segments={segments} />
+        <DonutChart segments={segments} size={130} strokeWidth={16} formatValue={formatBytes} />
         <div className={styles["storage-legend"]}>
           {segments.map((segment) => (
             <UsageBar
@@ -78,7 +79,7 @@ function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
     <div className={styles["storage-panel"]}>
       <PanelHeader icon={Layers} title="Docker Disk Usage" meta={meta} />
       <div className={styles["storage-panel-body"]}>
-        <DonutChart segments={segments} />
+        <DonutChart segments={segments} size={130} strokeWidth={16} formatValue={formatBytes} />
         <div className={styles["storage-legend"]}>
           <UsageBar
             value={disk.images.totalSize}

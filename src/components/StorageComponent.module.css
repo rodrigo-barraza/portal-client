@@ -762,41 +762,6 @@
   min-width: 0;
 }
 
-/* ── Donut Chart ──────────────────────────────────────────────────── */
-
-.donut {
-  flex-shrink: 0;
-}
-
-.donut-segment {
-  animation: donut-grow 600ms ease-out both;
-}
-
-@keyframes donut-grow {
-  from {
-    stroke-dasharray: 0 9999;
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.donut-total {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  fill: var(--text-primary);
-  font-family: var(--font-mono);
-}
-
-.donut-label {
-  font-size: 0.625rem;
-  fill: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 500;
-}
-
 /* ── Usage Bars ───────────────────────────────────────────────────── */
 
 .usage-bar-row {
@@ -1077,7 +1042,8 @@
     gap: 16px;
   }
 
-  .donut {
+  /* the shared DonutChart (AnalyticsPrimitives) */
+  .storage-panel-body > svg {
     align-self: center;
   }
 
