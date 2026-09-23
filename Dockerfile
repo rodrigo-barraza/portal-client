@@ -26,6 +26,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 FROM deps AS builder
 WORKDIR /app
 
+# curl is required by the vault client's fetchSync() (execFileSync("curl"))
+# to resolve secrets at build time. Alpine doesn't include it by default.
+RUN apk add --no-cache curl
+
 # Vault location — needed at build time for next.config.ts to resolve
 # PORTAL_SERVICE_URL, etc. No default: deploy.sh passes it (derived from
 # vault-service/projects.json), and a build without it fails here rather
