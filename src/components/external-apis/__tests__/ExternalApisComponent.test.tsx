@@ -99,7 +99,6 @@ describe("ExternalApisComponent", () => {
   it("expands a card from its header button and shows a failed breakdown as such", async () => {
     api.getExternalApiUsageSummary.mockResolvedValue(summary("30d"));
     api.getExternalApiUsageTimeSeries.mockRejectedValue(new Error("boom"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
 
     render(<ExternalApisComponent />);
     const toggle = await screen.findByRole("button", { name: /Gemini 30d/ });
@@ -107,7 +106,9 @@ describe("ExternalApisComponent", () => {
 
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(api.getExternalApiUsageTimeSeries).toHaveBeenCalledWith("gemini-30d", "30d");
+    expect(api.getExternalApiUsageTimeSeries).toHaveBeenCalledWith("gemini-30d", "30d", {
+      signal: expect.any(AbortSignal),
+    });
     expect(await screen.findByText("Couldn't load the daily breakdown.")).toBeInTheDocument();
   });
 

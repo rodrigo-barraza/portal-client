@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { CircuitBoard, Container, Cpu, HardDrive, MemoryStick, Monitor, RefreshCw, TriangleAlert } from "lucide-react";
 import {
   BadgeComponent,
@@ -16,6 +16,7 @@ import { formatBytes, formatPercent, getErrorMessage } from "@rodrigo-barraza/ut
 import ApiService from "../services/ApiService";
 import { usePortalSettings } from "@/lib/settings";
 import type { Device } from "../types/portal";
+import useAsyncData from "./analytics/useAsyncData";
 import { severityColor, thresholdsFromSettings, type SeverityThresholds } from "./monitoring/severity";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
 import {
@@ -49,32 +50,20 @@ export default function DevicesComponent() {
     [settings],
   );
 
-  const [devicesResult, setDevicesResult] = useState<{ devices: Device[]; error: string | null } | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+  // A failed refresh keeps the devices already on screen (and reports the error)
+  const devicesQuery = useAsyncData<Device[]>(
+    "devices",
+    async (signal) => (await ApiService.getDevices({ signal })).devices ?? [],
+  );
   const [containers, setContainers] = useState<DeviceContainer[]>(NO_CONTAINERS);
-
-  useEffect(() => {
-    let active = true;
-    (ApiService.getDevices() as Promise<{ devices?: Device[] }>)
-      .then((response) => active && setDevicesResult({ devices: response.devices || [], error: null }))
-      .catch(
-        (error: unknown) =>
-          // A failed refresh keeps the devices already on screen
-          active &&
-          setDevicesResult((previous) => ({ devices: previous?.devices ?? [], error: getErrorMessage(error) })),
-      )
-      .finally(() => active && setRefreshing(false));
-    return () => {
-      active = false;
-    };
-  }, [reloadToken]);
 
   // Container stats are supplementary: polled on the Settings → Monitoring
   // interval, only while the tab is visible, never overlapping.
-  const pollContainers = useCallback(async (isCurrent: () => boolean) => {
+  const pollContainers = useCallback(async (isCurrent: () => boolean, signal: AbortSignal) => {
     try {
-      const response = (await ApiService.getContainerStats()) as { containers?: DeviceContainer[] };
+      const response = (await ApiService.getContainerStats(undefined, { signal })) as {
+        containers?: DeviceContainer[];
+      };
       if (isCurrent()) setContainers(response?.containers || NO_CONTAINERS);
     } catch {
       // Keep the last snapshot; the next poll retries
@@ -86,19 +75,20 @@ export default function DevicesComponent() {
   );
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    setReloadToken((token) => token + 1);
+    void devicesQuery.reload();
     void refreshContainers();
   };
+  const refreshing = devicesQuery.reloading;
+  const devicesError = devicesQuery.error ? getErrorMessage(devicesQuery.error) : null;
 
   const containersByDevice = useMemo(() => groupContainersByDevice(containers), [containers]);
-  const devices = devicesResult?.devices;
+  const devices = devicesQuery.data;
   const sortedDevices = useMemo(
     () => sortDevicesByContainerCount(devices ?? [], containersByDevice),
     [devices, containersByDevice],
   );
 
-  const loading = devicesResult === null;
+  const loading = devicesQuery.loading;
   const runningContainers = containers.filter(isRunning).length;
 
   return (
@@ -119,11 +109,11 @@ export default function DevicesComponent() {
 
       {loading ? (
         <LoadingIndicatorComponent size="small" label="Discovering devices…" className="is-loading-centered-state" />
-      ) : devicesResult.error && sortedDevices.length === 0 ? (
+      ) : devicesError && sortedDevices.length === 0 ? (
         <EmptyStateComponent
           icon={<TriangleAlert size={40} strokeWidth={1.5} />}
           title="Couldn't load devices"
-          subtitle={devicesResult.error}
+          subtitle={devicesError}
         >
           <ButtonComponent variant="secondary" icon={RefreshCw} loading={refreshing} onClick={handleRefresh}>
             Retry
@@ -131,9 +121,9 @@ export default function DevicesComponent() {
         </EmptyStateComponent>
       ) : (
         <>
-          {devicesResult.error && (
+          {devicesError && (
             <p className={styles["refresh-error"]} role="alert">
-              <TriangleAlert size={14} /> Refresh failed — showing the previous devices. {devicesResult.error}
+              <TriangleAlert size={14} /> Refresh failed — showing the previous devices. {devicesError}
             </p>
           )}
           <div className={styles["device-list"]}>

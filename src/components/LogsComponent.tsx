@@ -12,6 +12,7 @@ import {
 import { getErrorMessage } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import { usePortalSettings } from "@/lib/settings";
+import useAsyncData from "./analytics/useAsyncData";
 import { containerKey } from "./monitoring/containerHistory";
 import { thresholdsFromSettings } from "./monitoring/severity";
 import { useActionRunner } from "./monitoring/useActionRunner";
@@ -29,6 +30,7 @@ import styles from "./LogsComponent.module.css";
 
 /** Within this many pixels of the bottom counts as "following" the log. */
 const FOLLOW_THRESHOLD_PIXELS = 60;
+const NO_CONTAINERS: LoggableContainer[] = [];
 
 export default function LogsComponent() {
   const { alertThresholdCpu, alertThresholdMemory, containerPollingInterval } =
@@ -39,8 +41,12 @@ export default function LogsComponent() {
   );
   const searchParams = useSearchParams();
 
-  const [containers, setContainers] = useState<LoggableContainer[]>([]);
-  const [listError, setListError] = useState<string | null>(null);
+  const containerList = useAsyncData<LoggableContainer[]>(
+    "loggable-containers",
+    async (signal) => (await ApiService.getLoggableContainers({ signal }))?.containers ?? [],
+  );
+  const containers = containerList.data ?? NO_CONTAINERS;
+  const listError = containerList.error ? getErrorMessage(containerList.error) : null;
   const [autoScroll, setAutoScroll] = useState(true);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -63,18 +69,6 @@ export default function LogsComponent() {
   });
 
   // ── Container list ──────────────────────────────────────────────
-  useEffect(() => {
-    const controller = new AbortController();
-    ApiService.getLoggableContainers({ signal: controller.signal })
-      .then((response) => {
-        if (!controller.signal.aborted) setContainers(response?.containers ?? []);
-      })
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) setListError(getErrorMessage(error));
-      });
-    return () => controller.abort();
-  }, []);
-
   const containerOptions = useMemo(() => buildContainerOptions(containers), [containers]);
   const selectOptions = useMemo(
     () =>

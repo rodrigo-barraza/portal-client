@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -27,6 +27,7 @@ import {
 import { getErrorMessage, isUrl } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
+import useAsyncData from "./analytics/useAsyncData";
 import {
   categoryStatus,
   filterCategories,
@@ -160,41 +161,24 @@ function IntegrationCard({ item }: { item: IntegrationItem }) {
 }
 
 export default function IntegrationsComponent() {
-  const [result, setResult] = useState<{ data: IntegrationsData | null; error: string | null } | null>(
-    null,
+  // A failed refresh keeps the last good list (and reports the error)
+  const integrations = useAsyncData<IntegrationsData>("integrations", (signal) =>
+    ApiService.getIntegrations({ signal }),
   );
-  const [reloadToken, setReloadToken] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [viewMode, setViewMode] = useState<ViewMode>("card");
 
-  useEffect(() => {
-    let active = true;
-    (ApiService.getIntegrations() as Promise<IntegrationsData>)
-      .then((data) => active && setResult({ data, error: null }))
-      .catch(
-        (error: unknown) =>
-          // A failed refresh keeps the last good list
-          active && setResult((previous) => ({ data: previous?.data ?? null, error: getErrorMessage(error) })),
-      )
-      .finally(() => active && setRefreshing(false));
-    return () => {
-      active = false;
-    };
-  }, [reloadToken]);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setReloadToken((token) => token + 1);
-  };
+  const handleRefresh = () => void integrations.reload();
+  const refreshing = integrations.reloading;
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories((previous) => ({ ...previous, [category]: !previous[category] }));
   };
 
-  const loading = result === null;
-  const data = result?.data ?? null;
+  const loading = integrations.loading;
+  const data = integrations.data;
+  const loadError = integrations.error ? getErrorMessage(integrations.error) : null;
   const filteredCategories = useMemo(
     () => filterCategories(data?.categories ?? [], searchQuery),
     [data, searchQuery],
@@ -234,7 +218,7 @@ export default function IntegrationsComponent() {
         <EmptyStateComponent
           icon={<TriangleAlert size={40} strokeWidth={1.5} />}
           title="Couldn't load integrations"
-          subtitle={result.error ?? undefined}
+          subtitle={loadError ?? undefined}
         >
           <ButtonComponent variant="secondary" icon={RefreshCw} loading={refreshing} onClick={handleRefresh}>
             Retry
@@ -242,9 +226,9 @@ export default function IntegrationsComponent() {
         </EmptyStateComponent>
       ) : (
         <>
-          {result.error && (
+          {loadError && (
             <p className={styles["refresh-error"]} role="alert">
-              <TriangleAlert size={14} /> Refresh failed — showing the previous list. {result.error}
+              <TriangleAlert size={14} /> Refresh failed — showing the previous list. {loadError}
             </p>
           )}
 
