@@ -6,17 +6,22 @@
 import type { Device, DockerContainerStats } from "../../types/portal";
 
 /** Whether a /stats/containers entry is running (stopped ones carry zeroed stats). */
-export function isRunning(container: Pick<DockerContainerStats, "state">): boolean {
+export function isRunning(
+  container: Pick<DockerContainerStats, "state">,
+): boolean {
   return container.state === "running";
 }
 
 /** Containers keyed by device id, each list sorted by name. */
-export function groupContainersByDevice(containers: DockerContainerStats[]): Record<string, DockerContainerStats[]> {
+export function groupContainersByDevice(
+  containers: DockerContainerStats[],
+): Record<string, DockerContainerStats[]> {
   const groups: Record<string, DockerContainerStats[]> = {};
   for (const container of containers) {
     (groups[container.device || "unknown"] ??= []).push(container);
   }
-  for (const list of Object.values(groups)) list.sort((first, second) => first.name.localeCompare(second.name));
+  for (const list of Object.values(groups))
+    list.sort((first, second) => first.name.localeCompare(second.name));
   return groups;
 }
 
@@ -27,7 +32,8 @@ export function sortDevicesByContainerCount<D extends Pick<Device, "id">>(
 ): D[] {
   return [...devices].sort(
     (first, second) =>
-      (containersByDevice[second.id]?.length ?? 0) - (containersByDevice[first.id]?.length ?? 0),
+      (containersByDevice[second.id]?.length ?? 0) -
+      (containersByDevice[first.id]?.length ?? 0),
   );
 }
 
@@ -45,6 +51,7 @@ export function deviceStatus(containers: DockerContainerStats[]): {
 } {
   const running = containers.filter(isRunning).length;
   const total = containers.length;
-  const variant = total === 0 ? "inactive" : running === total ? "healthy" : "unhealthy";
+  const variant =
+    total === 0 ? "inactive" : running === total ? "healthy" : "unhealthy";
   return { variant, running, total };
 }

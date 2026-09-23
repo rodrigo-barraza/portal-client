@@ -14,9 +14,9 @@ import { memoryUsage } from "./containerRows";
 import styles from "./ContainerCard.module.css";
 
 const STATUS_CLASS = {
-  healthy: styles['card-healthy'],
-  down: styles['card-unhealthy'],
-  unknown: styles['card-unknown'],
+  healthy: styles["card-healthy"],
+  down: styles["card-unhealthy"],
+  unknown: styles["card-unknown"],
 } as const;
 
 /** One container in the Containers page card view. */
@@ -51,63 +51,74 @@ function ContainerCard({
     // users reach — so the card itself carries no role of its own.
     <div
       role="presentation"
-      className={`${styles['card']} ${STATUS_CLASS[row.statusKind]} ${active ? styles['card-active'] : ""}`}
+      className={`${styles["card"]} ${STATUS_CLASS[row.statusKind]} ${active ? styles["card-active"] : ""}`}
       onClick={() => onSelect(row)}
     >
-      <div className={styles['card-header']}>
-        <div className={styles['card-title-section']}>
+      <div className={styles["card-header"]}>
+        <div className={styles["card-title-section"]}>
           <ContainerStatusIcon statusKind={row.statusKind} />
           {/* Keyboard entry point for the card: its click bubbles to the
               card's own handler, which opens the detail drawer. */}
           <button
             type="button"
-            className={styles['card-name']}
+            className={styles["card-name"]}
             aria-label={`Show details for ${row.containerName}`}
           >
             {row.containerName}
           </button>
         </div>
-        <div className={styles['card-badge-section']}>
+        <div className={styles["card-badge-section"]}>
           {row.statusKind === "unknown" ? (
             <CheckingPill />
           ) : (
             <BadgeComponent type="status" healthy={row.healthy} />
           )}
-          {row.device && <span className={styles['card-device-pill']}>{row.device}</span>}
+          {row.device && (
+            <span className={styles["card-device-pill"]}>{row.device}</span>
+          )}
         </div>
       </div>
 
-      <div className={styles['card-meta']}>
+      <div className={styles["card-meta"]}>
         {row.port && <BadgeComponent type="port" port={row.port} />}
         {row.visibility && (
-          <BadgeComponent type="visibility" visibility={row.visibility} icons={{ Globe, Lock }} />
+          <BadgeComponent
+            type="visibility"
+            visibility={row.visibility}
+            icons={{ Globe, Lock }}
+          />
         )}
-        {row.domain && <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />}
+        {row.domain && (
+          <BadgeComponent type="domain" domain={row.domain} icons={{ Globe }} />
+        )}
       </div>
 
       {row.projectType === "client" && row.healthy && row.domain && (
         <CardSitePreview domain={row.domain} />
       )}
 
-      <div className={styles['card-metrics-grid']}>
-        <div className={styles['card-metric']}>
-          <div className={styles['card-metric-header']}>
-            <Cpu size={12} className={styles['metric-icon-cpu']} />
-            <span className={styles['card-metric-label']}>CPU</span>
-            <span className={styles['card-metric-value']}>
+      <div className={styles["card-metrics-grid"]}>
+        <div className={styles["card-metric"]}>
+          <div className={styles["card-metric-header"]}>
+            <Cpu size={12} className={styles["metric-icon-cpu"]} />
+            <span className={styles["card-metric-label"]}>CPU</span>
+            <span className={styles["card-metric-value"]}>
               {cpuPercent != null ? formatPercent(cpuPercent, "adaptive") : "—"}
             </span>
           </div>
           {cpuPercent != null && (
-            <UsageBar percent={cpuPercent} color={severityColor(cpuPercent, thresholds.cpu)} />
+            <UsageBar
+              percent={cpuPercent}
+              color={severityColor(cpuPercent, thresholds.cpu)}
+            />
           )}
         </div>
 
-        <div className={styles['card-metric']}>
-          <div className={styles['card-metric-header']}>
-            <MemoryStick size={12} className={styles['metric-icon-ram']} />
-            <span className={styles['card-metric-label']}>RAM</span>
-            <span className={styles['card-metric-value']}>
+        <div className={styles["card-metric"]}>
+          <div className={styles["card-metric-header"]}>
+            <MemoryStick size={12} className={styles["metric-icon-ram"]} />
+            <span className={styles["card-metric-label"]}>RAM</span>
+            <span className={styles["card-metric-value"]}>
               {memory ? formatBytes(memory.used) : "—"}
             </span>
           </div>
@@ -120,12 +131,12 @@ function ContainerCard({
         </div>
       </div>
 
-      <div className={styles['card-footer']}>
-        <div className={styles['card-uptime']}>
+      <div className={styles["card-footer"]}>
+        <div className={styles["card-uptime"]}>
           {uptime ? (
             <>
-              <span className={styles['uptime-label']}>Uptime:</span>
-              <span className={styles['uptime-value']}>{uptime}</span>
+              <span className={styles["uptime-label"]}>Uptime:</span>
+              <span className={styles["uptime-value"]}>{uptime}</span>
             </>
           ) : (
             "—"

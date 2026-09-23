@@ -19,7 +19,10 @@ import {
   SearchInputComponent,
   SegmentedControlComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, getErrorMessage } from "@rodrigo-barraza/utilities-library";
+import {
+  formatBytes,
+  getErrorMessage,
+} from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import type { StorageObject, StorageSearchResult } from "../types/portal";
@@ -28,7 +31,11 @@ import { GlobalSearchResults } from "./storage/GlobalSearchResults";
 import { DeleteObjectDialog, PreviewModal } from "./storage/ObjectDialogs";
 import { ObjectGridView, ObjectTableView } from "./storage/ObjectViews";
 import { StorageOverview } from "./storage/StorageOverview";
-import { buildBreadcrumbs, filterListing, splitObjectKey } from "./storage/storageFiles";
+import {
+  buildBreadcrumbs,
+  filterListing,
+  splitObjectKey,
+} from "./storage/storageFiles";
 import {
   useBucketStream,
   useGlobalSearch,
@@ -61,9 +68,14 @@ export default function StorageComponent() {
   const [bucketViewMode, setBucketViewMode] = useState<BucketViewMode>("cards");
   const [objectViewMode, setObjectViewMode] = useState<ObjectViewMode>("table");
   const [filter, setFilter] = useState("");
-  const [previewObject, setPreviewObject] = useState<StorageObject | null>(null);
+  const [previewObject, setPreviewObject] = useState<StorageObject | null>(
+    null,
+  );
   const [deleteTarget, setDeleteTarget] = useState<StorageObject | null>(null);
-  const [deleteState, setDeleteState] = useState<{ pending: boolean; error: string | null }>({
+  const [deleteState, setDeleteState] = useState<{
+    pending: boolean;
+    error: string | null;
+  }>({
     pending: false,
     error: null,
   });
@@ -72,15 +84,27 @@ export default function StorageComponent() {
   const overview = useStorageOverview();
   const listing = useObjectListing(location);
   const search = useGlobalSearch();
-  const previewStat = useObjectStat(location?.bucket ?? null, previewObject?.name ?? null);
+  const previewStat = useObjectStat(
+    location?.bucket ?? null,
+    previewObject?.name ?? null,
+  );
 
-  const bucketTotals = useMemo(() => summarizeBuckets(bucketStream.buckets), [bucketStream.buckets]);
+  const bucketTotals = useMemo(
+    () => summarizeBuckets(bucketStream.buckets),
+    [bucketStream.buckets],
+  );
   const listingBytes = useMemo(
     () => listing.objects.reduce((sum, object) => sum + (object.size || 0), 0),
     [listing.objects],
   );
   const visible = useMemo(
-    () => filterListing(listing.objects, listing.prefixes, filter, location?.prefix ?? ""),
+    () =>
+      filterListing(
+        listing.objects,
+        listing.prefixes,
+        filter,
+        location?.prefix ?? "",
+      ),
     [listing.objects, listing.prefixes, filter, location?.prefix],
   );
   const breadcrumbs = useMemo(
@@ -100,14 +124,19 @@ export default function StorageComponent() {
   );
 
   const openFolder = useCallback((folderPrefix: string) => {
-    setLocation((current) => (current ? { ...current, prefix: folderPrefix } : current));
+    setLocation((current) =>
+      current ? { ...current, prefix: folderPrefix } : current,
+    );
     setFilter("");
   }, []);
 
   const clearSearch = search.setQuery;
   const openSearchResult = useCallback(
     (result: StorageSearchResult) => {
-      navigate({ bucket: result.bucket, prefix: splitObjectKey(result.name).folderPath });
+      navigate({
+        bucket: result.bucket,
+        prefix: splitObjectKey(result.name).folderPath,
+      });
       clearSearch("");
     },
     [navigate, clearSearch],
@@ -171,8 +200,17 @@ export default function StorageComponent() {
 
   return (
     <div className={styles["storage"]}>
-      <PageHeaderComponent sticky={false} title="Object Store" subtitle={subtitle}>
-        <ButtonComponent variant="secondary" icon={RefreshCw} loading={isRefreshing} onClick={handleRefresh}>
+      <PageHeaderComponent
+        sticky={false}
+        title="Object Store"
+        subtitle={subtitle}
+      >
+        <ButtonComponent
+          variant="secondary"
+          icon={RefreshCw}
+          loading={isRefreshing}
+          onClick={handleRefresh}
+        >
           Refresh
         </ButtonComponent>
       </PageHeaderComponent>
@@ -187,7 +225,10 @@ export default function StorageComponent() {
                 className="is-loading-centered-state"
               />
             ) : (
-              <StorageOverview summary={overview.summary} dockerHosts={overview.dockerHosts} />
+              <StorageOverview
+                summary={overview.summary}
+                dockerHosts={overview.dockerHosts}
+              />
             )}
           </div>
 
@@ -215,7 +256,9 @@ export default function StorageComponent() {
               <div className={styles["bucket-view-bar"]}>
                 <SegmentedControlComponent
                   value={bucketViewMode}
-                  onChange={(value: string) => setBucketViewMode(value as BucketViewMode)}
+                  onChange={(value: string) =>
+                    setBucketViewMode(value as BucketViewMode)
+                  }
                   segments={BUCKET_VIEW_SEGMENTS}
                   compact
                 />
@@ -228,7 +271,11 @@ export default function StorageComponent() {
                     title="Couldn't list buckets"
                     subtitle={bucketStream.error}
                   >
-                    <ButtonComponent variant="secondary" icon={RefreshCw} onClick={handleRefresh}>
+                    <ButtonComponent
+                      variant="secondary"
+                      icon={RefreshCw}
+                      onClick={handleRefresh}
+                    >
                       Retry
                     </ButtonComponent>
                   </EmptyStateComponent>
@@ -242,7 +289,8 @@ export default function StorageComponent() {
                 <>
                   {bucketStream.error && (
                     <p className={styles["inline-error"]} role="alert">
-                      <AlertTriangle size={14} /> Bucket stats incomplete — {bucketStream.error}
+                      <AlertTriangle size={14} /> Bucket stats incomplete —{" "}
+                      {bucketStream.error}
                     </p>
                   )}
                   {bucketViewMode === "table" ? (
@@ -275,8 +323,16 @@ export default function StorageComponent() {
                 const isLast = index === breadcrumbs.length - 1;
                 const Icon = BREADCRUMB_ICONS[index] ?? Folder;
                 return (
-                  <span key={segment.prefix ?? "buckets"} className={styles["breadcrumb-segment"]}>
-                    {index > 0 && <ChevronRight size={12} className={styles["breadcrumb-sep"]} />}
+                  <span
+                    key={segment.prefix ?? "buckets"}
+                    className={styles["breadcrumb-segment"]}
+                  >
+                    {index > 0 && (
+                      <ChevronRight
+                        size={12}
+                        className={styles["breadcrumb-sep"]}
+                      />
+                    )}
                     <button
                       type="button"
                       className={`${styles["breadcrumb-item"]}${isLast ? ` ${styles["is-active-state"]}` : ""}`}
@@ -284,7 +340,10 @@ export default function StorageComponent() {
                       onClick={() =>
                         segment.prefix === null
                           ? navigate(null)
-                          : navigate({ bucket: location.bucket, prefix: segment.prefix })
+                          : navigate({
+                              bucket: location.bucket,
+                              prefix: segment.prefix,
+                            })
                       }
                     >
                       <Icon size={13} />
@@ -298,7 +357,9 @@ export default function StorageComponent() {
             <div className={styles["view-toggle"]}>
               <SegmentedControlComponent
                 value={objectViewMode}
-                onChange={(value: string) => setObjectViewMode(value as ObjectViewMode)}
+                onChange={(value: string) =>
+                  setObjectViewMode(value as ObjectViewMode)
+                }
                 segments={OBJECT_VIEW_SEGMENTS}
                 compact
               />
@@ -317,7 +378,11 @@ export default function StorageComponent() {
               title="Couldn't list this folder"
               subtitle={listing.error}
             >
-              <ButtonComponent variant="secondary" icon={RefreshCw} onClick={listing.reload}>
+              <ButtonComponent
+                variant="secondary"
+                icon={RefreshCw}
+                onClick={listing.reload}
+              >
                 Retry
               </ButtonComponent>
             </EmptyStateComponent>

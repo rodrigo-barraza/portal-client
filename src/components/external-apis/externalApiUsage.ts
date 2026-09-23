@@ -9,7 +9,6 @@ import type {
   ExternalApiUsage,
 } from "../../types/portal";
 
-
 export const PERIOD_OPTIONS = [
   { value: "7d", label: "7d" },
   { value: "14d", label: "14d" },
@@ -48,22 +47,31 @@ export function fillDailyValues<Point extends { date: string }>(
   dates: string[],
 ): number[] {
   const byDate = new Map<string, number>();
-  for (const point of points) byDate.set(point.date, (byDate.get(point.date) ?? 0) + extract(point));
+  for (const point of points)
+    byDate.set(point.date, (byDate.get(point.date) ?? 0) + extract(point));
   return dates.map((date) => byDate.get(date) ?? 0);
 }
 
 /** Total daily requests across every API. */
-export function combineDailySeries(services: ExternalApiUsage[], dates: string[]): ExternalApiDailyCount[] {
+export function combineDailySeries(
+  services: ExternalApiUsage[],
+  dates: string[],
+): ExternalApiDailyCount[] {
   const allPoints = services.flatMap((service) => service.dailySeries);
   const totals = fillDailyValues(allPoints, (point) => point.requests, dates);
   return dates.map((date, index) => ({ date, requests: totals[index] }));
 }
 
 /** Requests per category, largest first. */
-export function categoryTotals(services: ExternalApiUsage[]): { category: string; value: number }[] {
+export function categoryTotals(
+  services: ExternalApiUsage[],
+): { category: string; value: number }[] {
   const totals = new Map<string, number>();
   for (const service of services) {
-    totals.set(service.category, (totals.get(service.category) ?? 0) + service.totalRequests);
+    totals.set(
+      service.category,
+      (totals.get(service.category) ?? 0) + service.totalRequests,
+    );
   }
   return [...totals]
     .sort((first, second) => second[1] - first[1])
@@ -90,6 +98,10 @@ export function formatCostValue(value: number): string {
 }
 
 /** Share of successful requests (0–100); an API with no traffic reads as fully successful. */
-export function successPercent(service: Pick<ExternalApiUsage, "totalRequests" | "successRequests">): number {
-  return service.totalRequests > 0 ? (service.successRequests / service.totalRequests) * 100 : 100;
+export function successPercent(
+  service: Pick<ExternalApiUsage, "totalRequests" | "successRequests">,
+): number {
+  return service.totalRequests > 0
+    ? (service.successRequests / service.totalRequests) * 100
+    : 100;
 }

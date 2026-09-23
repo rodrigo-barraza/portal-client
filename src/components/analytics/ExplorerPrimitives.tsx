@@ -44,7 +44,9 @@ export function MetaCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={`${styles["meta-card"]} ${highlight ? styles["meta-card-highlight"] : ""}`}>
+    <div
+      className={`${styles["meta-card"]} ${highlight ? styles["meta-card-highlight"] : ""}`}
+    >
       <span className={styles["meta-label"]}>{label}</span>
       {children}
     </div>
@@ -81,7 +83,11 @@ export function LinkedSection({
 
 export function ExplorerLoading({ label }: { label: string }) {
   return (
-    <LoadingIndicatorComponent size="small" label={label} className="is-loading-centered-state" />
+    <LoadingIndicatorComponent
+      size="small"
+      label={label}
+      className="is-loading-centered-state"
+    />
   );
 }
 

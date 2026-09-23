@@ -7,7 +7,9 @@ describe("stripAnsi", () => {
   it("removes colour codes and other control sequences", () => {
     expect(stripAnsi(`${ESC}[32mready${ESC}[0m`)).toBe("ready");
     expect(stripAnsi(`${ESC}[2K${ESC}[1Gprogress 50%`)).toBe("progress 50%");
-    expect(stripAnsi(`${ESC}]8;;https://rod.dev${ESC}\\link${ESC}]8;;${ESC}\\`)).toBe("link");
+    expect(
+      stripAnsi(`${ESC}]8;;https://rod.dev${ESC}\\link${ESC}]8;;${ESC}\\`),
+    ).toBe("link");
     expect(stripAnsi("plain")).toBe("plain");
   });
 });

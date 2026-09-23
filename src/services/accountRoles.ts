@@ -34,7 +34,9 @@ export async function fetchAccountRoles(
 
     const userProfile = (await response.json()) as { roles?: unknown };
     return Array.isArray(userProfile?.roles)
-      ? userProfile.roles.filter((role): role is string => typeof role === "string")
+      ? userProfile.roles.filter(
+          (role): role is string => typeof role === "string",
+        )
       : [];
   } catch {
     return [];

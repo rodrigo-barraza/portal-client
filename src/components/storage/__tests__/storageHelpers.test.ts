@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { FileArchive, FileHeadphone, FileImage, FilePlay, File } from "lucide-react";
+import {
+  FileArchive,
+  FileHeadphone,
+  FileImage,
+  FilePlay,
+  File,
+} from "lucide-react";
 import {
   buildBreadcrumbs,
   displayName,
@@ -59,12 +65,20 @@ describe("keys and prefixes", () => {
   });
 
   it("splits keys into file name and folder path", () => {
-    expect(splitObjectKey("a/b/c.png")).toEqual({ fileName: "c.png", folderPath: "a/b/" });
-    expect(splitObjectKey("root.txt")).toEqual({ fileName: "root.txt", folderPath: "" });
+    expect(splitObjectKey("a/b/c.png")).toEqual({
+      fileName: "c.png",
+      folderPath: "a/b/",
+    });
+    expect(splitObjectKey("root.txt")).toEqual({
+      fileName: "root.txt",
+      folderPath: "",
+    });
   });
 
   it("builds breadcrumbs down to the current folder", () => {
-    expect(buildBreadcrumbs(null, "")).toEqual([{ label: "Buckets", prefix: null }]);
+    expect(buildBreadcrumbs(null, "")).toEqual([
+      { label: "Buckets", prefix: null },
+    ]);
     expect(buildBreadcrumbs("media", "a/b/")).toEqual([
       { label: "Buckets", prefix: null },
       { label: "media", prefix: "" },
@@ -78,8 +92,15 @@ describe("keys and prefixes", () => {
       storageObject({ name: "a/Report.pdf", size: 1 }),
       storageObject({ name: "a/photo.png", size: 2 }),
     ];
-    const filtered = filterListing(objects, ["a/reports/", "a/misc/"], " REPORT ", "a/");
-    expect(filtered.objects.map((object) => object.name)).toEqual(["a/Report.pdf"]);
+    const filtered = filterListing(
+      objects,
+      ["a/reports/", "a/misc/"],
+      " REPORT ",
+      "a/",
+    );
+    expect(filtered.objects.map((object) => object.name)).toEqual([
+      "a/Report.pdf",
+    ]);
     expect(filtered.prefixes).toEqual(["a/reports/"]);
     // Matching is on the relative name, not the shared prefix
     expect(filterListing(objects, [], "a/", "a/").objects).toEqual([]);
@@ -92,7 +113,12 @@ describe("keys and prefixes", () => {
       { bucket: "a", ...storageObject({ name: "2", size: 1 }) },
       { bucket: "b", ...storageObject({ name: "3", size: 1 }) },
     ]);
-    expect(groups.map((group) => [group.bucket, group.results.map((result) => result.name)])).toEqual([
+    expect(
+      groups.map((group) => [
+        group.bucket,
+        group.results.map((result) => result.name),
+      ]),
+    ).toEqual([
       ["b", ["1", "3"]],
       ["a", ["2"]],
     ]);
@@ -141,7 +167,10 @@ describe("overview shaping", () => {
       storageBucket({ name: "big", objectCount: 5, totalSize: 99 }),
       storageBucket({ name: "pending", objectCount: null, totalSize: null }),
     ];
-    expect(bucketSegments(buckets).map((segment) => segment.label)).toEqual(["big", "small"]);
+    expect(bucketSegments(buckets).map((segment) => segment.label)).toEqual([
+      "big",
+      "small",
+    ]);
     expect(summarizeBuckets(buckets)).toEqual({ objects: 6, bytes: 109 });
   });
 

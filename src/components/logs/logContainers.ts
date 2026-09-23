@@ -1,7 +1,6 @@
 import type { LoggableContainer } from "@/types/portal";
 import { containerKey } from "../monitoring/containerHistory";
 
-
 export interface LoggableContainerOption {
   value: string;
   label: string;
@@ -12,9 +11,12 @@ export interface LoggableContainerOption {
  * Selector options: grouped by host, running containers first, then by
  * name. A name that exists on several hosts is labelled with its host.
  */
-export function buildContainerOptions(containers: LoggableContainer[]): LoggableContainerOption[] {
+export function buildContainerOptions(
+  containers: LoggableContainer[],
+): LoggableContainerOption[] {
   const sorted = [...containers].sort((first, second) => {
-    if (first.device !== second.device) return first.device.localeCompare(second.device);
+    if (first.device !== second.device)
+      return first.device.localeCompare(second.device);
     const firstRunning = first.state === "running";
     const secondRunning = second.state === "running";
     if (firstRunning !== secondRunning) return firstRunning ? -1 : 1;
@@ -51,5 +53,7 @@ export function findLinkedContainer(
     const onDevice = named.find((container) => container.device === device);
     if (onDevice) return onDevice;
   }
-  return named.find((container) => container.state === "running") ?? named[0] ?? null;
+  return (
+    named.find((container) => container.state === "running") ?? named[0] ?? null
+  );
 }

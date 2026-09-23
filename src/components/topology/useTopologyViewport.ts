@@ -2,13 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { NodePosition } from "../../types/portal";
-import { fitViewport, zoomAtPoint, type Rect, type Viewport } from "./topologyLayout";
+import {
+  fitViewport,
+  zoomAtPoint,
+  type Rect,
+  type Viewport,
+} from "./topologyLayout";
 
 type Interaction =
   | { kind: "idle" }
   | { kind: "pan"; startX: number; startY: number; startPan: NodePosition }
   | { kind: "node"; nodeId: string; offsetX: number; offsetY: number }
-  | { kind: "cluster"; startX: number; startY: number; origins: Record<string, NodePosition> };
+  | {
+      kind: "cluster";
+      startX: number;
+      startY: number;
+      origins: Record<string, NodePosition>;
+    };
 
 const IDLE: Interaction = { kind: "idle" };
 const WHEEL_ZOOM_IN = 1.1;
@@ -26,11 +36,18 @@ const BUTTON_ZOOM_OUT = 0.8;
  * only after the first load), and every frame is cancelled on unmount.
  */
 export function useTopologyViewport() {
-  const [viewport, setViewport] = useState<Viewport>({ pan: { x: 0, y: 0 }, zoom: 1 });
-  const [positionOverrides, setPositionOverrides] = useState<Record<string, NodePosition>>({});
+  const [viewport, setViewport] = useState<Viewport>({
+    pan: { x: 0, y: 0 },
+    zoom: 1,
+  });
+  const [positionOverrides, setPositionOverrides] = useState<
+    Record<string, NodePosition>
+  >({});
   const [isPanning, setIsPanning] = useState(false);
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
-  const [canvasElement, setCanvasElement] = useState<HTMLDivElement | null>(null);
+  const [canvasElement, setCanvasElement] = useState<HTMLDivElement | null>(
+    null,
+  );
 
   const viewportRef = useRef(viewport);
   const interactionRef = useRef<Interaction>(IDLE);
@@ -49,12 +66,18 @@ export function useTopologyViewport() {
   }, []);
 
   /** Client (screen) coordinates → graph coordinates. */
-  const toGraphPoint = useCallback((clientX: number, clientY: number): NodePosition => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    const { pan, zoom } = viewportRef.current;
-    if (!rect) return { x: clientX, y: clientY };
-    return { x: (clientX - rect.left - pan.x) / zoom, y: (clientY - rect.top - pan.y) / zoom };
-  }, []);
+  const toGraphPoint = useCallback(
+    (clientX: number, clientY: number): NodePosition => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      const { pan, zoom } = viewportRef.current;
+      if (!rect) return { x: clientX, y: clientY };
+      return {
+        x: (clientX - rect.left - pan.x) / zoom,
+        y: (clientY - rect.top - pan.y) / zoom,
+      };
+    },
+    [],
+  );
 
   const applyPointer = useCallback(() => {
     frameRef.current = null;
@@ -76,7 +99,10 @@ export function useTopologyViewport() {
         const point = toGraphPoint(pointer.clientX, pointer.clientY);
         setPositionOverrides((previous) => ({
           ...previous,
-          [interaction.nodeId]: { x: point.x - interaction.offsetX, y: point.y - interaction.offsetY },
+          [interaction.nodeId]: {
+            x: point.x - interaction.offsetX,
+            y: point.y - interaction.offsetY,
+          },
         }));
         break;
       }
@@ -114,7 +140,8 @@ export function useTopologyViewport() {
     const handleMouseMove = (event: MouseEvent) => {
       if (interactionRef.current.kind === "idle") return;
       pointerRef.current = { clientX: event.clientX, clientY: event.clientY };
-      if (frameRef.current === null) frameRef.current = requestAnimationFrame(applyPointer);
+      if (frameRef.current === null)
+        frameRef.current = requestAnimationFrame(applyPointer);
     };
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", endInteraction);
@@ -173,7 +200,12 @@ export function useTopologyViewport() {
   const beginClusterDrag = useCallback(
     (event: React.MouseEvent, origins: Record<string, NodePosition>) => {
       const point = toGraphPoint(event.clientX, event.clientY);
-      interactionRef.current = { kind: "cluster", startX: point.x, startY: point.y, origins };
+      interactionRef.current = {
+        kind: "cluster",
+        startX: point.x,
+        startY: point.y,
+        origins,
+      };
     },
     [toGraphPoint],
   );

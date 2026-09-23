@@ -23,7 +23,11 @@ const ISO_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 export function parseIsoDay(day: string | null | undefined): number | null {
   const match = day ? ISO_DAY_PATTERN.exec(day) : null;
   if (!match) return null;
-  const time = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const time = Date.UTC(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+  );
   // Reject rollovers like 2026-02-31 → 2026-03-03
   return formatIsoDay(time) === day ? time : null;
 }
@@ -55,9 +59,16 @@ export function presetDays(period: string): number | null {
 }
 
 /** The {from, to} of a custom "YYYY-MM-DD_YYYY-MM-DD" period, else null. */
-export function parseCustomPeriod(period: string): { from: string; to: string } | null {
+export function parseCustomPeriod(
+  period: string,
+): { from: string; to: string } | null {
   const match = CUSTOM_PATTERN.exec(period);
-  if (!match || parseIsoDay(match[1]) === null || parseIsoDay(match[2]) === null) return null;
+  if (
+    !match ||
+    parseIsoDay(match[1]) === null ||
+    parseIsoDay(match[2]) === null
+  )
+    return null;
   return { from: match[1], to: match[2] };
 }
 
@@ -90,7 +101,10 @@ export interface DayWindow {
  * a rolling N×24h ending now, bucketed by UTC day (`$dateToString` on UTC
  * dates) — so the first and last buckets are partial days.
  */
-export function sessionsSeriesWindow(period: string, now: number = Date.now()): DayWindow | null {
+export function sessionsSeriesWindow(
+  period: string,
+  now: number = Date.now(),
+): DayWindow | null {
   const days = presetDays(period);
   if (days === null) return null;
   return { start: formatIsoDay(now - days * DAY_MS), end: formatIsoDay(now) };
@@ -181,7 +195,9 @@ export function describeSeries(
         peakDate = typeof point.date === "string" ? point.date : null;
       }
     }
-    const peakText = peakDate ? `, peak ${formatExact(peak)} on ${peakDate}` : "";
+    const peakText = peakDate
+      ? `, peak ${formatExact(peak)} on ${peakDate}`
+      : "";
     return `${metric.label}: ${formatExact(total)} total${peakText}.`;
   });
 
@@ -219,7 +235,8 @@ export function buildHourlyGrid(
   for (const cell of cells) {
     const dayIndex = WEEKDAYS.indexOf(cell.day as (typeof WEEKDAYS)[number]);
     const hour = Number(cell.hour);
-    if (dayIndex < 0 || !Number.isInteger(hour) || hour < 0 || hour > 23) continue;
+    if (dayIndex < 0 || !Number.isInteger(hour) || hour < 0 || hour > 23)
+      continue;
     values[dayIndex][hour] += Number(cell.users) || 0;
   }
 
@@ -274,7 +291,8 @@ export function newVsReturningSegments(
       label: known?.label ?? segment.segment,
       value: segment.users,
       // Skip the two palette entries reserved for new/returning
-      color: known?.color ?? CHART_COLORS[(2 + otherIndex++) % CHART_COLORS.length],
+      color:
+        known?.color ?? CHART_COLORS[(2 + otherIndex++) % CHART_COLORS.length],
     };
   });
 }
@@ -311,6 +329,7 @@ export function gaOverviewDelta(
   overview: GAOverviewWithPrevious,
   metric: GADeltaMetric,
 ): number | null {
-  if (overview.previous) return percentChange(overview[metric], overview.previous[metric]);
+  if (overview.previous)
+    return percentChange(overview[metric], overview.previous[metric]);
   return overview.deltas?.[metric] ?? null;
 }

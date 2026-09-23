@@ -67,7 +67,11 @@ describe("sanitizeSettings", () => {
         alertThresholdCpu: 55,
         legacyAccentColor: "#fff",
       }),
-    ).toEqual({ defaultView: "card", defaultPage: "/logs", alertThresholdCpu: 55 });
+    ).toEqual({
+      defaultView: "card",
+      defaultPage: "/logs",
+      alertThresholdCpu: 55,
+    });
   });
 
   it("drops non-finite numbers and clamps the rest", () => {

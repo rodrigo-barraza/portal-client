@@ -76,7 +76,10 @@ export function useLogStream() {
           if (line.sortKey <= floor) return; // replayed after a reconnect
           replayFloorRef.current = null;
         }
-        if (!newestSortKeyRef.current || line.sortKey > newestSortKeyRef.current) {
+        if (
+          !newestSortKeyRef.current ||
+          line.sortKey > newestSortKeyRef.current
+        ) {
           newestSortKeyRef.current = line.sortKey;
         }
       }
@@ -88,7 +91,8 @@ export function useLogStream() {
         return;
       }
       pendingRef.current.push(line);
-      if (frameRef.current === null) frameRef.current = requestAnimationFrame(flush);
+      if (frameRef.current === null)
+        frameRef.current = requestAnimationFrame(flush);
     },
     [flush],
   );
@@ -142,14 +146,16 @@ export function useLogStream() {
           // Plain-text error payload
         }
         eventSource.close();
-        if (eventSourceRef.current === eventSource) eventSourceRef.current = null;
+        if (eventSourceRef.current === eventSource)
+          eventSourceRef.current = null;
         setError(message);
         setConnected(false);
       });
 
       eventSource.addEventListener("end", () => {
         eventSource.close();
-        if (eventSourceRef.current === eventSource) eventSourceRef.current = null;
+        if (eventSourceRef.current === eventSource)
+          eventSourceRef.current = null;
         setConnected(false);
         setEnded(true);
       });
@@ -191,7 +197,8 @@ export function useLogStream() {
     pendingRef.current = [];
     pauseBufferRef.current = [];
     setBufferedCount(0);
-    if (buffered.length > 0) setLines((previous) => appendCapped(previous, buffered));
+    if (buffered.length > 0)
+      setLines((previous) => appendCapped(previous, buffered));
   }, [cancelFrame]);
 
   const clear = useCallback(() => {

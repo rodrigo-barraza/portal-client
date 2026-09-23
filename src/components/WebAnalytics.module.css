@@ -629,7 +629,7 @@
   &:hover {
     border-color: var(--calculated-border-subtle);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px oklch(0.0% 0.0 0.0 / 0.06);
+    box-shadow: 0 4px 12px oklch(0% 0 0 / 0.06);
 
     &::before {
       opacity: 1;
@@ -741,7 +741,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  box-shadow: inset 0 0 12px 2px oklch(0.0% 0.0 0.0 / 0.25);
+  box-shadow: inset 0 0 12px 2px oklch(0% 0 0 / 0.25);
   border-radius: 6px;
 }
 

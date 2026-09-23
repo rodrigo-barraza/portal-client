@@ -47,7 +47,7 @@
 
   &:hover {
     border-color: var(--calculated-border-subtle);
-    box-shadow: 0 2px 8px oklch(0.0% 0.0 0.0 / 0.04);
+    box-shadow: 0 2px 8px oklch(0% 0 0 / 0.04);
   }
 }
 

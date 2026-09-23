@@ -50,13 +50,21 @@ function destroyPlayer(player: ReplayPlayer | null) {
   }
 }
 
-export default function SessionReplayComponent({ sessionId }: { sessionId: string }) {
+export default function SessionReplayComponent({
+  sessionId,
+}: {
+  sessionId: string;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<{ sessionId: string; state: ReplayStatus } | null>(null);
+  const [status, setStatus] = useState<{
+    sessionId: string;
+    state: ReplayStatus;
+  } | null>(null);
   const [eventCount, setEventCount] = useState(0);
 
   // Derived, so a new sessionId reads as loading in the same render
-  const replayStatus: ReplayStatus = status?.sessionId === sessionId ? status.state : "loading";
+  const replayStatus: ReplayStatus =
+    status?.sessionId === sessionId ? status.state : "loading";
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +78,9 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
     (async () => {
       try {
         const { events } = unwrapData(
-          await ApiService.getSessionReplay(sessionId, { signal: controller.signal }),
+          await ApiService.getSessionReplay(sessionId, {
+            signal: controller.signal,
+          }),
         );
         if (cancelled) return;
 
@@ -87,7 +97,9 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
           target,
           props: {
             // Recorded by @rrweb/record; the service stores them verbatim
-            events: events as ConstructorParameters<typeof RrwebPlayer>[0]["props"]["events"],
+            events: events as ConstructorParameters<
+              typeof RrwebPlayer
+            >[0]["props"]["events"],
             width: target.clientWidth || FALLBACK_PLAYER_WIDTH,
             autoPlay: false,
             showController: true,
@@ -115,7 +127,9 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
         <Film size={14} strokeWidth={2.2} aria-hidden />
         <span>Session Replay</span>
         {replayStatus === "ready" && (
-          <span className={styles["replay-count"]}>{formatCount(eventCount, "event")}</span>
+          <span className={styles["replay-count"]}>
+            {formatCount(eventCount, "event")}
+          </span>
         )}
       </div>
 
@@ -123,7 +137,9 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
         <LoadingIndicatorComponent size="small" label="Loading recording…" />
       )}
       {replayStatus === "empty" && (
-        <div className={styles["replay-message"]}>No recording was captured for this session.</div>
+        <div className={styles["replay-message"]}>
+          No recording was captured for this session.
+        </div>
       )}
       {replayStatus === "error" && (
         <div className={styles["replay-message"]} role="alert">

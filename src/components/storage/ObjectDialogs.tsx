@@ -1,7 +1,11 @@
 "use client";
 
 import { Download, File, Trash } from "lucide-react";
-import { ButtonComponent, DialogComponent, ModalComponent } from "@rodrigo-barraza/components-library";
+import {
+  ButtonComponent,
+  DialogComponent,
+  ModalComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../../services/ApiService";
 import type { StorageObject, StorageObjectStat } from "../../types/portal";
@@ -21,7 +25,9 @@ export function PreviewModal({
   onClose: () => void;
 }) {
   const mediaType = getMediaType(object.name);
-  const inlineUrl = ApiService.buildStorageDownloadUrl(bucket, object.name, { inline: true });
+  const inlineUrl = ApiService.buildStorageDownloadUrl(bucket, object.name, {
+    inline: true,
+  });
   const { fileName } = splitObjectKey(object.name);
   const lastModified = stat?.lastModified || object.lastModified;
 
@@ -41,10 +47,24 @@ export function PreviewModal({
       }
     >
       <div className={styles["preview-body"]}>
-        {mediaType === "image" && <img className={styles["preview-image"]} src={inlineUrl} alt={fileName} />}
-        {mediaType === "audio" && <audio className={styles["preview-audio"]} controls src={inlineUrl} />}
+        {mediaType === "image" && (
+          <img
+            className={styles["preview-image"]}
+            src={inlineUrl}
+            alt={fileName}
+          />
+        )}
+        {mediaType === "audio" && (
+          <audio className={styles["preview-audio"]} controls src={inlineUrl} />
+        )}
         {mediaType === "video" && (
-          <video className={styles["preview-video"]} controls playsInline preload="metadata" src={inlineUrl} />
+          <video
+            className={styles["preview-video"]}
+            controls
+            playsInline
+            preload="metadata"
+            src={inlineUrl}
+          />
         )}
         {!mediaType && (
           <div className={styles["preview-fallback"]}>
@@ -57,11 +77,15 @@ export function PreviewModal({
           <dt className={styles["preview-meta-label"]}>Key</dt>
           <dd className={styles["preview-meta-value"]}>{object.name}</dd>
           <dt className={styles["preview-meta-label"]}>Size</dt>
-          <dd className={styles["preview-meta-value"]}>{formatBytes(stat?.size ?? object.size)}</dd>
+          <dd className={styles["preview-meta-value"]}>
+            {formatBytes(stat?.size ?? object.size)}
+          </dd>
           {stat?.contentType && (
             <>
               <dt className={styles["preview-meta-label"]}>Type</dt>
-              <dd className={styles["preview-meta-value"]}>{stat.contentType}</dd>
+              <dd className={styles["preview-meta-value"]}>
+                {stat.contentType}
+              </dd>
             </>
           )}
           {stat?.etag && (
@@ -73,7 +97,9 @@ export function PreviewModal({
           {lastModified && (
             <>
               <dt className={styles["preview-meta-label"]}>Modified</dt>
-              <dd className={styles["preview-meta-value"]}>{formatDate(lastModified, true)}</dd>
+              <dd className={styles["preview-meta-value"]}>
+                {formatDate(lastModified, true)}
+              </dd>
             </>
           )}
         </dl>
@@ -111,8 +137,8 @@ export function DeleteObjectDialog({
     >
       {object && (
         <>
-          <span className={styles["delete-dialog-key"]}>{object.name}</span> will be permanently
-          removed from <strong>{bucket}</strong>.
+          <span className={styles["delete-dialog-key"]}>{object.name}</span>{" "}
+          will be permanently removed from <strong>{bucket}</strong>.
           {error && (
             <span className={styles["delete-dialog-error"]} role="alert">
               {error}

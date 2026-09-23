@@ -28,7 +28,11 @@ import { getErrorMessage, isUrl } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import useAsyncData from "./analytics/useAsyncData";
-import { categoryStatus, filterCategories, type CategoryStatus } from "./integrations/integrationsModel";
+import {
+  categoryStatus,
+  filterCategories,
+  type CategoryStatus,
+} from "./integrations/integrationsModel";
 import type { IntegrationItem, IntegrationsData } from "@/types/portal";
 import styles from "./IntegrationsComponent.module.css";
 
@@ -39,27 +43,53 @@ const VIEW_SEGMENTS = [
   { value: "table", icon: <Table2 size={13} strokeWidth={2.2} /> },
 ];
 
-const STATUS_BADGES: Record<CategoryStatus, { variant: string; label: string }> = {
+const STATUS_BADGES: Record<
+  CategoryStatus,
+  { variant: string; label: string }
+> = {
   complete: { variant: "success", label: "All Set" },
   partial: { variant: "warning", label: "Partial" },
   none: { variant: "error", label: "None" },
 };
 
-const FINGERPRINT_TITLE = "First 8 hex characters of the key's SHA-256 — identifies the key without revealing it";
+const FINGERPRINT_TITLE =
+  "First 8 hex characters of the key's SHA-256 — identifies the key without revealing it";
 
-function StatusDot({ configured, size, iconSize }: { configured: boolean; size: number; iconSize: number }) {
+function StatusDot({
+  configured,
+  size,
+  iconSize,
+}: {
+  configured: boolean;
+  size: number;
+  iconSize: number;
+}) {
   return (
     <span
-      className={configured ? styles["status-dot-configured"] : styles["status-dot-missing"]}
+      className={
+        configured
+          ? styles["status-dot-configured"]
+          : styles["status-dot-missing"]
+      }
       style={{ width: size, height: size }}
       aria-hidden="true"
     >
-      {configured ? <Check size={iconSize} strokeWidth={3} /> : <X size={iconSize} strokeWidth={3} />}
+      {configured ? (
+        <Check size={iconSize} strokeWidth={3} />
+      ) : (
+        <X size={iconSize} strokeWidth={3} />
+      )}
     </span>
   );
 }
 
-function DocsLink({ item, className }: { item: IntegrationItem; className: string }) {
+function DocsLink({
+  item,
+  className,
+}: {
+  item: IntegrationItem;
+  className: string;
+}) {
   if (!isUrl(item.docs)) return null;
   return (
     <a
@@ -93,13 +123,16 @@ const TABLE_COLUMNS = [
     label: "Environment Key",
     sortable: true,
     sortValue: (row: IntegrationItem) => row.envKey,
-    render: (row: IntegrationItem) => <code className={styles["table-env-key"]}>{row.envKey}</code>,
+    render: (row: IntegrationItem) => (
+      <code className={styles["table-env-key"]}>{row.envKey}</code>
+    ),
   },
   {
     key: "fingerprint",
     label: "Key Fingerprint",
     sortable: true,
-    sortValue: (row: IntegrationItem) => (row.configured ? row.fingerprint || "" : "~"),
+    sortValue: (row: IntegrationItem) =>
+      row.configured ? row.fingerprint || "" : "~",
     render: (row: IntegrationItem) =>
       row.configured ? (
         <code className={styles["table-fingerprint"]} title={FINGERPRINT_TITLE}>
@@ -115,7 +148,10 @@ const TABLE_COLUMNS = [
     align: "center" as const,
     render: (row: IntegrationItem) =>
       isUrl(row.docs) ? (
-        <DocsLink item={row} className={`${styles["docs-link"]} ${styles["docs-link-centered"]}`} />
+        <DocsLink
+          item={row}
+          className={`${styles["docs-link"]} ${styles["docs-link-centered"]}`}
+        />
       ) : (
         <span className={styles["table-no-docs"]}>—</span>
       ),
@@ -143,7 +179,9 @@ function IntegrationCard({ item }: { item: IntegrationItem }) {
         {item.configured ? (
           <div className={styles["fingerprint"]} title={FINGERPRINT_TITLE}>
             <Fingerprint size={11} strokeWidth={2} aria-hidden="true" />
-            <code>{item.fingerprint ? `sha256:${item.fingerprint}` : "Configured"}</code>
+            <code>
+              {item.fingerprint ? `sha256:${item.fingerprint}` : "Configured"}
+            </code>
           </div>
         ) : (
           <div className={styles["not-configured"]}>
@@ -157,23 +195,31 @@ function IntegrationCard({ item }: { item: IntegrationItem }) {
 
 export default function IntegrationsComponent() {
   // A failed refresh keeps the last good list (and reports the error)
-  const integrations = useAsyncData<IntegrationsData>("integrations", (signal) =>
-    ApiService.getIntegrations({ signal }),
+  const integrations = useAsyncData<IntegrationsData>(
+    "integrations",
+    (signal) => ApiService.getIntegrations({ signal }),
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+  const [collapsedCategories, setCollapsedCategories] = useState<
+    Record<string, boolean>
+  >({});
   const [viewMode, setViewMode] = useState<ViewMode>("card");
 
   const handleRefresh = () => void integrations.reload();
   const refreshing = integrations.reloading;
 
   const toggleCategory = (category: string) => {
-    setCollapsedCategories((previous) => ({ ...previous, [category]: !previous[category] }));
+    setCollapsedCategories((previous) => ({
+      ...previous,
+      [category]: !previous[category],
+    }));
   };
 
   const loading = integrations.loading;
   const data = integrations.data;
-  const loadError = integrations.error ? getErrorMessage(integrations.error) : null;
+  const loadError = integrations.error
+    ? getErrorMessage(integrations.error)
+    : null;
   const filteredCategories = useMemo(
     () => filterCategories(data?.categories ?? [], searchQuery),
     [data, searchQuery],
@@ -201,21 +247,35 @@ export default function IntegrationsComponent() {
               compact
             />
           )}
-          <ButtonComponent variant="secondary" icon={RefreshCw} loading={refreshing} onClick={handleRefresh}>
+          <ButtonComponent
+            variant="secondary"
+            icon={RefreshCw}
+            loading={refreshing}
+            onClick={handleRefresh}
+          >
             Refresh
           </ButtonComponent>
         </div>
       </PageHeaderComponent>
 
       {loading ? (
-        <LoadingIndicatorComponent size="small" label="Loading integrations…" className="is-loading-centered-state" />
+        <LoadingIndicatorComponent
+          size="small"
+          label="Loading integrations…"
+          className="is-loading-centered-state"
+        />
       ) : !data ? (
         <EmptyStateComponent
           icon={<TriangleAlert size={40} strokeWidth={1.5} />}
           title="Couldn't load integrations"
           subtitle={loadError ?? undefined}
         >
-          <ButtonComponent variant="secondary" icon={RefreshCw} loading={refreshing} onClick={handleRefresh}>
+          <ButtonComponent
+            variant="secondary"
+            icon={RefreshCw}
+            loading={refreshing}
+            onClick={handleRefresh}
+          >
             Retry
           </ButtonComponent>
         </EmptyStateComponent>
@@ -223,7 +283,8 @@ export default function IntegrationsComponent() {
         <>
           {loadError && (
             <p className={styles["refresh-error"]} role="alert">
-              <TriangleAlert size={14} /> Refresh failed — showing the previous list. {loadError}
+              <TriangleAlert size={14} /> Refresh failed — showing the previous
+              list. {loadError}
             </p>
           )}
 
@@ -241,19 +302,27 @@ export default function IntegrationsComponent() {
               <span className={styles["stat-value"]}>{data.totalCount}</span>
               <span className={styles["stat-label"]}>Total Services</span>
             </div>
-            <div className={`${styles["stat-card"]} ${styles["stat-configured"]}`}>
-              <span className={styles["stat-value"]}>{data.configuredCount}</span>
+            <div
+              className={`${styles["stat-card"]} ${styles["stat-configured"]}`}
+            >
+              <span className={styles["stat-value"]}>
+                {data.configuredCount}
+              </span>
               <span className={styles["stat-label"]}>Configured</span>
             </div>
             <div className={`${styles["stat-card"]} ${styles["stat-missing"]}`}>
-              <span className={styles["stat-value"]}>{data.totalCount - data.configuredCount}</span>
+              <span className={styles["stat-value"]}>
+                {data.totalCount - data.configuredCount}
+              </span>
               <span className={styles["stat-label"]}>Missing</span>
             </div>
           </div>
 
           <div className={styles["category-list"]}>
             {filteredCategories.map((category, index) => {
-              const isCollapsed = Boolean(collapsedCategories[category.category]);
+              const isCollapsed = Boolean(
+                collapsedCategories[category.category],
+              );
               const badge = STATUS_BADGES[categoryStatus(category)];
               const panelId = `integrations-${category.category.replace(/\W+/g, "-")}`;
               return (
@@ -275,13 +344,17 @@ export default function IntegrationsComponent() {
                       ) : (
                         <ChevronDown size={14} strokeWidth={2.5} />
                       )}
-                      <span className={styles["category-name"]}>{category.category}</span>
+                      <span className={styles["category-name"]}>
+                        {category.category}
+                      </span>
                     </span>
                     <span className={styles["category-badges"]}>
                       <span className={styles["category-count"]}>
                         {category.configuredCount}/{category.totalCount}
                       </span>
-                      <BadgeComponent variant={badge.variant}>{badge.label}</BadgeComponent>
+                      <BadgeComponent variant={badge.variant}>
+                        {badge.label}
+                      </BadgeComponent>
                     </span>
                   </button>
 
@@ -309,7 +382,9 @@ export default function IntegrationsComponent() {
 
             {filteredCategories.length === 0 && (
               <div className={styles["empty-state"]}>
-                {searchQuery.trim() ? "No integrations match your search" : "No integrations are defined"}
+                {searchQuery.trim()
+                  ? "No integrations match your search"
+                  : "No integrations are defined"}
               </div>
             )}
           </div>

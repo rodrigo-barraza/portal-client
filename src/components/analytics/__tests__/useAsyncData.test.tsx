@@ -14,7 +14,10 @@ function deferred<T>() {
 }
 
 function setVisibility(state: DocumentVisibilityState) {
-  Object.defineProperty(document, "visibilityState", { configurable: true, get: () => state });
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
   document.dispatchEvent(new Event("visibilitychange"));
 }
 
@@ -25,7 +28,9 @@ afterEach(() => {
 
 describe("useAsyncData", () => {
   it("loads, then exposes the data", async () => {
-    const { result } = renderHook(() => useAsyncData("a", () => Promise.resolve(42)));
+    const { result } = renderHook(() =>
+      useAsyncData("a", () => Promise.resolve(42)),
+    );
     expect(result.current.loading).toBe(true);
     await waitFor(() => expect(result.current.data).toBe(42));
     expect(result.current.loading).toBe(false);
@@ -39,9 +44,12 @@ describe("useAsyncData", () => {
       old: () => slow.promise,
       new: () => fast.promise,
     };
-    const { result, rerender } = renderHook(({ key }) => useAsyncData(key, loaders[key]), {
-      initialProps: { key: "old" },
-    });
+    const { result, rerender } = renderHook(
+      ({ key }) => useAsyncData(key, loaders[key]),
+      {
+        initialProps: { key: "old" },
+      },
+    );
 
     rerender({ key: "new" });
     await act(async () => fast.resolve("new data"));
@@ -68,7 +76,9 @@ describe("useAsyncData", () => {
   it("can keep the previous data visible while the next key loads", async () => {
     const { result, rerender } = renderHook(
       ({ key }) =>
-        useAsyncData(key, () => Promise.resolve(`data:${key}`), { keepPreviousData: true }),
+        useAsyncData(key, () => Promise.resolve(`data:${key}`), {
+          keepPreviousData: true,
+        }),
       { initialProps: { key: "page-1" } },
     );
     await waitFor(() => expect(result.current.data).toBe("data:page-1"));
@@ -79,7 +89,9 @@ describe("useAsyncData", () => {
   });
 
   it("surfaces errors", async () => {
-    const { result } = renderHook(() => useAsyncData("a", () => Promise.reject(new Error("boom"))));
+    const { result } = renderHook(() =>
+      useAsyncData("a", () => Promise.reject(new Error("boom"))),
+    );
     await waitFor(() => expect(result.current.error?.message).toBe("boom"));
     expect(result.current.data).toBeNull();
     expect(result.current.loading).toBe(false);
@@ -94,7 +106,9 @@ describe("useAsyncData", () => {
 
   it("reload re-runs the loader for the current key", async () => {
     let calls = 0;
-    const { result } = renderHook(() => useAsyncData("a", () => Promise.resolve(++calls)));
+    const { result } = renderHook(() =>
+      useAsyncData("a", () => Promise.resolve(++calls)),
+    );
     await waitFor(() => expect(result.current.data).toBe(1));
     await act(async () => {
       await result.current.reload();
@@ -106,7 +120,9 @@ describe("useAsyncData", () => {
     let calls = 0;
     const second = deferred<number>();
     const { result } = renderHook(() =>
-      useAsyncData("a", () => (++calls === 1 ? Promise.resolve(1) : second.promise)),
+      useAsyncData("a", () =>
+        ++calls === 1 ? Promise.resolve(1) : second.promise,
+      ),
     );
     await waitFor(() => expect(result.current.data).toBe(1));
 
@@ -186,9 +202,13 @@ describe("useAsyncData", () => {
     let calls = 0;
     const load = vi.fn(() => {
       calls += 1;
-      return calls === 2 ? Promise.reject(new Error("blip")) : Promise.resolve(calls);
+      return calls === 2
+        ? Promise.reject(new Error("blip"))
+        : Promise.resolve(calls);
     });
-    const { result } = renderHook(() => useAsyncData("live", load, { refreshIntervalMs: 1000 }));
+    const { result } = renderHook(() =>
+      useAsyncData("live", load, { refreshIntervalMs: 1000 }),
+    );
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
@@ -225,7 +245,9 @@ describe("useAsyncData", () => {
   it("stops polling on unmount", async () => {
     vi.useFakeTimers();
     const load = vi.fn(() => Promise.resolve(1));
-    const { unmount } = renderHook(() => useAsyncData("live", load, { refreshIntervalMs: 1000 }));
+    const { unmount } = renderHook(() =>
+      useAsyncData("live", load, { refreshIntervalMs: 1000 }),
+    );
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -247,7 +269,9 @@ describe("settleReports", () => {
   });
 
   it("flags a total failure", async () => {
-    const result = await settleReports<{ a: number }>({ a: Promise.reject(new Error("down")) });
+    const result = await settleReports<{ a: number }>({
+      a: Promise.reject(new Error("down")),
+    });
     expect(result.allFailed).toBe(true);
   });
 });

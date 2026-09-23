@@ -1,5 +1,9 @@
 import { formatElapsedTime } from "@rodrigo-barraza/utilities-library";
-import type { LanguageBreakdown, PortalService, RepoSize } from "@/types/portal";
+import type {
+  LanguageBreakdown,
+  PortalService,
+  RepoSize,
+} from "@/types/portal";
 
 /**
  * Pure model behind the Projects page: health classification, filtering,
@@ -7,7 +11,11 @@ import type { LanguageBreakdown, PortalService, RepoSize } from "@/types/portal"
  */
 
 /** Project types that are published or run locally, never deployed. */
-export const NON_DEPLOYED_TYPES: ReadonlySet<string> = new Set(["Library", "Kit", "Tool"]);
+export const NON_DEPLOYED_TYPES: ReadonlySet<string> = new Set([
+  "Library",
+  "Kit",
+  "Tool",
+]);
 
 export function isDeployedProject(service: PortalService): boolean {
   return !NON_DEPLOYED_TYPES.has(service.projectType as string);
@@ -34,7 +42,9 @@ export function projectsFromResponse(
   showInfrastructure: boolean,
 ): PortalService[] {
   if (!showInfrastructure) {
-    return services.filter((service) => service.projectType !== "Infrastructure");
+    return services.filter(
+      (service) => service.projectType !== "Infrastructure",
+    );
   }
   return [
     ...services,
@@ -92,19 +102,24 @@ const STATIC_FILTER_OPTIONS = {
 };
 
 function distinctSorted(values: (string | null | undefined)[]): string[] {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
+  return [
+    ...new Set(values.filter((value): value is string => Boolean(value))),
+  ].sort();
 }
 
 /** Filter selects, in bar order; Type and Device options come from the data. */
 export function buildFilterOptions(
   items: PortalService[],
 ): Record<FilterDimension, { label: string; values: FilterOption[] }> {
-  const toOptions = (values: string[]) => values.map((value) => ({ value, label: value }));
+  const toOptions = (values: string[]) =>
+    values.map((value) => ({ value, label: value }));
   return {
     ...STATIC_FILTER_OPTIONS,
     projectType: {
       label: "Type",
-      values: toOptions(distinctSorted(items.map((service) => service.projectType))),
+      values: toOptions(
+        distinctSorted(items.map((service) => service.projectType)),
+      ),
     },
     device: {
       label: "Device",
@@ -118,8 +133,14 @@ const STATUS_FILTER_HEALTH: Record<string, ProjectHealth> = {
   unhealthy: "down",
 };
 
-export function hasActiveFilters(filters: ProjectFilters, query: string): boolean {
-  return query.trim().length > 0 || Object.values(filters).some((values) => values.length > 0);
+export function hasActiveFilters(
+  filters: ProjectFilters,
+  query: string,
+): boolean {
+  return (
+    query.trim().length > 0 ||
+    Object.values(filters).some((values) => values.length > 0)
+  );
 }
 
 export function filterProjects(
@@ -140,11 +161,14 @@ export function filterProjects(
         service.description,
         service.projectType,
       ];
-      if (!haystack.some((field) => field?.toLowerCase().includes(needle))) return false;
+      if (!haystack.some((field) => field?.toLowerCase().includes(needle)))
+        return false;
     }
     if (
       filters.status.length > 0 &&
-      !filters.status.some((status) => STATUS_FILTER_HEALTH[status] === projectHealth(service))
+      !filters.status.some(
+        (status) => STATUS_FILTER_HEALTH[status] === projectHealth(service),
+      )
     ) {
       return false;
     }
@@ -264,7 +288,9 @@ function scalar(value: unknown): string | null {
 }
 
 /** Metadata a health check reported, as label/value rows. */
-export function describeServiceMetadata(service: PortalService): MetadataField[] {
+export function describeServiceMetadata(
+  service: PortalService,
+): MetadataField[] {
   const metadata = service.metadata ?? {};
   const fields: MetadataField[] = [];
   const add = (label: string, value: string | null, mono = false) => {
@@ -279,9 +305,15 @@ export function describeServiceMetadata(service: PortalService): MetadataField[]
     add("Databases", scalar(metadata.databases));
     add("Buckets", scalar(metadata.buckets));
     const bucketNames = Array.isArray(metadata.bucketNames)
-      ? metadata.bucketNames.filter((name): name is string => typeof name === "string")
+      ? metadata.bucketNames.filter(
+          (name): name is string => typeof name === "string",
+        )
       : [];
-    add("Bucket Names", bucketNames.length > 0 ? bucketNames.join(", ") : null, true);
+    add(
+      "Bucket Names",
+      bucketNames.length > 0 ? bucketNames.join(", ") : null,
+      true,
+    );
   }
   add("Node", scalar(metadata.nodeVersion), true);
   add("Python", scalar(metadata.pythonVersion), true);

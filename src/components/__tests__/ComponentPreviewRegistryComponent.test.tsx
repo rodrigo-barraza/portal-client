@@ -29,7 +29,9 @@ describe("ComponentPreviewRegistry", () => {
   );
 
   it("renders a live demo", () => {
-    const { getByText } = render(<ComponentPreviewDemo name="BadgeComponent" />);
+    const { getByText } = render(
+      <ComponentPreviewDemo name="BadgeComponent" />,
+    );
     expect(getByText("Active")).toBeInTheDocument();
   });
 });

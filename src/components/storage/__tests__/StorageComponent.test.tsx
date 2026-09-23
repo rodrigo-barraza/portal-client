@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act, within, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import StorageComponent from "../../StorageComponent";
 import ApiService from "../../../services/ApiService";
 import type {
@@ -16,7 +23,10 @@ import {
   storageObjectStat,
 } from "../../__tests__/apiFixtures";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
+vi.mock(
+  "@rodrigo-barraza/components-library",
+  () => import("../../__tests__/componentsLibraryStub"),
+);
 vi.mock("../../../services/ApiService", () => ({
   default: {
     streamStorageBuckets: vi.fn(),
@@ -26,7 +36,9 @@ vi.mock("../../../services/ApiService", () => ({
     statStorageObject: vi.fn(),
     deleteStorageObject: vi.fn(),
     searchStorageObjects: vi.fn(),
-    buildStorageDownloadUrl: vi.fn((bucket: string, key: string) => `http://store/${bucket}/${key}`),
+    buildStorageDownloadUrl: vi.fn(
+      (bucket: string, key: string) => `http://store/${bucket}/${key}`,
+    ),
   },
 }));
 
@@ -38,7 +50,14 @@ const DISK = diskUsage({
     count: 1,
     sharedSize: 0,
     items: [
-      { id: "abc", tags: ["portal-client:latest"], size: 2048, sharedSize: 0, created: 0, containers: 1 },
+      {
+        id: "abc",
+        tags: ["portal-client:latest"],
+        size: 2048,
+        sharedSize: 0,
+        created: 0,
+        containers: 1,
+      },
     ],
   },
   totalReclaimable: 2048,
@@ -55,8 +74,18 @@ beforeEach(() => {
     return { close: closeStream };
   });
   api.getSystemInfo.mockResolvedValue([
-    deviceSystemInfo({ deviceId: "nas", deviceName: "NAS", serverVersion: "27.1", disk: DISK }),
-    deviceSystemInfo({ deviceId: "desktop", deviceName: "Desktop", serverVersion: "28.0", disk: DISK }),
+    deviceSystemInfo({
+      deviceId: "nas",
+      deviceName: "NAS",
+      serverVersion: "27.1",
+      disk: DISK,
+    }),
+    deviceSystemInfo({
+      deviceId: "desktop",
+      deviceName: "Desktop",
+      serverVersion: "28.0",
+      disk: DISK,
+    }),
   ]);
   api.getStorageSummary.mockResolvedValue({
     buckets: [],
@@ -70,16 +99,25 @@ function streamBuckets(names: string[]) {
   emit({
     type: "init",
     totalBuckets: names.length,
-    buckets: names.map((name) => storageBucket({ name, objectCount: null, totalSize: null })),
+    buckets: names.map((name) =>
+      storageBucket({ name, objectCount: null, totalSize: null }),
+    ),
   });
   for (const name of names) {
-    emit({ type: "bucket", bucket: storageBucket({ name, objectCount: 3, totalSize: 1024 }) });
+    emit({
+      type: "bucket",
+      bucket: storageBucket({ name, objectCount: 3, totalSize: 1024 }),
+    });
   }
   emit({ type: "done" });
 }
 
 /** GET /object-store/buckets/media at `prefix`. */
-function listing(objects: StorageObject[], prefixes: string[] = [], prefix = ""): StorageObjectListing {
+function listing(
+  objects: StorageObject[],
+  prefixes: string[] = [],
+  prefix = "",
+): StorageObjectListing {
   return { bucket: "media", prefix, objects, prefixes };
 }
 
@@ -100,7 +138,9 @@ describe("StorageComponent", () => {
   it("shows an error state instead of 'No buckets found' when the stream fails", async () => {
     render(<StorageComponent />);
     emit({ type: "error", message: "MinIO unreachable" });
-    expect(await screen.findByText("Couldn't list buckets")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Couldn't list buckets"),
+    ).toBeInTheDocument();
     expect(screen.queryByText("No buckets found")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -112,7 +152,9 @@ describe("StorageComponent", () => {
     emit({
       type: "init",
       totalBuckets: 1,
-      buckets: [storageBucket({ name: "media", objectCount: null, totalSize: null })],
+      buckets: [
+        storageBucket({ name: "media", objectCount: null, totalSize: null }),
+      ],
     });
     emit({ type: "done" });
     const card = await screen.findByRole("button", { name: /media/ });
@@ -121,13 +163,22 @@ describe("StorageComponent", () => {
 
   it("never lets a slow folder listing land under a newer breadcrumb", async () => {
     let resolveSlow: (value: StorageObjectListing) => void = () => {};
-    api.getStorageObjects.mockImplementation((_bucket: string, { prefix }: { prefix?: string } = {}) => {
-      if (prefix === "slow/") return new Promise((resolve) => (resolveSlow = resolve));
-      if (prefix === "fast/") {
-        return Promise.resolve(listing([storageObject({ name: "fast/new.txt", size: 1 })], [], prefix));
-      }
-      return Promise.resolve(listing([], ["slow/", "fast/"]));
-    });
+    api.getStorageObjects.mockImplementation(
+      (_bucket: string, { prefix }: { prefix?: string } = {}) => {
+        if (prefix === "slow/")
+          return new Promise((resolve) => (resolveSlow = resolve));
+        if (prefix === "fast/") {
+          return Promise.resolve(
+            listing(
+              [storageObject({ name: "fast/new.txt", size: 1 })],
+              [],
+              prefix,
+            ),
+          );
+        }
+        return Promise.resolve(listing([], ["slow/", "fast/"]));
+      },
+    );
 
     render(<StorageComponent />);
     streamBuckets(["media"]);
@@ -139,48 +190,79 @@ describe("StorageComponent", () => {
     expect(await screen.findByText("new.txt")).toBeInTheDocument();
 
     await act(async () =>
-      resolveSlow(listing([storageObject({ name: "slow/stale.txt", size: 1 })], [], "slow/")),
+      resolveSlow(
+        listing(
+          [storageObject({ name: "slow/stale.txt", size: 1 })],
+          [],
+          "slow/",
+        ),
+      ),
     );
     expect(screen.queryByText("stale.txt")).not.toBeInTheDocument();
     expect(screen.getByText("new.txt")).toBeInTheDocument();
   });
 
   it("confirms deletes in a dialog and surfaces failures", async () => {
-    api.getStorageObjects.mockResolvedValue(listing([storageObject({ name: "doc.txt", size: 10 })]));
+    api.getStorageObjects.mockResolvedValue(
+      listing([storageObject({ name: "doc.txt", size: 10 })]),
+    );
     api.deleteStorageObject.mockRejectedValueOnce(new Error("Access denied"));
 
     render(<StorageComponent />);
     streamBuckets(["media"]);
     fireEvent.click(await screen.findByRole("button", { name: /media/ }));
-    fireEvent.click(await screen.findByRole("button", { name: "Delete doc.txt" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete doc.txt" }),
+    );
 
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
-    expect(await within(dialog).findByText("Access denied")).toBeInTheDocument();
+    expect(
+      await within(dialog).findByText("Access denied"),
+    ).toBeInTheDocument();
     expect(api.deleteStorageObject).toHaveBeenCalledWith("media", "doc.txt");
 
-    api.deleteStorageObject.mockResolvedValueOnce({ success: true, bucket: "media", object: "doc.txt" });
+    api.deleteStorageObject.mockResolvedValueOnce({
+      success: true,
+      bucket: "media",
+      object: "doc.txt",
+    });
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
-    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument(),
+    );
     expect(api.getStorageObjects).toHaveBeenCalledTimes(2); // reloaded after the delete
   });
 
   it("debounces global search and shows failures as errors, not empty results", async () => {
     vi.useFakeTimers();
     try {
-      api.searchStorageObjects.mockRejectedValueOnce(new Error("search timed out"));
+      api.searchStorageObjects.mockRejectedValueOnce(
+        new Error("search timed out"),
+      );
       render(<StorageComponent />);
-      fireEvent.change(screen.getByRole("searchbox", { name: "Search files across all stores…" }), {
-        target: { value: "cat" },
-      });
-      expect(screen.getByText("Searching across all stores…")).toBeInTheDocument();
+      fireEvent.change(
+        screen.getByRole("searchbox", {
+          name: "Search files across all stores…",
+        }),
+        {
+          target: { value: "cat" },
+        },
+      );
+      expect(
+        screen.getByText("Searching across all stores…"),
+      ).toBeInTheDocument();
       expect(api.searchStorageObjects).not.toHaveBeenCalled();
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(400);
       });
       expect(api.searchStorageObjects).toHaveBeenCalledTimes(1);
-      expect(api.searchStorageObjects).toHaveBeenCalledWith("cat", {}, { signal: expect.any(AbortSignal) });
+      expect(api.searchStorageObjects).toHaveBeenCalledWith(
+        "cat",
+        {},
+        { signal: expect.any(AbortSignal) },
+      );
       expect(screen.getByText("Search failed")).toBeInTheDocument();
       expect(screen.getByText("search timed out")).toBeInTheDocument();
     } finally {
@@ -193,7 +275,9 @@ describe("StorageComponent", () => {
     try {
       api.searchStorageObjects.mockReturnValue(new Promise(() => {}));
       render(<StorageComponent />);
-      const searchbox = screen.getByRole("searchbox", { name: "Search files across all stores…" });
+      const searchbox = screen.getByRole("searchbox", {
+        name: "Search files across all stores…",
+      });
       fireEvent.change(searchbox, { target: { value: "cat" } });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(400);
@@ -218,15 +302,24 @@ describe("StorageComponent", () => {
     );
     api.statStorageObject
       .mockResolvedValueOnce(
-        storageObjectStat({ bucket: "media", object: "one.png", size: 1, contentType: "image/one" }),
+        storageObjectStat({
+          bucket: "media",
+          object: "one.png",
+          size: 1,
+          contentType: "image/one",
+        }),
       )
-      .mockImplementationOnce(() => new Promise((resolve) => (resolveSecond = resolve)));
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveSecond = resolve)),
+      );
 
     render(<StorageComponent />);
     streamBuckets(["media"]);
     fireEvent.click(await screen.findByRole("button", { name: /media/ }));
 
-    fireEvent.click(await screen.findByRole("button", { name: "Preview one.png" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Preview one.png" }),
+    );
     expect(await screen.findByText("image/one")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
@@ -234,7 +327,12 @@ describe("StorageComponent", () => {
     expect(screen.queryByText("image/one")).not.toBeInTheDocument();
     await act(async () =>
       resolveSecond(
-        storageObjectStat({ bucket: "media", object: "two.png", size: 2, contentType: "image/two" }),
+        storageObjectStat({
+          bucket: "media",
+          object: "two.png",
+          size: 2,
+          contentType: "image/two",
+        }),
       ),
     );
     expect(screen.getByText("image/two")).toBeInTheDocument();

@@ -40,7 +40,8 @@ export interface MiniTopologyLayout {
 }
 
 function clampTier(tier: unknown): number {
-  const value = typeof tier === "number" && Number.isFinite(tier) ? Math.trunc(tier) : 2;
+  const value =
+    typeof tier === "number" && Number.isFinite(tier) ? Math.trunc(tier) : 2;
   return Math.min(Math.max(value, 0), TIER_COUNT - 1);
 }
 
@@ -53,7 +54,9 @@ export function collectEdges(services: PortalService[]): MiniEdge[] {
     for (const dependency of service.dependsOn || []) {
       const id = typeof dependency === "string" ? dependency : dependency.id;
       const criticality =
-        typeof dependency === "string" ? "required" : dependency.criticality || "required";
+        typeof dependency === "string"
+          ? "required"
+          : dependency.criticality || "required";
       const key = `${id}->${service.id}`;
       if (!ids.has(id) || seen.has(key)) continue;
       seen.add(key);
@@ -64,12 +67,21 @@ export function collectEdges(services: PortalService[]): MiniEdge[] {
 }
 
 /** The project, everything it (transitively) depends on, and its direct dependents. */
-export function connectedIds(serviceId: string, edges: MiniEdge[]): Set<string> {
+export function connectedIds(
+  serviceId: string,
+  edges: MiniEdge[],
+): Set<string> {
   const upstream = new Map<string, string[]>();
   const downstream = new Map<string, string[]>();
   for (const edge of edges) {
-    upstream.set(edge.target, [...(upstream.get(edge.target) ?? []), edge.source]);
-    downstream.set(edge.source, [...(downstream.get(edge.source) ?? []), edge.target]);
+    upstream.set(edge.target, [
+      ...(upstream.get(edge.target) ?? []),
+      edge.source,
+    ]);
+    downstream.set(edge.source, [
+      ...(downstream.get(edge.source) ?? []),
+      edge.target,
+    ]);
   }
 
   const connected = new Set([serviceId]);
@@ -83,7 +95,8 @@ export function connectedIds(serviceId: string, edges: MiniEdge[]): Set<string> 
       }
     }
   }
-  for (const dependent of downstream.get(serviceId) ?? []) connected.add(dependent);
+  for (const dependent of downstream.get(serviceId) ?? [])
+    connected.add(dependent);
   return connected;
 }
 
@@ -102,7 +115,8 @@ export function layoutMiniTopology(
 
   const tiers: PortalService[][] = Array.from({ length: TIER_COUNT }, () => []);
   for (const node of nodes) tiers[clampTier(node.deployTier)].push(node);
-  for (const tier of tiers) tier.sort((first, second) => first.name.localeCompare(second.name));
+  for (const tier of tiers)
+    tier.sort((first, second) => first.name.localeCompare(second.name));
 
   const rowWidth = (count: number) => count * (MINI_NODE_WIDTH + GAP_X) - GAP_X;
   const maxWidth = Math.max(...tiers.map((tier) => rowWidth(tier.length)), 0);
@@ -115,7 +129,10 @@ export function layoutMiniTopology(
     const offsetX = LABEL_WIDTH + (maxWidth - rowWidth(tier.length)) / 2;
     const y = row * (MINI_NODE_HEIGHT + GAP_Y);
     tier.forEach((node, index) => {
-      positions[node.id] = { x: offsetX + index * (MINI_NODE_WIDTH + GAP_X), y };
+      positions[node.id] = {
+        x: offsetX + index * (MINI_NODE_WIDTH + GAP_X),
+        y,
+      };
     });
     tierRows.push({ tier: tierIndex, y: y + MINI_NODE_HEIGHT / 2 });
     row++;
@@ -138,11 +155,17 @@ function portPoint(position: Point, side: PortSide): Point {
     case "top":
       return { x: position.x + MINI_NODE_WIDTH / 2, y: position.y };
     case "bottom":
-      return { x: position.x + MINI_NODE_WIDTH / 2, y: position.y + MINI_NODE_HEIGHT };
+      return {
+        x: position.x + MINI_NODE_WIDTH / 2,
+        y: position.y + MINI_NODE_HEIGHT,
+      };
     case "left":
       return { x: position.x, y: position.y + MINI_NODE_HEIGHT / 2 };
     case "right":
-      return { x: position.x + MINI_NODE_WIDTH, y: position.y + MINI_NODE_HEIGHT / 2 };
+      return {
+        x: position.x + MINI_NODE_WIDTH,
+        y: position.y + MINI_NODE_HEIGHT / 2,
+      };
   }
 }
 
@@ -169,10 +192,12 @@ export function miniEdgePath(source: Point, target: Point): string {
   const deltaX = target.x - source.x;
   const deltaY = target.y - source.y;
   const rowsOverlap = !(
-    source.y + MINI_NODE_HEIGHT < target.y || target.y + MINI_NODE_HEIGHT < source.y
+    source.y + MINI_NODE_HEIGHT < target.y ||
+    target.y + MINI_NODE_HEIGHT < source.y
   );
   const columnsOverlap = !(
-    source.x + MINI_NODE_WIDTH < target.x || target.x + MINI_NODE_WIDTH < source.x
+    source.x + MINI_NODE_WIDTH < target.x ||
+    target.x + MINI_NODE_WIDTH < source.x
   );
 
   const horizontal =

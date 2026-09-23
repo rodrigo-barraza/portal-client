@@ -23,22 +23,29 @@ export default function ProjectTopologyTab({
 }) {
   // Per-instance id: the gradient must not clash with another open graph.
   const gradientId = `mini-prism-gradient-${useId().replace(/:/g, "")}`;
-  const layout = useMemo(() => layoutMiniTopology(service, allServices), [service, allServices]);
+  const layout = useMemo(
+    () => layoutMiniTopology(service, allServices),
+    [service, allServices],
+  );
 
   if (!layout) {
     return (
-      <div className={panelStyles['empty-tab']}>
-        <Network size={24} strokeWidth={1.5} className={panelStyles['empty-tab-icon']} />
+      <div className={panelStyles["empty-tab"]}>
+        <Network
+          size={24}
+          strokeWidth={1.5}
+          className={panelStyles["empty-tab-icon"]}
+        />
         <span>No connections found</span>
       </div>
     );
   }
 
   return (
-    <div className={styles['mini-topology']}>
+    <div className={styles["mini-topology"]}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
-        className={styles['mini-topology-svg']}
+        className={styles["mini-topology-svg"]}
         role="img"
         aria-label={`Dependencies of ${service.name}`}
       >
@@ -74,20 +81,23 @@ export default function ProjectTopologyTab({
           const target = layout.positions[edge.target];
           if (!source || !target) return null;
           const isOptional = edge.criticality === "optional";
-          const touchesSelf = edge.source === service.id || edge.target === service.id;
+          const touchesSelf =
+            edge.source === service.id || edge.target === service.id;
           return (
             <g
               key={`${edge.source}->${edge.target}`}
-              className={touchesSelf ? styles['mini-edge-flowing'] : undefined}
+              className={touchesSelf ? styles["mini-edge-flowing"] : undefined}
             >
               <path
                 d={miniEdgePath(source, target)}
-                stroke={touchesSelf ? `url(#${gradientId})` : "var(--text-muted)"}
+                stroke={
+                  touchesSelf ? `url(#${gradientId})` : "var(--text-muted)"
+                }
                 strokeWidth={touchesSelf ? 2 : 1.2}
                 fill="none"
                 strokeOpacity={touchesSelf ? 0.9 : isOptional ? 0.25 : 0.4}
                 strokeDasharray={isOptional && !touchesSelf ? "4 3" : "none"}
-                className={styles['mini-edge-line']}
+                className={styles["mini-edge-line"]}
               />
             </g>
           );
@@ -98,7 +108,7 @@ export default function ProjectTopologyTab({
             key={`tier-${tier}`}
             x={0}
             y={y}
-            className={styles['mini-tier-label']}
+            className={styles["mini-tier-label"]}
             dominantBaseline="middle"
           >
             {TIER_LABELS[tier] ?? `Tier ${tier}`}
@@ -112,17 +122,17 @@ export default function ProjectTopologyTab({
             (node.projectType && SERVICE_TYPE_ICONS[node.projectType]) ||
             DEFAULT_SERVICE_TYPE_ICON;
           const kindClass = node.isInfrastructure
-            ? styles['mini-node-infra']
+            ? styles["mini-node-infra"]
             : node.visibility === "external"
-              ? styles['mini-node-external']
-              : styles['mini-node-internal'];
+              ? styles["mini-node-external"]
+              : styles["mini-node-internal"];
           const health = projectHealth(node);
           const statusClass =
             health === "healthy"
-              ? styles['mini-status-healthy']
+              ? styles["mini-status-healthy"]
               : health === "down"
-                ? styles['mini-status-down']
-                : styles['mini-status-neutral'];
+                ? styles["mini-status-down"]
+                : styles["mini-status-neutral"];
           return (
             <foreignObject
               key={node.id}
@@ -133,13 +143,15 @@ export default function ProjectTopologyTab({
               style={{ overflow: "visible" }}
             >
               <div
-                className={`${styles['mini-node-card']} ${kindClass} ${node.id === service.id ? styles['mini-node-self'] : ""}`}
+                className={`${styles["mini-node-card"]} ${kindClass} ${node.id === service.id ? styles["mini-node-self"] : ""}`}
               >
-                <div className={`${styles['mini-status-dot']} ${statusClass}`} />
-                <div className={styles['mini-node-icon-wrap']}>
+                <div
+                  className={`${styles["mini-status-dot"]} ${statusClass}`}
+                />
+                <div className={styles["mini-node-icon-wrap"]}>
                   <Icon size={14} strokeWidth={1.5} />
                 </div>
-                <span className={styles['mini-node-name']}>{node.name}</span>
+                <span className={styles["mini-node-name"]}>{node.name}</span>
               </div>
             </foreignObject>
           );

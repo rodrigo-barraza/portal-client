@@ -51,7 +51,10 @@ const TYPE_NOUNS: Record<InteractionType, string> = {
  * Cells are clamped into the grid so a malformed coordinate can't paint
  * outside the canvas.
  */
-function paintHeatmap(context: CanvasRenderingContext2D, data: SessionHeatmap | null) {
+function paintHeatmap(
+  context: CanvasRenderingContext2D,
+  data: SessionHeatmap | null,
+) {
   const size = CANVAS_RESOLUTION;
   context.filter = "none";
   context.clearRect(0, 0, size, size);
@@ -91,14 +94,23 @@ export default function HeatmapPanelComponent({
   const [type, setType] = useState<InteractionType>("move");
   const [band, setBand] = useState<Band>("desktop");
 
-  const path = selectedPath && paths.includes(selectedPath) ? selectedPath : (paths[0] ?? "/");
+  const path =
+    selectedPath && paths.includes(selectedPath)
+      ? selectedPath
+      : (paths[0] ?? "/");
 
   const heatmap = useAsyncData(
     JSON.stringify([projectId, path, period, type, band]),
     (signal) =>
-      ApiService.getSessionHeatmap(projectId, path, period, type, band, undefined, { signal }).then(
-        unwrapData,
-      ),
+      ApiService.getSessionHeatmap(
+        projectId,
+        path,
+        period,
+        type,
+        band,
+        undefined,
+        { signal },
+      ).then(unwrapData),
   );
   const data = heatmap.data;
   const status = heatmap.loading
@@ -128,7 +140,9 @@ export default function HeatmapPanelComponent({
         <Flame size={14} strokeWidth={2.2} aria-hidden />
         <span>Page Heatmap</span>
         {status === "ready" && data && (
-          <span className={styles["count"]}>{formatExact(data.total)} points</span>
+          <span className={styles["count"]}>
+            {formatExact(data.total)} points
+          </span>
         )}
       </div>
 
@@ -174,9 +188,13 @@ export default function HeatmapPanelComponent({
           role="img"
           aria-label={description}
         />
-        {status === "loading" && <div className={styles["overlay"]}>Loading…</div>}
+        {status === "loading" && (
+          <div className={styles["overlay"]}>Loading…</div>
+        )}
         {status === "empty" && (
-          <div className={styles["overlay"]}>No {type} data for this page + band yet.</div>
+          <div className={styles["overlay"]}>
+            No {type} data for this page + band yet.
+          </div>
         )}
         {status === "error" && (
           <div className={styles["overlay"]} role="alert">

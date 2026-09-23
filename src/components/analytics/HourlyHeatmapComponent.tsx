@@ -16,7 +16,11 @@ const HEAT_COLOR = CHART_COLORS[0];
  * GA4 "Traffic by Hour & Day" — a Monday-first 7×24 grid of active users,
  * in the GA property's timezone. Cell opacity scales with the busiest cell.
  */
-export default function HourlyHeatmapComponent({ cells }: { cells: GAHeatmapCell[] }) {
+export default function HourlyHeatmapComponent({
+  cells,
+}: {
+  cells: GAHeatmapCell[];
+}) {
   const grid = useMemo(() => buildHourlyGrid(cells), [cells]);
 
   const description = grid.peak
@@ -25,7 +29,11 @@ export default function HourlyHeatmapComponent({ cells }: { cells: GAHeatmapCell
 
   return (
     <Panel icon={Layers} title="Traffic by Hour & Day">
-      <div className={styles["heatmap-container"]} role="img" aria-label={description}>
+      <div
+        className={styles["heatmap-container"]}
+        role="img"
+        aria-label={description}
+      >
         <div className={styles["heatmap-corner"]} />
         {HOURS.map((hour) => (
           <div key={hour} className={styles["heatmap-col-label"]}>

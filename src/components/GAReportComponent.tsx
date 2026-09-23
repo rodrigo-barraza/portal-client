@@ -24,7 +24,10 @@ import {
   Zap,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
-import { formatElapsedTime, formatCompact } from "@rodrigo-barraza/utilities-library";
+import {
+  formatElapsedTime,
+  formatCompact,
+} from "@rodrigo-barraza/utilities-library";
 import {
   SPARKLINE_COLORS,
   StatCard,
@@ -73,7 +76,11 @@ interface GAReports {
   events: GAReportsByName["events"];
 }
 
-function loadGAReports(propertyId: string, period: string, signal: AbortSignal) {
+function loadGAReports(
+  propertyId: string,
+  period: string,
+  signal: AbortSignal,
+) {
   const options = { signal };
   return settleReports<GAReports>({
     overview: ApiService.getGAOverview(propertyId, period, options),
@@ -195,22 +202,44 @@ export default function GAReportComponent({
     () =>
       fillDailySeries(
         values?.timeSeries?.series ?? [],
-        (date): GATimeSeriesPoint => ({ date, pageviews: 0, users: 0, sessions: 0 }),
+        (date): GATimeSeriesPoint => ({
+          date,
+          pageviews: 0,
+          users: 0,
+          sessions: 0,
+        }),
         gaSeriesWindow(period),
       ),
     [values?.timeSeries, period],
   );
 
   const deviceSegments = useMemo(
-    () => toDonutSegments(devices?.categories, (row) => row.category, (row) => row.sessions),
+    () =>
+      toDonutSegments(
+        devices?.categories,
+        (row) => row.category,
+        (row) => row.sessions,
+      ),
     [devices],
   );
   const browserSegments = useMemo(
-    () => toDonutSegments(devices?.browsers, (row) => row.browser, (row) => row.sessions, 3),
+    () =>
+      toDonutSegments(
+        devices?.browsers,
+        (row) => row.browser,
+        (row) => row.sessions,
+        3,
+      ),
     [devices],
   );
   const osSegments = useMemo(
-    () => toDonutSegments(devices?.operatingSystems, (row) => row.os, (row) => row.sessions, 5),
+    () =>
+      toDonutSegments(
+        devices?.operatingSystems,
+        (row) => row.os,
+        (row) => row.sessions,
+        5,
+      ),
     [devices],
   );
   const nvrSegments = useMemo(
@@ -240,13 +269,21 @@ export default function GAReportComponent({
   }
 
   if (!values || reports.data?.allFailed) {
-    const message = readableErrorMessage(reports.error ?? reports.data?.firstError);
+    const message = readableErrorMessage(
+      reports.error ?? reports.data?.firstError,
+    );
     return (
       <>
         {banner}
         <div className={styles["empty-state"]} role="alert">
-          <ChartColumn size={40} strokeWidth={1.5} className={styles["empty-icon"]} />
-          <span className={styles["empty-title"]}>Google Analytics reports unavailable</span>
+          <ChartColumn
+            size={40}
+            strokeWidth={1.5}
+            className={styles["empty-icon"]}
+          />
+          <span className={styles["empty-title"]}>
+            Google Analytics reports unavailable
+          </span>
           {message && <span className={styles["empty-detail"]}>{message}</span>}
         </div>
       </>
@@ -346,7 +383,9 @@ export default function GAReportComponent({
           title="Landing Pages"
           columns={landingColumns}
           data={landingPages!.pages}
-          getRowKey={(row: GALandingPageRow, index: number) => `${row.landingPage}\u0000${index}`}
+          getRowKey={(row: GALandingPageRow, index: number) =>
+            `${row.landingPage}\u0000${index}`
+          }
           emptyText="No landing page data"
           mini
         />
@@ -360,7 +399,11 @@ export default function GAReportComponent({
         <BarListPanel
           icon={Layers}
           title="Channel Grouping"
-          meta={channels?.channels?.length ? `${channels.channels.length} channels` : undefined}
+          meta={
+            channels?.channels?.length
+              ? `${channels.channels.length} channels`
+              : undefined
+          }
           bars={(channels?.channels ?? []).map((channel) => ({
             key: channel.channel,
             label: channel.channel,
@@ -370,7 +413,11 @@ export default function GAReportComponent({
         <BarListPanel
           icon={Link2}
           title="Traffic Sources"
-          meta={sources?.sources?.length ? `${sources.sources.length} sources` : undefined}
+          meta={
+            sources?.sources?.length
+              ? `${sources.sources.length} sources`
+              : undefined
+          }
           bars={(sources?.sources ?? []).map((source) => ({
             key: `${source.source}-${source.medium}`,
             label: `${source.source} / ${source.medium}`,
@@ -385,7 +432,9 @@ export default function GAReportComponent({
           icon={MapPin}
           title="Top Locations"
           meta={
-            geography?.locations?.length ? `${geography.locations.length} locations` : undefined
+            geography?.locations?.length
+              ? `${geography.locations.length} locations`
+              : undefined
           }
           bars={(geography?.locations ?? []).map((location) => ({
             key: `${location.country}-${location.city}`,
@@ -398,7 +447,11 @@ export default function GAReportComponent({
         <BarListPanel
           icon={Zap}
           title="Top Events"
-          meta={events?.events?.length ? `${events.events.length} events` : undefined}
+          meta={
+            events?.events?.length
+              ? `${events.events.length} events`
+              : undefined
+          }
           bars={(events?.events ?? []).map((event) => ({
             key: event.eventName,
             label: event.eventName,
@@ -411,13 +464,21 @@ export default function GAReportComponent({
 
       {/* ── Devices + Browsers ─────────────────────────────── */}
       <div className={styles["content-grid"]}>
-        <DonutPanel icon={Monitor} title="Device Categories" segments={deviceSegments} />
+        <DonutPanel
+          icon={Monitor}
+          title="Device Categories"
+          segments={deviceSegments}
+        />
         <DonutPanel icon={Globe} title="Browsers" segments={browserSegments} />
       </div>
 
       {/* ── OS + New vs Returning ──────────────────────────── */}
       <div className={styles["content-grid"]}>
-        <DonutPanel icon={Laptop} title="Operating Systems" segments={osSegments} />
+        <DonutPanel
+          icon={Laptop}
+          title="Operating Systems"
+          segments={osSegments}
+        />
         <DonutPanel
           icon={RefreshCw}
           title="New vs Returning"

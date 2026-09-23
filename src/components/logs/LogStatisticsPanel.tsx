@@ -21,11 +21,13 @@ export default function LogStatisticsPanel({
   const sent = stats.network.tx;
 
   return (
-    <div className={styles['panel']}>
+    <div className={styles["panel"]}>
       <StatsCardComponent
         label="Status"
         value={stats.state || "unknown"}
-        subtitle={<span title={stats.status || ""}>{stats.status || "No status"}</span>}
+        subtitle={
+          <span title={stats.status || ""}>{stats.status || "No status"}</span>
+        }
         icon={isRunning ? Check : X}
         variant={isRunning ? "success" : "danger"}
       />
@@ -39,7 +41,9 @@ export default function LogStatisticsPanel({
       <StatsCardComponent
         label="Memory Used"
         value={formatBytes(memory.used)}
-        subtitle={memory.limit ? `Limit: ${formatBytes(memory.limit)}` : "No limit"}
+        subtitle={
+          memory.limit ? `Limit: ${formatBytes(memory.limit)}` : "No limit"
+        }
         icon={MemoryStick}
         variant={severityOf(memory.percent, thresholds.memory)}
       />

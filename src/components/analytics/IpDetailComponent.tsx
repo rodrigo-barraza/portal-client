@@ -43,10 +43,15 @@ export default function IpDetailComponent({
   onOpenSession: (sessionId: string) => void;
 }) {
   const detail = useAsyncData(`${ip}|${projectId}|${period}`, (signal) =>
-    ApiService.getSessionIpDetail(ip, projectId, period, { signal }).then(unwrapData),
+    ApiService.getSessionIpDetail(ip, projectId, period, { signal }).then(
+      unwrapData,
+    ),
   );
   const profile = detail.data;
-  const timeline = useMemo(() => (profile ? ipTimeline(profile) : []), [profile]);
+  const timeline = useMemo(
+    () => (profile ? ipTimeline(profile) : []),
+    [profile],
+  );
 
   if (detail.loading) return <ExplorerLoading label="Loading IP profile…" />;
   if (detail.error || !profile) {
@@ -91,7 +96,8 @@ export default function IpDetailComponent({
         </MetaCard>
         <MetaCard label="Browser">
           <MetaValue>
-            {profile.lastBrowser?.name || "Unknown"} {profile.lastBrowser?.version || ""}
+            {profile.lastBrowser?.name || "Unknown"}{" "}
+            {profile.lastBrowser?.version || ""}
           </MetaValue>
         </MetaCard>
         <MetaCard label="OS">
@@ -130,7 +136,11 @@ export default function IpDetailComponent({
           count={visitorIds.length}
         >
           {visitorIds.map((visitorId) => (
-            <span key={visitorId} className={styles["visitor-pill"]} title={visitorId}>
+            <span
+              key={visitorId}
+              className={styles["visitor-pill"]}
+              title={visitorId}
+            >
               {shortId(visitorId, 12)}
             </span>
           ))}
@@ -153,7 +163,9 @@ export default function IpDetailComponent({
               aria-label={`Open session ${session.sessionId}`}
             >
               {shortId(session.sessionId, 8)}
-              <span className={styles["pill-duration"]}>{formatDurationMs(session.duration)}</span>
+              <span className={styles["pill-duration"]}>
+                {formatDurationMs(session.duration)}
+              </span>
             </button>
           ))}
           {sessions.length > IP_SESSION_PILLS && (
@@ -164,7 +176,10 @@ export default function IpDetailComponent({
         </LinkedSection>
       )}
 
-      <SessionTimelineComponent timeline={timeline} label="Cross-Session Timeline" />
+      <SessionTimelineComponent
+        timeline={timeline}
+        label="Cross-Session Timeline"
+      />
     </>
   );
 }

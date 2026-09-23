@@ -1,6 +1,13 @@
 "use client";
 
-import { AlertTriangle, Blocks, ChevronRight, FileCode2, FlaskConical, Package } from "lucide-react";
+import {
+  AlertTriangle,
+  Blocks,
+  ChevronRight,
+  FileCode2,
+  FlaskConical,
+  Package,
+} from "lucide-react";
 import { ErrorBoundaryComponent } from "@rodrigo-barraza/components-library";
 import {
   ComponentPreviewDemo,
@@ -20,7 +27,13 @@ const PREVIEW_ERROR_FALLBACK = (
 
 /** A component's live demo, isolated so one broken demo can't take the
  *  catalog down. */
-function ComponentPreview({ name, className }: { name: string; className: string }) {
+function ComponentPreview({
+  name,
+  className,
+}: {
+  name: string;
+  className: string;
+}) {
   if (!hasPreview(name)) return null;
   return (
     <div className={className}>
@@ -68,7 +81,8 @@ export default function ComponentCatalogItemComponent({
   index: number;
   showPreview: boolean;
 }) {
-  const { name, description, m3, hasTests, files, sizeKb, category } = component;
+  const { name, description, m3, hasTests, files, sizeKb, category } =
+    component;
 
   if (variant === "card") {
     return (
@@ -82,7 +96,10 @@ export default function ComponentCatalogItemComponent({
           </div>
           <div className={styles["card-meta"]}>
             {m3 && (
-              <span className={styles["m3-badge"]} title="Material Design 3 compliant">
+              <span
+                className={styles["m3-badge"]}
+                title="Material Design 3 compliant"
+              >
                 M3
               </span>
             )}
@@ -128,7 +145,10 @@ export default function ComponentCatalogItemComponent({
         </div>
         <div className={styles["list-desc"]}>{description}</div>
         {showPreview && (
-          <ComponentPreview name={name} className={styles["preview-area-list"]} />
+          <ComponentPreview
+            name={name}
+            className={styles["preview-area-list"]}
+          />
         )}
       </div>
       <div className={styles["list-stats"]}>

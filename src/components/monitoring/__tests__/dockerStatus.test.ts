@@ -10,7 +10,9 @@ describe("parseDockerUptime", () => {
   it("reads the uptime out of Docker's status", () => {
     expect(parseDockerUptime("Up 2 hours")).toBe("2 hours");
     expect(parseDockerUptime("Up 5 minutes (healthy)")).toBe("5 minutes");
-    expect(parseDockerUptime("Up About an hour (Paused)")).toBe("About an hour");
+    expect(parseDockerUptime("Up About an hour (Paused)")).toBe(
+      "About an hour",
+    );
   });
 
   it("has no uptime for containers that are not up", () => {
@@ -33,11 +35,22 @@ describe("dockerUptimeSeconds", () => {
   });
 
   it("orders longer uptimes after shorter ones", () => {
-    const statuses = ["Up 3 days", "Up 5 minutes", "Up 2 hours", "Up About an hour"];
+    const statuses = [
+      "Up 3 days",
+      "Up 5 minutes",
+      "Up 2 hours",
+      "Up About an hour",
+    ];
     const sorted = [...statuses].sort(
-      (first, second) => (dockerUptimeSeconds(first) ?? 0) - (dockerUptimeSeconds(second) ?? 0),
+      (first, second) =>
+        (dockerUptimeSeconds(first) ?? 0) - (dockerUptimeSeconds(second) ?? 0),
     );
-    expect(sorted).toEqual(["Up 5 minutes", "Up About an hour", "Up 2 hours", "Up 3 days"]);
+    expect(sorted).toEqual([
+      "Up 5 minutes",
+      "Up About an hour",
+      "Up 2 hours",
+      "Up 3 days",
+    ]);
   });
 
   it("is null when not running or unparseable", () => {

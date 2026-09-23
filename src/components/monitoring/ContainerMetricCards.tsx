@@ -28,10 +28,12 @@ export function MetricCard({
   children?: ReactNode;
 }) {
   return (
-    <div className={styles['card']}>
-      <div className={styles['header']}>
-        {Icon && <Icon size={13} strokeWidth={2.2} className={styles['icon']} />}
-        <span className={styles['title']}>{title}</span>
+    <div className={styles["card"]}>
+      <div className={styles["header"]}>
+        {Icon && (
+          <Icon size={13} strokeWidth={2.2} className={styles["icon"]} />
+        )}
+        <span className={styles["title"]}>{title}</span>
         {header}
       </div>
       {children}
@@ -39,16 +41,22 @@ export function MetricCard({
   );
 }
 
-export function MetricValue({ color, children }: { color?: string; children: ReactNode }) {
+export function MetricValue({
+  color,
+  children,
+}: {
+  color?: string;
+  children: ReactNode;
+}) {
   return (
-    <span className={styles['value']} style={color ? { color } : undefined}>
+    <span className={styles["value"]} style={color ? { color } : undefined}>
       {children}
     </span>
   );
 }
 
 export function MetricDim({ children }: { children: ReactNode }) {
-  return <span className={styles['dim']}>{children}</span>;
+  return <span className={styles["dim"]}>{children}</span>;
 }
 
 export function CpuMetricCard({
@@ -67,7 +75,9 @@ export function CpuMetricCard({
       title="CPU"
       header={
         <>
-          <MetricValue color={color}>{formatPercent(cpu.percent, "adaptive")}</MetricValue>
+          <MetricValue color={color}>
+            {formatPercent(cpu.percent, "adaptive")}
+          </MetricValue>
           <MetricDim>
             · {cpu.cores} core{cpu.cores === 1 ? "" : "s"}
           </MetricDim>
@@ -107,7 +117,9 @@ export function MemoryMetricCard({
         <>
           <MetricValue color={color}>{formatBytes(memory.used)}</MetricValue>
           <MetricDim>/ {formatBytes(memory.limit)}</MetricDim>
-          <MetricValue color={color}>{formatPercent(memory.percent, "adaptive")}</MetricValue>
+          <MetricValue color={color}>
+            {formatPercent(memory.percent, "adaptive")}
+          </MetricValue>
         </>
       }
     >
@@ -136,7 +148,11 @@ export function TransferStats({
   children: ReactNode;
 }) {
   return (
-    <div className={warning ? styles['transfer-row-warning'] : styles['transfer-row']}>
+    <div
+      className={
+        warning ? styles["transfer-row-warning"] : styles["transfer-row"]
+      }
+    >
       {children}
     </div>
   );
@@ -152,9 +168,13 @@ export function TransferStat({
   danger?: boolean;
 }) {
   return (
-    <span className={styles['transfer-stat']}>
-      <span className={styles['transfer-label']}>{label}</span>
-      <span className={danger ? styles['transfer-value-danger'] : styles['transfer-value']}>
+    <span className={styles["transfer-stat"]}>
+      <span className={styles["transfer-label"]}>{label}</span>
+      <span
+        className={
+          danger ? styles["transfer-value-danger"] : styles["transfer-value"]
+        }
+      >
         {value}
       </span>
     </span>
@@ -163,5 +183,5 @@ export function TransferStat({
 
 /** Grid row that lays small cards side by side (Network / Block I/O / PIDs). */
 export function MetricRow({ children }: { children: ReactNode }) {
-  return <div className={styles['row']}>{children}</div>;
+  return <div className={styles["row"]}>{children}</div>;
 }

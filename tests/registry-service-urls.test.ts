@@ -12,7 +12,11 @@ describe("deriveServiceUrls", () => {
 
   it("derives internal and public URLs like the vault does", () => {
     expect(
-      deriveServiceUrls(registry, ["portal-service", "vault-service", "missing"]),
+      deriveServiceUrls(registry, [
+        "portal-service",
+        "vault-service",
+        "missing",
+      ]),
     ).toEqual({
       PORTAL_SERVICE_URL: "http://10.1.2.3:4001",
       PORTAL_SERVICE_PUBLIC_URL: "https://api.portal.example",

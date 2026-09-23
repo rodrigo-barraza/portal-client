@@ -1,4 +1,11 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetSettings, updateSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
@@ -6,7 +13,10 @@ import type { PortalService } from "@/types/portal";
 import ProjectsComponent from "../../ProjectsComponent";
 import { serviceActionResponse } from "../../__tests__/apiFixtures";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
+vi.mock(
+  "@rodrigo-barraza/components-library",
+  () => import("../../__tests__/componentsLibraryStub"),
+);
 
 vi.mock("@/services/ApiService", () => ({
   default: {
@@ -48,7 +58,13 @@ const services: PortalService[] = [
 ];
 
 const infrastructure: PortalService[] = [
-  { id: "mongodb", name: "MongoDB", healthy: true, checkedAt: CHECKED, projectType: "Database" },
+  {
+    id: "mongodb",
+    name: "MongoDB",
+    healthy: true,
+    checkedAt: CHECKED,
+    projectType: "Database",
+  },
 ];
 
 beforeEach(() => {
@@ -56,7 +72,10 @@ beforeEach(() => {
   updateSettings({ defaultView: "card" });
   api.getServices.mockResolvedValue({ services, infrastructure });
   api.getProjectSizes.mockResolvedValue({ sizes: {}, fetchedAt: CHECKED });
-  api.getProjectLanguages.mockResolvedValue({ languages: {}, fetchedAt: CHECKED });
+  api.getProjectLanguages.mockResolvedValue({
+    languages: {},
+    fetchedAt: CHECKED,
+  });
   api.getRollbackStatus.mockResolvedValue({ available: false });
   api.getRollbackStatuses.mockResolvedValue({});
   api.stopService.mockResolvedValue(serviceActionResponse("Prism Service"));
@@ -73,21 +92,29 @@ describe("ProjectsComponent", () => {
     fireEvent.click(stop);
     expect(api.stopService).not.toHaveBeenCalled();
 
-    const dialog = screen.getByRole("alertdialog", { name: "Stop Prism Service?" });
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Stop Prism Service?",
+    });
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Stop" }));
     });
     expect(api.stopService).toHaveBeenCalledWith("prism-service");
-    expect(await screen.findByText("Prism Service stopped")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Prism Service stopped"),
+    ).toBeInTheDocument();
   });
 
   it("shows why an action failed", async () => {
-    api.stopService.mockRejectedValue(new Error("No Docker API configured for device: nas"));
+    api.stopService.mockRejectedValue(
+      new Error("No Docker API configured for device: nas"),
+    );
     render(<ProjectsComponent />);
     fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
     await act(async () => {
       fireEvent.click(
-        within(screen.getByRole("alertdialog")).getByRole("button", { name: "Stop" }),
+        within(screen.getByRole("alertdialog")).getByRole("button", {
+          name: "Stop",
+        }),
       );
     });
     expect(
@@ -136,7 +163,9 @@ describe("ProjectsComponent", () => {
 
   it("runs a real health round for the first load and on Check All", async () => {
     render(<ProjectsComponent />);
-    await waitFor(() => expect(api.getServices).toHaveBeenCalledWith(true, expect.anything()));
+    await waitFor(() =>
+      expect(api.getServices).toHaveBeenCalledWith(true, expect.anything()),
+    );
     const callsBefore = api.getServices.mock.calls.length;
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Check All" }));
@@ -149,7 +178,9 @@ describe("ProjectsComponent", () => {
     api.getServices.mockRejectedValue(new Error("portal-service unreachable"));
     render(<ProjectsComponent />);
     expect(
-      await screen.findByText("Couldn't load projects: portal-service unreachable"),
+      await screen.findByText(
+        "Couldn't load projects: portal-service unreachable",
+      ),
     ).toBeInTheDocument();
   });
 });

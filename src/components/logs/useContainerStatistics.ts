@@ -13,20 +13,28 @@ import type { LogStreamTarget } from "./useLogStream";
  * with the container it belongs to, so switching containers can never
  * show the previous one's numbers — not even from a late response.
  */
-export function useContainerStatistics(target: LogStreamTarget | null, pollIntervalSeconds: number) {
+export function useContainerStatistics(
+  target: LogStreamTarget | null,
+  pollIntervalSeconds: number,
+) {
   const key = target ? containerKey(target.device, target.container) : null;
-  const [result, setResult] = useState<{ key: string; stats: DockerContainerStats | null } | null>(
-    null,
-  );
+  const [result, setResult] = useState<{
+    key: string;
+    stats: DockerContainerStats | null;
+  } | null>(null);
 
   useVisiblePolling(
     async (isCurrent, signal) => {
       if (!target || !key) return;
       try {
-        const response = await ApiService.getContainerStats(target.device, { signal });
+        const response = await ApiService.getContainerStats(target.device, {
+          signal,
+        });
         if (!isCurrent()) return;
         const stats =
-          response.containers.find((container) => container.name === target.container) ?? null;
+          response.containers.find(
+            (container) => container.name === target.container,
+          ) ?? null;
         setResult({ key, stats });
       } catch {
         // Keep the last reading; the stream itself reports connection trouble.

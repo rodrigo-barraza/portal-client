@@ -43,11 +43,21 @@ export default function WebAnalyticsComponent() {
       ) : (
         <>
           {registry.error && (
-            <div className={`${styles["empty-state"]} ${styles["empty-state-compact"]}`} role="alert">
-              <ChartColumn size={28} strokeWidth={1.5} className={styles["empty-icon"]} />
-              <span className={styles["empty-title"]}>Google Analytics unavailable</span>
+            <div
+              className={`${styles["empty-state"]} ${styles["empty-state-compact"]}`}
+              role="alert"
+            >
+              <ChartColumn
+                size={28}
+                strokeWidth={1.5}
+                className={styles["empty-icon"]}
+              />
+              <span className={styles["empty-title"]}>
+                Google Analytics unavailable
+              </span>
               <span className={styles["empty-detail"]}>
-                {readableErrorMessage(registry.error) ?? "Could not load the GA4 property registry."}
+                {readableErrorMessage(registry.error) ??
+                  "Could not load the GA4 property registry."}
               </span>
             </div>
           )}

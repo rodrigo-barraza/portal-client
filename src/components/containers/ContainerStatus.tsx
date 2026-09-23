@@ -9,25 +9,29 @@ export const STATUS_LABEL: Record<ContainerStatusKind, string> = {
 };
 
 const INDICATOR_CLASS: Record<ContainerStatusKind, string> = {
-  healthy: styles['status-healthy'],
-  down: styles['status-down'],
-  unknown: styles['status-unknown'],
+  healthy: styles["status-healthy"],
+  down: styles["status-down"],
+  unknown: styles["status-unknown"],
 };
 
 const ICON_CLASS: Record<ContainerStatusKind, string> = {
-  healthy: styles['icon-healthy'],
-  down: styles['icon-unhealthy'],
-  unknown: styles['icon-unknown'],
+  healthy: styles["icon-healthy"],
+  down: styles["icon-unhealthy"],
+  unknown: styles["icon-unknown"],
 };
 
 const INDICATOR_GLYPH = { healthy: Check, down: X, unknown: Minus } as const;
 
 /** Round status chip for the table's Status column. */
-export function StatusIndicator({ statusKind }: { statusKind: ContainerStatusKind }) {
+export function StatusIndicator({
+  statusKind,
+}: {
+  statusKind: ContainerStatusKind;
+}) {
   const Glyph = INDICATOR_GLYPH[statusKind];
   return (
     <span
-      className={`${styles['status-indicator']} ${INDICATOR_CLASS[statusKind]}`}
+      className={`${styles["status-indicator"]} ${INDICATOR_CLASS[statusKind]}`}
       title={STATUS_LABEL[statusKind]}
       role="img"
       aria-label={STATUS_LABEL[statusKind]}
@@ -38,12 +42,16 @@ export function StatusIndicator({ statusKind }: { statusKind: ContainerStatusKin
 }
 
 /** Container glyph tinted by status (table name cell, card title). */
-export function ContainerStatusIcon({ statusKind }: { statusKind: ContainerStatusKind }) {
+export function ContainerStatusIcon({
+  statusKind,
+}: {
+  statusKind: ContainerStatusKind;
+}) {
   return (
     <Container
       size={14}
       strokeWidth={2.6}
-      className={`${styles['type-icon']} ${ICON_CLASS[statusKind]}`}
+      className={`${styles["type-icon"]} ${ICON_CLASS[statusKind]}`}
       aria-hidden="true"
     />
   );
@@ -58,7 +66,7 @@ export function CheckingPill({
   title?: string;
 }) {
   return (
-    <span className={styles['checking-pill']} title={title}>
+    <span className={styles["checking-pill"]} title={title}>
       {label}
     </span>
   );

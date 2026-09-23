@@ -12,7 +12,13 @@
  * confirm/cancel, toasts. Add to this file; never start a second stub.
  */
 
-import { useCallback, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 type Children = { children?: ReactNode };
 
@@ -85,7 +91,13 @@ export function IconButtonComponent({
   );
 }
 
-export function LoadingIndicatorComponent({ label }: { label?: string; size?: string; className?: string }) {
+export function LoadingIndicatorComponent({
+  label,
+}: {
+  label?: string;
+  size?: string;
+  className?: string;
+}) {
   return <div role="progressbar">{label}</div>;
 }
 
@@ -172,7 +184,12 @@ export function DrawerComponent({
   title,
   headerActions,
   children,
-}: Children & { open: boolean; title?: string; headerActions?: ReactNode; onClose?: () => void }) {
+}: Children & {
+  open: boolean;
+  title?: string;
+  headerActions?: ReactNode;
+  onClose?: () => void;
+}) {
   if (!open) return null;
   return (
     <aside aria-label={title}>
@@ -222,7 +239,9 @@ export function SegmentedControlComponent({
           type="button"
           role="radio"
           aria-checked={segment.value === value}
-          aria-label={typeof segment.label === "string" ? segment.label : segment.value}
+          aria-label={
+            typeof segment.label === "string" ? segment.label : segment.value
+          }
           onClick={() => segment.value !== value && onChange(segment.value)}
         >
           {segment.label}
@@ -255,7 +274,12 @@ export function EmptyStateComponent({
   title,
   subtitle,
   children,
-}: Children & { icon?: ReactNode; title?: ReactNode; subtitle?: ReactNode; className?: string }) {
+}: Children & {
+  icon?: ReactNode;
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  className?: string;
+}) {
   return (
     <div>
       {icon}
@@ -285,9 +309,18 @@ export function ModalComponent({
   children,
   footer,
   onClose,
-}: Children & { title?: ReactNode; footer?: ReactNode; onClose: () => void; size?: string; className?: string }) {
+}: Children & {
+  title?: ReactNode;
+  footer?: ReactNode;
+  onClose: () => void;
+  size?: string;
+  className?: string;
+}) {
   return (
-    <div role="dialog" aria-label={typeof title === "string" ? title : undefined}>
+    <div
+      role="dialog"
+      aria-label={typeof title === "string" ? title : undefined}
+    >
       <h2>{title}</h2>
       {children}
       {footer}
@@ -320,7 +353,10 @@ export function DialogComponent({
 }) {
   if (!open) return null;
   return (
-    <div role="alertdialog" aria-label={typeof headline === "string" ? headline : undefined}>
+    <div
+      role="alertdialog"
+      aria-label={typeof headline === "string" ? headline : undefined}
+    >
       <h2>{headline}</h2>
       <div>{children}</div>
       <button type="button" onClick={onClose}>
@@ -351,11 +387,18 @@ export function BadgeComponent({
   icons?: unknown;
 }) {
   if (type === "status") return <span>{healthy ? "Healthy" : "Down"}</span>;
-  const shown = rest.device ?? rest.domain ?? rest.port ?? rest.address ?? rest.visibility;
+  const shown =
+    rest.device ?? rest.domain ?? rest.port ?? rest.address ?? rest.visibility;
   return <span>{children ?? shown ?? null}</span>;
 }
 
-export function StatusDotComponent({ variant }: { variant?: string; size?: string; pulse?: boolean }) {
+export function StatusDotComponent({
+  variant,
+}: {
+  variant?: string;
+  size?: string;
+  pulse?: boolean;
+}) {
   return <span data-status={variant} />;
 }
 
@@ -363,7 +406,11 @@ export function CollapsibleBlockComponent({
   label,
   badge,
   children,
-}: Children & { label?: ReactNode; badge?: ReactNode; defaultCollapsed?: boolean }) {
+}: Children & {
+  label?: ReactNode;
+  badge?: ReactNode;
+  defaultCollapsed?: boolean;
+}) {
   return (
     <section>
       <h3>
@@ -446,7 +493,10 @@ interface StubToast {
 export function useToast() {
   const [toasts, setToasts] = useState<StubToast[]>([]);
   const addToast = useCallback((message: string, type = "info") => {
-    setToasts((previous) => [...previous, { id: previous.length + 1, message, type }]);
+    setToasts((previous) => [
+      ...previous,
+      { id: previous.length + 1, message, type },
+    ]);
   }, []);
   const removeToast = useCallback((id: number) => {
     setToasts((previous) => previous.filter((toast) => toast.id !== id));
@@ -454,7 +504,12 @@ export function useToast() {
   return { toasts, addToast, removeToast };
 }
 
-export function ToastComponent({ toasts }: { toasts?: StubToast[]; onDismiss?: (id: number) => void }) {
+export function ToastComponent({
+  toasts,
+}: {
+  toasts?: StubToast[];
+  onDismiss?: (id: number) => void;
+}) {
   return (
     <div>
       {(toasts ?? []).map((toast) => (

@@ -12,7 +12,9 @@ const api = vi.hoisted(() => ({
 
 vi.mock("../../../services/ApiService", () => ({ default: api }));
 // The replay player is lazy-loaded via next/dynamic; stub it out here
-vi.mock("next/dynamic", () => ({ default: () => () => <div data-testid="replay-stub" /> }));
+vi.mock("next/dynamic", () => ({
+  default: () => () => <div data-testid="replay-stub" />,
+}));
 
 import SessionExplorerComponent from "../../SessionExplorerComponent";
 
@@ -133,7 +135,9 @@ beforeEach(() => {
       ],
       events: [],
       // The service's merged timeline drops sessionId
-      timeline: [{ type: "pageview", timestamp: "2026-09-01T10:00:00.000Z", path: "/" }],
+      timeline: [
+        { type: "pageview", timestamp: "2026-09-01T10:00:00.000Z", path: "/" },
+      ],
     },
   });
   api.getSessionDetail.mockResolvedValue({
@@ -153,63 +157,104 @@ beforeEach(() => {
 
 describe("SessionExplorerComponent", () => {
   it("walks list → IP → session → IP and back through the same stack", async () => {
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
 
-    fireEvent.click(await screen.findByRole("button", { name: new RegExp(IP) }));
-    expect(await screen.findByText("Cross-Session Timeline")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Back to list" })).toBeInTheDocument();
+    fireEvent.click(
+      await screen.findByRole("button", { name: new RegExp(IP) }),
+    );
+    expect(
+      await screen.findByText("Cross-Session Timeline"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Back to list" }),
+    ).toBeInTheDocument();
 
     // Open the session from the IP profile
-    fireEvent.click(screen.getByRole("button", { name: `Open session ${SESSION_ID}` }));
+    fireEvent.click(
+      screen.getByRole("button", { name: `Open session ${SESSION_ID}` }),
+    );
     expect(await screen.findByText("hello@rod.dev")).toBeInTheDocument();
 
     // The IP link in a session used to do nothing (the session view won)
     fireEvent.click(screen.getByRole("button", { name: `Open IP ${IP}` }));
-    expect(await screen.findByText("Cross-Session Timeline")).toBeInTheDocument();
-    expect(api.getSessionIpDetail).toHaveBeenCalledWith(IP, "rod-dev-client", "30d", {
-      signal: expect.any(AbortSignal),
-    });
+    expect(
+      await screen.findByText("Cross-Session Timeline"),
+    ).toBeInTheDocument();
+    expect(api.getSessionIpDetail).toHaveBeenCalledWith(
+      IP,
+      "rod-dev-client",
+      "30d",
+      {
+        signal: expect.any(AbortSignal),
+      },
+    );
 
     // Back pops one level at a time
     fireEvent.click(screen.getByRole("button", { name: /Back to session/ }));
     expect(await screen.findByText("hello@rod.dev")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: `Back to ${IP}` }));
-    expect(await screen.findByText("Cross-Session Timeline")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Cross-Session Timeline"),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
     expect(await screen.findByRole("tablist")).toBeInTheDocument();
   });
 
   it("tags cross-session timeline rows with their session", async () => {
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
-    fireEvent.click(await screen.findByRole("button", { name: new RegExp(IP) }));
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: new RegExp(IP) }),
+    );
 
-    const timeline = await screen.findByRole("region", { name: "Cross-Session Timeline" });
-    expect(within(timeline).getByTitle(SESSION_ID)).toHaveTextContent("sessio…");
+    const timeline = await screen.findByRole("region", {
+      name: "Cross-Session Timeline",
+    });
+    expect(within(timeline).getByTitle(SESSION_ID)).toHaveTextContent(
+      "sessio…",
+    );
   });
 
   it("counts hidden sessions from the visitor's total, not the capped id list", async () => {
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
     fireEvent.click(await screen.findByRole("tab", { name: /Visitors/ }));
     // 40 sessions, 5 pills shown → 35 more (was "+15": 20 capped ids − 5)
     expect(await screen.findByText("+35 more")).toBeInTheDocument();
   });
 
   it("flags bot sessions in the list", async () => {
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
     fireEvent.click(await screen.findByRole("tab", { name: /Sessions/ }));
-    expect(await screen.findByTitle("Flagged as crawler/bot traffic")).toBeInTheDocument();
+    expect(
+      await screen.findByTitle("Flagged as crawler/bot traffic"),
+    ).toBeInTheDocument();
   });
 
   it("reports a failed list as an error, not as an empty period", async () => {
     api.getSessionIpUsers.mockRejectedValue(new Error("Unauthorized"));
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load IPs: Unauthorized");
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Could not load IPs: Unauthorized",
+    );
     expect(screen.queryByText(/No IPs in this period/)).not.toBeInTheDocument();
   });
 
-  it("never shows a proxied `{ error: true }` body as the text \"true\"", async () => {
+  it('never shows a proxied `{ error: true }` body as the text "true"', async () => {
     api.getSessionIpUsers.mockRejectedValue(new Error(String(true)));
-    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
-    expect(await screen.findByRole("alert")).toHaveTextContent(/^Could not load IPs\.$/);
+    render(
+      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /^Could not load IPs\.$/,
+    );
   });
 });

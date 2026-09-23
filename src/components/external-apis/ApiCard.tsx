@@ -9,7 +9,12 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatCompact, isUrl } from "@rodrigo-barraza/utilities-library";
 import { getCategoryMeta } from "./categoryMeta";
-import { fillDailyValues, formatCostValue, formatPercentValue, successPercent } from "./externalApiUsage";
+import {
+  fillDailyValues,
+  formatCostValue,
+  formatPercentValue,
+  successPercent,
+} from "./externalApiUsage";
 import webStyles from "../WebAnalytics.module.css";
 import type { ExternalApiTimeSeries, ExternalApiUsage } from "@/types/portal";
 import styles from "../ExternalApisComponent.module.css";
@@ -33,8 +38,16 @@ function DetailPanel({
   const series = useMemo(
     () =>
       timeSeries && {
-        success: fillDailyValues(timeSeries.series, (point) => point.successRequests, dates),
-        errors: fillDailyValues(timeSeries.series, (point) => point.errorRequests, dates),
+        success: fillDailyValues(
+          timeSeries.series,
+          (point) => point.successRequests,
+          dates,
+        ),
+        errors: fillDailyValues(
+          timeSeries.series,
+          (point) => point.errorRequests,
+          dates,
+        ),
       },
     [timeSeries, dates],
   );
@@ -49,7 +62,11 @@ function DetailPanel({
     );
   }
   if (failed || !series) {
-    return <p className={styles["detail-error"]}>Couldn&apos;t load the daily breakdown.</p>;
+    return (
+      <p className={styles["detail-error"]}>
+        Couldn&apos;t load the daily breakdown.
+      </p>
+    );
   }
 
   const hasErrors = series.errors.some((value) => value > 0);
@@ -79,12 +96,18 @@ function DetailPanel({
       </div>
       <div className={webStyles["chart-legend"]}>
         <div className={webStyles["chart-legend-item"]}>
-          <div className={webStyles["chart-legend-dot"]} style={{ background: SUCCESS_COLOR }} />
+          <div
+            className={webStyles["chart-legend-dot"]}
+            style={{ background: SUCCESS_COLOR }}
+          />
           Success
         </div>
         {hasErrors && (
           <div className={webStyles["chart-legend-item"]}>
-            <div className={webStyles["chart-legend-dot"]} style={{ background: ERROR_COLOR }} />
+            <div
+              className={webStyles["chart-legend-dot"]}
+              style={{ background: ERROR_COLOR }}
+            />
             Errors
           </div>
         )}
@@ -119,7 +142,8 @@ export const ApiCard = memo(function ApiCard({
   const { icon: CategoryIcon, color } = getCategoryMeta(apiService.category);
   const success = successPercent(apiService);
   const sparkline = useMemo(
-    () => fillDailyValues(apiService.dailySeries, (point) => point.requests, dates),
+    () =>
+      fillDailyValues(apiService.dailySeries, (point) => point.requests, dates),
     [apiService.dailySeries, dates],
   );
   const hasCost = (apiService.estimatedCost ?? 0) > 0;
@@ -142,12 +166,19 @@ export const ApiCard = memo(function ApiCard({
         className={styles["api-card-header-row"]}
         aria-expanded={isExpanded}
       >
-        <span className={styles["api-card-icon-tile"]} style={{ color, background: `${color}15` }}>
+        <span
+          className={styles["api-card-icon-tile"]}
+          style={{ color, background: `${color}15` }}
+        >
           <CategoryIcon size={18} strokeWidth={2} />
         </span>
         <span className={styles["api-card-title-group"]}>
-          <span className={styles["api-card-name"]}>{apiService.displayName}</span>
-          <span className={styles["api-card-service-identifier"]}>{apiService.serviceIdentifier}</span>
+          <span className={styles["api-card-name"]}>
+            {apiService.displayName}
+          </span>
+          <span className={styles["api-card-service-identifier"]}>
+            {apiService.serviceIdentifier}
+          </span>
         </span>
         <ChevronDown
           size={16}
@@ -159,28 +190,38 @@ export const ApiCard = memo(function ApiCard({
       <div className={styles["api-card-metrics-row"]}>
         <div className={styles["metric-block"]}>
           <span className={styles["metric-label"]}>Requests</span>
-          <span className={styles["metric-value"]}>{formatCompact(apiService.totalRequests)}</span>
+          <span className={styles["metric-value"]}>
+            {formatCompact(apiService.totalRequests)}
+          </span>
         </div>
         <div className={styles["metric-block"]}>
           <span className={styles["metric-label"]}>Success</span>
-          <span className={styles["metric-value-success"]}>{formatCompact(apiService.successRequests)}</span>
+          <span className={styles["metric-value-success"]}>
+            {formatCompact(apiService.successRequests)}
+          </span>
         </div>
         {apiService.errorRequests > 0 && (
           <div className={styles["metric-block"]}>
             <span className={styles["metric-label"]}>Errors</span>
-            <span className={styles["metric-value-error"]}>{formatCompact(apiService.errorRequests)}</span>
+            <span className={styles["metric-value-error"]}>
+              {formatCompact(apiService.errorRequests)}
+            </span>
           </div>
         )}
         {apiService.errorRate > 0 && (
           <div className={styles["metric-block"]}>
             <span className={styles["metric-label"]}>Error Rate</span>
-            <span className={styles["metric-value-error"]}>{formatPercentValue(apiService.errorRate)}</span>
+            <span className={styles["metric-value-error"]}>
+              {formatPercentValue(apiService.errorRate)}
+            </span>
           </div>
         )}
         {hasCost && (
           <div className={styles["metric-block"]}>
             <span className={styles["metric-label"]}>Est. Cost</span>
-            <span className={styles["metric-value"]}>{formatCostValue(apiService.estimatedCost ?? 0)}</span>
+            <span className={styles["metric-value"]}>
+              {formatCostValue(apiService.estimatedCost ?? 0)}
+            </span>
           </div>
         )}
       </div>
@@ -190,8 +231,16 @@ export const ApiCard = memo(function ApiCard({
         role="img"
         aria-label={`${success.toFixed(1)}% successful`}
       >
-        <div className={styles["success-bar-segment"]} style={{ width: `${success}%` }} />
-        {success < 100 && <div className={styles["error-bar-segment"]} style={{ width: `${100 - success}%` }} />}
+        <div
+          className={styles["success-bar-segment"]}
+          style={{ width: `${success}%` }}
+        />
+        {success < 100 && (
+          <div
+            className={styles["error-bar-segment"]}
+            style={{ width: `${100 - success}%` }}
+          />
+        )}
       </div>
 
       <div className={styles["sparkline-wrapper"]}>

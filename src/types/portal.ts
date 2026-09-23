@@ -959,7 +959,10 @@ export interface ExplorerSession {
 }
 
 /** A session updated within the live window — no IP or fingerprint, bots excluded. */
-export type LiveSession = Omit<ExplorerSession, "ip" | "fingerprintId" | "isBot">;
+export type LiveSession = Omit<
+  ExplorerSession,
+  "ip" | "fingerprintId" | "isBot"
+>;
 
 export interface PageViewRecord {
   sessionId?: string;

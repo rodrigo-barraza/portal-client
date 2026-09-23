@@ -22,7 +22,10 @@ function toRollbackStatus(response: ServiceRollbackStatus): RollbackStatus {
  */
 export function useRollbackAvailability(serviceIds: readonly string[]) {
   const [statuses, setStatuses] = useState<Record<string, RollbackStatus>>({});
-  const signature = useMemo(() => [...new Set(serviceIds)].sort().join(","), [serviceIds]);
+  const signature = useMemo(
+    () => [...new Set(serviceIds)].sort().join(","),
+    [serviceIds],
+  );
 
   useEffect(() => {
     if (!signature) return;
@@ -46,7 +49,9 @@ export function useRollbackAvailability(serviceIds: readonly string[]) {
   /** Re-query one service — after a rollback consumes its `:previous` image. */
   const recheck = useCallback(async (serviceId: string) => {
     try {
-      const status = toRollbackStatus(await ApiService.getRollbackStatus(serviceId));
+      const status = toRollbackStatus(
+        await ApiService.getRollbackStatus(serviceId),
+      );
       setStatuses((previous) => ({ ...previous, [serviceId]: status }));
     } catch {
       // Keep the last known status; the next id-set change re-queries.

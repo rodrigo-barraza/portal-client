@@ -13,15 +13,24 @@ import { containerKey } from "../monitoring/containerHistory";
  * What the table reads from a `GET /stats/containers` entry: the name it
  * joins on, plus whichever stats fields are there to copy onto the row.
  */
-export type DockerContainer = Pick<DockerContainerStats, "name"> & Partial<DockerContainerStats>;
+export type DockerContainer = Pick<DockerContainerStats, "name"> &
+  Partial<DockerContainerStats>;
 
 export type ContainerType = ContainerRow["projectType"];
-export const CONTAINER_TYPES: readonly ContainerType[] = ["client", "service", "bot"];
+export const CONTAINER_TYPES: readonly ContainerType[] = [
+  "client",
+  "service",
+  "bot",
+];
 
-export function classifyContainer(name: string, projectType?: string | null): ContainerType {
+export function classifyContainer(
+  name: string,
+  projectType?: string | null,
+): ContainerType {
   const registryType = (projectType || "").toLowerCase();
   const lowerName = name.toLowerCase();
-  if (registryType === "client" || lowerName.includes("client")) return "client";
+  if (registryType === "client" || lowerName.includes("client"))
+    return "client";
   if (registryType === "bot" || lowerName.includes("bot")) return "bot";
   return "service";
 }
@@ -50,7 +59,8 @@ export function buildContainerRows(
 ): ContainerRow[] {
   const serviceByDockerProject = new Map<string, PortalService>();
   for (const service of services) {
-    if (service.dockerProject) serviceByDockerProject.set(service.dockerProject, service);
+    if (service.dockerProject)
+      serviceByDockerProject.set(service.dockerProject, service);
   }
 
   const rows = containers.map((container): ContainerRow => {
@@ -108,13 +118,20 @@ export interface ContainerFilters {
   query: string;
 }
 
-export function filterContainerRows(rows: ContainerRow[], filters: ContainerFilters): ContainerRow[] {
+export function filterContainerRows(
+  rows: ContainerRow[],
+  filters: ContainerFilters,
+): ContainerRow[] {
   const query = filters.query.trim().toLowerCase();
   return rows.filter((row) => {
-    if (filters.devices.length > 0 && !(row.device && filters.devices.includes(row.device))) {
+    if (
+      filters.devices.length > 0 &&
+      !(row.device && filters.devices.includes(row.device))
+    ) {
       return false;
     }
-    if (filters.types.length > 0 && !filters.types.includes(row.projectType)) return false;
+    if (filters.types.length > 0 && !filters.types.includes(row.projectType))
+      return false;
     if (!query) return true;
     return (
       row.containerName.toLowerCase().includes(query) ||
@@ -127,7 +144,9 @@ export function filterContainerRows(rows: ContainerRow[], filters: ContainerFilt
 }
 
 /** `/stats/system` answers an object (one device) or an array (all). */
-export function normalizeSystemInfo(response: SystemInfoResponse): SystemInfo[] | null {
+export function normalizeSystemInfo(
+  response: SystemInfoResponse,
+): SystemInfo[] | null {
   const devices = Array.isArray(response) ? response : [response];
   // Empty = every Docker host failed; null lets the next poll retry.
   return devices.length > 0 ? devices : null;
@@ -136,9 +155,12 @@ export function normalizeSystemInfo(response: SystemInfoResponse): SystemInfo[] 
 /** The host RAM figures the container table needs from `/stats/system`. */
 export type HostMemory = Pick<SystemInfo, "deviceId" | "totalMemory">;
 
-export function hostRamByDevice(systemInfo: HostMemory[] | null): Record<string, number> {
+export function hostRamByDevice(
+  systemInfo: HostMemory[] | null,
+): Record<string, number> {
   const ram: Record<string, number> = {};
-  for (const device of systemInfo ?? []) ram[device.deviceId] = device.totalMemory || 0;
+  for (const device of systemInfo ?? [])
+    ram[device.deviceId] = device.totalMemory || 0;
   return ram;
 }
 
@@ -148,7 +170,8 @@ export function hostRamByDevice(systemInfo: HostMemory[] | null): Record<string,
  * RAM counts as a real cap.
  */
 export function memoryUsage(memory: MemoryStats, hostRam: number) {
-  const capped = memory.limit > 0 && hostRam > 0 && memory.limit < hostRam * 0.99;
+  const capped =
+    memory.limit > 0 && hostRam > 0 && memory.limit < hostRam * 0.99;
   return {
     capped,
     percent: capped ? (memory.used / memory.limit) * 100 : memory.percent,
@@ -212,7 +235,9 @@ export function summarizeContainers(
   const memoryLimit = systemInfo
     ? systemInfo
         .filter(
-          (device) => activeDevices.length === 0 || activeDevices.includes(device.deviceId),
+          (device) =>
+            activeDevices.length === 0 ||
+            activeDevices.includes(device.deviceId),
         )
         .reduce((sum, device) => sum + (device.totalMemory || 0), 0)
     : Object.values(cgroupLimitByDevice).reduce((sum, limit) => sum + limit, 0);
@@ -230,6 +255,7 @@ export function summarizeContainers(
     networkRx,
     networkTx,
     responseSamples,
-    averageResponseMs: responseSamples > 0 ? Math.round(responseTotal / responseSamples) : 0,
+    averageResponseMs:
+      responseSamples > 0 ? Math.round(responseTotal / responseSamples) : 0,
   };
 }

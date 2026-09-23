@@ -106,7 +106,8 @@ export function computeTypeGroups(services: PortalService[]): TypeGroup[] {
     result.push({ type: typeName, members });
     groupMap.delete(typeName);
   }
-  for (const [typeName, members] of groupMap) result.push({ type: typeName, members });
+  for (const [typeName, members] of groupMap)
+    result.push({ type: typeName, members });
   return result;
 }
 
@@ -137,7 +138,8 @@ export function clusterSize(count: number, maxCols = MAX_COLS) {
   return {
     columnCount,
     rows,
-    width: columnCount * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2,
+    width:
+      columnCount * (NODE_W + CLUSTER_GAP_X) - CLUSTER_GAP_X + CLUSTER_PAD * 2,
     height: rows * (NODE_H + CLUSTER_GAP_Y) - CLUSTER_GAP_Y + CLUSTER_PAD * 2,
   };
 }
@@ -152,8 +154,14 @@ function placeGrid(
 ) {
   members.forEach((service, index) => {
     positions[service.id] = {
-      x: originX + CLUSTER_PAD + (index % columnCount) * (NODE_W + CLUSTER_GAP_X),
-      y: originY + CLUSTER_PAD + Math.floor(index / columnCount) * (NODE_H + CLUSTER_GAP_Y),
+      x:
+        originX +
+        CLUSTER_PAD +
+        (index % columnCount) * (NODE_W + CLUSTER_GAP_X),
+      y:
+        originY +
+        CLUSTER_PAD +
+        Math.floor(index / columnCount) * (NODE_H + CLUSTER_GAP_Y),
     };
   });
 }
@@ -167,7 +175,8 @@ export function layoutTierNodes(
 
   let librariesColumnWidth = 0;
   if (libraries.length > 0) {
-    librariesColumnWidth = clusterSize(libraries.length, LIBS_MAX_COLS).width + LIBS_GAP;
+    librariesColumnWidth =
+      clusterSize(libraries.length, LIBS_MAX_COLS).width + LIBS_GAP;
     placeGrid(positions, libraries, LIBS_MAX_COLS, 0, LABEL_H);
   }
 
@@ -188,9 +197,13 @@ export function layoutTierNodes(
 }
 
 /** "By type" layout: a TYPE_COLS-wide grid of type clusters. */
-export function layoutTypeNodes(groups: TypeGroup[]): Record<string, NodePosition> {
+export function layoutTypeNodes(
+  groups: TypeGroup[],
+): Record<string, NodePosition> {
   const positions: Record<string, NodePosition> = {};
-  const sizes = groups.map((group) => clusterSize(group.members.length, TYPE_MAX_COLS));
+  const sizes = groups.map((group) =>
+    clusterSize(group.members.length, TYPE_MAX_COLS),
+  );
 
   const columnWidths = Array.from({ length: TYPE_COLS }, () => 0);
   sizes.forEach((size, index) => {
@@ -198,16 +211,29 @@ export function layoutTypeNodes(groups: TypeGroup[]): Record<string, NodePositio
     columnWidths[column] = Math.max(columnWidths[column], size.width);
   });
   const columnOffsets = columnWidths.map((_, column) =>
-    columnWidths.slice(0, column).reduce((sum, width) => sum + width + TYPE_GROUP_GAP_X, 0),
+    columnWidths
+      .slice(0, column)
+      .reduce((sum, width) => sum + width + TYPE_GROUP_GAP_X, 0),
   );
 
   let rowY = 0;
   for (let rowStart = 0; rowStart < groups.length; rowStart += TYPE_COLS) {
     let rowHeight = 0;
-    for (let column = 0; column < TYPE_COLS && rowStart + column < groups.length; column++) {
+    for (
+      let column = 0;
+      column < TYPE_COLS && rowStart + column < groups.length;
+      column++
+    ) {
       const size = sizes[rowStart + column];
-      const clusterX = columnOffsets[column] + (columnWidths[column] - size.width) / 2;
-      placeGrid(positions, groups[rowStart + column].members, size.columnCount, clusterX, rowY + LABEL_H);
+      const clusterX =
+        columnOffsets[column] + (columnWidths[column] - size.width) / 2;
+      placeGrid(
+        positions,
+        groups[rowStart + column].members,
+        size.columnCount,
+        clusterX,
+        rowY + LABEL_H,
+      );
       rowHeight = Math.max(rowHeight, LABEL_H + size.height);
     }
     rowY += rowHeight + TYPE_GROUP_GAP_Y;
@@ -238,14 +264,25 @@ export function mergeAnalysisDeps(
 
     const existingIds = new Set((service.dependsOn || []).map(dependencyId));
     const newDependencies: DependencyRef[] = [];
-    for (const { target } of [...(detected.imports || []), ...(detected.apiCalls || [])]) {
+    for (const { target } of [
+      ...(detected.imports || []),
+      ...(detected.apiCalls || []),
+    ]) {
       if (existingIds.has(target)) continue;
       existingIds.add(target);
-      newDependencies.push({ id: target, name: target, criticality: "required", source: "detected" });
+      newDependencies.push({
+        id: target,
+        name: target,
+        criticality: "required",
+        source: "detected",
+      });
     }
 
     if (newDependencies.length === 0) return service;
-    return { ...service, dependsOn: [...(service.dependsOn || []), ...newDependencies] };
+    return {
+      ...service,
+      dependsOn: [...(service.dependsOn || []), ...newDependencies],
+    };
   });
 }
 
@@ -276,7 +313,9 @@ export function edgeKey(source: string, target: string): string {
  * loops and duplicate declarations are dropped (first declaration wins).
  */
 export function collectEdges(services: PortalService[]): TopologyEdge[] {
-  const typeById = new Map(services.map((service) => [service.id, service.projectType || ""]));
+  const typeById = new Map(
+    services.map((service) => [service.id, service.projectType || ""]),
+  );
   const seen = new Set<string>();
   const edges: TopologyEdge[] = [];
 
@@ -291,7 +330,9 @@ export function collectEdges(services: PortalService[]): TopologyEdge[] {
         source,
         target: service.id,
         criticality:
-          typeof dependency === "string" ? "required" : dependency.criticality || "required",
+          typeof dependency === "string"
+            ? "required"
+            : dependency.criticality || "required",
         type: PROJECT_TYPE_TO_EDGE[typeById.get(source) || ""] || "api",
       });
     }
@@ -328,12 +369,19 @@ function portPoint(position: NodePosition, side: PortSide): NodePosition {
   }
 }
 
-export function computeEdgeAnchors(source: NodePosition, target: NodePosition): EdgeAnchor {
+export function computeEdgeAnchors(
+  source: NodePosition,
+  target: NodePosition,
+): EdgeAnchor {
   const deltaX = target.x - source.x;
   const deltaY = target.y - source.y;
 
-  const verticalOverlap = !(source.y + NODE_H < target.y || target.y + NODE_H < source.y);
-  const horizontalOverlap = !(source.x + NODE_W < target.x || target.x + NODE_W < source.x);
+  const verticalOverlap = !(
+    source.y + NODE_H < target.y || target.y + NODE_H < source.y
+  );
+  const horizontalOverlap = !(
+    source.x + NODE_W < target.x || target.x + NODE_W < source.x
+  );
 
   // Side-by-side nodes use left/right ports, stacked nodes top/bottom —
   // otherwise whichever axis dominates the center-to-center delta.
@@ -344,12 +392,31 @@ export function computeEdgeAnchors(source: NodePosition, target: NodePosition): 
         ? false
         : Math.abs(deltaX) > Math.abs(deltaY);
 
-  const side1: PortSide = useHorizontal ? (deltaX > 0 ? "right" : "left") : deltaY > 0 ? "bottom" : "top";
-  const side2: PortSide = useHorizontal ? (deltaX > 0 ? "left" : "right") : deltaY > 0 ? "top" : "bottom";
+  const side1: PortSide = useHorizontal
+    ? deltaX > 0
+      ? "right"
+      : "left"
+    : deltaY > 0
+      ? "bottom"
+      : "top";
+  const side2: PortSide = useHorizontal
+    ? deltaX > 0
+      ? "left"
+      : "right"
+    : deltaY > 0
+      ? "top"
+      : "bottom";
 
   const point1 = portPoint(source, side1);
   const point2 = portPoint(target, side2);
-  return { x1: point1.x, y1: point1.y, side1, x2: point2.x, y2: point2.y, side2 };
+  return {
+    x1: point1.x,
+    y1: point1.y,
+    side1,
+    x2: point2.x,
+    y2: point2.y,
+    side2,
+  };
 }
 
 function controlOffset(side: PortSide, distance: number) {
@@ -388,7 +455,10 @@ export interface Selection {
  * flows into the selection, `outgoing` flows out of it, `network` is a
  * transitive edge between two other connected nodes.
  */
-export function computeSelection(selectedId: string | null, edges: TopologyEdge[]): Selection {
+export function computeSelection(
+  selectedId: string | null,
+  edges: TopologyEdge[],
+): Selection {
   const connectedNodes = new Set<string>();
   const edgeDirections = new Map<string, EdgeDirection>();
   if (!selectedId) return { connectedNodes, edgeDirections };
@@ -414,25 +484,40 @@ export function computeSelection(selectedId: string | null, edges: TopologyEdge[
       queue.push(dependency);
     }
   }
-  for (const consumer of consumersOf.get(selectedId) || []) connectedNodes.add(consumer);
+  for (const consumer of consumersOf.get(selectedId) || [])
+    connectedNodes.add(consumer);
 
   for (const edge of edges) {
-    if (!connectedNodes.has(edge.source) || !connectedNodes.has(edge.target)) continue;
+    if (!connectedNodes.has(edge.source) || !connectedNodes.has(edge.target))
+      continue;
     edgeDirections.set(
       edgeKey(edge.source, edge.target),
-      edge.target === selectedId ? "incoming" : edge.source === selectedId ? "outgoing" : "network",
+      edge.target === selectedId
+        ? "incoming"
+        : edge.source === selectedId
+          ? "outgoing"
+          : "network",
     );
   }
   return { connectedNodes, edgeDirections };
 }
 
 /** Ids of services matching the query (name/device/type/env/url), or null when no query. */
-export function matchServices(services: PortalService[], query: string): Set<string> | null {
+export function matchServices(
+  services: PortalService[],
+  query: string,
+): Set<string> | null {
   const needle = query.trim().toLowerCase();
   if (!needle) return null;
   const matches = new Set<string>();
   for (const service of services) {
-    const haystack = [service.name, service.device, service.projectType, service.environment, service.url]
+    const haystack = [
+      service.name,
+      service.device,
+      service.projectType,
+      service.environment,
+      service.url,
+    ]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
@@ -451,7 +536,10 @@ export interface Rect {
 }
 
 /** Bounding box of the given nodes (node footprint, no padding), or null if none are placed. */
-export function nodeBounds(ids: Iterable<string>, positions: Record<string, NodePosition>): Rect | null {
+export function nodeBounds(
+  ids: Iterable<string>,
+  positions: Record<string, NodePosition>,
+): Rect | null {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -469,7 +557,10 @@ export function nodeBounds(ids: Iterable<string>, positions: Record<string, Node
 }
 
 /** Cluster frame around the given nodes — their bounds plus CLUSTER_PAD. */
-export function clusterRect(ids: Iterable<string>, positions: Record<string, NodePosition>): Rect | null {
+export function clusterRect(
+  ids: Iterable<string>,
+  positions: Record<string, NodePosition>,
+): Rect | null {
   const bounds = nodeBounds(ids, positions);
   if (!bounds) return null;
   return {
@@ -502,7 +593,10 @@ export function fitViewport(
   const centerX = bounds.x + bounds.width / 2;
   const centerY = bounds.y + bounds.height / 2;
   return {
-    pan: { x: viewportWidth / 2 - centerX * zoom, y: viewportHeight / 2 - centerY * zoom },
+    pan: {
+      x: viewportWidth / 2 - centerX * zoom,
+      y: viewportHeight / 2 - centerY * zoom,
+    },
     zoom,
   };
 }
@@ -511,8 +605,16 @@ export function fitViewport(
  * Scale the zoom by `factor`, keeping the content under `point` (viewport
  * px) fixed. A fit below MIN_ZOOM is never pushed further out, nor snapped.
  */
-export function zoomAtPoint(viewport: Viewport, point: NodePosition, factor: number): Viewport {
-  const zoom = clamp(viewport.zoom * factor, Math.min(MIN_ZOOM, viewport.zoom), MAX_ZOOM);
+export function zoomAtPoint(
+  viewport: Viewport,
+  point: NodePosition,
+  factor: number,
+): Viewport {
+  const zoom = clamp(
+    viewport.zoom * factor,
+    Math.min(MIN_ZOOM, viewport.zoom),
+    MAX_ZOOM,
+  );
   const ratio = zoom / viewport.zoom;
   return {
     pan: {

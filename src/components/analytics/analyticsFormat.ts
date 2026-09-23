@@ -27,13 +27,16 @@ export function formatLocation(
   fallback = "—",
 ): string {
   const country = location?.country || null;
-  const city = location?.city && location.city !== NOT_SET ? location.city : null;
+  const city =
+    location?.city && location.city !== NOT_SET ? location.city : null;
   if (city && country) return `${city}, ${country}`;
   return country || city || fallback;
 }
 
 /** A sessions-service duration (milliseconds) as "4m 12s". */
-export function formatDurationMs(milliseconds: number | null | undefined): string {
+export function formatDurationMs(
+  milliseconds: number | null | undefined,
+): string {
   return formatElapsedTime(milliseconds == null ? null : milliseconds / 1000);
 }
 
@@ -42,7 +45,9 @@ export function formatDurationMs(milliseconds: number | null | undefined): strin
  * year). `hourCycle: "h23"`, not `hour12: false`: the latter renders
  * midnight as "24:05:09" in Chromium.
  */
-export function formatTimestamp(value: string | Date | null | undefined): string {
+export function formatTimestamp(
+  value: string | Date | null | undefined,
+): string {
   return formatDateTime(value, {
     hour: "2-digit",
     minute: "2-digit",
@@ -61,7 +66,11 @@ export function formatExact(value: number | null | undefined): string {
 }
 
 /** "1 session" / "1,204 sessions". */
-export function formatCount(count: number, singular: string, plural?: string): string {
+export function formatCount(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
   return `${formatExact(count)} ${pluralize(singular, count, plural)}`;
 }
 
@@ -78,7 +87,9 @@ export function formatRatioPercent(ratio: number | null | undefined): string {
 }
 
 /** A sessions-service percentage (already 0–100); "—" when missing. */
-export function formatWholePercent(percentage: number | null | undefined): string {
+export function formatWholePercent(
+  percentage: number | null | undefined,
+): string {
   if (percentage == null || !Number.isFinite(percentage)) return "—";
   return `${percentage}%`;
 }
@@ -93,7 +104,8 @@ export function percentChange(
   baseline: number | null | undefined,
 ): number | null {
   if (value == null || baseline == null) return null;
-  if (!Number.isFinite(value) || !Number.isFinite(baseline) || baseline === 0) return null;
+  if (!Number.isFinite(value) || !Number.isFinite(baseline) || baseline === 0)
+    return null;
   return (value - baseline) / Math.abs(baseline);
 }
 
@@ -104,13 +116,17 @@ export function percentChange(
  * thrown message can be the literal "true". Callers show generic wording
  * instead of that.
  */
-export function readableErrorMessage(error: Error | null | undefined): string | null {
+export function readableErrorMessage(
+  error: Error | null | undefined,
+): string | null {
   const message = error?.message?.trim();
   if (!message || message === "true" || message === "false") return null;
   return message;
 }
 
 /** Join the non-empty parts with a middle dot: "Rod Dev · G-XXXX". */
-export function joinMeta(...parts: (string | null | undefined | false)[]): string {
+export function joinMeta(
+  ...parts: (string | null | undefined | false)[]
+): string {
   return parts.filter(Boolean).join(" · ");
 }

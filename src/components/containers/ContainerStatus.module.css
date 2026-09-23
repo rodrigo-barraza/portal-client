@@ -10,12 +10,16 @@
 
 .icon-healthy {
   color: var(--color-success);
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-success) 40%, transparent));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--color-success) 40%, transparent)
+  );
 }
 
 .icon-unhealthy {
   color: var(--color-danger);
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-danger) 40%, transparent));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--color-danger) 40%, transparent)
+  );
 }
 
 .icon-unknown {

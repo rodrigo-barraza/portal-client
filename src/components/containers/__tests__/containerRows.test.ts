@@ -15,7 +15,9 @@ import {
 
 const GIB = 1024 ** 3;
 
-function container(overrides: Partial<DockerContainer> & { name: string }): DockerContainer {
+function container(
+  overrides: Partial<DockerContainer> & { name: string },
+): DockerContainer {
   return {
     device: "synology",
     state: "running",
@@ -27,7 +29,9 @@ function container(overrides: Partial<DockerContainer> & { name: string }): Dock
   };
 }
 
-function service(overrides: Partial<PortalService> & { id: string }): PortalService {
+function service(
+  overrides: Partial<PortalService> & { id: string },
+): PortalService {
   return {
     name: overrides.id,
     healthy: true,
@@ -48,17 +52,26 @@ describe("classifyContainer", () => {
 describe("containerStatusKind", () => {
   it("trusts Docker when the container is not running", () => {
     // The registry health cache still says healthy right after a stop.
-    expect(containerStatusKind("exited", service({ id: "a", healthy: true }))).toBe("down");
+    expect(
+      containerStatusKind("exited", service({ id: "a", healthy: true })),
+    ).toBe("down");
   });
 
   it("defers to the registry health check for running services", () => {
-    expect(containerStatusKind("running", service({ id: "a", healthy: false }))).toBe("down");
-    expect(containerStatusKind("running", service({ id: "a", healthy: true }))).toBe("healthy");
+    expect(
+      containerStatusKind("running", service({ id: "a", healthy: false })),
+    ).toBe("down");
+    expect(
+      containerStatusKind("running", service({ id: "a", healthy: true })),
+    ).toBe("healthy");
   });
 
   it("is unknown until the first health check lands", () => {
     expect(
-      containerStatusKind("running", service({ id: "a", healthy: false, checkedAt: undefined })),
+      containerStatusKind(
+        "running",
+        service({ id: "a", healthy: false, checkedAt: undefined }),
+      ),
     ).toBe("unknown");
   });
 
@@ -70,7 +83,10 @@ describe("containerStatusKind", () => {
 describe("buildContainerRows", () => {
   it("gives same-named containers on different hosts distinct ids", () => {
     const rows = buildContainerRows(
-      [container({ name: "prism-service" }), container({ name: "prism-service", device: "workstation" })],
+      [
+        container({ name: "prism-service" }),
+        container({ name: "prism-service", device: "workstation" }),
+      ],
       [service({ id: "prism", dockerProject: "prism-service" })],
     );
     expect(rows.map((row) => row.id)).toEqual([
@@ -110,7 +126,11 @@ describe("buildContainerRows", () => {
 
   it("leaves unregistered containers without a service id", () => {
     const [row] = buildContainerRows([container({ name: "watchtower" })], []);
-    expect(row).toMatchObject({ serviceId: null, registered: false, restartable: false });
+    expect(row).toMatchObject({
+      serviceId: null,
+      registered: false,
+      restartable: false,
+    });
   });
 
   it("sorts by name, then device", () => {
@@ -122,7 +142,11 @@ describe("buildContainerRows", () => {
       ],
       [],
     );
-    expect(rows.map((row) => row.id)).toEqual(["synology::a", "workstation::a", "synology::b"]);
+    expect(rows.map((row) => row.id)).toEqual([
+      "synology::a",
+      "workstation::a",
+      "synology::b",
+    ]);
   });
 });
 
@@ -133,7 +157,13 @@ describe("filterContainerRows", () => {
       container({ name: "prism-service", device: "workstation" }),
       container({ name: "lupos-bot", device: "synology" }),
     ],
-    [service({ id: "prism-client", dockerProject: "prism-client", domain: "prism.rod.dev" })],
+    [
+      service({
+        id: "prism-client",
+        dockerProject: "prism-client",
+        domain: "prism.rod.dev",
+      }),
+    ],
   );
 
   it("filters by device, type and search text together", () => {
@@ -143,13 +173,19 @@ describe("filterContainerRows", () => {
       "lupos-bot",
       "prism-client",
     ]);
-    expect(names({ devices: [], types: ["bot"], query: "" })).toEqual(["lupos-bot"]);
+    expect(names({ devices: [], types: ["bot"], query: "" })).toEqual([
+      "lupos-bot",
+    ]);
     expect(names({ devices: [], types: [], query: "  PRISM " })).toEqual([
       "prism-client",
       "prism-service",
     ]);
-    expect(names({ devices: [], types: [], query: "rod.dev" })).toEqual(["prism-client"]);
-    expect(names({ devices: ["synology"], types: ["service"], query: "" })).toEqual([]);
+    expect(names({ devices: [], types: [], query: "rod.dev" })).toEqual([
+      "prism-client",
+    ]);
+    expect(
+      names({ devices: ["synology"], types: ["service"], query: "" }),
+    ).toEqual([]);
   });
 });
 
@@ -164,14 +200,18 @@ describe("normalizeSystemInfo", () => {
 
 describe("memoryUsage", () => {
   it("treats a host-sized limit as uncapped", () => {
-    expect(memoryUsage({ used: GIB, limit: 16 * GIB, percent: 6.25 }, 16 * GIB)).toEqual({
+    expect(
+      memoryUsage({ used: GIB, limit: 16 * GIB, percent: 6.25 }, 16 * GIB),
+    ).toEqual({
       capped: false,
       percent: 6.25,
     });
   });
 
   it("measures capped containers against their own limit", () => {
-    expect(memoryUsage({ used: GIB, limit: 2 * GIB, percent: 6.25 }, 16 * GIB)).toEqual({
+    expect(
+      memoryUsage({ used: GIB, limit: 2 * GIB, percent: 6.25 }, 16 * GIB),
+    ).toEqual({
       capped: true,
       percent: 50,
     });
@@ -181,7 +221,11 @@ describe("memoryUsage", () => {
 describe("summarizeContainers", () => {
   const rows = buildContainerRows(
     [
-      container({ name: "a", device: "synology", cpu: { percent: 30, cores: 4 } }),
+      container({
+        name: "a",
+        device: "synology",
+        cpu: { percent: 30, cores: 4 },
+      }),
       container({
         name: "b",
         device: "workstation",
@@ -216,7 +260,9 @@ describe("summarizeContainers", () => {
   });
 
   it("limits host RAM to the selected devices", () => {
-    expect(summarizeContainers(rows, systemInfo, ["synology"]).memoryLimit).toBe(16 * GIB);
+    expect(
+      summarizeContainers(rows, systemInfo, ["synology"]).memoryLimit,
+    ).toBe(16 * GIB);
   });
 
   it("falls back to the per-device cgroup limit without system info", () => {

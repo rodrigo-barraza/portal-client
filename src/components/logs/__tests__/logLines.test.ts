@@ -9,21 +9,28 @@ import {
 
 describe("parseLogFrame", () => {
   it("unwraps portal-service's JSON frames", () => {
-    expect(parseLogFrame('{"line":"2026-09-22T10:00:00Z hello","stream":"stdout"}')).toBe(
-      "2026-09-22T10:00:00Z hello",
-    );
+    expect(
+      parseLogFrame('{"line":"2026-09-22T10:00:00Z hello","stream":"stdout"}'),
+    ).toBe("2026-09-22T10:00:00Z hello");
   });
 
   it("passes raw lines through, including ones that merely start with a brace", () => {
     expect(parseLogFrame("plain line")).toBe("plain line");
-    expect(parseLogFrame('{"level":"info"} not quite json')).toBe('{"level":"info"} not quite json');
-    expect(parseLogFrame('{"msg":"structured log"}')).toBe('{"msg":"structured log"}');
+    expect(parseLogFrame('{"level":"info"} not quite json')).toBe(
+      '{"level":"info"} not quite json',
+    );
+    expect(parseLogFrame('{"msg":"structured log"}')).toBe(
+      '{"msg":"structured log"}',
+    );
   });
 });
 
 describe("parseLogLine", () => {
   it("splits Docker's timestamp from the content", () => {
-    const line = parseLogLine("2026-09-22T10:11:12.345678901Z [10:11:12] INFO  started", 7);
+    const line = parseLogLine(
+      "2026-09-22T10:11:12.345678901Z [10:11:12] INFO  started",
+      7,
+    );
     expect(line).toMatchObject({
       id: 7,
       timestamp: "10:11:12.345",
@@ -37,7 +44,9 @@ describe("parseLogLine", () => {
     const earlier = parseLogLine("2026-09-22T10:11:12.05Z a", 1);
     const later = parseLogLine("2026-09-22T10:11:12.1Z b", 2);
     expect(earlier.sortKey! < later.sortKey!).toBe(true);
-    expect(parseLogLine("2026-09-22T10:11:12Z c", 3).timestamp).toBe("10:11:12.000");
+    expect(parseLogLine("2026-09-22T10:11:12Z c", 3).timestamp).toBe(
+      "10:11:12.000",
+    );
   });
 
   it("keeps un-stamped lines", () => {
@@ -80,7 +89,9 @@ describe("filterLogLines", () => {
   ];
 
   it("matches content case-insensitively, ignoring ANSI", () => {
-    expect(filterLogLines(lines, "  warn ").map((line) => line.id)).toEqual([2]);
+    expect(filterLogLines(lines, "  warn ").map((line) => line.id)).toEqual([
+      2,
+    ]);
   });
 
   it("matches the displayed timestamp", () => {

@@ -41,7 +41,11 @@
   align-items: center;
   justify-content: center;
   color: var(--chart-stat-accent, var(--accent-primary));
-  background: color-mix(in srgb, var(--chart-stat-accent, var(--accent-primary)) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--chart-stat-accent, var(--accent-primary)) 10%,
+    transparent
+  );
   flex-shrink: 0;
 }
 

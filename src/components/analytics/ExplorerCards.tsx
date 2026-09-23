@@ -1,6 +1,14 @@
 "use client";
 
-import { Clock, Globe, Hash, MapPin, Monitor, Network, Users } from "lucide-react";
+import {
+  Clock,
+  Globe,
+  Hash,
+  MapPin,
+  Monitor,
+  Network,
+  Users,
+} from "lucide-react";
 import { timeAgo } from "@rodrigo-barraza/utilities-library";
 import { BotTag, DeviceIcon } from "./ExplorerPrimitives";
 import {
@@ -10,7 +18,14 @@ import {
   formatTimestamp,
   shortId,
 } from "./analyticsFormat";
-import type { DeviceInfo, ExplorerSession, GeoInfo, IpUser, NamedVersion, Visitor } from "@/types/portal";
+import type {
+  DeviceInfo,
+  ExplorerSession,
+  GeoInfo,
+  IpUser,
+  NamedVersion,
+  Visitor,
+} from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**
@@ -58,9 +73,19 @@ function ClientMeta({
   );
 }
 
-export function IpCard({ ipUser, onOpen }: { ipUser: IpUser; onOpen: (ip: string) => void }) {
+export function IpCard({
+  ipUser,
+  onOpen,
+}: {
+  ipUser: IpUser;
+  onOpen: (ip: string) => void;
+}) {
   return (
-    <button type="button" className={styles["visitor-card"]} onClick={() => onOpen(ipUser.ip)}>
+    <button
+      type="button"
+      className={styles["visitor-card"]}
+      onClick={() => onOpen(ipUser.ip)}
+    >
       <span className={styles["visitor-header"]}>
         <span className={styles["visitor-id"]}>
           <Network size={12} strokeWidth={2.2} aria-hidden />
@@ -91,7 +116,9 @@ export function IpCard({ ipUser, onOpen }: { ipUser: IpUser; onOpen: (ip: string
           <Clock size={11} strokeWidth={2} aria-hidden />
           {formatDurationMs(ipUser.totalDuration)} total
         </span>
-        <span className={styles["visitor-seen"]}>Last seen {timeAgo(ipUser.lastSeen)}</span>
+        <span className={styles["visitor-seen"]}>
+          Last seen {timeAgo(ipUser.lastSeen)}
+        </span>
       </span>
     </button>
   );
@@ -108,7 +135,10 @@ export function VisitorCard({
 }) {
   const shownSessionIds = visitor.sessionIds.slice(0, VISITOR_SESSION_PILLS);
   // sessionIds is capped server-side (newest 20); sessionCount is the total
-  const hiddenSessions = Math.max(visitor.sessionCount - shownSessionIds.length, 0);
+  const hiddenSessions = Math.max(
+    visitor.sessionCount - shownSessionIds.length,
+    0,
+  );
 
   return (
     <div className={styles["visitor-card"]}>
@@ -147,7 +177,9 @@ export function VisitorCard({
           <Clock size={11} strokeWidth={2} aria-hidden />
           {formatDurationMs(visitor.totalDuration)} total
         </span>
-        <span className={styles["visitor-seen"]}>Last seen {timeAgo(visitor.lastSeen)}</span>
+        <span className={styles["visitor-seen"]}>
+          Last seen {timeAgo(visitor.lastSeen)}
+        </span>
       </div>
 
       <div className={styles["session-pills"]}>
@@ -164,7 +196,9 @@ export function VisitorCard({
           </button>
         ))}
         {hiddenSessions > 0 && (
-          <span className={styles["session-pill-more"]}>+{hiddenSessions} more</span>
+          <span className={styles["session-pill-more"]}>
+            +{hiddenSessions} more
+          </span>
         )}
       </div>
     </div>
@@ -213,7 +247,9 @@ export function SessionCard({
           <Clock size={11} strokeWidth={2} aria-hidden />
           {formatTimestamp(session.createdAt)}
         </span>
-        <span className={styles["visitor-seen"]}>Active {timeAgo(session.updatedAt)}</span>
+        <span className={styles["visitor-seen"]}>
+          Active {timeAgo(session.updatedAt)}
+        </span>
       </span>
     </button>
   );

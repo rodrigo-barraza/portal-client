@@ -98,9 +98,8 @@ describe("SettingsComponent", () => {
 
     fireEvent.click(within(nav).getByRole("button", { name: "Monitoring" }));
 
-    expect(within(nav).getByRole("button", { name: "Monitoring" })).toHaveAttribute(
-      "aria-current",
-      "true",
-    );
+    expect(
+      within(nav).getByRole("button", { name: "Monitoring" }),
+    ).toHaveAttribute("aria-current", "true");
   });
 });

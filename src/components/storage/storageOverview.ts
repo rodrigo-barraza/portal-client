@@ -38,17 +38,35 @@ export type DockerHostInfo = SystemInfo & { deviceName?: string };
  * /stats/system without a device returns one entry per Docker host that
  * answered (an array); with a device, a single object. null = it failed.
  */
-export function normalizeDockerHosts(response: SystemInfoResponse | null): DockerHostInfo[] {
+export function normalizeDockerHosts(
+  response: SystemInfoResponse | null,
+): DockerHostInfo[] {
   if (!response) return [];
   return Array.isArray(response) ? response : [response];
 }
 
 export function diskSegments(disk: DiskUsage): DonutSegment[] {
   return [
-    { value: disk.images.totalSize, color: DISK_COLORS.images, label: "Images" },
-    { value: disk.volumes.totalSize, color: DISK_COLORS.volumes, label: "Volumes" },
-    { value: disk.buildCache.totalSize, color: DISK_COLORS.buildCache, label: "Build Cache" },
-    { value: disk.containers.totalWritableSize, color: DISK_COLORS.containers, label: "Containers" },
+    {
+      value: disk.images.totalSize,
+      color: DISK_COLORS.images,
+      label: "Images",
+    },
+    {
+      value: disk.volumes.totalSize,
+      color: DISK_COLORS.volumes,
+      label: "Volumes",
+    },
+    {
+      value: disk.buildCache.totalSize,
+      color: DISK_COLORS.buildCache,
+      label: "Build Cache",
+    },
+    {
+      value: disk.containers.totalWritableSize,
+      color: DISK_COLORS.containers,
+      label: "Containers",
+    },
   ].filter((segment) => segment.value > 0);
 }
 
@@ -66,7 +84,10 @@ export function bucketSegments(buckets: StorageBucket[]): DonutSegment[] {
 }
 
 /** Object and byte totals over buckets whose stats have arrived. */
-export function summarizeBuckets(buckets: StorageBucket[]): { objects: number; bytes: number } {
+export function summarizeBuckets(buckets: StorageBucket[]): {
+  objects: number;
+  bytes: number;
+} {
   let objects = 0;
   let bytes = 0;
   for (const bucket of buckets) {
@@ -77,6 +98,13 @@ export function summarizeBuckets(buckets: StorageBucket[]): { objects: number; b
 }
 
 /** Middle-truncate a long name, keeping its head and tail readable. */
-export function truncateMiddle(value: string, maxLength: number, head: number, tail: number): string {
-  return value.length > maxLength ? `${value.slice(0, head)}…${value.slice(-tail)}` : value;
+export function truncateMiddle(
+  value: string,
+  maxLength: number,
+  head: number,
+  tail: number,
+): string {
+  return value.length > maxLength
+    ? `${value.slice(0, head)}…${value.slice(-tail)}`
+    : value;
 }

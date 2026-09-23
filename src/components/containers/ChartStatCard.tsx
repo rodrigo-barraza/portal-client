@@ -32,17 +32,23 @@ export default function ChartStatCard({
   formatValue: (value: number) => string;
 }) {
   return (
-    <div className={styles['card']} style={{ "--chart-stat-accent": accent } as CSSProperties}>
-      <div className={styles['header']}>
-        <span className={styles['label']}>{label}</span>
-        <div className={styles['icon']}>
+    <div
+      className={styles["card"]}
+      style={{ "--chart-stat-accent": accent } as CSSProperties}
+    >
+      <div className={styles["header"]}>
+        <span className={styles["label"]}>{label}</span>
+        <div className={styles["icon"]}>
           <Icon size={14} strokeWidth={2} />
         </div>
       </div>
-      <span className={styles['value']} style={valueColor ? { color: valueColor } : undefined}>
+      <span
+        className={styles["value"]}
+        style={valueColor ? { color: valueColor } : undefined}
+      >
         {value}
       </span>
-      <span className={styles['subtitle']}>{subtitle}</span>
+      <span className={styles["subtitle"]}>{subtitle}</span>
       <ChartLineComponent
         data={series}
         color={accent}

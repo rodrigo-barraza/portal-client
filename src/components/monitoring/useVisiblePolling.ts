@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef } from "react";
 export type IsCurrent = () => boolean;
 
 /** A polling task: gets its staleness check and an AbortSignal for its requests. */
-export type PollTask = (isCurrent: IsCurrent, signal: AbortSignal) => Promise<void>;
+export type PollTask = (
+  isCurrent: IsCurrent,
+  signal: AbortSignal,
+) => Promise<void>;
 
 export interface VisiblePollingOptions {
   /** False stops the cycle and supersedes any run in flight. */
@@ -16,7 +19,9 @@ export interface VisiblePollingOptions {
 }
 
 function isDocumentHidden(): boolean {
-  return typeof document !== "undefined" && document.visibilityState === "hidden";
+  return (
+    typeof document !== "undefined" && document.visibilityState === "hidden"
+  );
 }
 
 /**

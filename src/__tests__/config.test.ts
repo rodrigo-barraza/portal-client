@@ -14,18 +14,18 @@ describe("resolvePortalServiceUrl", () => {
   });
 
   it("uses the internal URL for a page on a private host", () => {
-    expect(resolvePortalServiceUrl({ pageHost: "localhost:4000", ...urls })).toBe(
-      "http://10.0.0.5:4001",
-    );
-    expect(resolvePortalServiceUrl({ pageHost: "192.168.1.20:4000", ...urls })).toBe(
-      "http://10.0.0.5:4001",
-    );
+    expect(
+      resolvePortalServiceUrl({ pageHost: "localhost:4000", ...urls }),
+    ).toBe("http://10.0.0.5:4001");
+    expect(
+      resolvePortalServiceUrl({ pageHost: "192.168.1.20:4000", ...urls }),
+    ).toBe("http://10.0.0.5:4001");
   });
 
   it("uses the public URL (no trailing slash) for a page on a public host", () => {
-    expect(resolvePortalServiceUrl({ pageHost: "portal.example", ...urls })).toBe(
-      "https://api.portal.example",
-    );
+    expect(
+      resolvePortalServiceUrl({ pageHost: "portal.example", ...urls }),
+    ).toBe("https://api.portal.example");
   });
 
   it("falls back to whichever URL exists, else empty", () => {

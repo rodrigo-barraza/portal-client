@@ -44,12 +44,12 @@ export default function CardSitePreview({ domain }: { domain: string }) {
 
   return (
     <div
-      className={styles['container']}
+      className={styles["container"]}
       onMouseEnter={startLivePreview}
       onMouseLeave={stopLivePreview}
     >
       {imageFailed ? (
-        <div className={styles['fallback']}>
+        <div className={styles["fallback"]}>
           <Globe size={14} strokeWidth={2.2} />
           <span>{domain}</span>
         </div>
@@ -57,7 +57,7 @@ export default function CardSitePreview({ domain }: { domain: string }) {
         <img
           src={ApiService.buildContainerPreviewUrl(domain)}
           alt={`Preview of ${domain}`}
-          className={styles['image']}
+          className={styles["image"]}
           loading="lazy"
           onError={() => setImageFailed(true)}
         />
@@ -65,14 +65,14 @@ export default function CardSitePreview({ domain }: { domain: string }) {
       {liveActive && (
         <iframe
           src={`https://${domain}`}
-          className={`${styles['iframe']} ${liveReady ? styles['iframe-ready'] : ""}`}
+          className={`${styles["iframe"]} ${liveReady ? styles["iframe-ready"] : ""}`}
           title={`Live preview of ${domain}`}
           tabIndex={-1}
           sandbox="allow-scripts allow-same-origin"
           onLoad={() => setLiveReady(true)}
         />
       )}
-      <div className={styles['overlay']} />
+      <div className={styles["overlay"]} />
     </div>
   );
 }

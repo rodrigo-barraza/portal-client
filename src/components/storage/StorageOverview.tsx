@@ -28,7 +28,11 @@ function PanelHeader({
 }) {
   return (
     <div className={styles["storage-panel-header"]}>
-      <Icon size={15} strokeWidth={2.2} className={styles["storage-panel-icon"]} />
+      <Icon
+        size={15}
+        strokeWidth={2.2}
+        className={styles["storage-panel-icon"]}
+      />
       <span className={styles["storage-panel-title"]}>{title}</span>
       {meta && <span className={styles["storage-panel-meta"]}>{meta}</span>}
     </div>
@@ -36,7 +40,10 @@ function PanelHeader({
 }
 
 function MinioPanel({ summary }: { summary: StorageSummary }) {
-  const segments = useMemo(() => bucketSegments(summary.buckets || []), [summary]);
+  const segments = useMemo(
+    () => bucketSegments(summary.buckets || []),
+    [summary],
+  );
   if (segments.length === 0) return null;
   const largest = segments[0].value;
 
@@ -48,7 +55,12 @@ function MinioPanel({ summary }: { summary: StorageSummary }) {
         meta={`${(summary.totalObjects ?? 0).toLocaleString()} objects`}
       />
       <div className={styles["storage-panel-body"]}>
-        <DonutChart segments={segments} size={130} strokeWidth={16} formatValue={formatBytes} />
+        <DonutChart
+          segments={segments}
+          size={130}
+          strokeWidth={16}
+          formatValue={formatBytes}
+        />
         <div className={styles["storage-legend"]}>
           {segments.map((segment) => (
             <UsageBar
@@ -71,7 +83,10 @@ function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
   const segments = useMemo(() => diskSegments(disk), [disk]);
   const images = disk.images.items.slice(0, LIST_LIMIT);
   const volumes = disk.volumes.items.slice(0, LIST_LIMIT);
-  const meta = [host.deviceName ?? host.deviceId, host.serverVersion && `v${host.serverVersion}`]
+  const meta = [
+    host.deviceName ?? host.deviceId,
+    host.serverVersion && `v${host.serverVersion}`,
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -79,7 +94,12 @@ function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
     <div className={styles["storage-panel"]}>
       <PanelHeader icon={Layers} title="Docker Disk Usage" meta={meta} />
       <div className={styles["storage-panel-body"]}>
-        <DonutChart segments={segments} size={130} strokeWidth={16} formatValue={formatBytes} />
+        <DonutChart
+          segments={segments}
+          size={130}
+          strokeWidth={16}
+          formatValue={formatBytes}
+        />
         <div className={styles["storage-legend"]}>
           <UsageBar
             value={disk.images.totalSize}
@@ -122,11 +142,17 @@ function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
             const tag = image.tags?.[0] || image.id || "unknown";
             return (
               <div key={image.id ?? tag} className={styles["image-row"]}>
-                <Box size={12} strokeWidth={1.8} className={styles["image-icon"]} />
+                <Box
+                  size={12}
+                  strokeWidth={1.8}
+                  className={styles["image-icon"]}
+                />
                 <span className={styles["image-name"]} title={tag}>
                   {truncateMiddle(tag, 50, 0, 48)}
                 </span>
-                <span className={styles["image-size"]}>{formatBytes(image.size)}</span>
+                <span className={styles["image-size"]}>
+                  {formatBytes(image.size)}
+                </span>
               </div>
             );
           })}
@@ -143,11 +169,17 @@ function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
             const name = volume.name || "unknown";
             return (
               <div key={name} className={styles["image-row"]}>
-                <Database size={12} strokeWidth={1.8} className={styles["image-icon"]} />
+                <Database
+                  size={12}
+                  strokeWidth={1.8}
+                  className={styles["image-icon"]}
+                />
                 <span className={styles["image-name"]} title={name}>
                   {truncateMiddle(name, 40, 12, 24)}
                 </span>
-                <span className={styles["image-size"]}>{formatBytes(volume.size)}</span>
+                <span className={styles["image-size"]}>
+                  {formatBytes(volume.size)}
+                </span>
               </div>
             );
           })}

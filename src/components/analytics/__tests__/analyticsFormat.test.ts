@@ -14,11 +14,15 @@ import {
 
 describe("formatLocation", () => {
   it("joins city and country", () => {
-    expect(formatLocation({ city: "Vancouver", country: "Canada" })).toBe("Vancouver, Canada");
+    expect(formatLocation({ city: "Vancouver", country: "Canada" })).toBe(
+      "Vancouver, Canada",
+    );
   });
 
   it("drops the (not set) city GA and sessions-service use for unknowns", () => {
-    expect(formatLocation({ city: "(not set)", country: "Canada" })).toBe("Canada");
+    expect(formatLocation({ city: "(not set)", country: "Canada" })).toBe(
+      "Canada",
+    );
   });
 
   it("never renders a dangling separator when the country is missing", () => {
@@ -27,7 +31,9 @@ describe("formatLocation", () => {
 
   it("falls back when nothing is known", () => {
     expect(formatLocation(null)).toBe("—");
-    expect(formatLocation({ city: null, country: null }, "Unknown")).toBe("Unknown");
+    expect(formatLocation({ city: null, country: null }, "Unknown")).toBe(
+      "Unknown",
+    );
   });
 });
 
@@ -130,7 +136,9 @@ describe("joinMeta", () => {
 
 describe("readableErrorMessage", () => {
   it("passes real messages through", () => {
-    expect(readableErrorMessage(new Error("Unknown property: 123"))).toBe("Unknown property: 123");
+    expect(readableErrorMessage(new Error("Unknown property: 123"))).toBe(
+      "Unknown property: 123",
+    );
   });
 
   it("drops the boolean a `{ error: true, message }` body turns into", () => {

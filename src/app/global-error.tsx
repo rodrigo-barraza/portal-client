@@ -78,7 +78,8 @@ export default function GlobalError({
               fontSize: "13px",
               fontWeight: 500,
               color: "inherit",
-              background: "light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.06))",
+              background:
+                "light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.06))",
               border:
                 "1px solid light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.08))",
               borderRadius: "6px",

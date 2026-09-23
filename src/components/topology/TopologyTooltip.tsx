@@ -3,14 +3,20 @@
 import type { Ref } from "react";
 import { Link2, Package } from "lucide-react";
 import { formatSize } from "@/lib/format";
-import type { DependencyRef, PortalService, ProjectAnalysis, RepoSize } from "../../types/portal";
+import type {
+  DependencyRef,
+  PortalService,
+  ProjectAnalysis,
+  RepoSize,
+} from "../../types/portal";
 import styles from "../TopologyComponent.module.css";
 
 const TOOLTIP_WIDTH = 300;
 
 /** Viewport position for a tooltip following the cursor, kept on-screen horizontally. */
 export function tooltipPosition(clientX: number, clientY: number) {
-  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1000;
+  const viewportWidth =
+    typeof window !== "undefined" ? window.innerWidth : 1000;
   return {
     left: Math.min(clientX + 16, viewportWidth - TOOLTIP_WIDTH),
     top: clientY - 10,
@@ -40,7 +46,9 @@ function Row({
   return (
     <div className={styles["tooltip-row"]}>
       <span className={styles["tooltip-label"]}>{label}</span>
-      <span className={`${styles["tooltip-value"]}${tone ? ` ${TONE_CLASSES[tone]}` : ""}`}>
+      <span
+        className={`${styles["tooltip-value"]}${tone ? ` ${TONE_CLASSES[tone]}` : ""}`}
+      >
         {value}
       </span>
     </div>
@@ -75,7 +83,11 @@ export function TopologyTooltip({
   const owner = analysis?.owners?.[service.id];
 
   return (
-    <div ref={ref} className={styles["tooltip"]} style={tooltipPosition(clientX, clientY)}>
+    <div
+      ref={ref}
+      className={styles["tooltip"]}
+      style={tooltipPosition(clientX, clientY)}
+    >
       <div className={styles["tooltip-name"]}>{service.name}</div>
       <Row
         label="Status"
@@ -84,12 +96,22 @@ export function TopologyTooltip({
       />
       {service.device && <Row label="Device" value={service.device} />}
       {service.url && <Row label="URL" value={service.url} />}
-      {service.environment && <Row label="Environment" value={service.environment} />}
-      {service.visibility && <Row label="Visibility" value={service.visibility} />}
-      {repoSize && <Row label="Repo Size" value={formatSize(repoSize.sizeKB)} />}
+      {service.environment && (
+        <Row label="Environment" value={service.environment} />
+      )}
+      {service.visibility && (
+        <Row label="Visibility" value={service.visibility} />
+      )}
+      {repoSize && (
+        <Row label="Repo Size" value={formatSize(repoSize.sizeKB)} />
+      )}
       {owner && <Row label="Owner" value={owner} />}
-      {service.responseTimeMs != null && <Row label="Latency" value={`${service.responseTimeMs}ms`} />}
-      {service.error && !service.healthy && <Row label="Error" value={service.error} tone="unhealthy" />}
+      {service.responseTimeMs != null && (
+        <Row label="Latency" value={`${service.responseTimeMs}ms`} />
+      )}
+      {service.error && !service.healthy && (
+        <Row label="Error" value={service.error} tone="unhealthy" />
+      )}
 
       {(detectedImports.length > 0 || detectedApiCalls.length > 0) && (
         <div className={styles["tooltip-deps"]}>
@@ -128,10 +150,14 @@ export function TopologyTooltip({
           )}
           {optional.length > 0 && (
             <>
-              <span className={`${styles["tooltip-dep-label"]} ${styles["tooltip-dep-label-optional"]}`}>
+              <span
+                className={`${styles["tooltip-dep-label"]} ${styles["tooltip-dep-label-optional"]}`}
+              >
                 ↑ Optional
               </span>
-              <span className={`${styles["tooltip-dep-list"]} ${styles["tooltip-dep-list-optional"]}`}>
+              <span
+                className={`${styles["tooltip-dep-list"]} ${styles["tooltip-dep-list-optional"]}`}
+              >
                 {optional.map(dependencyName).join(", ")}
               </span>
             </>

@@ -16,7 +16,11 @@ import GAReportComponent from "./GAReportComponent";
 import SessionReportComponent from "./SessionReportComponent";
 import { DeltaBadge, Panel, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
-import { joinMeta, percentChange, readableErrorMessage } from "./analytics/analyticsFormat";
+import {
+  joinMeta,
+  percentChange,
+  readableErrorMessage,
+} from "./analytics/analyticsFormat";
 import {
   PRESET_PERIODS,
   isCustomPeriod,
@@ -39,7 +43,9 @@ const PERIOD_SEGMENTS = PRESET_PERIODS.map((presetPeriod) => ({
  * and no "All Time" — GA has no unbounded range, and the picker's clear
  * button already returns to the default period.
  */
-const CUSTOM_RANGE_PRESETS = DATE_PRESETS_DATE_ONLY.filter((preset) => preset.label !== "All Time");
+const CUSTOM_RANGE_PRESETS = DATE_PRESETS_DATE_ONLY.filter(
+  (preset) => preset.label !== "All Time",
+);
 
 interface PropertyRegistry {
   properties: GAProperty[];
@@ -54,9 +60,14 @@ async function loadRegistry(signal: AbortSignal): Promise<PropertyRegistry> {
     ApiService.getSessionProjects("all", { signal }),
   ]);
   return {
-    properties: propertiesResult.status === "fulfilled" ? propertiesResult.value.properties : [],
+    properties:
+      propertiesResult.status === "fulfilled"
+        ? propertiesResult.value.properties
+        : [],
     sessionProjects:
-      projectsResult.status === "fulfilled" ? unwrapData(projectsResult.value) : [],
+      projectsResult.status === "fulfilled"
+        ? unwrapData(projectsResult.value)
+        : [],
     gaError:
       propertiesResult.status === "rejected"
         ? propertiesResult.reason instanceof Error
@@ -83,7 +94,9 @@ export default function PropertyDashboardComponent({
   projectId?: string;
 }) {
   const router = useRouter();
-  const [source, setSource] = useState<AnalyticsSource>(propertyId ? "ga" : "sessions");
+  const [source, setSource] = useState<AnalyticsSource>(
+    propertyId ? "ga" : "sessions",
+  );
   const [period, setPeriod] = useState(DEFAULT_PERIOD);
 
   const registry = useAsyncData("registry", loadRegistry);
@@ -93,15 +106,20 @@ export default function PropertyDashboardComponent({
 
   const gaProperty = useMemo(() => {
     if (!properties) return null;
-    if (propertyId) return properties.find((property) => property.id === propertyId) ?? null;
+    if (propertyId)
+      return properties.find((property) => property.id === propertyId) ?? null;
     // Sessions route — join back to a GA property via registry serviceId
-    return properties.find((property) => property.serviceId === projectId) ?? null;
+    return (
+      properties.find((property) => property.serviceId === projectId) ?? null
+    );
   }, [properties, propertyId, projectId]);
 
   const sessionsProjectId = useMemo(() => {
     if (projectId) return projectId;
     if (!gaProperty?.serviceId || !sessionProjects) return null;
-    return sessionProjects.some((project) => project.projectId === gaProperty.serviceId)
+    return sessionProjects.some(
+      (project) => project.projectId === gaProperty.serviceId,
+    )
       ? gaProperty.serviceId
       : null;
   }, [projectId, gaProperty, sessionProjects]);
@@ -112,10 +130,17 @@ export default function PropertyDashboardComponent({
 
   // Force a valid source if the preferred one isn't available
   const activeSource: AnalyticsSource =
-    source === "ga" && !hasGA ? "sessions" : source === "sessions" && !hasSessions ? "ga" : source;
+    source === "ga" && !hasGA
+      ? "sessions"
+      : source === "sessions" && !hasSessions
+        ? "ga"
+        : source;
   // sessions-service only understands "Nd" periods — it would silently
   // treat a custom range as all-time, so never hand it one
-  const activePeriod = activeSource === "sessions" && isCustomPeriod(period) ? DEFAULT_PERIOD : period;
+  const activePeriod =
+    activeSource === "sessions" && isCustomPeriod(period)
+      ? DEFAULT_PERIOD
+      : period;
 
   const title = gaProperty?.label || sessionsProjectId || "Web Analytics";
   const subtitle = joinMeta(
@@ -127,7 +152,8 @@ export default function PropertyDashboardComponent({
 
   const switchSource = (value: string) => {
     const nextSource = value as AnalyticsSource;
-    if (nextSource === "sessions" && isCustomPeriod(period)) setPeriod(DEFAULT_PERIOD);
+    if (nextSource === "sessions" && isCustomPeriod(period))
+      setPeriod(DEFAULT_PERIOD);
     setSource(nextSource);
   };
 
@@ -145,7 +171,11 @@ export default function PropertyDashboardComponent({
   if (registry.loading) {
     return (
       <div className={styles["dashboard"]}>
-        <PageHeaderComponent sticky={false} title="Web Analytics" subtitle="Loading property…" />
+        <PageHeaderComponent
+          sticky={false}
+          title="Web Analytics"
+          subtitle="Loading property…"
+        />
         <LoadingIndicatorComponent
           size="small"
           label="Loading property…"
@@ -158,18 +188,35 @@ export default function PropertyDashboardComponent({
   if (error || (!hasGA && !hasSessions)) {
     return (
       <div className={styles["dashboard"]}>
-        <PageHeaderComponent sticky={false} title="Web Analytics" subtitle="Property not found" />
-        <div className={styles["empty-state"]} role={error ? "alert" : undefined}>
-          <ChartColumn size={40} strokeWidth={1.5} className={styles["empty-icon"]} />
+        <PageHeaderComponent
+          sticky={false}
+          title="Web Analytics"
+          subtitle="Property not found"
+        />
+        <div
+          className={styles["empty-state"]}
+          role={error ? "alert" : undefined}
+        >
+          <ChartColumn
+            size={40}
+            strokeWidth={1.5}
+            className={styles["empty-icon"]}
+          />
           <span className={styles["empty-title"]}>
             {error ? "Analytics Error" : "Unknown property"}
           </span>
           <span className={styles["empty-detail"]}>
             {error
-              ? (readableErrorMessage(error) ?? "Could not load the GA4 property registry.")
+              ? (readableErrorMessage(error) ??
+                "Could not load the GA4 property registry.")
               : `No GA4 property or tracked sessions project matches “${propertyId || projectId}”.`}
           </span>
-          <ButtonComponent variant="text" size="small" icon={ArrowLeft} onClick={backToProperties}>
+          <ButtonComponent
+            variant="text"
+            size="small"
+            icon={ArrowLeft}
+            onClick={backToProperties}
+          >
             All Properties
           </ButtonComponent>
         </div>
@@ -204,7 +251,12 @@ export default function PropertyDashboardComponent({
 
       {/* ── Back bar + source toggle ──────────────────────────── */}
       <div className={styles["back-bar"]}>
-        <ButtonComponent variant="text" size="small" icon={ArrowLeft} onClick={backToProperties}>
+        <ButtonComponent
+          variant="text"
+          size="small"
+          icon={ArrowLeft}
+          onClick={backToProperties}
+        >
           All Properties
         </ButtonComponent>
         <span className={styles["selected-label"]}>{title}</span>
@@ -235,7 +287,10 @@ export default function PropertyDashboardComponent({
       {activeSource === "ga" && gaProperty ? (
         <GAReportComponent property={gaProperty} period={activePeriod} />
       ) : sessionsProjectId ? (
-        <SessionReportComponent projectId={sessionsProjectId} period={activePeriod} />
+        <SessionReportComponent
+          projectId={sessionsProjectId}
+          period={activePeriod}
+        />
       ) : null}
     </div>
   );
@@ -257,13 +312,18 @@ function SourceComparisonPanel({
   projectId: string;
   period: string;
 }) {
-  const comparison = useAsyncData(`${propertyId}|${projectId}|${period}`, async (signal) => {
-    const [gaOverview, sessionOverview] = await Promise.all([
-      ApiService.getGAOverview(propertyId, period, { signal }),
-      ApiService.getSessionOverview(projectId, period, { signal }).then(unwrapData),
-    ]);
-    return { gaOverview, sessionOverview };
-  });
+  const comparison = useAsyncData(
+    `${propertyId}|${projectId}|${period}`,
+    async (signal) => {
+      const [gaOverview, sessionOverview] = await Promise.all([
+        ApiService.getGAOverview(propertyId, period, { signal }),
+        ApiService.getSessionOverview(projectId, period, { signal }).then(
+          unwrapData,
+        ),
+      ]);
+      return { gaOverview, sessionOverview };
+    },
+  );
 
   // Supplementary panel: hidden while loading or when either side fails
   if (!comparison.data) return null;
@@ -297,8 +357,12 @@ function SourceComparisonPanel({
         {rows.map((row) => (
           <Fragment key={row.metric}>
             <span className={styles["compare-metric"]}>{row.metric}</span>
-            <span className={styles["compare-value"]}>{formatCompact(row.ga)}</span>
-            <span className={styles["compare-value"]}>{formatCompact(row.sessions)}</span>
+            <span className={styles["compare-value"]}>
+              {formatCompact(row.ga)}
+            </span>
+            <span className={styles["compare-value"]}>
+              {formatCompact(row.sessions)}
+            </span>
             <span className={styles["compare-delta"]}>
               {/* null for a zero GA baseline — no Infinity% badge */}
               <DeltaBadge value={percentChange(row.sessions, row.ga)} />
@@ -307,8 +371,9 @@ function SourceComparisonPanel({
         ))}
       </div>
       <div className={styles["compare-note"]}>
-        First-party counts are server-observed (unaffected by ad blockers or consent banners, bots
-        excluded); GA4 counts only consenting, unblocked browsers.
+        First-party counts are server-observed (unaffected by ad blockers or
+        consent banners, bots excluded); GA4 counts only consenting, unblocked
+        browsers.
       </div>
     </Panel>
   );

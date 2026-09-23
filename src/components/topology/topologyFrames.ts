@@ -7,7 +7,13 @@
 import { DEPLOY_TIER_COLORS, SERVICE_TYPE_COLORS } from "../../constants";
 import type { NodePosition, PortalService } from "../../types/portal";
 import { LIBS_CLUSTER_COLOR, LIBS_LABEL, TIER_LABELS } from "./topologyConfig";
-import { clusterRect, typeClusterLabel, type Rect, type TypeGroup, type ViewMode } from "./topologyLayout";
+import {
+  clusterRect,
+  typeClusterLabel,
+  type Rect,
+  type TypeGroup,
+  type ViewMode,
+} from "./topologyLayout";
 
 export interface ClusterFrame {
   key: string;
@@ -56,12 +62,17 @@ export function buildClusterFrames({
       ...style,
       memberIds,
       rect,
-      isSearchFaded: searchMatches !== null && !memberIds.some((id) => searchMatches.has(id)),
+      isSearchFaded:
+        searchMatches !== null &&
+        !memberIds.some((id) => searchMatches.has(id)),
     });
   };
 
   if (viewMode === "tier") {
-    addFrame("libraries", libraries, { label: LIBS_LABEL, ...LIBS_CLUSTER_COLOR });
+    addFrame("libraries", libraries, {
+      label: LIBS_LABEL,
+      ...LIBS_CLUSTER_COLOR,
+    });
     layers.forEach((layer, tier) => {
       const tierColor = DEPLOY_TIER_COLORS[tier] || DEPLOY_TIER_COLORS[0];
       addFrame(`tier-${tier}`, layer, {

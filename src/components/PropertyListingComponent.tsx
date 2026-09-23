@@ -3,7 +3,14 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Activity, ArrowRight, Globe, LayoutGrid, Table2, TrendingUp } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Globe,
+  LayoutGrid,
+  Table2,
+  TrendingUp,
+} from "lucide-react";
 import {
   LoadingIndicatorComponent,
   TableComponent,
@@ -15,7 +22,12 @@ import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
 import { joinMeta } from "./analytics/analyticsFormat";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
-import type { GAOverview, GAProperty, GARealtimeReport, SessionProject } from "../types/portal";
+import type {
+  GAOverview,
+  GAProperty,
+  GARealtimeReport,
+  SessionProject,
+} from "../types/portal";
 import styles from "./WebAnalytics.module.css";
 
 /**
@@ -52,7 +64,9 @@ type ViewMode = "card" | "list";
  * numbers. Listing only the period's projects made a site vanish — and a
  * GA site lose its first-party badge — after 30 quiet days.
  */
-async function loadSessionProjects(signal: AbortSignal): Promise<SessionProject[]> {
+async function loadSessionProjects(
+  signal: AbortSignal,
+): Promise<SessionProject[]> {
   const [allTime, recent] = await Promise.all([
     ApiService.getSessionProjects("all", { signal }).then(unwrapData),
     ApiService.getSessionProjects(LISTING_PERIOD, { signal }).then(unwrapData),
@@ -79,11 +93,16 @@ function useGASummaries(properties: GAProperty[]): Record<string, GASummary> {
       await Promise.all(
         properties.map(async (property) => {
           const [overview, realtime] = await Promise.all([
-            ApiService.getGAOverview(property.id, LISTING_PERIOD, { signal }).catch(() => null),
+            ApiService.getGAOverview(property.id, LISTING_PERIOD, {
+              signal,
+            }).catch(() => null),
             ApiService.getGARealtime(property.id, { signal }).catch(() => null),
           ]);
           if (!isCurrent()) return;
-          setSummaries((previous) => ({ ...previous, [property.id]: { overview, realtime } }));
+          setSummaries((previous) => ({
+            ...previous,
+            [property.id]: { overview, realtime },
+          }));
         }),
       );
     },
@@ -94,7 +113,11 @@ function useGASummaries(properties: GAProperty[]): Record<string, GASummary> {
   return summaries;
 }
 
-export default function PropertyListingComponent({ properties }: { properties: GAProperty[] }) {
+export default function PropertyListingComponent({
+  properties,
+}: {
+  properties: GAProperty[];
+}) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const summaries = useGASummaries(properties);
@@ -116,7 +139,10 @@ export default function PropertyListingComponent({ properties }: { properties: G
       return {
         key: `ga-${property.id}`,
         label: property.label,
-        meta: joinMeta(property.measurementId || property.id, linkedSessions?.projectId),
+        meta: joinMeta(
+          property.measurementId || property.id,
+          linkedSessions?.projectId,
+        ),
         domain: property.domain,
         ga: property,
         sessions: linkedSessions,
@@ -138,12 +164,15 @@ export default function PropertyListingComponent({ properties }: { properties: G
     return merged;
   }, [properties, sessionProjects]);
 
-  const unifiedCount = unifiedProperties.filter((property) => property.ga && property.sessions).length;
+  const unifiedCount = unifiedProperties.filter(
+    (property) => property.ga && property.sessions,
+  ).length;
 
   // ── Table columns ─────────────────────────────────────────
 
   const columns = useMemo(() => {
-    const gaSummary = (row: UnifiedProperty) => (row.ga ? summaries[row.ga.id] : undefined);
+    const gaSummary = (row: UnifiedProperty) =>
+      row.ga ? summaries[row.ga.id] : undefined;
     const valueCell = (value: number | null | undefined) => (
       <span className={styles["property-list-value"]}>
         {value == null ? "—" : formatCompact(value)}
@@ -179,24 +208,30 @@ export default function PropertyListingComponent({ properties }: { properties: G
         label: "GA4 Users",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => gaSummary(row)?.overview?.totalUsers ?? -1,
-        render: (row: UnifiedProperty) => valueCell(gaSummary(row)?.overview?.totalUsers),
+        sortValue: (row: UnifiedProperty) =>
+          gaSummary(row)?.overview?.totalUsers ?? -1,
+        render: (row: UnifiedProperty) =>
+          valueCell(gaSummary(row)?.overview?.totalUsers),
       },
       {
         key: "pageviews",
         label: "GA4 Pageviews",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => gaSummary(row)?.overview?.pageviews ?? -1,
-        render: (row: UnifiedProperty) => valueCell(gaSummary(row)?.overview?.pageviews),
+        sortValue: (row: UnifiedProperty) =>
+          gaSummary(row)?.overview?.pageviews ?? -1,
+        render: (row: UnifiedProperty) =>
+          valueCell(gaSummary(row)?.overview?.pageviews),
       },
       {
         key: "sessions",
         label: "GA4 Sessions",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => gaSummary(row)?.overview?.sessions ?? -1,
-        render: (row: UnifiedProperty) => valueCell(gaSummary(row)?.overview?.sessions),
+        sortValue: (row: UnifiedProperty) =>
+          gaSummary(row)?.overview?.sessions ?? -1,
+        render: (row: UnifiedProperty) =>
+          valueCell(gaSummary(row)?.overview?.sessions),
       },
       {
         key: "fpVisitors",
@@ -204,7 +239,8 @@ export default function PropertyListingComponent({ properties }: { properties: G
         sortable: true,
         align: "left" as const,
         sortValue: (row: UnifiedProperty) => row.sessions?.uniqueVisitors ?? -1,
-        render: (row: UnifiedProperty) => valueCell(row.sessions?.uniqueVisitors),
+        render: (row: UnifiedProperty) =>
+          valueCell(row.sessions?.uniqueVisitors),
       },
       {
         key: "fpSessions",
@@ -219,7 +255,8 @@ export default function PropertyListingComponent({ properties }: { properties: G
         label: "Active Now",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => gaSummary(row)?.realtime?.activeUsers ?? -1,
+        sortValue: (row: UnifiedProperty) =>
+          gaSummary(row)?.realtime?.activeUsers ?? -1,
         render: (row: UnifiedProperty) => {
           const realtime = gaSummary(row)?.realtime;
           return (
@@ -228,7 +265,10 @@ export default function PropertyListingComponent({ properties }: { properties: G
             >
               {realtime ? (
                 <>
-                  <div className={styles["property-list-realtime-dot"]} aria-hidden />
+                  <div
+                    className={styles["property-list-realtime-dot"]}
+                    aria-hidden
+                  />
                   {formatCompact(realtime.activeUsers)}
                 </>
               ) : (
@@ -255,12 +295,21 @@ export default function PropertyListingComponent({ properties }: { properties: G
           onChange={setViewMode}
           ariaLabel="View mode"
           segments={[
-            { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} />, label: "Card view" },
-            { value: "list", icon: <Table2 size={12} strokeWidth={2.2} />, label: "Table view" },
+            {
+              value: "card",
+              icon: <LayoutGrid size={12} strokeWidth={2.2} />,
+              label: "Card view",
+            },
+            {
+              value: "list",
+              icon: <Table2 size={12} strokeWidth={2.2} />,
+              label: "Table view",
+            },
           ]}
         />
         <span className={styles["property-summary"]}>
-          {unifiedProperties.length} {unifiedProperties.length === 1 ? "property" : "properties"}
+          {unifiedProperties.length}{" "}
+          {unifiedProperties.length === 1 ? "property" : "properties"}
           {unifiedCount > 0 && ` · ${unifiedCount} unified (GA4 + first-party)`}
           {projects.loading && " · loading first-party projects…"}
           {projects.error && " · first-party projects unavailable"}
@@ -386,7 +435,10 @@ function PropertyCard({
               )}
               <div className={styles["property-card-stats"]}>
                 <CardStat value={summary.overview.totalUsers} label="Users" />
-                <CardStat value={summary.overview.pageviews} label="Pageviews" />
+                <CardStat
+                  value={summary.overview.pageviews}
+                  label="Pageviews"
+                />
                 <CardStat value={summary.overview.sessions} label="Sessions" />
               </div>
             </div>
@@ -408,7 +460,10 @@ function PropertyCard({
             </span>
           )}
           <div className={styles["property-card-stats"]}>
-            <CardStat value={property.sessions.uniqueVisitors} label="Visitors" />
+            <CardStat
+              value={property.sessions.uniqueVisitors}
+              label="Visitors"
+            />
             <CardStat value={property.sessions.sessionCount} label="Sessions" />
           </div>
         </div>
@@ -430,7 +485,9 @@ function PropertyCard({
 function CardStat({ value, label }: { value: number; label: string }) {
   return (
     <div className={styles["property-card-stat"]}>
-      <span className={styles["property-card-stat-value"]}>{formatCompact(value)}</span>
+      <span className={styles["property-card-stat-value"]}>
+        {formatCompact(value)}
+      </span>
       <span className={styles["property-card-stat-label"]}>{label}</span>
     </div>
   );

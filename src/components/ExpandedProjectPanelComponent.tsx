@@ -32,12 +32,14 @@ export default function ExpandedProjectPanel({
   const propertyId = service.analyticsPropertyId;
 
   // Web Analytics only exists for projects with a GA property.
-  const visibleTabs = TABS.filter((tab) => tab.id !== "web-analytics" || propertyId);
+  const visibleTabs = TABS.filter(
+    (tab) => tab.id !== "web-analytics" || propertyId,
+  );
   // A failed check matters only for something that is deployed and checked.
   const showError = Boolean(service.error) && projectHealth(service) === "down";
 
   return (
-    <div className={`expanded-project-panel-component ${styles['panel']}`}>
+    <div className={`expanded-project-panel-component ${styles["panel"]}`}>
       <TabBarComponent
         ariaLabel="Project detail sections"
         variant="secondary"
@@ -50,7 +52,7 @@ export default function ExpandedProjectPanel({
         onChange={(key: string) => setActiveTab(key as TabId)}
       />
 
-      <div className={styles['tab-content']}>
+      <div className={styles["tab-content"]}>
         {activeTab === "project" && <ProjectOverviewTab service={service} />}
         {activeTab === "container" && <ProjectContainerTab service={service} />}
         {activeTab === "topology" && (
@@ -61,7 +63,7 @@ export default function ExpandedProjectPanel({
         )}
       </div>
 
-      {showError && <div className={styles['error-bar']}>{service.error}</div>}
+      {showError && <div className={styles["error-bar"]}>{service.error}</div>}
     </div>
   );
 }

@@ -30,7 +30,10 @@ export function thresholdsFromSettings(
   };
 }
 
-export function severityOf(percent: number, [warnAt, alertAt]: SeverityBounds): Severity {
+export function severityOf(
+  percent: number,
+  [warnAt, alertAt]: SeverityBounds,
+): Severity {
   if (percent > alertAt) return "danger";
   if (percent > warnAt) return "warning";
   return "success";

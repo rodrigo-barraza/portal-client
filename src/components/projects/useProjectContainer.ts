@@ -18,8 +18,12 @@ export function pickProjectContainer(
   containers: DockerContainerStats[],
   dockerProject: string,
 ): DockerContainerStats | null {
-  const named = containers.filter((container) => container.name === dockerProject);
-  return named.find((container) => container.state === "running") ?? named[0] ?? null;
+  const named = containers.filter(
+    (container) => container.name === dockerProject,
+  );
+  return (
+    named.find((container) => container.state === "running") ?? named[0] ?? null
+  );
 }
 
 /**
@@ -27,7 +31,10 @@ export function pickProjectContainer(
  * Projects drawer. Polls only while the drawer's Container tab is mounted
  * and the page is visible; the Projects page itself stays stats-free.
  */
-export function useProjectContainer(dockerProject: string | null, pollIntervalSeconds: number) {
+export function useProjectContainer(
+  dockerProject: string | null,
+  pollIntervalSeconds: number,
+) {
   const [loaded, setLoaded] = useState(false);
   const [stats, setStats] = useState<DockerContainerStats | null>(null);
   const [history, setHistory] = useState<HistoryMap>({});
@@ -36,9 +43,14 @@ export function useProjectContainer(dockerProject: string | null, pollIntervalSe
     async (isCurrent, signal) => {
       if (!dockerProject) return;
       try {
-        const response = await ApiService.getContainerStats(undefined, { signal });
+        const response = await ApiService.getContainerStats(undefined, {
+          signal,
+        });
         if (!isCurrent()) return;
-        const container = pickProjectContainer(response.containers, dockerProject);
+        const container = pickProjectContainer(
+          response.containers,
+          dockerProject,
+        );
         setStats(container);
         if (container) {
           setHistory((previous) =>

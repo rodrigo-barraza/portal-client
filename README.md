@@ -8,32 +8,32 @@ component library, backed by [portal-service](../portal-service).
 
 ## Pages
 
-| Section        | Route                                          | What it shows                                                        |
-| -------------- | ---------------------------------------------- | -------------------------------------------------------------------- |
-| Infrastructure | `/containers`                                  | Docker containers per device: health, CPU/memory, actions, rollback |
-|                | `/projects`                                    | Registry projects as cards or a table, repo sizes and languages     |
-|                | `/devices`                                     | Physical devices, live hardware specs and hosted services           |
-|                | `/topology`                                    | Dependency graph between services                                    |
-|                | `/object-store`                                | MinIO buckets, object browser, search and previews                   |
-| Observability  | `/logs`                                        | Live container log streaming (SSE)                                   |
-|                | `/web-analytics` (admin)                       | GA4 reports plus first-party session analytics, replays, heatmaps   |
-| Integrations   | `/integrations`, `/external-apis`              | Configured API keys; third-party API usage and cost                 |
+| Section        | Route                                                                    | What it shows                                                        |
+| -------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Infrastructure | `/containers`                                                            | Docker containers per device: health, CPU/memory, actions, rollback  |
+|                | `/projects`                                                              | Registry projects as cards or a table, repo sizes and languages      |
+|                | `/devices`                                                               | Physical devices, live hardware specs and hosted services            |
+|                | `/topology`                                                              | Dependency graph between services                                    |
+|                | `/object-store`                                                          | MinIO buckets, object browser, search and previews                   |
+| Observability  | `/logs`                                                                  | Live container log streaming (SSE)                                   |
+|                | `/web-analytics` (admin)                                                 | GA4 reports plus first-party session analytics, replays, heatmaps    |
+| Integrations   | `/integrations`, `/external-apis`                                        | Configured API keys; third-party API usage and cost                  |
 | Developer      | `/components`, `/hooks`, `/providers`, `/services-library`, `/utilities` | Catalog of `@rodrigo-barraza/components-library`, with live previews |
-| System         | `/settings`                                    | Theme and preferences (stored in this browser)                      |
+| System         | `/settings`                                                              | Theme and preferences (stored in this browser)                       |
 
 `/` redirects to the landing page chosen in Settings.
 
 ## Stack
 
-| Dependency                            | Purpose                              |
-| ------------------------------------- | ------------------------------------ |
-| Next.js 16 (App Router)               | Framework — standalone output        |
-| React 19                              | UI                                   |
-| `@rodrigo-barraza/components-library` | Shared components and theme system   |
+| Dependency                            | Purpose                               |
+| ------------------------------------- | ------------------------------------- |
+| Next.js 16 (App Router)               | Framework — standalone output         |
+| React 19                              | UI                                    |
+| `@rodrigo-barraza/components-library` | Shared components and theme system    |
 | `@rodrigo-barraza/utilities-library`  | HTTP client, formatters, vault client |
-| Auth.js (next-auth v5)                | Google SSO                           |
-| Recharts, rrweb-player                | Charts, session replay               |
-| TypeScript 7, oxlint, Vitest          | Type checking, linting, tests        |
+| Auth.js (next-auth v5)                | Google SSO                            |
+| Recharts, rrweb-player                | Charts, session replay                |
+| TypeScript 7, oxlint, Vitest          | Type checking, linting, tests         |
 
 ## Getting started
 
@@ -55,13 +55,13 @@ Configuration comes from the vault; nothing is hardcoded.
   `process.env` before starting the standalone server. It is synced from
   `deploy-kit/templates/client-boot.js`, so edit it there.
 
-| Variable                                               | Used for                                                     |
-| ------------------------------------------------------ | ------------------------------------------------------------ |
+| Variable                                               | Used for                                                       |
+| ------------------------------------------------------ | -------------------------------------------------------------- |
 | `PORTAL_SERVICE_URL` / `PORTAL_SERVICE_PUBLIC_URL`     | portal-service, internal (private hosts) / public (the domain) |
-| `SESSIONS_SERVICE_URL` / `SESSIONS_SERVICE_PUBLIC_URL` | `/api/sessions/*` proxy for the session tracker              |
-| `ACCOUNTS_SERVICE_URL`, `ACCOUNTS_SERVICE_API_SECRET`  | Admin-role lookup at sign-in                                 |
-| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`  | Google SSO (auth is off when the Google pair is unset)       |
-| `AUTH_ALLOWED_EMAILS`                                  | Comma-separated emails allowed to sign in                    |
+| `SESSIONS_SERVICE_URL` / `SESSIONS_SERVICE_PUBLIC_URL` | `/api/sessions/*` proxy for the session tracker                |
+| `ACCOUNTS_SERVICE_URL`, `ACCOUNTS_SERVICE_API_SECRET`  | Admin-role lookup at sign-in                                   |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`  | Google SSO (auth is off when the Google pair is unset)         |
+| `AUTH_ALLOWED_EMAILS`                                  | Comma-separated emails allowed to sign in                      |
 
 ## Auth
 

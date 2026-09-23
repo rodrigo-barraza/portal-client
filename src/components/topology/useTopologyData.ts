@@ -30,11 +30,16 @@ export function useTopologyData() {
     refreshAnalysisRef.current = false;
     const [servicesResponse, analysisResponse] = await Promise.all([
       ApiService.getServices(true, { signal }),
-      ApiService.getProjectAnalysis(refreshAnalysis, { signal }).catch(() => null),
+      ApiService.getProjectAnalysis(refreshAnalysis, { signal }).catch(
+        () => null,
+      ),
     ]);
     const analysis = analysisResponse ?? lastAnalysisRef.current;
     lastAnalysisRef.current = analysis;
-    return { services: buildTopologyServices(servicesResponse, analysis), analysis };
+    return {
+      services: buildTopologyServices(servicesResponse, analysis),
+      analysis,
+    };
   });
   const { reload } = topology;
 

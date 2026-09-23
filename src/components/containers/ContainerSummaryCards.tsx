@@ -1,6 +1,10 @@
 import { Clock, Cpu, MemoryStick, Network, Server } from "lucide-react";
 import { StatsCardComponent } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration, formatPercent } from "@rodrigo-barraza/utilities-library";
+import {
+  formatBytes,
+  formatDuration,
+  formatPercent,
+} from "@rodrigo-barraza/utilities-library";
 import { percentCeiling } from "../monitoring/containerHistory";
 import { severityColor, type SeverityThresholds } from "../monitoring/severity";
 import ChartStatCard from "./ChartStatCard";
@@ -26,7 +30,7 @@ export default function ContainerSummaryCards({
   showResponseTimes: boolean;
 }) {
   return (
-    <div className={styles['summary-grid']}>
+    <div className={styles["summary-grid"]}>
       <StatsCardComponent
         label="Containers"
         value={summary.total}
@@ -78,7 +82,11 @@ export default function ContainerSummaryCards({
       {showResponseTimes && (
         <StatsCardComponent
           label="Avg Response"
-          value={summary.averageResponseMs > 0 ? formatDuration(summary.averageResponseMs) : "—"}
+          value={
+            summary.averageResponseMs > 0
+              ? formatDuration(summary.averageResponseMs)
+              : "—"
+          }
           subtitle={
             summary.responseSamples > 0
               ? `Based on ${summary.responseSamples} active service${summary.responseSamples === 1 ? "" : "s"}`

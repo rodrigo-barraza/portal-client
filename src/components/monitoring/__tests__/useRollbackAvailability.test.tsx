@@ -24,9 +24,13 @@ beforeEach(() => {
 
 describe("useRollbackAvailability", () => {
   it("asks once for every service and keeps only the requested ids", async () => {
-    const { result } = renderHook(() => useRollbackAvailability(["web-client", "api-service"]));
+    const { result } = renderHook(() =>
+      useRollbackAvailability(["web-client", "api-service"]),
+    );
 
-    await waitFor(() => expect(result.current.statuses["api-service"]).toBeDefined());
+    await waitFor(() =>
+      expect(result.current.statuses["api-service"]).toBeDefined(),
+    );
     expect(api.getRollbackStatuses).toHaveBeenCalledTimes(1);
     expect(api.getRollbackStatus).not.toHaveBeenCalled();
     expect(result.current.statuses).toEqual({
@@ -36,21 +40,35 @@ describe("useRollbackAvailability", () => {
   });
 
   it("does not re-query when polling hands over the same ids in a new array", async () => {
-    const { result, rerender } = renderHook(({ ids }) => useRollbackAvailability(ids), {
-      initialProps: { ids: ["api-service", "web-client"] },
-    });
-    await waitFor(() => expect(result.current.statuses["api-service"]).toBeDefined());
+    const { result, rerender } = renderHook(
+      ({ ids }) => useRollbackAvailability(ids),
+      {
+        initialProps: { ids: ["api-service", "web-client"] },
+      },
+    );
+    await waitFor(() =>
+      expect(result.current.statuses["api-service"]).toBeDefined(),
+    );
 
     rerender({ ids: ["web-client", "api-service"] });
     expect(api.getRollbackStatuses).toHaveBeenCalledTimes(1);
   });
 
   it("re-checks one service after a rollback consumes its previous image", async () => {
-    const { result } = renderHook(() => useRollbackAvailability(["api-service"]));
-    await waitFor(() => expect(result.current.statuses["api-service"]?.available).toBe(true));
+    const { result } = renderHook(() =>
+      useRollbackAvailability(["api-service"]),
+    );
+    await waitFor(() =>
+      expect(result.current.statuses["api-service"]?.available).toBe(true),
+    );
 
-    api.getRollbackStatus.mockResolvedValue({ available: false, reason: "No previous image found" });
+    api.getRollbackStatus.mockResolvedValue({
+      available: false,
+      reason: "No previous image found",
+    });
     await result.current.recheck("api-service");
-    await waitFor(() => expect(result.current.statuses["api-service"]?.available).toBe(false));
+    await waitFor(() =>
+      expect(result.current.statuses["api-service"]?.available).toBe(false),
+    );
   });
 });

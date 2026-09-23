@@ -3,7 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useVisiblePolling, type IsCurrent } from "../useVisiblePolling";
 
 function setVisibility(state: "visible" | "hidden") {
-  Object.defineProperty(document, "visibilityState", { configurable: true, value: state });
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    value: state,
+  });
   document.dispatchEvent(new Event("visibilitychange"));
 }
 
@@ -92,7 +95,9 @@ describe("useVisiblePolling", () => {
           signals.push(signal);
         }),
     );
-    const { result, unmount } = renderHook(() => useVisiblePolling(task, 60_000));
+    const { result, unmount } = renderHook(() =>
+      useVisiblePolling(task, 60_000),
+    );
     await act(async () => {});
     await act(async () => {
       void result.current();
@@ -231,9 +236,12 @@ describe("useVisiblePolling", () => {
           signals.push(signal);
         }),
     );
-    const { rerender } = renderHook(({ enabled }) => useVisiblePolling(task, 1000, { enabled }), {
-      initialProps: { enabled: true },
-    });
+    const { rerender } = renderHook(
+      ({ enabled }) => useVisiblePolling(task, 1000, { enabled }),
+      {
+        initialProps: { enabled: true },
+      },
+    );
     await act(async () => {});
     rerender({ enabled: false });
     expect(signals[0].aborted).toBe(true);

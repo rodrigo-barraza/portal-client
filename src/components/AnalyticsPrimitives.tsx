@@ -4,7 +4,12 @@ import React from "react";
 import { ChartLineComponent } from "@rodrigo-barraza/components-library";
 import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { CHART_COLORS, SOURCE_COLORS, SPARKLINE_COLORS, chartColor } from "./analytics/palette";
+import {
+  CHART_COLORS,
+  SOURCE_COLORS,
+  SPARKLINE_COLORS,
+  chartColor,
+} from "./analytics/palette";
 import { describeSeries } from "./analytics/analyticsSeries";
 import { formatExact } from "./analytics/analyticsFormat";
 import styles from "./WebAnalytics.module.css";
@@ -19,7 +24,11 @@ import type { DonutSegment } from "../types/portal";
 
 export { CHART_COLORS, SPARKLINE_COLORS, SOURCE_COLORS };
 
-type PanelIcon = React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+type PanelIcon = React.ComponentType<{
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+}>;
 
 // ── Delta Badge ───────────────────────────────────────────────
 
@@ -59,12 +68,18 @@ export function StatCard({
   delta?: number | null;
 }) {
   return (
-    <div className={styles["stat-card"]} style={{ animationDelay: `${delay}ms` }}>
+    <div
+      className={styles["stat-card"]}
+      style={{ animationDelay: `${delay}ms` }}
+    >
       <div
         className={styles["stat-card-icon"]}
         // color-mix, not `${color}15`: hex-alpha concatenation silently
         // breaks for anything but a 6-digit hex (var(), oklch, #abc)
-        style={{ color, background: `color-mix(in srgb, ${color} 8%, transparent)` }}
+        style={{
+          color,
+          background: `color-mix(in srgb, ${color} 8%, transparent)`,
+        }}
         aria-hidden
       >
         <Icon size={18} strokeWidth={2} />
@@ -151,7 +166,8 @@ export function DonutChart({
   }
 
   // Exact numbers for screen readers; a custom formatter (bytes) as given
-  const describeValue = formatValue === formatCompact ? formatExact : formatValue;
+  const describeValue =
+    formatValue === formatCompact ? formatExact : formatValue;
   const description = `${centerLabel}: ${describeValue(total)}. ${segments
     .map((segment) => `${segment.label} ${describeValue(segment.value)}`)
     .join(", ")}.`;
@@ -176,7 +192,8 @@ export function DonutChart({
       {segments.map((segment, index) => {
         const percentage = total > 0 ? segment.value / total : 0;
         const dashLength = percentage * circumference;
-        const dashOffset = total > 0 ? -(cumulativeValues[index] / total) * circumference : 0;
+        const dashOffset =
+          total > 0 ? -(cumulativeValues[index] / total) * circumference : 0;
 
         return (
           <circle
@@ -235,7 +252,12 @@ export function Panel({
   return (
     <section className={styles["panel"]} aria-label={title}>
       <div className={styles["panel-header"]}>
-        <Icon size={15} strokeWidth={2.2} className={styles["panel-icon"]} aria-hidden />
+        <Icon
+          size={15}
+          strokeWidth={2.2}
+          className={styles["panel-icon"]}
+          aria-hidden
+        />
         <span className={styles["panel-title"]}>{title}</span>
         {meta && <span className={styles["panel-meta"]}>{meta}</span>}
       </div>
@@ -354,7 +376,12 @@ export function TrendsPanel({
   return (
     <section className={styles["chart-panel"]} aria-label={title}>
       <div className={styles["chart-header"]}>
-        <Icon size={15} strokeWidth={2.2} className={styles["chart-header-icon"]} aria-hidden />
+        <Icon
+          size={15}
+          strokeWidth={2.2}
+          className={styles["chart-header-icon"]}
+          aria-hidden
+        />
         <span className={styles["chart-title"]}>{title}</span>
       </div>
       <div
@@ -364,7 +391,9 @@ export function TrendsPanel({
       >
         <div className={styles["sparkline-stack"]}>
           {metrics.map((metric) => {
-            const values = series.map((point) => Number(point[metric.key]) || 0);
+            const values = series.map(
+              (point) => Number(point[metric.key]) || 0,
+            );
             const max = Math.max(...values, 1);
             return (
               <ChartLineComponent
@@ -375,7 +404,9 @@ export function TrendsPanel({
                 height={140}
                 historyMax={values.length}
                 showGrid
-                formatValue={(value: number) => formatCompact(Math.round(value))}
+                formatValue={(value: number) =>
+                  formatCompact(Math.round(value))
+                }
               />
             );
           })}
@@ -384,7 +415,10 @@ export function TrendsPanel({
       <div className={styles["chart-legend"]}>
         {metrics.map((metric) => (
           <div key={metric.key} className={styles["chart-legend-item"]}>
-            <div className={styles["chart-legend-dot"]} style={{ background: metric.color }} />
+            <div
+              className={styles["chart-legend-dot"]}
+              style={{ background: metric.color }}
+            />
             {metric.label}
           </div>
         ))}
@@ -423,15 +457,29 @@ export function RealtimeBanner({
 
 // ── Source Badges ─────────────────────────────────────────────
 
-export function SourceBadges({ hasGA, hasSessions }: { hasGA: boolean; hasSessions: boolean }) {
+export function SourceBadges({
+  hasGA,
+  hasSessions,
+}: {
+  hasGA: boolean;
+  hasSessions: boolean;
+}) {
   if (!hasGA && !hasSessions) return null;
   return (
     <span className={styles["source-badges"]}>
       {hasGA && (
-        <span className={`${styles["source-badge"]} ${styles["source-badge-ga"]}`}>GA4</span>
+        <span
+          className={`${styles["source-badge"]} ${styles["source-badge-ga"]}`}
+        >
+          GA4
+        </span>
       )}
       {hasSessions && (
-        <span className={`${styles["source-badge"]} ${styles["source-badge-fp"]}`}>1st-party</span>
+        <span
+          className={`${styles["source-badge"]} ${styles["source-badge-fp"]}`}
+        >
+          1st-party
+        </span>
       )}
     </span>
   );

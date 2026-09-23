@@ -560,15 +560,15 @@
 .grid-card-actions .grid-action-button {
   width: 26px;
   height: 26px;
-  background: oklch(0.0% 0.0 0.0 / 0.55);
+  background: oklch(0% 0 0 / 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border-radius: 6px;
-  color: oklch(100.0% 0.0001 263.3 / 0.8);
+  color: oklch(100% 0.0001 263.3 / 0.8);
 }
 
 .grid-card-actions .grid-action-button:hover {
-  background: oklch(0.0% 0.0 0.0 / 0.75);
+  background: oklch(0% 0 0 / 0.75);
   color: var(--accent-primary);
 }
 
@@ -591,7 +591,7 @@
   object-fit: contain;
   border-radius: var(--border-radius-sm);
   background: repeating-conic-gradient(
-      oklch(60.0% 0.0001 263.3 / 0.08) 0% 25%,
+      oklch(60% 0.0001 263.3 / 0.08) 0% 25%,
       transparent 0% 50%
     )
     50% / 16px 16px;

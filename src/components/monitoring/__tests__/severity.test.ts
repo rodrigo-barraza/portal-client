@@ -15,7 +15,10 @@ describe("severity", () => {
   });
 
   it("takes the alert ceiling from the user's settings", () => {
-    const thresholds = thresholdsFromSettings({ alertThresholdCpu: 90, alertThresholdMemory: 70 });
+    const thresholds = thresholdsFromSettings({
+      alertThresholdCpu: 90,
+      alertThresholdMemory: 70,
+    });
     expect(thresholds.cpu).toEqual([40, 90]);
     expect(thresholds.memory).toEqual([60, 70]);
     expect(severityOf(85, thresholds.cpu)).toBe("warning");

@@ -126,7 +126,9 @@ export async function settleReports<T extends object>(requests: {
   [K in keyof T]: Promise<T[K]>;
 }): Promise<SettledReports<T>> {
   const keys = Object.keys(requests) as (keyof T)[];
-  const results = await Promise.allSettled(keys.map((reportKey) => requests[reportKey]));
+  const results = await Promise.allSettled(
+    keys.map((reportKey) => requests[reportKey]),
+  );
 
   const values = {} as { [K in keyof T]: T[K] | null };
   let firstError: Error | null = null;
@@ -142,7 +144,9 @@ export async function settleReports<T extends object>(requests: {
   return {
     values,
     firstError,
-    allFailed: keys.length > 0 && results.every((result) => result.status === "rejected"),
+    allFailed:
+      keys.length > 0 &&
+      results.every((result) => result.status === "rejected"),
   };
 }
 

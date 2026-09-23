@@ -23,16 +23,18 @@ describe("apiErrorMessage", () => {
   });
 
   it("never shows a boolean error flag — falls back to message", () => {
-    expect(apiErrorMessage({ error: true, message: "Upstream down" }, 502)).toBe(
-      "Upstream down",
-    );
+    expect(
+      apiErrorMessage({ error: true, message: "Upstream down" }, 502),
+    ).toBe("Upstream down");
   });
 
   it("does not echo non-JSON bodies", () => {
     expect(apiErrorMessage("<html>Bad Gateway</html>", 502)).toBe(
       "Request failed with status 502",
     );
-    expect(apiErrorMessage(undefined, 500)).toBe("Request failed with status 500");
+    expect(apiErrorMessage(undefined, 500)).toBe(
+      "Request failed with status 500",
+    );
   });
 });
 
@@ -41,9 +43,14 @@ describe("createJsonRequester", () => {
     const fetchMock = vi.fn(async () => jsonResponse({ services: [] }));
     const request = createJsonRequester("http://api.test/", fetchMock);
 
-    await expect(request("GET", "/services")).resolves.toEqual({ services: [] });
+    await expect(request("GET", "/services")).resolves.toEqual({
+      services: [],
+    });
 
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
     expect(url).toBe("http://api.test/services");
     expect(init.method).toBe("GET");
     expect(init.body).toBeUndefined();
@@ -57,9 +64,14 @@ describe("createJsonRequester", () => {
 
     await request("POST", "/x", { body: { a: 1 } });
 
-    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const [, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
     expect(init.body).toBe('{"a":1}');
-    expect(new Headers(init.headers).get("content-type")).toBe("application/json");
+    expect(new Headers(init.headers).get("content-type")).toBe(
+      "application/json",
+    );
   });
 
   it("passes the abort signal through and rethrows aborts unchanged", async () => {
@@ -68,7 +80,10 @@ describe("createJsonRequester", () => {
       expect(init?.signal).toBe(controller.signal);
       throw new DOMException("The operation was aborted.", "AbortError");
     });
-    const request = createJsonRequester("http://api.test", fetchMock as typeof fetch);
+    const request = createJsonRequester(
+      "http://api.test",
+      fetchMock as typeof fetch,
+    );
 
     controller.abort();
     await expect(

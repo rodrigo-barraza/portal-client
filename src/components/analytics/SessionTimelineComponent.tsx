@@ -18,7 +18,9 @@ export default function SessionTimelineComponent({
   label?: string;
 }) {
   if (!timeline || timeline.length === 0) {
-    return <div className={styles["empty-timeline"]}>No activity recorded.</div>;
+    return (
+      <div className={styles["empty-timeline"]}>No activity recorded.</div>
+    );
   }
 
   return (
@@ -26,7 +28,9 @@ export default function SessionTimelineComponent({
       <div className={styles["timeline-header"]}>
         <Clock size={14} strokeWidth={2.2} aria-hidden />
         <span>{label}</span>
-        <span className={styles["timeline-count"]}>{formatCount(timeline.length, "event")}</span>
+        <span className={styles["timeline-count"]}>
+          {formatCount(timeline.length, "event")}
+        </span>
       </div>
       <ol className={styles["timeline"]}>
         {timeline.map((entry, index) => {
@@ -50,11 +54,17 @@ export default function SessionTimelineComponent({
                     {isPageView ? "Page View" : "Event"}
                   </span>
                   {entry.sessionId && (
-                    <span className={styles["timeline-session-tag"]} title={entry.sessionId}>
+                    <span
+                      className={styles["timeline-session-tag"]}
+                      title={entry.sessionId}
+                    >
                       {shortId(entry.sessionId, 6)}
                     </span>
                   )}
-                  <time className={styles["timeline-time"]} dateTime={entry.timestamp}>
+                  <time
+                    className={styles["timeline-time"]}
+                    dateTime={entry.timestamp}
+                  >
                     {formatTimestamp(entry.timestamp)}
                   </time>
                 </div>
@@ -62,16 +72,26 @@ export default function SessionTimelineComponent({
                   <span className={styles["timeline-detail"]}>
                     {entry.path || entry.url}
                     {entry.title && (
-                      <span className={styles["timeline-title"]}> — {entry.title}</span>
+                      <span className={styles["timeline-title"]}>
+                        {" "}
+                        — {entry.title}
+                      </span>
                     )}
                   </span>
                 ) : (
                   <span className={styles["timeline-detail"]}>
-                    <span className={styles["timeline-category"]}>{entry.category}</span>
+                    <span className={styles["timeline-category"]}>
+                      {entry.category}
+                    </span>
                     <ChevronRight size={10} strokeWidth={2.5} aria-hidden />
-                    <span className={styles["timeline-action"]}>{entry.action}</span>
+                    <span className={styles["timeline-action"]}>
+                      {entry.action}
+                    </span>
                     {entry.label && (
-                      <span className={styles["timeline-label"]}> · {entry.label}</span>
+                      <span className={styles["timeline-label"]}>
+                        {" "}
+                        · {entry.label}
+                      </span>
                     )}
                   </span>
                 )}

@@ -14,7 +14,9 @@ import {
 
 const CHECKED = "2026-09-22T00:00:00.000Z";
 
-function project(overrides: Partial<PortalService> & { id: string }): PortalService {
+function project(
+  overrides: Partial<PortalService> & { id: string },
+): PortalService {
   return {
     name: overrides.id,
     healthy: true,
@@ -26,15 +28,17 @@ function project(overrides: Partial<PortalService> & { id: string }): PortalServ
 
 describe("projectHealth", () => {
   it("never calls a library down", () => {
-    expect(projectHealth(project({ id: "lib", projectType: "Library", healthy: false }))).toBe(
-      "not-deployed",
-    );
+    expect(
+      projectHealth(
+        project({ id: "lib", projectType: "Library", healthy: false }),
+      ),
+    ).toBe("not-deployed");
   });
 
   it("is unknown before the first check", () => {
-    expect(projectHealth(project({ id: "a", healthy: false, checkedAt: undefined }))).toBe(
-      "unknown",
-    );
+    expect(
+      projectHealth(project({ id: "a", healthy: false, checkedAt: undefined })),
+    ).toBe("unknown");
   });
 
   it("follows the health check otherwise", () => {
@@ -44,53 +48,89 @@ describe("projectHealth", () => {
 });
 
 describe("projectsFromResponse", () => {
-  const services = [project({ id: "api" }), project({ id: "legacy", projectType: "Infrastructure" })];
+  const services = [
+    project({ id: "api" }),
+    project({ id: "legacy", projectType: "Infrastructure" }),
+  ];
   const infrastructure = [project({ id: "mongodb", projectType: "Database" })];
 
   it("leaves infrastructure out by default", () => {
-    expect(projectsFromResponse(services, infrastructure, false).map((item) => item.id)).toEqual([
-      "api",
-    ]);
+    expect(
+      projectsFromResponse(services, infrastructure, false).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["api"]);
   });
 
   it("includes the real infrastructure list when the setting is on", () => {
     const items = projectsFromResponse(services, infrastructure, true);
     expect(items.map((item) => item.id)).toEqual(["api", "legacy", "mongodb"]);
-    expect(items.find((item) => item.id === "mongodb")?.isInfrastructure).toBe(true);
+    expect(items.find((item) => item.id === "mongodb")?.isInfrastructure).toBe(
+      true,
+    );
   });
 });
 
 describe("filterProjects", () => {
   const items = [
-    project({ id: "api", name: "API", device: "Synology", visibility: "internal" }),
-    project({ id: "web", name: "Web", healthy: false, visibility: "external", domain: "rod.dev" }),
+    project({
+      id: "api",
+      name: "API",
+      device: "Synology",
+      visibility: "internal",
+    }),
+    project({
+      id: "web",
+      name: "Web",
+      healthy: false,
+      visibility: "external",
+      domain: "rod.dev",
+    }),
     project({ id: "kit", name: "Kit", projectType: "Library", healthy: false }),
     project({ id: "new", name: "New", healthy: false, checkedAt: undefined }),
   ];
   const ids = (list: PortalService[]) => list.map((item) => item.id);
 
   it("matches status against real health (libraries and unchecked are neither)", () => {
-    expect(ids(filterProjects(items, { ...EMPTY_FILTERS, status: ["unhealthy"] }, ""))).toEqual([
-      "web",
-    ]);
-    expect(ids(filterProjects(items, { ...EMPTY_FILTERS, status: ["healthy"] }, ""))).toEqual([
-      "api",
-    ]);
+    expect(
+      ids(
+        filterProjects(items, { ...EMPTY_FILTERS, status: ["unhealthy"] }, ""),
+      ),
+    ).toEqual(["web"]);
+    expect(
+      ids(filterProjects(items, { ...EMPTY_FILTERS, status: ["healthy"] }, "")),
+    ).toEqual(["api"]);
   });
 
   it("combines select filters with search", () => {
-    expect(ids(filterProjects(items, { ...EMPTY_FILTERS, visibility: ["external"] }, ""))).toEqual([
+    expect(
+      ids(
+        filterProjects(
+          items,
+          { ...EMPTY_FILTERS, visibility: ["external"] },
+          "",
+        ),
+      ),
+    ).toEqual(["web"]);
+    expect(ids(filterProjects(items, EMPTY_FILTERS, " ROD.DEV "))).toEqual([
       "web",
     ]);
-    expect(ids(filterProjects(items, EMPTY_FILTERS, " ROD.DEV "))).toEqual(["web"]);
-    expect(ids(filterProjects(items, { ...EMPTY_FILTERS, device: ["Synology"] }, "api"))).toEqual([
-      "api",
-    ]);
+    expect(
+      ids(
+        filterProjects(
+          items,
+          { ...EMPTY_FILTERS, device: ["Synology"] },
+          "api",
+        ),
+      ),
+    ).toEqual(["api"]);
   });
 
   it("knows when a filter is active", () => {
     expect(hasActiveFilters(EMPTY_FILTERS, "  ")).toBe(false);
-    expect(hasActiveFilters({ ...EMPTY_FILTERS, device: ["x"] }, "")).toBe(true);
+    expect(hasActiveFilters({ ...EMPTY_FILTERS, device: ["x"] }, "")).toBe(
+      true,
+    );
   });
 });
 
@@ -108,8 +148,14 @@ describe("buildFilterOptions", () => {
       "projectType",
       "device",
     ]);
-    expect(options.projectType.values.map((option) => option.value)).toEqual(["Bot", "Client"]);
-    expect(options.device.values.map((option) => option.value)).toEqual(["a-host", "b-host"]);
+    expect(options.projectType.values.map((option) => option.value)).toEqual([
+      "Bot",
+      "Client",
+    ]);
+    expect(options.device.values.map((option) => option.value)).toEqual([
+      "a-host",
+      "b-host",
+    ]);
   });
 });
 
@@ -120,7 +166,10 @@ describe("sortProjects", () => {
     project({ id: "c", name: "Gamma", projectType: "Library" }),
   ];
   const context = {
-    sizes: { a: { sizeBytes: 10, sizeKB: 0 }, b: { sizeBytes: 300, sizeKB: 0 } },
+    sizes: {
+      a: { sizeBytes: 10, sizeKB: 0 },
+      b: { sizeBytes: 300, sizeKB: 0 },
+    },
     languages: {
       a: { primary: "TypeScript", breakdown: [], totalBytes: 0 },
       b: { primary: "Go", breakdown: [], totalBytes: 0 },
@@ -188,9 +237,18 @@ describe("describeServiceMetadata", () => {
       project({
         id: "mongodb",
         isInfrastructure: true,
-        metadata: { version: "8.0.4", uptime: 90, connections: 12, bucketNames: [] },
+        metadata: {
+          version: "8.0.4",
+          uptime: 90,
+          connections: 12,
+          bucketNames: [],
+        },
       }),
     );
-    expect(fields.map((field) => field.label)).toEqual(["Version", "Uptime", "Connections"]);
+    expect(fields.map((field) => field.label)).toEqual([
+      "Version",
+      "Uptime",
+      "Connections",
+    ]);
   });
 });

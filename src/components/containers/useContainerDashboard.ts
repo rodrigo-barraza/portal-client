@@ -12,7 +12,10 @@ import {
   mergeSeededHistory,
   type HistoryMap,
 } from "../monitoring/containerHistory";
-import { useVisiblePolling, type IsCurrent } from "../monitoring/useVisiblePolling";
+import {
+  useVisiblePolling,
+  type IsCurrent,
+} from "../monitoring/useVisiblePolling";
 import { buildContainerRows, normalizeSystemInfo } from "./containerRows";
 
 /** portal-service re-checks registry health 3 s after an action. */
@@ -30,7 +33,9 @@ async function loadSeedHistory(signal: AbortSignal): Promise<HistoryMap> {
     // Persistent metrics unavailable (no MongoDB) — try the ring buffer.
   }
   try {
-    const ringBuffer = await ApiService.getContainerStatsHistory(undefined, { signal });
+    const ringBuffer = await ApiService.getContainerStatsHistory(undefined, {
+      signal,
+    });
     return historyFromRingBuffer(ringBuffer.history);
   } catch {
     return {};
@@ -75,7 +80,9 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
     systemInfoControllerRef.current = controller;
     try {
       const info = normalizeSystemInfo(
-        await ApiService.getSystemInfo(undefined, { signal: controller.signal }),
+        await ApiService.getSystemInfo(undefined, {
+          signal: controller.signal,
+        }),
       );
       if (info && aliveRef.current) {
         hasSystemInfoRef.current = true;
@@ -123,7 +130,10 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
     [loadSystemInfo],
   );
 
-  const refresh = useVisiblePolling(poll, Math.max(1, pollIntervalSeconds) * 1000);
+  const refresh = useVisiblePolling(
+    poll,
+    Math.max(1, pollIntervalSeconds) * 1000,
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,5 +156,13 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
     }, POST_ACTION_RECHECK_MILLISECONDS);
   }, [refresh]);
 
-  return { rows, history, systemInfo, loading, error, refresh, refreshAfterAction };
+  return {
+    rows,
+    history,
+    systemInfo,
+    loading,
+    error,
+    refresh,
+    refreshAfterAction,
+  };
 }

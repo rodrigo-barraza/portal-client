@@ -1,15 +1,34 @@
 import { describe, expect, it } from "vitest";
 import type { PortalService } from "@/types/portal";
-import { collectEdges, connectedIds, layoutMiniTopology, miniEdgePath } from "../miniTopology";
+import {
+  collectEdges,
+  connectedIds,
+  layoutMiniTopology,
+  miniEdgePath,
+} from "../miniTopology";
 
-function node(id: string, deployTier: number, dependsOn: PortalService["dependsOn"] = []) {
-  return { id, name: id, healthy: true, deployTier, dependsOn } as PortalService;
+function node(
+  id: string,
+  deployTier: number,
+  dependsOn: PortalService["dependsOn"] = [],
+) {
+  return {
+    id,
+    name: id,
+    healthy: true,
+    deployTier,
+    dependsOn,
+  } as PortalService;
 }
 
 const services = [
   node("mongodb", 0),
   node("vault", 1, ["mongodb"]),
-  node("prism", 1, [{ id: "vault", name: "vault", criticality: "optional" }, "mongodb", "mongodb"]),
+  node("prism", 1, [
+    { id: "vault", name: "vault", criticality: "optional" },
+    "mongodb",
+    "mongodb",
+  ]),
   node("prism-client", 1, ["prism"]),
   node("lupos-bot", 2, ["prism"]),
   node("unrelated", 1),
@@ -49,7 +68,9 @@ describe("layoutMiniTopology", () => {
     ]);
     expect(layout.tierRows.map((row) => row.tier)).toEqual([0, 1, 2]);
     expect(layout.positions.mongodb.y).toBeLessThan(layout.positions.prism.y);
-    expect(layout.positions.prism.y).toBeLessThan(layout.positions["lupos-bot"].y);
+    expect(layout.positions.prism.y).toBeLessThan(
+      layout.positions["lupos-bot"].y,
+    );
   });
 
   it("returns null for an isolated project", () => {
@@ -59,10 +80,14 @@ describe("layoutMiniTopology", () => {
 
 describe("miniEdgePath", () => {
   it("connects stacked nodes bottom → top", () => {
-    expect(miniEdgePath({ x: 0, y: 0 }, { x: 0, y: 200 })).toMatch(/^M 55 52 C/);
+    expect(miniEdgePath({ x: 0, y: 0 }, { x: 0, y: 200 })).toMatch(
+      /^M 55 52 C/,
+    );
   });
 
   it("connects side-by-side nodes right → left", () => {
-    expect(miniEdgePath({ x: 0, y: 0 }, { x: 300, y: 0 })).toMatch(/^M 110 26 C/);
+    expect(miniEdgePath({ x: 0, y: 0 }, { x: 300, y: 0 })).toMatch(
+      /^M 110 26 C/,
+    );
   });
 });

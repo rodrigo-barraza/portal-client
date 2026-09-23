@@ -15,10 +15,28 @@ import {
 } from "lucide-react";
 import type { StorageObject, StorageSearchResult } from "../../types/portal";
 
-const IMAGE_EXTS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".ico"]);
+const IMAGE_EXTS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".svg",
+  ".bmp",
+  ".ico",
+]);
 const AUDIO_EXTS = new Set([".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"]);
 const VIDEO_EXTS = new Set([".mp4", ".m4v", ".webm", ".mkv", ".mov", ".avi"]);
-const TEXT_EXTS = new Set([".txt", ".md", ".csv", ".log", ".ini", ".yml", ".yaml", ".toml"]);
+const TEXT_EXTS = new Set([
+  ".txt",
+  ".md",
+  ".csv",
+  ".log",
+  ".ini",
+  ".yml",
+  ".yaml",
+  ".toml",
+]);
 const CODE_EXTS = new Set([
   ".js",
   ".ts",
@@ -38,7 +56,15 @@ const CODE_EXTS = new Set([
   ".xml",
   ".sh",
 ]);
-const ARCHIVE_EXTS = new Set([".zip", ".gz", ".tar", ".rar", ".7z", ".bz2", ".xz"]);
+const ARCHIVE_EXTS = new Set([
+  ".zip",
+  ".gz",
+  ".tar",
+  ".rar",
+  ".7z",
+  ".bz2",
+  ".xz",
+]);
 
 export type MediaType = "image" | "audio" | "video";
 
@@ -70,19 +96,30 @@ export function getFileIcon(name: string): LucideIcon {
 
 /** A key relative to the current prefix (the leaf a listing shows). */
 export function displayName(fullKey: string, prefix: string): string {
-  return prefix && fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey;
+  return prefix && fullKey.startsWith(prefix)
+    ? fullKey.slice(prefix.length)
+    : fullKey;
 }
 
 /** A sub-prefix as a folder label relative to the current prefix, sans trailing slash. */
-export function folderLabel(folderPrefix: string, currentPrefix: string): string {
+export function folderLabel(
+  folderPrefix: string,
+  currentPrefix: string,
+): string {
   return displayName(folderPrefix, currentPrefix).replace(/\/$/, "");
 }
 
 /** Split an object key into its file name and folder path (with trailing slash). */
-export function splitObjectKey(key: string): { fileName: string; folderPath: string } {
+export function splitObjectKey(key: string): {
+  fileName: string;
+  folderPath: string;
+} {
   const slash = key.lastIndexOf("/");
   if (slash === -1) return { fileName: key, folderPath: "" };
-  return { fileName: key.slice(slash + 1) || key, folderPath: key.slice(0, slash + 1) };
+  return {
+    fileName: key.slice(slash + 1) || key,
+    folderPath: key.slice(0, slash + 1),
+  };
 }
 
 export interface BreadcrumbSegment {
@@ -91,7 +128,10 @@ export interface BreadcrumbSegment {
   prefix: string | null;
 }
 
-export function buildBreadcrumbs(bucket: string | null, prefix: string): BreadcrumbSegment[] {
+export function buildBreadcrumbs(
+  bucket: string | null,
+  prefix: string,
+): BreadcrumbSegment[] {
   const segments: BreadcrumbSegment[] = [{ label: "Buckets", prefix: null }];
   if (!bucket) return segments;
   segments.push({ label: bucket, prefix: "" });
@@ -113,8 +153,12 @@ export function filterListing(
   const needle = search.trim().toLowerCase();
   if (!needle) return { objects, prefixes };
   return {
-    objects: objects.filter((object) => displayName(object.name, prefix).toLowerCase().includes(needle)),
-    prefixes: prefixes.filter((folder) => folderLabel(folder, prefix).toLowerCase().includes(needle)),
+    objects: objects.filter((object) =>
+      displayName(object.name, prefix).toLowerCase().includes(needle),
+    ),
+    prefixes: prefixes.filter((folder) =>
+      folderLabel(folder, prefix).toLowerCase().includes(needle),
+    ),
   };
 }
 
@@ -128,18 +172,28 @@ export function groupResultsByBucket(
     if (group) group.push(result);
     else groups.set(result.bucket, [result]);
   }
-  return [...groups].map(([bucket, bucketResults]) => ({ bucket, results: bucketResults }));
+  return [...groups].map(([bucket, bucketResults]) => ({
+    bucket,
+    results: bucketResults,
+  }));
 }
 
 /**
  * Entry-animation delay for the index-th item. Capped so a folder with
  * thousands of objects doesn't take tens of seconds to finish fading in.
  */
-export function staggerDelay(index: number, stepMs: number, maxSteps = 20): string {
+export function staggerDelay(
+  index: number,
+  stepMs: number,
+  maxSteps = 20,
+): string {
   return `${Math.min(index, maxSteps) * stepMs}ms`;
 }
 
-export function formatDate(value: string | null | undefined, withTime = false): string {
+export function formatDate(
+  value: string | null | undefined,
+  withTime = false,
+): string {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";

@@ -35,9 +35,9 @@ const FALLBACK_THEME_META: ThemeCatalogEntry = {
  *  sidebar already pulls in the full icon set, so this lookup adds no
  *  bundle weight.) */
 function themeIcon(name: string): LucideIcon {
-  const icon = (LucideIcons as unknown as Record<string, LucideIcon | undefined>)[
-    name
-  ];
+  const icon = (
+    LucideIcons as unknown as Record<string, LucideIcon | undefined>
+  )[name];
   return icon ?? Palette;
 }
 

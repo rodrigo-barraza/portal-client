@@ -17,7 +17,11 @@ interface TopologyNodeCardProps {
   isDragging: boolean;
   isSelected: boolean;
   isFaded: boolean;
-  onPress: (event: React.MouseEvent, service: PortalService, position: NodePosition) => void;
+  onPress: (
+    event: React.MouseEvent,
+    service: PortalService,
+    position: NodePosition,
+  ) => void;
   onHoverStart: (event: React.MouseEvent, service: PortalService) => void;
   onHoverMove: (event: React.MouseEvent) => void;
   onHoverEnd: () => void;
@@ -44,7 +48,8 @@ export const TopologyNodeCard = memo(function TopologyNodeCard({
   onHoverEnd,
   onKeySelect,
 }: TopologyNodeCardProps) {
-  const Icon = SERVICE_TYPE_ICONS[service.projectType || ""] || DEFAULT_SERVICE_TYPE_ICON;
+  const Icon =
+    SERVICE_TYPE_ICONS[service.projectType || ""] || DEFAULT_SERVICE_TYPE_ICON;
   const typeColor = serviceTypeColor(service.projectType);
 
   const className = [

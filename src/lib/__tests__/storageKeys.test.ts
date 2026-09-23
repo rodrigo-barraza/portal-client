@@ -32,7 +32,9 @@ describe("isPreferenceStorageKey", () => {
 
   it("recognises library table layouts", () => {
     expect(isPreferenceStorageKey("table-sort:container-table")).toBe(true);
-    expect(isPreferenceStorageKey("table-hidden-cols:project-table")).toBe(true);
+    expect(isPreferenceStorageKey("table-hidden-cols:project-table")).toBe(
+      true,
+    );
   });
 
   it("leaves keys the portal does not own", () => {

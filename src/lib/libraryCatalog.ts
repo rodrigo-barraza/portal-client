@@ -6,11 +6,7 @@
 import catalogJson from "@/generated/component-catalog.json";
 
 export type CatalogEntryType =
-  | "component"
-  | "provider"
-  | "hook"
-  | "service"
-  | "utility";
+  "component" | "provider" | "hook" | "service" | "utility";
 
 /** One library export, as written by the catalog generator. */
 export interface CatalogEntry {
@@ -48,7 +44,10 @@ export function humanizeExportName(name: string): string {
 
 /** Case-insensitive match of a search query against name, description and
  *  the humanized name. An empty query matches everything. */
-export function matchesCatalogQuery(entry: CatalogEntry, query: string): boolean {
+export function matchesCatalogQuery(
+  entry: CatalogEntry,
+  query: string,
+): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
   return [

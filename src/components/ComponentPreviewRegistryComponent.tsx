@@ -103,7 +103,7 @@ function PreviewRow({
   gap?: number;
 }) {
   return (
-    <div className={styles['preview-row']} style={{ gap }}>
+    <div className={styles["preview-row"]} style={{ gap }}>
       {children}
     </div>
   );
@@ -117,14 +117,17 @@ function PreviewStack({
   gap?: number;
 }) {
   return (
-    <div className={`component-preview-registry-component ${styles['preview-stack']}`} style={{ gap }}>
+    <div
+      className={`component-preview-registry-component ${styles["preview-stack"]}`}
+      style={{ gap }}
+    >
       {children}
     </div>
   );
 }
 
 function PreviewLabel({ children }: { children: ReactNode }) {
-  return <span className={styles['preview-label']}>{children}</span>;
+  return <span className={styles["preview-label"]}>{children}</span>;
 }
 
 /** Static stand-in for components that need app context to render. */
@@ -136,7 +139,7 @@ function PreviewPlaceholder({
   children: ReactNode;
 }) {
   return (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       {icon}
       <span>{children}</span>
     </div>
@@ -246,20 +249,19 @@ const PREVIEWS: Record<string, () => ReactNode> = {
     </PreviewRow>
   ),
 
-
   DatePickerComponent: () => (
     <DatePickerComponent onChange={noop} placeholder="Select date…" />
   ),
 
   DialogComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <AlertCircle size={16} />
       <span>Opens as overlay — click triggers required</span>
     </div>
   ),
 
   DiscordChatComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <span>Requires Discord message data context</span>
     </div>
   ),
@@ -302,7 +304,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   FabMenuComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Plus size={16} />
       <span>Expands radially on click — requires fixed positioning</span>
     </div>
@@ -313,11 +315,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
       label="Email Address"
       hint="We'll never share your email."
     >
-      <InputComponent
-        value=""
-        onChange={noop}
-        placeholder="you@example.com"
-      />
+      <InputComponent value="" onChange={noop} placeholder="you@example.com" />
     </FormGroupComponent>
   ),
 
@@ -349,11 +347,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
 
   InputComponent: () => (
     <PreviewStack>
-      <InputComponent
-        value=""
-        onChange={noop}
-        placeholder="Standard input…"
-      />
+      <InputComponent value="" onChange={noop} placeholder="Standard input…" />
       <InputComponent
         value=""
         onChange={noop}
@@ -376,20 +370,20 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   MenuComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Menu size={16} />
       <span>Positioned popover — requires trigger click</span>
     </div>
   ),
 
   ModalComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <span>Full-screen overlay — opens via state toggle</span>
     </div>
   ),
 
   NavigationDrawerComponent: () => (
-    <div className={styles['preview-compact']}>
+    <div className={styles["preview-compact"]}>
       <NavigationDrawerComponent
         variant="standard"
         open={true}
@@ -418,7 +412,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   NavigationRailComponent: () => (
-    <div className={styles['preview-compact']}>
+    <div className={styles["preview-compact"]}>
       <NavigationRailComponent
         items={[
           { id: "home", label: "Home", icon: Home },
@@ -432,14 +426,14 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   NavigationSidebarComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Menu size={16} />
       <span>Full sidebar — used as page chrome</span>
     </div>
   ),
 
   PageHeaderComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <span>Sticky page header — wraps title + actions</span>
     </div>
   ),
@@ -476,7 +470,6 @@ const PREVIEWS: Record<string, () => ReactNode> = {
       />
     </PreviewStack>
   ),
-
 
   SearchInputComponent: () => (
     <SearchInputComponent
@@ -522,7 +515,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   SnackbarComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Bell size={16} />
       <span>Triggered via useSnackbar() hook</span>
     </div>
@@ -592,7 +585,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   TableComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <FileText size={16} />
       <span>Data table — requires columns + rows config</span>
     </div>
@@ -616,16 +609,12 @@ const PREVIEWS: Record<string, () => ReactNode> = {
         label="Label"
         placeholder="Enter text…"
       />
-      <TextFieldComponent
-        value="Filled"
-        onChange={noop}
-        label="With value"
-      />
+      <TextFieldComponent value="Filled" onChange={noop} label="With value" />
     </PreviewStack>
   ),
 
   ToastComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Bell size={16} />
       <span>Triggered via useToast() hook</span>
     </div>
@@ -645,10 +634,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
       </ButtonComponent>
       <span style={{ flex: 1 }} />
       <IconButtonComponent icon={<Bookmark size={14} />} onClick={noop} />
-      <IconButtonComponent
-        icon={<MoreVertical size={14} />}
-        onClick={noop}
-      />
+      <IconButtonComponent icon={<MoreVertical size={14} />} onClick={noop} />
     </ToolbarComponent>
   ),
 
@@ -692,11 +678,10 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   CarouselComponent: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <span>Multi-item carousel — requires item content</span>
     </div>
   ),
-
 
   AvatarComponent: () => (
     <PreviewRow>
@@ -770,7 +755,12 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   StatBadgeComponent: () => (
     <PreviewRow>
       <StatBadgeComponent value={42} label="models" />
-      <StatBadgeComponent value="99.9%" label="uptime" variant="success" icon={Activity} />
+      <StatBadgeComponent
+        value="99.9%"
+        label="uptime"
+        variant="success"
+        icon={Activity}
+      />
     </PreviewRow>
   ),
 
@@ -826,7 +816,9 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   DrawerComponent: () => (
-    <PreviewPlaceholder>Slides in over the page — opens via state</PreviewPlaceholder>
+    <PreviewPlaceholder>
+      Slides in over the page — opens via state
+    </PreviewPlaceholder>
   ),
 
   ErrorBoundaryComponent: () => (
@@ -842,7 +834,9 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   LayoutHeaderComponent: () => (
-    <PreviewPlaceholder>Page header bar — used as page chrome</PreviewPlaceholder>
+    <PreviewPlaceholder>
+      Page header bar — used as page chrome
+    </PreviewPlaceholder>
   ),
 
   MarkdownContentComponent: () => (
@@ -882,7 +876,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   ),
 
   ThemeProvider: () => (
-    <div className={styles['preview-placeholder']}>
+    <div className={styles["preview-placeholder"]}>
       <Settings size={16} />
       <span>Context provider — wraps app for theming</span>
     </div>

@@ -44,7 +44,14 @@ export function dockerContainer(
     cpu: { percent: 12, cores: 4 },
     cpuThrottling: { periods: 0, throttledPeriods: 0, throttledTimeNs: 0 },
     memory: { used: 256 * 1024 ** 2, limit: 16 * GIB, percent: 1.5 },
-    memoryDetail: { rss: 0, cache: 0, swap: 0, maxUsage: 0, pgfault: 0, pgmajfault: 0 },
+    memoryDetail: {
+      rss: 0,
+      cache: 0,
+      swap: 0,
+      maxUsage: 0,
+      pgfault: 0,
+      pgmajfault: 0,
+    },
     network: { rx: 10, tx: 20 },
     blockIO: { read: 0, write: 0 },
     pids: 12,
@@ -87,7 +94,9 @@ export function deviceSystemInfo(
 }
 
 /** A registered device (GET /devices) with nothing hosted on it. */
-export function device(overrides: Partial<Device> & Pick<Device, "id" | "name">): Device {
+export function device(
+  overrides: Partial<Device> & Pick<Device, "id" | "name">,
+): Device {
   return {
     hostname: "",
     os: "",
@@ -104,7 +113,8 @@ export function device(overrides: Partial<Device> & Pick<Device, "id" | "name">)
 
 /** A container in the Logs page's list (GET /logs). */
 export function loggableContainer(
-  overrides: Partial<LoggableContainer> & Pick<LoggableContainer, "name" | "device">,
+  overrides: Partial<LoggableContainer> &
+    Pick<LoggableContainer, "name" | "device">,
 ): LoggableContainer {
   return {
     id: overrides.name,
@@ -129,7 +139,8 @@ export function storageObject(
 }
 
 export function storageObjectStat(
-  overrides: Partial<StorageObjectStat> & Pick<StorageObjectStat, "bucket" | "object">,
+  overrides: Partial<StorageObjectStat> &
+    Pick<StorageObjectStat, "bucket" | "object">,
 ): StorageObjectStat {
   return {
     size: 0,
@@ -142,7 +153,9 @@ export function storageObjectStat(
 }
 
 /** A code analysis that found nothing, with GitHub healthy. */
-export function projectAnalysis(overrides: Partial<ProjectAnalysis> = {}): ProjectAnalysis {
+export function projectAnalysis(
+  overrides: Partial<ProjectAnalysis> = {},
+): ProjectAnalysis {
   return {
     dependencies: {},
     repoSizes: {},
@@ -151,14 +164,21 @@ export function projectAnalysis(overrides: Partial<ProjectAnalysis> = {}): Proje
     github: {
       tokenConfigured: true,
       status: "ok",
-      stats: { requests: 0, failures: 0, unauthorized: 0, rateLimited: 0, notFound: 0 },
+      stats: {
+        requests: 0,
+        failures: 0,
+        unauthorized: 0,
+        rateLimited: 0,
+        notFound: 0,
+      },
     },
     ...overrides,
   };
 }
 
 export function externalApiUsage(
-  overrides: Partial<ExternalApiUsage> & Pick<ExternalApiUsage, "serviceIdentifier">,
+  overrides: Partial<ExternalApiUsage> &
+    Pick<ExternalApiUsage, "serviceIdentifier">,
 ): ExternalApiUsage {
   return {
     displayName: overrides.serviceIdentifier,
@@ -192,14 +212,24 @@ export function externalApiUsageData(
   };
 }
 
-export const EMPTY_METRICS: ContainerMetricsResponse = { containers: {}, range: "1h", samples: 0 };
+export const EMPTY_METRICS: ContainerMetricsResponse = {
+  containers: {},
+  range: "1h",
+  samples: 0,
+};
 
-export const EMPTY_STATS_HISTORY: ContainerStatsHistoryResponse = { history: {}, samples: 0 };
+export const EMPTY_STATS_HISTORY: ContainerStatsHistoryResponse = {
+  history: {},
+  samples: 0,
+};
 
 export function serviceActionResponse(service: string): ServiceActionResponse {
   return { success: true, service, device: "synology", message: "OK" };
 }
 
-export function containerActionResponse(container: string, device = "synology"): ContainerActionResponse {
+export function containerActionResponse(
+  container: string,
+  device = "synology",
+): ContainerActionResponse {
   return { success: true, container, device, message: "OK" };
 }

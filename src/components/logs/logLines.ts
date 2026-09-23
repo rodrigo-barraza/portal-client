@@ -73,16 +73,24 @@ export function parseLogLine(raw: string, id: number): LogLine {
 }
 
 /** Append, keeping only the newest `max` entries. */
-export function appendCapped<T>(existing: T[], incoming: T[], max = MAX_LOG_LINES): T[] {
+export function appendCapped<T>(
+  existing: T[],
+  incoming: T[],
+  max = MAX_LOG_LINES,
+): T[] {
   if (incoming.length === 0) return existing;
   const combined = existing.concat(incoming);
-  return combined.length > max ? combined.slice(combined.length - max) : combined;
+  return combined.length > max
+    ? combined.slice(combined.length - max)
+    : combined;
 }
 
 export function filterLogLines(lines: LogLine[], query: string): LogLine[] {
   const needle = query.trim().toLowerCase();
   if (!needle) return lines;
   return lines.filter(
-    (line) => line.searchText.includes(needle) || (line.timestamp?.includes(needle) ?? false),
+    (line) =>
+      line.searchText.includes(needle) ||
+      (line.timestamp?.includes(needle) ?? false),
   );
 }

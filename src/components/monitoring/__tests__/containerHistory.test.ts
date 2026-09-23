@@ -22,7 +22,11 @@ describe("appendHistory", () => {
   it("appends one sample per container and caps the series", () => {
     let history = {};
     for (let index = 0; index < 5; index++) {
-      history = appendHistory(history, [{ key: "a", cpu: index, mem: index * 10 }], 3);
+      history = appendHistory(
+        history,
+        [{ key: "a", cpu: index, mem: index * 10 }],
+        3,
+      );
     }
     expect(history).toEqual({ a: { cpu: [2, 3, 4], mem: [20, 30, 40] } });
   });

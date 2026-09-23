@@ -1,11 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import TopologyComponent from "../../TopologyComponent";
 import ApiService from "../../../services/ApiService";
 import type { ServicesResponse } from "../../../types/portal";
 import { projectAnalysis } from "../../__tests__/apiFixtures";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
+vi.mock(
+  "@rodrigo-barraza/components-library",
+  () => import("../../__tests__/componentsLibraryStub"),
+);
 vi.mock("../../../services/ApiService", () => ({
   default: {
     getServices: vi.fn(),
@@ -18,11 +27,33 @@ const getProjectAnalysis = vi.mocked(ApiService.getProjectAnalysis);
 
 const SERVICES: ServicesResponse = {
   services: [
-    { id: "api", name: "API", healthy: true, projectType: "Service", deployTier: 1, dependsOn: ["lib"] },
-    { id: "web", name: "Web", healthy: false, projectType: "Client", deployTier: 1, dependsOn: ["api"] },
+    {
+      id: "api",
+      name: "API",
+      healthy: true,
+      projectType: "Service",
+      deployTier: 1,
+      dependsOn: ["lib"],
+    },
+    {
+      id: "web",
+      name: "Web",
+      healthy: false,
+      projectType: "Client",
+      deployTier: 1,
+      dependsOn: ["api"],
+    },
     { id: "lib", name: "Lib", healthy: true, projectType: "Library" },
   ],
-  infrastructure: [{ id: "mongodb", name: "MongoDB", healthy: true, projectType: "Database", deployTier: 0 }],
+  infrastructure: [
+    {
+      id: "mongodb",
+      name: "MongoDB",
+      healthy: true,
+      projectType: "Database",
+      deployTier: 0,
+    },
+  ],
 };
 
 beforeEach(() => {
@@ -43,7 +74,9 @@ describe("TopologyComponent", () => {
     expect(getProjectAnalysis).toHaveBeenCalledWith(false, withSignal);
 
     fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
-    await waitFor(() => expect(getProjectAnalysis).toHaveBeenLastCalledWith(true, withSignal));
+    await waitFor(() =>
+      expect(getProjectAnalysis).toHaveBeenLastCalledWith(true, withSignal),
+    );
   });
 
   it("shows an error state with retry instead of an empty graph", async () => {
@@ -52,7 +85,9 @@ describe("TopologyComponent", () => {
 
     render(<TopologyComponent />);
 
-    expect(await screen.findByText("Couldn't load the topology")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Couldn't load the topology"),
+    ).toBeInTheDocument();
     expect(screen.getByText("portal-service unreachable")).toBeInTheDocument();
 
     getServices.mockResolvedValue(SERVICES);
@@ -67,13 +102,21 @@ describe("TopologyComponent", () => {
         github: {
           tokenConfigured: false,
           status: "unavailable",
-          stats: { requests: 4, failures: 4, unauthorized: 4, rateLimited: 0, notFound: 0 },
+          stats: {
+            requests: 4,
+            failures: 4,
+            unauthorized: 4,
+            rateLimited: 0,
+            notFound: 0,
+          },
         },
       }),
     );
 
     render(<TopologyComponent />);
-    expect(await screen.findByText(/code analysis offline/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/code analysis offline/),
+    ).toBeInTheDocument();
 
     getProjectAnalysis.mockRejectedValueOnce(new Error("rate limited"));
     fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
@@ -104,7 +147,8 @@ describe("TopologyComponent", () => {
     const node = await screen.findByRole("button", { name: "Web, down" });
     const canvas = screen.getByRole("region", { name: /service topology/i });
     expect(canvas).toHaveAttribute("tabindex", "0");
-    const graph = () => container.querySelector("svg > g")!.getAttribute("transform");
+    const graph = () =>
+      container.querySelector("svg > g")!.getAttribute("transform");
 
     const before = graph();
     fireEvent.keyDown(canvas, { key: "ArrowRight" });
@@ -139,7 +183,9 @@ describe("TopologyComponent", () => {
   it("ignores a response that lands after a newer one", async () => {
     let resolveFirst: (value: ServicesResponse) => void = () => {};
     getServices
-      .mockImplementationOnce(() => new Promise((resolve) => (resolveFirst = resolve)))
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (resolveFirst = resolve)),
+      )
       .mockResolvedValue(SERVICES);
     getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
@@ -149,7 +195,10 @@ describe("TopologyComponent", () => {
     expect(await screen.findByText("API")).toBeInTheDocument();
 
     await act(async () => {
-      resolveFirst({ services: [{ id: "stale", name: "Stale", healthy: true }], infrastructure: [] });
+      resolveFirst({
+        services: [{ id: "stale", name: "Stale", healthy: true }],
+        infrastructure: [],
+      });
     });
     expect(screen.queryByText("Stale")).not.toBeInTheDocument();
   });

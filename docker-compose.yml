@@ -12,8 +12,7 @@ services:
     volumes:
       - /usr/share/zoneinfo/America/Los_Angeles:/etc/localtime:ro
     healthcheck:
-      test:
-        [
+      test: [
           "CMD",
           "wget",
           "--no-verbose",

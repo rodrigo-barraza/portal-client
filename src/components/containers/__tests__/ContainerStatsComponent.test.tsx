@@ -1,4 +1,11 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetSettings, updateSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
@@ -11,7 +18,10 @@ import {
   dockerContainer,
 } from "../../__tests__/apiFixtures";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
+vi.mock(
+  "@rodrigo-barraza/components-library",
+  () => import("../../__tests__/componentsLibraryStub"),
+);
 
 vi.mock("@/services/ApiService", () => ({
   default: {
@@ -27,7 +37,8 @@ vi.mock("@/services/ApiService", () => ({
     stopContainer: vi.fn(),
     restartContainer: vi.fn(),
     rollbackService: vi.fn(),
-    buildContainerPreviewUrl: (domain: string) => `http://portal/containers/previews/${domain}`,
+    buildContainerPreviewUrl: (domain: string) =>
+      `http://portal/containers/previews/${domain}`,
   },
 }));
 
@@ -72,7 +83,9 @@ afterEach(() => {
 describe("ContainerStatsComponent", () => {
   it("renders same-named containers on different hosts as separate rows", async () => {
     render(<ContainerStatsComponent />);
-    const names = await screen.findAllByRole("button", { name: "Show details for prism-service" });
+    const names = await screen.findAllByRole("button", {
+      name: "Show details for prism-service",
+    });
     expect(names).toHaveLength(2);
   });
 
@@ -84,30 +97,43 @@ describe("ContainerStatsComponent", () => {
 
   it("stops the container on the clicked host, only after confirmation", async () => {
     render(<ContainerStatsComponent />);
-    const stopButtons = await screen.findAllByRole("button", { name: "Stop prism-service" });
+    const stopButtons = await screen.findAllByRole("button", {
+      name: "Stop prism-service",
+    });
     const workstationRow = stopButtons[1].closest("tr");
     expect(workstationRow).not.toBeNull();
-    expect(within(workstationRow as HTMLElement).getByText("workstation")).toBeInTheDocument();
+    expect(
+      within(workstationRow as HTMLElement).getByText("workstation"),
+    ).toBeInTheDocument();
 
     fireEvent.click(stopButtons[1]);
     expect(api.stopContainer).not.toHaveBeenCalled();
 
-    const dialog = await screen.findByRole("alertdialog", { name: "Stop prism-service?" });
+    const dialog = await screen.findByRole("alertdialog", {
+      name: "Stop prism-service?",
+    });
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Stop" }));
     });
 
     await waitFor(() =>
-      expect(api.stopContainer).toHaveBeenCalledWith("prism-service", "workstation"),
+      expect(api.stopContainer).toHaveBeenCalledWith(
+        "prism-service",
+        "workstation",
+      ),
     );
     await waitFor(() => expect(api.invalidateStats).toHaveBeenCalled());
   });
 
   it("surfaces a failed poll instead of claiming there are no containers", async () => {
-    api.getContainerStats.mockRejectedValue(new Error("portal-service unreachable"));
+    api.getContainerStats.mockRejectedValue(
+      new Error("portal-service unreachable"),
+    );
     render(<ContainerStatsComponent />);
     expect(
-      await screen.findByText("Couldn't load containers: portal-service unreachable"),
+      await screen.findByText(
+        "Couldn't load containers: portal-service unreachable",
+      ),
     ).toBeInTheDocument();
   });
 });

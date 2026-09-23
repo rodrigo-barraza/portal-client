@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Play, RotateCcw, Square, Undo2, type LucideIcon } from "lucide-react";
 import {
   DialogComponent,
@@ -96,7 +103,9 @@ export function useActionRunner({
   const dialogId = useId();
   const [pending, setPending] = useState<Record<string, ContainerAction>>({});
   const [confirming, setConfirming] = useState<ActionRequest | null>(null);
-  const { toasts, addToast, removeToast } = useToast(TOAST_DURATION_MILLISECONDS);
+  const { toasts, addToast, removeToast } = useToast(
+    TOAST_DURATION_MILLISECONDS,
+  );
   const pendingRef = useRef(pending);
   const onSettledRef = useRef(onSettled);
   const cooldownTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -126,8 +135,14 @@ export function useActionRunner({
   const execute = useCallback(
     async (request: ActionRequest) => {
       const copy = ACTION_COPY[request.action];
-      pendingRef.current = { ...pendingRef.current, [request.key]: request.action };
-      setPending((previous) => ({ ...previous, [request.key]: request.action }));
+      pendingRef.current = {
+        ...pendingRef.current,
+        [request.key]: request.action,
+      };
+      setPending((previous) => ({
+        ...previous,
+        [request.key]: request.action,
+      }));
       let succeeded = false;
       try {
         await request.run();
@@ -174,9 +189,13 @@ export function useActionRunner({
         open={confirming !== null}
         onClose={() => setConfirming(null)}
         icon={ConfirmIcon ? <ConfirmIcon size={22} /> : undefined}
-        headline={confirming ? `${confirmCopy?.verb} ${confirming.name}?` : undefined}
+        headline={
+          confirming ? `${confirmCopy?.verb} ${confirming.name}?` : undefined
+        }
         confirmLabel={confirmCopy?.verb}
-        confirmVariant={confirmCopy?.confirm?.destructive ? "destructive" : "default"}
+        confirmVariant={
+          confirmCopy?.confirm?.destructive ? "destructive" : "default"
+        }
         onConfirm={() => {
           const request = confirming;
           setConfirming(null);

@@ -18,7 +18,12 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatCompact } from "@rodrigo-barraza/utilities-library";
 
-import { StatCard, BarListPanel, DonutPanel, TrendsPanel } from "./AnalyticsPrimitives";
+import {
+  StatCard,
+  BarListPanel,
+  DonutPanel,
+  TrendsPanel,
+} from "./AnalyticsPrimitives";
 import { ApiCard, ERROR_COLOR, SUCCESS_COLOR } from "./external-apis/ApiCard";
 import { getCategoryMeta } from "./external-apis/categoryMeta";
 import {
@@ -29,24 +34,39 @@ import {
   periodToDays,
   toCategorySegments,
 } from "./external-apis/externalApiUsage";
-import { useExternalApiSummary, useExternalApiTimeSeries } from "./external-apis/useExternalApiUsage";
+import {
+  useExternalApiSummary,
+  useExternalApiTimeSeries,
+} from "./external-apis/useExternalApiUsage";
 import webStyles from "./WebAnalytics.module.css";
 import styles from "./ExternalApisComponent.module.css";
 
 const TOTAL_COLOR = "#6366f1";
-const TREND_METRICS = [{ key: "requests", label: "Requests", color: TOTAL_COLOR }];
+const TREND_METRICS = [
+  { key: "requests", label: "Requests", color: TOTAL_COLOR },
+];
 
 export default function ExternalApisComponent() {
   const [selectedPeriod, setSelectedPeriod] = useState("30d");
-  const [expandedServiceIdentifier, setExpandedServiceIdentifier] = useState<string | null>(null);
+  const [expandedServiceIdentifier, setExpandedServiceIdentifier] = useState<
+    string | null
+  >(null);
 
-  const { data, error, isLoading, isRefreshing, refresh } = useExternalApiSummary(selectedPeriod);
-  const timeSeries = useExternalApiTimeSeries(expandedServiceIdentifier, selectedPeriod);
+  const { data, error, isLoading, isRefreshing, refresh } =
+    useExternalApiSummary(selectedPeriod);
+  const timeSeries = useExternalApiTimeSeries(
+    expandedServiceIdentifier,
+    selectedPeriod,
+  );
 
   // The date axis for every chart on the page; recomputed per summary so
   // a page left open across midnight rolls over on the next load.
   const dates = useMemo(
-    () => buildDateRange(periodToDays(data?.period ?? selectedPeriod), Date.parse(data?.fetchedAt ?? "") || undefined),
+    () =>
+      buildDateRange(
+        periodToDays(data?.period ?? selectedPeriod),
+        Date.parse(data?.fetchedAt ?? "") || undefined,
+      ),
     [data, selectedPeriod],
   );
 
@@ -56,13 +76,22 @@ export default function ExternalApisComponent() {
   }, []);
 
   const handleCardToggle = useCallback((serviceIdentifier: string) => {
-    setExpandedServiceIdentifier((current) => (current === serviceIdentifier ? null : serviceIdentifier));
+    setExpandedServiceIdentifier((current) =>
+      current === serviceIdentifier ? null : serviceIdentifier,
+    );
   }, []);
 
   const services = useMemo(() => data?.services ?? [], [data]);
-  const trendSeries = useMemo(() => combineDailySeries(services, dates), [services, dates]);
+  const trendSeries = useMemo(
+    () => combineDailySeries(services, dates),
+    [services, dates],
+  );
   const categorySegments = useMemo(
-    () => toCategorySegments(services, (category) => getCategoryMeta(category).color),
+    () =>
+      toCategorySegments(
+        services,
+        (category) => getCategoryMeta(category).color,
+      ),
     [services],
   );
   const requestBars = useMemo(
@@ -78,7 +107,10 @@ export default function ExternalApisComponent() {
   const totalRequests = data?.totalRequests ?? 0;
   const totalErrors = data?.totalErrors ?? 0;
   const overallErrorRate = totalRequests > 0 ? totalErrors / totalRequests : 0;
-  const unreachable = [...(data?.unreachableSources ?? []), ...(data?.unreachableProjectIds ?? [])];
+  const unreachable = [
+    ...(data?.unreachableSources ?? []),
+    ...(data?.unreachableProjectIds ?? []),
+  ];
 
   const header = (
     <PageHeaderComponent
@@ -129,8 +161,14 @@ export default function ExternalApisComponent() {
       <div className={`external-apis-component ${webStyles["dashboard"]}`}>
         {header}
         <div className={webStyles["empty-state"]}>
-          <TriangleAlert size={32} strokeWidth={1.5} className={webStyles["empty-icon"]} />
-          <span className={webStyles["empty-title"]}>Couldn&apos;t load external API usage</span>
+          <TriangleAlert
+            size={32}
+            strokeWidth={1.5}
+            className={webStyles["empty-icon"]}
+          />
+          <span className={webStyles["empty-title"]}>
+            Couldn&apos;t load external API usage
+          </span>
           <span className={webStyles["empty-detail"]}>{error}</span>
           <ButtonComponent
             variant="outlined"
@@ -152,8 +190,8 @@ export default function ExternalApisComponent() {
     <div className={styles["partial-data-notice"]} role="status">
       <TriangleAlert size={14} />
       <span>
-        Some usage sources couldn&apos;t be reached, so these totals are incomplete:{" "}
-        {unreachable.join(", ")}
+        Some usage sources couldn&apos;t be reached, so these totals are
+        incomplete: {unreachable.join(", ")}
       </span>
     </div>
   );
@@ -164,11 +202,16 @@ export default function ExternalApisComponent() {
         {header}
         {partialNotice}
         <div className={webStyles["empty-state"]}>
-          <Cloud size={32} strokeWidth={1.5} className={webStyles["empty-icon"]} />
+          <Cloud
+            size={32}
+            strokeWidth={1.5}
+            className={webStyles["empty-icon"]}
+          />
           <span className={webStyles["empty-title"]}>No API usage data</span>
           <span className={webStyles["empty-detail"]}>
             No external API requests were recorded for the selected period.
-            Usage data may take a few minutes to appear after API calls are made.
+            Usage data may take a few minutes to appear after API calls are
+            made.
           </span>
         </div>
       </div>
@@ -248,7 +291,8 @@ export default function ExternalApisComponent() {
 
       <div className={styles["api-cards-grid"]}>
         {services.map((service) => {
-          const isExpanded = expandedServiceIdentifier === service.serviceIdentifier;
+          const isExpanded =
+            expandedServiceIdentifier === service.serviceIdentifier;
           return (
             <ApiCard
               key={service.serviceIdentifier}

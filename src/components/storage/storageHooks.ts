@@ -36,27 +36,52 @@ const STREAM_START: BucketStreamState = {
   error: null,
 };
 
-function reduceStreamEvent(state: BucketStreamState, event: BucketStreamEvent): BucketStreamState {
+function reduceStreamEvent(
+  state: BucketStreamState,
+  event: BucketStreamEvent,
+): BucketStreamState {
   switch (event.type) {
     case "init":
       // Names + dates arrive up front — every card renders now and its
       // stats fill in as `bucket` events land. An older service sends
       // only the count, so placeholders stand in until each bucket lands.
       return event.buckets?.length
-        ? { ...state, totalExpected: event.totalBuckets || 0, buckets: event.buckets, skeletonCount: 0 }
-        : { ...state, totalExpected: event.totalBuckets || 0, skeletonCount: event.totalBuckets || 0 };
+        ? {
+            ...state,
+            totalExpected: event.totalBuckets || 0,
+            buckets: event.buckets,
+            skeletonCount: 0,
+          }
+        : {
+            ...state,
+            totalExpected: event.totalBuckets || 0,
+            skeletonCount: event.totalBuckets || 0,
+          };
     case "bucket": {
       const incoming = event.bucket;
       if (!incoming) return state;
-      const index = state.buckets.findIndex((bucket) => bucket.name === incoming.name);
+      const index = state.buckets.findIndex(
+        (bucket) => bucket.name === incoming.name,
+      );
       const buckets =
         index === -1
           ? [...state.buckets, incoming]
-          : state.buckets.map((bucket, position) => (position === index ? incoming : bucket));
-      return { ...state, buckets, skeletonCount: Math.max(0, state.skeletonCount - 1) };
+          : state.buckets.map((bucket, position) =>
+              position === index ? incoming : bucket,
+            );
+      return {
+        ...state,
+        buckets,
+        skeletonCount: Math.max(0, state.skeletonCount - 1),
+      };
     }
     case "done":
-      return { ...state, streaming: false, refreshing: false, skeletonCount: 0 };
+      return {
+        ...state,
+        streaming: false,
+        refreshing: false,
+        skeletonCount: 0,
+      };
     case "error":
       return {
         ...state,
@@ -75,11 +100,13 @@ export function useBucketStream() {
 
   const open = useCallback(() => {
     streamRef.current?.close();
-    const handle = ApiService.streamStorageBuckets((event: BucketStreamEvent) => {
-      // A superseded stream's queued events must not touch the new listing
-      if (streamRef.current !== handle) return;
-      setState((previous) => reduceStreamEvent(previous, event));
-    });
+    const handle = ApiService.streamStorageBuckets(
+      (event: BucketStreamEvent) => {
+        // A superseded stream's queued events must not touch the new listing
+        if (streamRef.current !== handle) return;
+        setState((previous) => reduceStreamEvent(previous, event));
+      },
+    );
     streamRef.current = handle;
   }, []);
 
@@ -104,17 +131,17 @@ export function useBucketStream() {
 const NO_DOCKER_HOSTS: DockerHostInfo[] = [];
 
 export function useStorageOverview() {
-  const overview = useAsyncData<{ summary: StorageSummary | null; dockerHosts: DockerHostInfo[] }>(
-    "storage-overview",
-    async (signal) => {
-      // Each source degrades on its own — one failing never hides the other
-      const [systemResponse, summary] = await Promise.all([
-        ApiService.getSystemInfo(undefined, { signal }).catch(() => null),
-        ApiService.getStorageSummary({ signal }).catch(() => null),
-      ]);
-      return { summary, dockerHosts: normalizeDockerHosts(systemResponse) };
-    },
-  );
+  const overview = useAsyncData<{
+    summary: StorageSummary | null;
+    dockerHosts: DockerHostInfo[];
+  }>("storage-overview", async (signal) => {
+    // Each source degrades on its own — one failing never hides the other
+    const [systemResponse, summary] = await Promise.all([
+      ApiService.getSystemInfo(undefined, { signal }).catch(() => null),
+      ApiService.getStorageSummary({ signal }).catch(() => null),
+    ]);
+    return { summary, dockerHosts: normalizeDockerHosts(systemResponse) };
+  });
 
   return {
     summary: overview.data?.summary ?? null,
@@ -131,7 +158,8 @@ export interface ObjectLocation {
   prefix: string;
 }
 
-const locationKey = (location: ObjectLocation) => `${location.bucket}\u0000${location.prefix}`;
+const locationKey = (location: ObjectLocation) =>
+  `${location.bucket}\u0000${location.prefix}`;
 const NO_OBJECTS: StorageObject[] = [];
 const NO_PREFIXES: string[] = [];
 
@@ -142,10 +170,15 @@ const NO_PREFIXES: string[] = [];
  * failed listing shows no rows, only its error.
  */
 export function useObjectListing(location: ObjectLocation | null) {
-  const listing = useAsyncData<{ objects: StorageObject[]; prefixes: string[] }>(
-    location ? locationKey(location) : null,
-    (signal) =>
-      ApiService.getStorageObjects(location?.bucket ?? "", { prefix: location?.prefix ?? "" }, { signal }),
+  const listing = useAsyncData<{
+    objects: StorageObject[];
+    prefixes: string[];
+  }>(location ? locationKey(location) : null, (signal) =>
+    ApiService.getStorageObjects(
+      location?.bucket ?? "",
+      { prefix: location?.prefix ?? "" },
+      { signal },
+    ),
   );
   const failed = listing.error !== null;
 
@@ -182,7 +215,11 @@ export function useGlobalSearch() {
     // abort it rather than let a slow bucket scan hold a connection open.
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      ApiService.searchStorageObjects(trimmed, {}, { signal: controller.signal })
+      ApiService.searchStorageObjects(
+        trimmed,
+        {},
+        { signal: controller.signal },
+      )
         .then((response) => {
           if (controller.signal.aborted) return;
           setOutcome({ query: trimmed, ...response, error: null });
@@ -221,10 +258,14 @@ export function useGlobalSearch() {
 // ── Object stat (preview metadata) ───────────────────────────────
 
 /** Full metadata for one object; null until it arrives (or if it fails). */
-export function useObjectStat(bucket: string | null, objectName: string | null) {
+export function useObjectStat(
+  bucket: string | null,
+  objectName: string | null,
+) {
   const stat = useAsyncData<StorageObjectStat>(
     bucket && objectName ? `${bucket}\u0000${objectName}` : null,
-    (signal) => ApiService.statStorageObject(bucket ?? "", objectName ?? "", { signal }),
+    (signal) =>
+      ApiService.statStorageObject(bucket ?? "", objectName ?? "", { signal }),
   );
   // Keyed, so the previously previewed object's metadata never shows
   return stat.error ? null : stat.data;

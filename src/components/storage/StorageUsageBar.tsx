@@ -26,11 +26,16 @@ export function UsageBar({
         </span>
         <span className={styles["usage-bar-value"]}>
           {formatBytes(value)}
-          {sublabel && <span className={styles["usage-bar-sub"]}> · {sublabel}</span>}
+          {sublabel && (
+            <span className={styles["usage-bar-sub"]}> · {sublabel}</span>
+          )}
         </span>
       </div>
       <div className={styles["usage-bar-track"]}>
-        <div className={styles["usage-bar-fill"]} style={{ width: `${percentage}%`, background: color }} />
+        <div
+          className={styles["usage-bar-fill"]}
+          style={{ width: `${percentage}%`, background: color }}
+        />
       </div>
     </div>
   );

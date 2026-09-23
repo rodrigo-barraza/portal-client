@@ -32,7 +32,10 @@ import {
   TrendsPanel,
   RealtimeBanner,
 } from "./AnalyticsPrimitives";
-import useAsyncData, { settleReports, unwrapData } from "./analytics/useAsyncData";
+import useAsyncData, {
+  settleReports,
+  unwrapData,
+} from "./analytics/useAsyncData";
 import {
   formatDurationMs,
   formatLocation,
@@ -71,16 +74,25 @@ interface SessionReports {
   events: SessionTopEvent[];
 }
 
-function loadSessionReports(projectId: string, period: string, signal: AbortSignal) {
-  const unwrap = <T,>(request: Promise<SessionsEnvelope<T>>) => request.then(unwrapData);
+function loadSessionReports(
+  projectId: string,
+  period: string,
+  signal: AbortSignal,
+) {
+  const unwrap = <T,>(request: Promise<SessionsEnvelope<T>>) =>
+    request.then(unwrapData);
   const options = { signal };
   return settleReports<SessionReports>({
     overview: unwrap(ApiService.getSessionOverview(projectId, period, options)),
     pages: unwrap(ApiService.getSessionPages(projectId, period, options)),
-    referrers: unwrap(ApiService.getSessionReferrers(projectId, period, options)),
+    referrers: unwrap(
+      ApiService.getSessionReferrers(projectId, period, options),
+    ),
     geo: unwrap(ApiService.getSessionGeo(projectId, period, options)),
     devices: unwrap(ApiService.getSessionDevices(projectId, period, options)),
-    timeSeries: unwrap(ApiService.getSessionTimeSeries(projectId, period, options)),
+    timeSeries: unwrap(
+      ApiService.getSessionTimeSeries(projectId, period, options),
+    ),
     events: unwrap(ApiService.getSessionEvents(projectId, period, options)),
   });
 }
@@ -95,7 +107,9 @@ const pageColumns = [
   {
     key: "path",
     label: "Page",
-    render: (row: SessionPageRow) => <span className={styles["mono-cell"]}>{row.path}</span>,
+    render: (row: SessionPageRow) => (
+      <span className={styles["mono-cell"]}>{row.path}</span>
+    ),
   },
   {
     key: "views",
@@ -130,7 +144,9 @@ export default function SessionReportComponent({
   const live = useAsyncData(
     projectId,
     (signal) =>
-      ApiService.getSessionLive(projectId, undefined, { signal }).then(unwrapData),
+      ApiService.getSessionLive(projectId, undefined, { signal }).then(
+        unwrapData,
+      ),
     { refreshIntervalMs: LIVE_REFRESH_MS },
   );
 
@@ -142,7 +158,12 @@ export default function SessionReportComponent({
     () =>
       fillDailySeries(
         values?.timeSeries ?? [],
-        (date): SessionTimeSeriesPoint => ({ date, sessions: 0, uniqueVisitors: 0, pageViews: 0 }),
+        (date): SessionTimeSeriesPoint => ({
+          date,
+          sessions: 0,
+          uniqueVisitors: 0,
+          pageViews: 0,
+        }),
         sessionsSeriesWindow(period),
       ),
     [values?.timeSeries, period],
@@ -158,15 +179,31 @@ export default function SessionReportComponent({
     [devices],
   );
   const browserSegments = useMemo(
-    () => toDonutSegments(devices?.browsers, (row) => row.name, (row) => row.sessions, 3),
+    () =>
+      toDonutSegments(
+        devices?.browsers,
+        (row) => row.name,
+        (row) => row.sessions,
+        3,
+      ),
     [devices],
   );
   const osSegments = useMemo(
-    () => toDonutSegments(devices?.operatingSystems, (row) => row.name, (row) => row.sessions, 5),
+    () =>
+      toDonutSegments(
+        devices?.operatingSystems,
+        (row) => row.name,
+        (row) => row.sessions,
+        5,
+      ),
     [devices],
   );
   const heatmapPaths = useMemo(
-    () => (pages ?? []).map((row) => row.path).filter(Boolean).slice(0, HEATMAP_PATH_LIMIT),
+    () =>
+      (pages ?? [])
+        .map((row) => row.path)
+        .filter(Boolean)
+        .slice(0, HEATMAP_PATH_LIMIT),
     [pages],
   );
 
@@ -192,13 +229,21 @@ export default function SessionReportComponent({
   }
 
   if (!values || reports.data?.allFailed) {
-    const message = readableErrorMessage(reports.error ?? reports.data?.firstError);
+    const message = readableErrorMessage(
+      reports.error ?? reports.data?.firstError,
+    );
     return (
       <>
         {banner}
         <div className={styles["empty-state"]} role="alert">
-          <ChartColumn size={40} strokeWidth={1.5} className={styles["empty-icon"]} />
-          <span className={styles["empty-title"]}>First-party analytics unavailable</span>
+          <ChartColumn
+            size={40}
+            strokeWidth={1.5}
+            className={styles["empty-icon"]}
+          />
+          <span className={styles["empty-title"]}>
+            First-party analytics unavailable
+          </span>
           {message && <span className={styles["empty-detail"]}>{message}</span>}
         </div>
       </>
@@ -269,7 +314,9 @@ export default function SessionReportComponent({
           title="Top Pages"
           columns={pageColumns}
           data={pages}
-          getRowKey={(row: SessionPageRow, index: number) => `${row.path}\u0000${index}`}
+          getRowKey={(row: SessionPageRow, index: number) =>
+            `${row.path}\u0000${index}`
+          }
           emptyText="No page data available"
           mini
         />
@@ -317,15 +364,27 @@ export default function SessionReportComponent({
 
       {/* ── Devices + Browsers ─────────────────────────────── */}
       <div className={styles["content-grid"]}>
-        <DonutPanel icon={Monitor} title="Device Types" segments={deviceTypeSegments} />
+        <DonutPanel
+          icon={Monitor}
+          title="Device Types"
+          segments={deviceTypeSegments}
+        />
         <DonutPanel icon={Globe} title="Browsers" segments={browserSegments} />
       </div>
 
       {/* ── OS ────────────────────────────────────────────── */}
-      <DonutPanel icon={Laptop} title="Operating Systems" segments={osSegments} />
+      <DonutPanel
+        icon={Laptop}
+        title="Operating Systems"
+        segments={osSegments}
+      />
 
       {/* ── Page Heatmap (cursor / click / scroll density) ── */}
-      <HeatmapPanelComponent projectId={projectId} period={period} paths={heatmapPaths} />
+      <HeatmapPanelComponent
+        projectId={projectId}
+        period={period}
+        paths={heatmapPaths}
+      />
 
       {/* ── Session Explorer (IPs + Visitors + Sessions + Timeline) ── */}
       <SessionExplorerComponent

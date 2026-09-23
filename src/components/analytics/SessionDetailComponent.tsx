@@ -27,10 +27,13 @@ import styles from "../SessionExplorerComponent.module.css";
  * matters for sessions with a recording — split it out of the analytics
  * bundle and load it when a recorded session is actually opened.
  */
-const SessionReplayComponent = dynamic(() => import("../SessionReplayComponent"), {
-  ssr: false,
-  loading: () => <ExplorerLoading label="Loading replay player…" />,
-});
+const SessionReplayComponent = dynamic(
+  () => import("../SessionReplayComponent"),
+  {
+    ssr: false,
+    loading: () => <ExplorerLoading label="Loading replay player…" />,
+  },
+);
 
 /**
  * One session: client/geo metadata (IP opens that IP's profile), UTM tags,
@@ -81,7 +84,9 @@ export default function SessionDetailComponent({
         )}
         <MetaCard label="Visitor ID">
           <MetaValue>
-            <span title={session.visitorId ?? undefined}>{shortId(session.visitorId, 16)}</span>
+            <span title={session.visitorId ?? undefined}>
+              {shortId(session.visitorId, 16)}
+            </span>
           </MetaValue>
         </MetaCard>
         <MetaCard label="Duration">
@@ -89,7 +94,8 @@ export default function SessionDetailComponent({
         </MetaCard>
         <MetaCard label="Browser">
           <MetaValue>
-            {session.browser?.name || "Unknown"} {session.browser?.version || ""}
+            {session.browser?.name || "Unknown"}{" "}
+            {session.browser?.version || ""}
           </MetaValue>
         </MetaCard>
         <MetaCard label="OS">
@@ -110,7 +116,9 @@ export default function SessionDetailComponent({
         </MetaCard>
         <MetaCard label="Viewport">
           <MetaValue>
-            {session.viewport ? `${session.viewport.width} × ${session.viewport.height}` : "N/A"}
+            {session.viewport
+              ? `${session.viewport.width} × ${session.viewport.height}`
+              : "N/A"}
           </MetaValue>
         </MetaCard>
         {session.referrer && (
@@ -142,7 +150,9 @@ export default function SessionDetailComponent({
         </div>
       )}
 
-      {session.hasReplay && <SessionReplayComponent sessionId={session.sessionId} />}
+      {session.hasReplay && (
+        <SessionReplayComponent sessionId={session.sessionId} />
+      )}
 
       <SessionTimelineComponent timeline={session.timeline} />
 

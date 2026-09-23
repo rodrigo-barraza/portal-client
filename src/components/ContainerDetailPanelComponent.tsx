@@ -13,8 +13,15 @@ import {
   Unplug,
 } from "lucide-react";
 import { BadgeComponent } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration } from "@rodrigo-barraza/utilities-library";
-import type { ContainerHistory, ContainerRow, ContainerStats } from "../types/portal";
+import {
+  formatBytes,
+  formatDuration,
+} from "@rodrigo-barraza/utilities-library";
+import type {
+  ContainerHistory,
+  ContainerRow,
+  ContainerStats,
+} from "../types/portal";
 import { usePortalSettings } from "@/lib/settings";
 import {
   CpuMetricCard,
@@ -33,10 +40,16 @@ import {
 import type { SeverityThresholds } from "./monitoring/severity";
 import styles from "./ContainerDetailPanelComponent.module.css";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={styles['field']}>
-      <span className={styles['field-label']}>{label}</span>
+    <div className={styles["field"]}>
+      <span className={styles["field-label"]}>{label}</span>
       {children}
     </div>
   );
@@ -52,9 +65,11 @@ function DetailItem({
   tone?: "warning" | "danger";
 }) {
   return (
-    <div className={styles['detail-item']}>
-      <span className={styles['detail-label']}>{label}</span>
-      <span className={`${styles['detail-value']} ${tone ? styles[`detail-value-${tone}`] : ""}`}>
+    <div className={styles["detail-item"]}>
+      <span className={styles["detail-label"]}>{label}</span>
+      <span
+        className={`${styles["detail-value"]} ${tone ? styles[`detail-value-${tone}`] : ""}`}
+      >
         {value}
       </span>
     </div>
@@ -79,8 +94,12 @@ function ContainerMetrics({
   );
 
   return (
-    <div className={styles['metrics-grid']}>
-      <CpuMetricCard cpu={stats.cpu} history={history?.cpu} bounds={thresholds.cpu} />
+    <div className={styles["metrics-grid"]}>
+      <CpuMetricCard
+        cpu={stats.cpu}
+        history={history?.cpu}
+        bounds={thresholds.cpu}
+      />
 
       {cpuThrottling && cpuThrottling.throttledPeriods > 0 && (
         <MetricCard icon={Cpu} title="CPU Throttling">
@@ -89,26 +108,43 @@ function ContainerMetrics({
               label="Throttled"
               value={`${cpuThrottling.throttledPeriods} / ${cpuThrottling.periods} periods`}
             />
-            <TransferStat label="Time" value={formatNanoseconds(cpuThrottling.throttledTimeNs)} />
+            <TransferStat
+              label="Time"
+              value={formatNanoseconds(cpuThrottling.throttledTimeNs)}
+            />
           </TransferStats>
         </MetricCard>
       )}
 
-      <MemoryMetricCard memory={stats.memory} history={history?.mem} bounds={thresholds.memory} />
+      <MemoryMetricCard
+        memory={stats.memory}
+        history={history?.mem}
+        bounds={thresholds.memory}
+      />
 
       {memoryDetail && (
         <MetricCard icon={MemoryStick} title="Memory Breakdown">
-          <div className={styles['detail-grid']}>
+          <div className={styles["detail-grid"]}>
             <DetailItem label="RSS" value={formatBytes(memoryDetail.rss)} />
             <DetailItem label="Cache" value={formatBytes(memoryDetail.cache)} />
             {memoryDetail.swap > 0 && (
-              <DetailItem label="Swap" value={formatBytes(memoryDetail.swap)} tone="warning" />
+              <DetailItem
+                label="Swap"
+                value={formatBytes(memoryDetail.swap)}
+                tone="warning"
+              />
             )}
             {memoryDetail.maxUsage > 0 && (
-              <DetailItem label="Peak" value={formatBytes(memoryDetail.maxUsage)} />
+              <DetailItem
+                label="Peak"
+                value={formatBytes(memoryDetail.maxUsage)}
+              />
             )}
             {memoryDetail.pgfault > 0 && (
-              <DetailItem label="Page Faults" value={memoryDetail.pgfault.toLocaleString()} />
+              <DetailItem
+                label="Page Faults"
+                value={memoryDetail.pgfault.toLocaleString()}
+              />
             )}
             {memoryDetail.pgmajfault > 0 && (
               <DetailItem
@@ -130,15 +166,30 @@ function ContainerMetrics({
             </TransferStats>
             {((network.rxPackets ?? 0) > 0 || (network.txPackets ?? 0) > 0) && (
               <TransferStats>
-                <TransferStat label="Packets RX" value={(network.rxPackets ?? 0).toLocaleString()} />
-                <TransferStat label="Packets TX" value={(network.txPackets ?? 0).toLocaleString()} />
+                <TransferStat
+                  label="Packets RX"
+                  value={(network.rxPackets ?? 0).toLocaleString()}
+                />
+                <TransferStat
+                  label="Packets TX"
+                  value={(network.txPackets ?? 0).toLocaleString()}
+                />
               </TransferStats>
             )}
             {(dropped > 0 || errors > 0) && (
               <TransferStats warning>
-                {dropped > 0 && <TransferStat label="Dropped" value={dropped.toLocaleString()} />}
+                {dropped > 0 && (
+                  <TransferStat
+                    label="Dropped"
+                    value={dropped.toLocaleString()}
+                  />
+                )}
                 {errors > 0 && (
-                  <TransferStat label="Errors" value={errors.toLocaleString()} danger />
+                  <TransferStat
+                    label="Errors"
+                    value={errors.toLocaleString()}
+                    danger
+                  />
                 )}
               </TransferStats>
             )}
@@ -157,11 +208,11 @@ function ContainerMetrics({
 
       {interfaces.length > 1 && (
         <MetricCard icon={Unplug} title="Network Interfaces">
-          <div className={styles['list']}>
+          <div className={styles["list"]}>
             {interfaces.map(([name, networkInterface]) => (
-              <div key={name} className={styles['interface-row']}>
-                <span className={styles['interface-name']}>{name}</span>
-                <span className={styles['mono-detail']}>
+              <div key={name} className={styles["interface-row"]}>
+                <span className={styles["interface-name"]}>{name}</span>
+                <span className={styles["mono-detail"]}>
                   ↓ {formatBytes(networkInterface.rxBytes)} · ↑{" "}
                   {formatBytes(networkInterface.txBytes)}
                 </span>
@@ -173,15 +224,17 @@ function ContainerMetrics({
 
       {stats.ports && stats.ports.length > 0 && (
         <MetricCard icon={Globe} title="Port Mappings">
-          <div className={styles['list']}>
+          <div className={styles["list"]}>
             {stats.ports.map((port, index) => (
               <div
                 key={`${port.ip}:${port.publicPort}:${port.privatePort}/${port.type}:${index}`}
-                className={styles['port-row']}
+                className={styles["port-row"]}
               >
-                <span className={styles['mono-detail']}>
-                  {port.publicPort ? `${port.ip || "0.0.0.0"}:${port.publicPort}` : "—"} →{" "}
-                  {port.privatePort}/{port.type}
+                <span className={styles["mono-detail"]}>
+                  {port.publicPort
+                    ? `${port.ip || "0.0.0.0"}:${port.publicPort}`
+                    : "—"}{" "}
+                  → {port.privatePort}/{port.type}
                 </span>
               </div>
             ))}
@@ -195,18 +248,23 @@ function ContainerMetrics({
           title="Mounts"
           header={<MetricDim>{stats.mounts.length}</MetricDim>}
         >
-          <div className={styles['list']}>
+          <div className={styles["list"]}>
             {stats.mounts.map((mount) => (
-              <div key={`${mount.destination}:${mount.source}`} className={styles['mount-row']}>
-                <span className={styles['mount-type']}>{mount.type}</span>
+              <div
+                key={`${mount.destination}:${mount.source}`}
+                className={styles["mount-row"]}
+              >
+                <span className={styles["mount-type"]}>{mount.type}</span>
                 <span
-                  className={styles['mount-path']}
+                  className={styles["mount-path"]}
                   title={`${mount.source} → ${mount.destination}`}
                 >
-                  {mount.name || mount.source?.split("/").pop() || mount.source} →{" "}
-                  {mount.destination}
+                  {mount.name || mount.source?.split("/").pop() || mount.source}{" "}
+                  → {mount.destination}
                 </span>
-                <span className={styles['mount-mode']}>{mount.rw ? "rw" : "ro"}</span>
+                <span className={styles["mount-mode"]}>
+                  {mount.rw ? "rw" : "ro"}
+                </span>
               </div>
             ))}
           </div>
@@ -214,14 +272,18 @@ function ContainerMetrics({
       )}
 
       {labels.length > 0 && (
-        <MetricCard icon={Layers} title="Labels" header={<MetricDim>{labels.length}</MetricDim>}>
-          <div className={styles['label-list']}>
+        <MetricCard
+          icon={Layers}
+          title="Labels"
+          header={<MetricDim>{labels.length}</MetricDim>}
+        >
+          <div className={styles["label-list"]}>
             {labels.map(([key, value]) => (
-              <div key={key} className={styles['label-row']}>
-                <span className={styles['label-key']} title={key}>
+              <div key={key} className={styles["label-row"]}>
+                <span className={styles["label-key"]} title={key}>
                   {key}
                 </span>
-                <span className={styles['label-value']} title={value}>
+                <span className={styles["label-value"]} title={value}>
                   {value}
                 </span>
               </div>
@@ -254,13 +316,16 @@ export default function ContainerDetailPanel({
   const uptime = parseDockerUptime(stats?.status);
 
   return (
-    <div className={`container-detail-panel-component ${styles['panel']}`}>
-      <div className={styles['section']}>
-        <h4 className={styles['section-title']}>Status</h4>
-        <div className={styles['field-grid']}>
+    <div className={`container-detail-panel-component ${styles["panel"]}`}>
+      <div className={styles["section"]}>
+        <h4 className={styles["section-title"]}>Status</h4>
+        <div className={styles["field-grid"]}>
           <Field label="Health">
             {container.statusKind === "unknown" ? (
-              <span className={styles['status-unknown-text']} title="Not yet checked">
+              <span
+                className={styles["status-unknown-text"]}
+                title="Not yet checked"
+              >
                 Checking…
               </span>
             ) : (
@@ -287,50 +352,59 @@ export default function ContainerDetailPanel({
           )}
           {container.device && (
             <Field label="Device">
-              <BadgeComponent type="device" device={container.device} icons={{ Server }} />
+              <BadgeComponent
+                type="device"
+                device={container.device}
+                icons={{ Server }}
+              />
             </Field>
           )}
         </div>
       </div>
 
       {stats && (
-        <div className={styles['section']}>
-          <h4 className={styles['section-title']}>Container</h4>
-          <div className={styles['field-grid']}>
+        <div className={styles["section"]}>
+          <h4 className={styles["section-title"]}>Container</h4>
+          <div className={styles["field-grid"]}>
             {stats.image && (
               <Field label="Image">
-                <span className={styles['field-value-mono']}>{stats.image}</span>
+                <span className={styles["field-value-mono"]}>
+                  {stats.image}
+                </span>
               </Field>
             )}
             {stats.state && (
               <Field label="State">
-                <span className={styles['state-badge']} data-state={stats.state}>
+                <span
+                  className={styles["state-badge"]}
+                  data-state={stats.state}
+                >
                   {stats.state}
                 </span>
               </Field>
             )}
             {uptime && (
               <Field label="Uptime">
-                <span className={styles['field-value-mono']}>{uptime}</span>
+                <span className={styles["field-value-mono"]}>{uptime}</span>
               </Field>
             )}
             {stats.created ? (
               <Field label="Created">
-                <span className={styles['field-value-mono']}>
+                <span className={styles["field-value-mono"]}>
                   {formatUnixTimestamp(stats.created)}
                 </span>
               </Field>
             ) : null}
             {stats.command && (
               <Field label="Command">
-                <span className={styles['command-text']} title={stats.command}>
+                <span className={styles["command-text"]} title={stats.command}>
                   {stats.command}
                 </span>
               </Field>
             )}
             {(stats.pids ?? 0) > 0 && (
               <Field label="PIDs">
-                <span className={styles['field-value-mono']}>{stats.pids}</span>
+                <span className={styles["field-value-mono"]}>{stats.pids}</span>
               </Field>
             )}
           </div>
@@ -338,9 +412,9 @@ export default function ContainerDetailPanel({
       )}
 
       {(container.port || container.url) && (
-        <div className={styles['section']}>
-          <h4 className={styles['section-title']}>Networking</h4>
-          <div className={styles['field-grid']}>
+        <div className={styles["section"]}>
+          <h4 className={styles["section-title"]}>Networking</h4>
+          <div className={styles["field-grid"]}>
             {container.port && (
               <Field label="Port">
                 <BadgeComponent type="port" port={container.port} />
@@ -356,10 +430,14 @@ export default function ContainerDetailPanel({
       )}
 
       {stats ? (
-        <ContainerMetrics stats={stats} history={history} thresholds={thresholds} />
+        <ContainerMetrics
+          stats={stats}
+          history={history}
+          thresholds={thresholds}
+        />
       ) : (
-        <div className={styles['metrics-empty']}>
-          <Box size={18} strokeWidth={1.5} className={styles['empty-icon']} />
+        <div className={styles["metrics-empty"]}>
+          <Box size={18} strokeWidth={1.5} className={styles["empty-icon"]} />
           <span>No metrics available</span>
         </div>
       )}

@@ -46,11 +46,14 @@ class MockEventSource {
   }
 }
 
-const latest = () => MockEventSource.instances[MockEventSource.instances.length - 1];
+const latest = () =>
+  MockEventSource.instances[MockEventSource.instances.length - 1];
 
 async function flushFrames() {
   await act(async () => {
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => resolve(undefined)),
+    );
   });
 }
 
@@ -103,14 +106,23 @@ describe("useLogStream", () => {
     });
     await flushFrames();
 
-    expect(result.current.lines.map((line) => line.content)).toEqual(["one", "two", "three"]);
+    expect(result.current.lines.map((line) => line.content)).toEqual([
+      "one",
+      "two",
+      "three",
+    ]);
     expect(result.current.lines.map((line) => line.id)).toEqual([1, 2, 3]);
   });
 
   it("closes for good on a server-sent error instead of reconnecting in a loop", () => {
     const { result } = renderHook(() => useLogStream());
     act(() => result.current.connect({ container: "api", device: "synology" }));
-    act(() => latest().emit("error", JSON.stringify({ error: "No Docker API configured" })));
+    act(() =>
+      latest().emit(
+        "error",
+        JSON.stringify({ error: "No Docker API configured" }),
+      ),
+    );
     expect(latest().readyState).toBe(MockEventSource.CLOSED);
     expect(result.current.error).toBe("No Docker API configured");
   });
@@ -137,7 +149,10 @@ describe("useLogStream", () => {
     expect(result.current.bufferedCount).toBe(2);
 
     act(() => result.current.resume());
-    expect(result.current.lines.map((line) => line.content)).toEqual(["a", "b"]);
+    expect(result.current.lines.map((line) => line.content)).toEqual([
+      "a",
+      "b",
+    ]);
     expect(result.current.bufferedCount).toBe(0);
   });
 

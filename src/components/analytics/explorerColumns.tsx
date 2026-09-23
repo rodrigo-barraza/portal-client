@@ -3,8 +3,19 @@
 import { Network, Users } from "lucide-react";
 import { timeAgo } from "@rodrigo-barraza/utilities-library";
 import { BotTag, DeviceIcon } from "./ExplorerPrimitives";
-import { formatCount, formatDurationMs, formatLocation, shortId } from "./analyticsFormat";
-import type { DeviceInfo, ExplorerSession, IpUser, NamedVersion, Visitor } from "@/types/portal";
+import {
+  formatCount,
+  formatDurationMs,
+  formatLocation,
+  shortId,
+} from "./analyticsFormat";
+import type {
+  DeviceInfo,
+  ExplorerSession,
+  IpUser,
+  NamedVersion,
+  Visitor,
+} from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**
@@ -66,7 +77,8 @@ export function ipColumns(onOpenIp: (ip: string) => void) {
       sortable: true,
       render: (row: IpUser) => (
         <span className={styles["session-table-ip"]}>
-          {formatCount(row.visitorIds.length, "visitor")} · {formatCount(row.sessionCount, "session")}
+          {formatCount(row.visitorIds.length, "visitor")} ·{" "}
+          {formatCount(row.sessionCount, "session")}
         </span>
       ),
       sortValue: (row: IpUser) => row.sessionCount,
@@ -77,7 +89,11 @@ export function ipColumns(onOpenIp: (ip: string) => void) {
       width: "23%",
       sortable: true,
       render: (row: IpUser) => (
-        <DeviceCell device={row.lastDevice} browser={row.lastBrowser} os={row.lastOs} />
+        <DeviceCell
+          device={row.lastDevice}
+          browser={row.lastBrowser}
+          os={row.lastOs}
+        />
       ),
       sortValue: (row: IpUser) => row.lastBrowser?.name || "",
     },
@@ -87,7 +103,9 @@ export function ipColumns(onOpenIp: (ip: string) => void) {
       width: "23%",
       sortable: true,
       render: (row: IpUser) => (
-        <span className={styles["session-table-geo"]}>{formatLocation(row.lastGeo)}</span>
+        <span className={styles["session-table-geo"]}>
+          {formatLocation(row.lastGeo)}
+        </span>
       ),
       sortValue: (row: IpUser) => row.lastGeo?.country || "",
     },
@@ -109,7 +127,9 @@ export function ipColumns(onOpenIp: (ip: string) => void) {
       width: "12%",
       sortable: true,
       render: (row: IpUser) => (
-        <span className={styles["session-table-time"]}>{timeAgo(row.lastSeen)}</span>
+        <span className={styles["session-table-time"]}>
+          {timeAgo(row.lastSeen)}
+        </span>
       ),
       sortValue: (row: IpUser) => timeValue(row.lastSeen),
     },
@@ -159,7 +179,11 @@ export function visitorColumns(onOpenIp: (ip: string) => void) {
       width: "23%",
       sortable: true,
       render: (row: Visitor) => (
-        <DeviceCell device={row.lastDevice} browser={row.lastBrowser} os={row.lastOs} />
+        <DeviceCell
+          device={row.lastDevice}
+          browser={row.lastBrowser}
+          os={row.lastOs}
+        />
       ),
       sortValue: (row: Visitor) => row.lastBrowser?.name || "",
     },
@@ -169,7 +193,9 @@ export function visitorColumns(onOpenIp: (ip: string) => void) {
       width: "23%",
       sortable: true,
       render: (row: Visitor) => (
-        <span className={styles["session-table-geo"]}>{formatLocation(row.lastGeo)}</span>
+        <span className={styles["session-table-geo"]}>
+          {formatLocation(row.lastGeo)}
+        </span>
       ),
       sortValue: (row: Visitor) => row.lastGeo?.country || "",
     },
@@ -191,7 +217,9 @@ export function visitorColumns(onOpenIp: (ip: string) => void) {
       width: "12%",
       sortable: true,
       render: (row: Visitor) => (
-        <span className={styles["session-table-time"]}>{timeAgo(row.lastSeen)}</span>
+        <span className={styles["session-table-time"]}>
+          {timeAgo(row.lastSeen)}
+        </span>
       ),
       sortValue: (row: Visitor) => timeValue(row.lastSeen),
     },
@@ -228,7 +256,9 @@ export function sessionColumns(onOpenSession: (sessionId: string) => void) {
       label: "IP",
       width: "15%",
       sortable: true,
-      render: (row: ExplorerSession) => <span className={styles["session-table-ip"]}>{row.ip}</span>,
+      render: (row: ExplorerSession) => (
+        <span className={styles["session-table-ip"]}>{row.ip}</span>
+      ),
       sortValue: (row: ExplorerSession) => row.ip,
     },
     {
@@ -247,7 +277,9 @@ export function sessionColumns(onOpenSession: (sessionId: string) => void) {
       width: "23%",
       sortable: true,
       render: (row: ExplorerSession) => (
-        <span className={styles["session-table-geo"]}>{formatLocation(row.geo)}</span>
+        <span className={styles["session-table-geo"]}>
+          {formatLocation(row.geo)}
+        </span>
       ),
       sortValue: (row: ExplorerSession) => row.geo?.country || "",
     },
@@ -257,7 +289,9 @@ export function sessionColumns(onOpenSession: (sessionId: string) => void) {
       width: "12%",
       sortable: true,
       render: (row: ExplorerSession) => (
-        <span className={styles["session-table-duration"]}>{formatDurationMs(row.duration)}</span>
+        <span className={styles["session-table-duration"]}>
+          {formatDurationMs(row.duration)}
+        </span>
       ),
       sortValue: (row: ExplorerSession) => row.duration,
     },
@@ -267,7 +301,9 @@ export function sessionColumns(onOpenSession: (sessionId: string) => void) {
       width: "12%",
       sortable: true,
       render: (row: ExplorerSession) => (
-        <span className={styles["session-table-time"]}>{timeAgo(row.updatedAt)}</span>
+        <span className={styles["session-table-time"]}>
+          {timeAgo(row.updatedAt)}
+        </span>
       ),
       sortValue: (row: ExplorerSession) => timeValue(row.updatedAt),
     },

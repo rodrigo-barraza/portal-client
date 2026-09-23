@@ -2,8 +2,14 @@
 
 import { useMemo } from "react";
 import { BarChart3, Box, Globe, HardDrive, Lock, Server } from "lucide-react";
-import { BadgeComponent, LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { formatBytes, formatDuration } from "@rodrigo-barraza/utilities-library";
+import {
+  BadgeComponent,
+  LoadingIndicatorComponent,
+} from "@rodrigo-barraza/components-library";
+import {
+  formatBytes,
+  formatDuration,
+} from "@rodrigo-barraza/utilities-library";
 import { usePortalSettings } from "@/lib/settings";
 import type { ContainerStats, PortalService } from "@/types/portal";
 import {
@@ -20,10 +26,16 @@ import { ProjectHealthBadge } from "./ProjectHealthBadge";
 import { useProjectContainer } from "./useProjectContainer";
 import panelStyles from "../ExpandedProjectPanelComponent.module.css";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={panelStyles['field']}>
-      <span className={panelStyles['field-label']}>{label}</span>
+    <div className={panelStyles["field"]}>
+      <span className={panelStyles["field-label"]}>{label}</span>
       {children}
     </div>
   );
@@ -36,14 +48,21 @@ function ContainerMetrics({ dockerProject }: { dockerProject: string }) {
     () => thresholdsFromSettings({ alertThresholdCpu, alertThresholdMemory }),
     [alertThresholdCpu, alertThresholdMemory],
   );
-  const { loaded, stats, history } = useProjectContainer(dockerProject, containerPollingInterval);
+  const { loaded, stats, history } = useProjectContainer(
+    dockerProject,
+    containerPollingInterval,
+  );
 
   if (!stats) {
     return (
-      <div className={panelStyles['container-metrics-empty']}>
+      <div className={panelStyles["container-metrics-empty"]}>
         {loaded ? (
           <>
-            <BarChart3 size={18} strokeWidth={1.5} className={panelStyles['empty-tab-icon']} />
+            <BarChart3
+              size={18}
+              strokeWidth={1.5}
+              className={panelStyles["empty-tab-icon"]}
+            />
             <span>No container named {dockerProject}</span>
           </>
         ) : (
@@ -55,10 +74,20 @@ function ContainerMetrics({ dockerProject }: { dockerProject: string }) {
 
   const { network, blockIO, pids } = stats as Partial<ContainerStats>;
   return (
-    <div className={panelStyles['container-metrics']}>
-      {stats.cpu && <CpuMetricCard cpu={stats.cpu} history={history?.cpu} bounds={thresholds.cpu} />}
+    <div className={panelStyles["container-metrics"]}>
+      {stats.cpu && (
+        <CpuMetricCard
+          cpu={stats.cpu}
+          history={history?.cpu}
+          bounds={thresholds.cpu}
+        />
+      )}
       {stats.memory && (
-        <MemoryMetricCard memory={stats.memory} history={history?.mem} bounds={thresholds.memory} />
+        <MemoryMetricCard
+          memory={stats.memory}
+          history={history?.mem}
+          bounds={thresholds.memory}
+        />
       )}
       <MetricRow>
         {network && (network.rx > 0 || network.tx > 0) && (
@@ -77,26 +106,38 @@ function ContainerMetrics({ dockerProject }: { dockerProject: string }) {
             </TransferStats>
           </MetricCard>
         )}
-        {(pids ?? 0) > 0 && <MetricCard title="PIDs" header={<MetricDim>{pids}</MetricDim>} />}
+        {(pids ?? 0) > 0 && (
+          <MetricCard title="PIDs" header={<MetricDim>{pids}</MetricDim>} />
+        )}
       </MetricRow>
     </div>
   );
 }
 
 /** Drawer's Container tab: registry status on the left, live metrics on the right. */
-export default function ProjectContainerTab({ service }: { service: PortalService }) {
+export default function ProjectContainerTab({
+  service,
+}: {
+  service: PortalService;
+}) {
   const { showResponseTimes } = usePortalSettings();
   return (
-    <div className={panelStyles['container-tab']}>
-      <div className={panelStyles['container-info']}>
-        <div className={panelStyles['section']}>
-          <h4 className={panelStyles['section-title']}>Status &amp; Environment</h4>
-          <div className={panelStyles['field-grid']}>
+    <div className={panelStyles["container-tab"]}>
+      <div className={panelStyles["container-info"]}>
+        <div className={panelStyles["section"]}>
+          <h4 className={panelStyles["section-title"]}>
+            Status &amp; Environment
+          </h4>
+          <div className={panelStyles["field-grid"]}>
             <Field label="Status">
               <ProjectHealthBadge service={service} />
             </Field>
             <Field label="Environment">
-              <BadgeComponent variant={service.environment === "Production" ? "success" : "info"}>
+              <BadgeComponent
+                variant={
+                  service.environment === "Production" ? "success" : "info"
+                }
+              >
                 {service.environment || "Unknown"}
               </BadgeComponent>
             </Field>
@@ -120,16 +161,20 @@ export default function ProjectContainerTab({ service }: { service: PortalServic
             )}
             {service.device && (
               <Field label="Device">
-                <BadgeComponent type="device" device={service.device} icons={{ Server }} />
+                <BadgeComponent
+                  type="device"
+                  device={service.device}
+                  icons={{ Server }}
+                />
               </Field>
             )}
           </div>
         </div>
 
         {(service.port || service.url) && (
-          <div className={panelStyles['section']}>
-            <h4 className={panelStyles['section-title']}>Network</h4>
-            <div className={panelStyles['field-grid']}>
+          <div className={panelStyles["section"]}>
+            <h4 className={panelStyles["section-title"]}>Network</h4>
+            <div className={panelStyles["field-grid"]}>
               {service.port && (
                 <Field label="Port">
                   <BadgeComponent type="port" port={service.port} />
@@ -148,8 +193,12 @@ export default function ProjectContainerTab({ service }: { service: PortalServic
       {service.dockerProject ? (
         <ContainerMetrics dockerProject={service.dockerProject} />
       ) : (
-        <div className={panelStyles['container-metrics-empty']}>
-          <Box size={18} strokeWidth={1.5} className={panelStyles['empty-tab-icon']} />
+        <div className={panelStyles["container-metrics-empty"]}>
+          <Box
+            size={18}
+            strokeWidth={1.5}
+            className={panelStyles["empty-tab-icon"]}
+          />
           <span>Not containerized</span>
         </div>
       )}

@@ -128,7 +128,11 @@ export default function SettingsComponent() {
                 aria-current={isActive ? "true" : undefined}
                 onClick={() => scrollToSection(id)}
               >
-                <Icon size={15} strokeWidth={2} className={styles["sidebar-icon"]} />
+                <Icon
+                  size={15}
+                  strokeWidth={2}
+                  className={styles["sidebar-icon"]}
+                />
                 {label}
               </button>
             );

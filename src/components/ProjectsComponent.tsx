@@ -22,7 +22,10 @@ import {
   SelectComponent,
   StatsCardComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes, getErrorMessage } from "@rodrigo-barraza/utilities-library";
+import {
+  formatBytes,
+  getErrorMessage,
+} from "@rodrigo-barraza/utilities-library";
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
@@ -33,16 +36,36 @@ import type {
   RepoSize,
   ServicesResponse,
 } from "../types/portal";
-import { useActionRunner, type ContainerAction } from "./monitoring/useActionRunner";
+import {
+  useActionRunner,
+  type ContainerAction,
+} from "./monitoring/useActionRunner";
 import { useRollbackAvailability } from "./monitoring/useRollbackAvailability";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
-import { EMPTY_FILTERS, buildFilterOptions, filterProjects, hasActiveFilters, isDeployedProject, projectsFromResponse, sortProjects, summarizeProjects, type FilterDimension, type ProjectFilters, type SortDirection } from "./projects/projectModel";
+import {
+  EMPTY_FILTERS,
+  buildFilterOptions,
+  filterProjects,
+  hasActiveFilters,
+  isDeployedProject,
+  projectsFromResponse,
+  sortProjects,
+  summarizeProjects,
+  type FilterDimension,
+  type ProjectFilters,
+  type SortDirection,
+} from "./projects/projectModel";
 import styles from "./ProjectsComponent.module.css";
 
 /** portal-service re-checks health 3 s after an action; look just after. */
 const POST_ACTION_RECHECK_MILLISECONDS = 4_000;
 
-const LIBRARY_EXCLUDED_COLUMNS = ["tier", "domain", "database", "containers"] as const;
+const LIBRARY_EXCLUDED_COLUMNS = [
+  "tier",
+  "domain",
+  "database",
+  "containers",
+] as const;
 
 const VIEW_SEGMENTS = [
   { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
@@ -50,20 +73,30 @@ const VIEW_SEGMENTS = [
 ];
 
 export default function ProjectsComponent() {
-  const { showInfrastructure, showSystemSummary, autoRefreshEnabled, healthCheckInterval } =
-    usePortalSettings();
+  const {
+    showInfrastructure,
+    showSystemSummary,
+    autoRefreshEnabled,
+    healthCheckInterval,
+  } = usePortalSettings();
 
   const [registry, setRegistry] = useState<ServicesResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [projectSizes, setProjectSizes] = useState<Record<string, RepoSize>>({});
-  const [projectLanguages, setProjectLanguages] = useState<Record<string, LanguageBreakdown>>({});
+  const [projectSizes, setProjectSizes] = useState<Record<string, RepoSize>>(
+    {},
+  );
+  const [projectLanguages, setProjectLanguages] = useState<
+    Record<string, LanguageBreakdown>
+  >({});
   const [filters, setFilters] = useState<ProjectFilters>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState<SortDirection>("asc");
   const [searchQuery, setSearchQuery] = useState("");
   // Initial view comes from Settings → Dashboard.
-  const [viewMode, setViewMode] = useState<string>(() => getSettings().defaultView);
+  const [viewMode, setViewMode] = useState<string>(
+    () => getSettings().defaultView,
+  );
   const recheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Health: probe on the user's interval (Settings → Monitoring) ──
@@ -137,20 +170,40 @@ export default function ProjectsComponent() {
   const allItems = useMemo(
     () =>
       registry
-        ? projectsFromResponse(registry.services, registry.infrastructure, showInfrastructure)
+        ? projectsFromResponse(
+            registry.services,
+            registry.infrastructure,
+            showInfrastructure,
+          )
         : [],
     [registry, showInfrastructure],
   );
   const filterOptions = useMemo(() => buildFilterOptions(allItems), [allItems]);
   const filtered = useMemo(
     () =>
-      sortProjects(filterProjects(allItems, filters, searchQuery), sortKey, sortDir, {
-        sizes: projectSizes,
-        languages: projectLanguages,
-      }),
-    [allItems, filters, searchQuery, sortKey, sortDir, projectSizes, projectLanguages],
+      sortProjects(
+        filterProjects(allItems, filters, searchQuery),
+        sortKey,
+        sortDir,
+        {
+          sizes: projectSizes,
+          languages: projectLanguages,
+        },
+      ),
+    [
+      allItems,
+      filters,
+      searchQuery,
+      sortKey,
+      sortDir,
+      projectSizes,
+      projectLanguages,
+    ],
   );
-  const deployedItems = useMemo(() => filtered.filter(isDeployedProject), [filtered]);
+  const deployedItems = useMemo(
+    () => filtered.filter(isDeployedProject),
+    [filtered],
+  );
   const nonDeployedItems = useMemo(
     () => filtered.filter((service) => !isDeployedProject(service)),
     [filtered],
@@ -164,7 +217,10 @@ export default function ProjectsComponent() {
 
   // ── Card actions ────────────────────────────────────────────────
   const restartableIds = useMemo(
-    () => allItems.filter((service) => service.restartable).map((service) => service.id),
+    () =>
+      allItems
+        .filter((service) => service.restartable)
+        .map((service) => service.id),
     [allItems],
   );
   const { statuses: rollbackStatuses, recheck: recheckRollback } =
@@ -215,7 +271,7 @@ export default function ProjectsComponent() {
   const loading = registry === null && loadError === null;
 
   const renderCards = (items: PortalService[]) => (
-    <div className={styles['grid']}>
+    <div className={styles["grid"]}>
       {items.map((service) => (
         <ServiceCardComponent
           key={service.id}
@@ -229,10 +285,10 @@ export default function ProjectsComponent() {
   );
 
   return (
-    <div className={`projects-component ${styles['services']}`}>
+    <div className={`projects-component ${styles["services"]}`}>
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
-        <div className={styles['sort-bar']}>
+        <div className={styles["sort-bar"]}>
           <SearchInputComponent
             value={searchQuery}
             onChange={setSearchQuery}
@@ -241,24 +297,26 @@ export default function ProjectsComponent() {
             id="projects-search-input"
           />
 
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
-          <div className={styles['sort-bar-icon']}>
+          <div className={styles["sort-bar-icon"]}>
             <ArrowUpDown size={13} strokeWidth={2.2} />
             <span>Filter</span>
           </div>
 
-          {(Object.keys(filterOptions) as FilterDimension[]).map((dimension) => (
-            <SelectComponent
-              multiple
-              key={dimension}
-              label={filterOptions[dimension].label}
-              value={filters[dimension]}
-              options={filterOptions[dimension].values}
-              onChange={(values: string[]) => setFilter(dimension, values)}
-              allLabel="All"
-            />
-          ))}
+          {(Object.keys(filterOptions) as FilterDimension[]).map(
+            (dimension) => (
+              <SelectComponent
+                multiple
+                key={dimension}
+                label={filterOptions[dimension].label}
+                value={filters[dimension]}
+                options={filterOptions[dimension].values}
+                onChange={(values: string[]) => setFilter(dimension, values)}
+                allLabel="All"
+              />
+            ),
+          )}
 
           {filterActive && (
             <ButtonComponent
@@ -273,13 +331,13 @@ export default function ProjectsComponent() {
             </ButtonComponent>
           )}
 
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
-          <div className={styles['sort-bar-icon']}>
+          <div className={styles["sort-bar-icon"]}>
             <span>View</span>
           </div>
 
-          <div className={styles['sort-group']}>
+          <div className={styles["sort-group"]}>
             <SegmentedControlComponent
               value={viewMode}
               onChange={setViewMode}
@@ -288,7 +346,7 @@ export default function ProjectsComponent() {
             />
           </div>
 
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
           <ButtonComponent
             variant="secondary"
@@ -313,14 +371,14 @@ export default function ProjectsComponent() {
       />
 
       {loadError && registry && (
-        <div className={styles['error-banner']} role="status">
+        <div className={styles["error-banner"]} role="status">
           Showing the last health check — refresh failed: {loadError}
         </div>
       )}
 
       {/* ── Project Summary Cards (Settings → Dashboard) ─────────── */}
       {!loading && registry && showSystemSummary && (
-        <div className={styles['summary-grid']}>
+        <div className={styles["summary-grid"]}>
           <StatsCardComponent
             label="Projects"
             value={summary.total}
@@ -372,11 +430,13 @@ export default function ProjectsComponent() {
           className="is-loading-centered-state"
         />
       ) : !registry ? (
-        <div className={styles['empty-state']}>Couldn&apos;t load projects: {loadError}</div>
+        <div className={styles["empty-state"]}>
+          Couldn&apos;t load projects: {loadError}
+        </div>
       ) : (
         <>
           {filterActive && (
-            <div className={styles['filter-summary']}>
+            <div className={styles["filter-summary"]}>
               Showing {filtered.length} of {allItems.length} projects
             </div>
           )}
@@ -386,10 +446,12 @@ export default function ProjectsComponent() {
             (viewMode === "card" ? (
               <>
                 {nonDeployedItems.length > 0 && (
-                  <div className={styles['section-label']}>
+                  <div className={styles["section-label"]}>
                     <Server size={13} strokeWidth={2.2} />
                     <span>Deployed Services</span>
-                    <span className={styles['section-count']}>{deployedItems.length}</span>
+                    <span className={styles["section-count"]}>
+                      {deployedItems.length}
+                    </span>
                   </div>
                 )}
                 {renderCards(deployedItems)}
@@ -402,9 +464,13 @@ export default function ProjectsComponent() {
                 projectLanguages={projectLanguages}
                 sortKey={sortKey}
                 sortDir={sortDir}
-                title={nonDeployedItems.length > 0 ? "Deployed Services" : undefined}
+                title={
+                  nonDeployedItems.length > 0 ? "Deployed Services" : undefined
+                }
                 subtitle={
-                  nonDeployedItems.length > 0 ? `${deployedItems.length} projects` : undefined
+                  nonDeployedItems.length > 0
+                    ? `${deployedItems.length} projects`
+                    : undefined
                 }
                 onSort={handleSort}
               />
@@ -414,10 +480,12 @@ export default function ProjectsComponent() {
           {nonDeployedItems.length > 0 &&
             (viewMode === "card" ? (
               <>
-                <div className={styles['section-label']}>
+                <div className={styles["section-label"]}>
                   <BookOpen size={13} strokeWidth={2.2} />
                   <span>Libraries & Toolkits</span>
-                  <span className={styles['section-count']}>{nonDeployedItems.length}</span>
+                  <span className={styles["section-count"]}>
+                    {nonDeployedItems.length}
+                  </span>
                 </div>
                 {renderCards(nonDeployedItems)}
               </>
@@ -437,7 +505,9 @@ export default function ProjectsComponent() {
             ))}
 
           {filtered.length === 0 && (
-            <div className={styles['empty-state']}>No projects match the selected filters</div>
+            <div className={styles["empty-state"]}>
+              No projects match the selected filters
+            </div>
           )}
         </>
       )}

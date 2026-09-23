@@ -6,7 +6,13 @@ import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import type { StorageSearchResult } from "../../types/portal";
 import { activationProps } from "./keyboardActivation";
-import { formatDate, getFileIcon, groupResultsByBucket, splitObjectKey, staggerDelay } from "./storageFiles";
+import {
+  formatDate,
+  getFileIcon,
+  groupResultsByBucket,
+  splitObjectKey,
+  staggerDelay,
+} from "./storageFiles";
 import styles from "../StorageComponent.module.css";
 
 export function GlobalSearchResults({
@@ -85,7 +91,9 @@ export function GlobalSearchResults({
           <div className={styles["global-search-bucket-label"]}>
             <HardDrive size={13} strokeWidth={2} />
             <span>{bucket}</span>
-            <span className={styles["global-search-bucket-count"]}>{bucketResults.length}</span>
+            <span className={styles["global-search-bucket-count"]}>
+              {bucketResults.length}
+            </span>
           </div>
 
           {bucketResults.map((result, index) => {
@@ -99,12 +107,25 @@ export function GlobalSearchResults({
                 {...activationProps(() => onResultClick(result))}
               >
                 <div className={styles["global-search-result-name"]}>
-                  <FileIcon size={15} className={styles["global-search-file-icon"]} />
-                  <span className={styles["global-search-file-name"]}>{fileName}</span>
-                  {folderPath && <span className={styles["global-search-file-path"]}>{folderPath}</span>}
+                  <FileIcon
+                    size={15}
+                    className={styles["global-search-file-icon"]}
+                  />
+                  <span className={styles["global-search-file-name"]}>
+                    {fileName}
+                  </span>
+                  {folderPath && (
+                    <span className={styles["global-search-file-path"]}>
+                      {folderPath}
+                    </span>
+                  )}
                 </div>
-                <span className={styles["object-size"]}>{formatBytes(result.size)}</span>
-                <span className={styles["object-date"]}>{formatDate(result.lastModified)}</span>
+                <span className={styles["object-size"]}>
+                  {formatBytes(result.size)}
+                </span>
+                <span className={styles["object-date"]}>
+                  {formatDate(result.lastModified)}
+                </span>
               </div>
             );
           })}

@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { buildDateRange, categoryTotals, combineDailySeries, fillDailyValues, formatCostValue, formatPercentValue, periodToDays, successPercent } from "../externalApiUsage";
+import {
+  buildDateRange,
+  categoryTotals,
+  combineDailySeries,
+  fillDailyValues,
+  formatCostValue,
+  formatPercentValue,
+  periodToDays,
+  successPercent,
+} from "../externalApiUsage";
 import type { ExternalApiUsage } from "@/types/portal";
 
 function api(overrides: Partial<ExternalApiUsage>): ExternalApiUsage {
@@ -41,7 +50,9 @@ describe("periods and dates", () => {
       { date: "2026-09-20", requests: 2 },
       { date: "2026-08-01", requests: 99 },
     ];
-    expect(fillDailyValues(points, (point) => point.requests, dates)).toEqual([3, 0, 5]);
+    expect(fillDailyValues(points, (point) => point.requests, dates)).toEqual([
+      3, 0, 5,
+    ]);
   });
 
   it("combines every API into one daily total", () => {
@@ -49,7 +60,12 @@ describe("periods and dates", () => {
     const combined = combineDailySeries(
       [
         api({ dailySeries: [{ date: "2026-09-21", requests: 2 }] }),
-        api({ dailySeries: [{ date: "2026-09-21", requests: 3 }, { date: "2026-09-22", requests: 1 }] }),
+        api({
+          dailySeries: [
+            { date: "2026-09-21", requests: 3 },
+            { date: "2026-09-22", requests: 1 },
+          ],
+        }),
       ],
       dates,
     );

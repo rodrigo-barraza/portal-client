@@ -16,7 +16,10 @@ export const HISTORY_MAX = 60;
 
 export type HistoryMap = Record<string, ContainerHistory>;
 
-export function containerKey(device: string | null | undefined, name: string): string {
+export function containerKey(
+  device: string | null | undefined,
+  name: string,
+): string {
   return `${device || "unknown"}::${name}`;
 }
 
@@ -68,7 +71,10 @@ export function mergeSeededHistory(
 }
 
 /** What history reads from one `/stats/containers/metrics` series. */
-export type MetricsSeriesSamples = Pick<ContainerMetricsSeries, "container" | "device"> & {
+export type MetricsSeriesSamples = Pick<
+  ContainerMetricsSeries,
+  "container" | "device"
+> & {
   points: Pick<ContainerMetricsPoint, "cpu" | "mem">[];
 };
 
@@ -95,7 +101,10 @@ export function historyFromMetrics(
 
 /** What history reads from one ring-buffer tick. */
 export interface RingBufferSnapshot {
-  containers: Record<string, Pick<ContainerSnapshotSample, "cpu" | "memoryUsed">>;
+  containers: Record<
+    string,
+    Pick<ContainerSnapshotSample, "cpu" | "memoryUsed">
+  >;
 }
 
 /** `/stats/containers/history` (in-memory ring buffer, per device) → history. */
@@ -123,7 +132,10 @@ export function historyFromRingBuffer(
 
 /** Sum series point-by-point, right-aligned (newest samples line up). */
 export function sumAligned(series: number[][]): number[] {
-  const length = series.reduce((longest, values) => Math.max(longest, values.length), 0);
+  const length = series.reduce(
+    (longest, values) => Math.max(longest, values.length),
+    0,
+  );
   const total = new Array<number>(length).fill(0);
   for (const values of series) {
     const offset = length - values.length;

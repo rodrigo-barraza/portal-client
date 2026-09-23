@@ -10,7 +10,7 @@ describe("parseBarrelModules", () => {
     const barrel = [
       'export { default as ButtonComponent } from "./components/ButtonComponent/ButtonComponent.js";',
       'export type { ButtonProps } from "./components/ButtonComponent/Types.js";',
-      "export {\n  ThemeProvider,\n  useTheme,\n} from \"./components/ThemeProvider/ThemeProvider.js\";",
+      'export {\n  ThemeProvider,\n  useTheme,\n} from "./components/ThemeProvider/ThemeProvider.js";',
       'export { default as useFetch } from "./hooks/useFetch.js";',
     ].join("\n");
 
@@ -24,7 +24,9 @@ describe("parseBarrelModules", () => {
 
 describe("classifyModule", () => {
   it("classifies each library folder", () => {
-    expect(classifyModule("components/ButtonComponent/ButtonComponent")).toEqual({
+    expect(
+      classifyModule("components/ButtonComponent/ButtonComponent"),
+    ).toEqual({
       name: "ButtonComponent",
       type: "component",
     });
@@ -37,7 +39,10 @@ describe("classifyModule", () => {
       type: "provider",
       isFile: true,
     });
-    expect(classifyModule("hooks/useFetch")).toEqual({ name: "useFetch", type: "hook" });
+    expect(classifyModule("hooks/useFetch")).toEqual({
+      name: "useFetch",
+      type: "hook",
+    });
     expect(classifyModule("services/SoundService")).toEqual({
       name: "SoundService",
       type: "service",
@@ -49,7 +54,9 @@ describe("classifyModule", () => {
   });
 
   it("skips helper modules and non-catalog folders", () => {
-    expect(classifyModule("components/ThemeProvider/themeConstants")).toBeNull();
+    expect(
+      classifyModule("components/ThemeProvider/themeConstants"),
+    ).toBeNull();
     expect(classifyModule("components/PageHeaderContext")).toBeNull();
     expect(classifyModule("constants/agentChat")).toBeNull();
   });
@@ -95,15 +102,17 @@ export default function useDebounce() {}`;
   });
 
   it("sentence-cases a lowercase lead word but keeps mixed case", () => {
-    expect(extractDescription("/** Toggle — iOS-style switch. */", "Toggle")).toBe(
-      "iOS-style switch.",
-    );
+    expect(
+      extractDescription("/** Toggle — iOS-style switch. */", "Toggle"),
+    ).toBe("iOS-style switch.");
     expect(extractDescription("/** Input — styled input. */", "Input")).toBe(
       "Styled input.",
     );
   });
 
   it("returns an empty string when nothing describes the module", () => {
-    expect(extractDescription("const a = 1;\n// note\nexport const b = a;", "X")).toBe("");
+    expect(
+      extractDescription("const a = 1;\n// note\nexport const b = a;", "X"),
+    ).toBe("");
   });
 });

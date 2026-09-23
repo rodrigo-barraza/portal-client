@@ -8,18 +8,33 @@ import {
   TabBarComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
-import { ArrowLeft, Clock, LayoutGrid, Network, Table2, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  LayoutGrid,
+  Network,
+  Table2,
+  Users,
+} from "lucide-react";
 import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { ExplorerLoading, StateMessage } from "./analytics/ExplorerPrimitives";
 import { IpCard, SessionCard, VisitorCard } from "./analytics/ExplorerCards";
-import { ipColumns, sessionColumns, visitorColumns } from "./analytics/explorerColumns";
+import {
+  ipColumns,
+  sessionColumns,
+  visitorColumns,
+} from "./analytics/explorerColumns";
 import IpDetailComponent from "./analytics/IpDetailComponent";
 import SessionDetailComponent from "./analytics/SessionDetailComponent";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
 import { readableErrorMessage, shortId } from "./analytics/analyticsFormat";
-import { filterIpUsers, filterSessions, filterVisitors } from "./analytics/explorerModel";
+import {
+  filterIpUsers,
+  filterSessions,
+  filterVisitors,
+} from "./analytics/explorerModel";
 import type { ExplorerSession, IpUser, Visitor } from "@/types/portal";
 import styles from "./SessionExplorerComponent.module.css";
 
@@ -38,11 +53,19 @@ const PAGE_SIZE = 50;
 
 type Tab = "ips" | "visitors" | "sessions";
 type ViewMode = "cards" | "table";
-type ExplorerView = { kind: "ip"; ip: string } | { kind: "session"; sessionId: string };
+type ExplorerView =
+  { kind: "ip"; ip: string } | { kind: "session"; sessionId: string };
 
-const TAB_NOUNS: Record<Tab, string> = { ips: "IPs", visitors: "visitors", sessions: "sessions" };
+const TAB_NOUNS: Record<Tab, string> = {
+  ips: "IPs",
+  visitors: "visitors",
+  sessions: "sessions",
+};
 
-function sameView(first: ExplorerView | undefined, second: ExplorerView): boolean {
+function sameView(
+  first: ExplorerView | undefined,
+  second: ExplorerView,
+): boolean {
   if (!first || first.kind !== second.kind) return false;
   return first.kind === "ip"
     ? first.ip === (second as { ip: string }).ip
@@ -66,7 +89,11 @@ export default function SessionExplorerComponent({
   const [tab, setTab] = useState<Tab>("ips");
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [searchQuery, setSearchQuery] = useState("");
-  const [offsets, setOffsets] = useState<Record<Tab, number>>({ ips: 0, visitors: 0, sessions: 0 });
+  const [offsets, setOffsets] = useState<Record<Tab, number>>({
+    ips: 0,
+    visitors: 0,
+    sessions: 0,
+  });
   const [viewStack, setViewStack] = useState<ExplorerView[]>([]);
 
   // ── Paged lists (all three load up front: the tab badges show totals) ──
@@ -75,17 +102,21 @@ export default function SessionExplorerComponent({
   const ips = useAsyncData(
     `ips|${projectId}|${period}|${offsets.ips}`,
     (signal) =>
-      ApiService.getSessionIpUsers(projectId, period, PAGE_SIZE, offsets.ips, { signal }).then(
-        unwrapData,
-      ),
+      ApiService.getSessionIpUsers(projectId, period, PAGE_SIZE, offsets.ips, {
+        signal,
+      }).then(unwrapData),
     listOptions,
   );
   const visitors = useAsyncData(
     `visitors|${projectId}|${period}|${offsets.visitors}`,
     (signal) =>
-      ApiService.getSessionVisitors(projectId, period, PAGE_SIZE, offsets.visitors, { signal }).then(
-        unwrapData,
-      ),
+      ApiService.getSessionVisitors(
+        projectId,
+        period,
+        PAGE_SIZE,
+        offsets.visitors,
+        { signal },
+      ).then(unwrapData),
     listOptions,
   );
   const sessions = useAsyncData(
@@ -106,7 +137,10 @@ export default function SessionExplorerComponent({
   const ipItems = ips.data?.ips;
   const visitorItems = visitors.data?.visitors;
   const sessionItems = sessions.data?.sessions;
-  const filteredIps = useMemo(() => filterIpUsers(ipItems ?? [], searchQuery), [ipItems, searchQuery]);
+  const filteredIps = useMemo(
+    () => filterIpUsers(ipItems ?? [], searchQuery),
+    [ipItems, searchQuery],
+  );
   const filteredVisitors = useMemo(
     () => filterVisitors(visitorItems ?? [], searchQuery),
     [visitorItems, searchQuery],
@@ -119,9 +153,14 @@ export default function SessionExplorerComponent({
   // ── Navigation ────────────────────────────────────────────
 
   const openView = useCallback((view: ExplorerView) => {
-    setViewStack((stack) => (sameView(stack.at(-1), view) ? stack : [...stack, view]));
+    setViewStack((stack) =>
+      sameView(stack.at(-1), view) ? stack : [...stack, view],
+    );
   }, []);
-  const openIp = useCallback((ip: string) => openView({ kind: "ip", ip }), [openView]);
+  const openIp = useCallback(
+    (ip: string) => openView({ kind: "ip", ip }),
+    [openView],
+  );
   const openSession = useCallback(
     (sessionId: string) => openView({ kind: "session", sessionId }),
     [openView],
@@ -130,7 +169,10 @@ export default function SessionExplorerComponent({
 
   const ipTableColumns = useMemo(() => ipColumns(openIp), [openIp]);
   const visitorTableColumns = useMemo(() => visitorColumns(openIp), [openIp]);
-  const sessionTableColumns = useMemo(() => sessionColumns(openSession), [openSession]);
+  const sessionTableColumns = useMemo(
+    () => sessionColumns(openSession),
+    [openSession],
+  );
 
   // ══ Detail views ════════════════════════════════════════
 
@@ -139,7 +181,12 @@ export default function SessionExplorerComponent({
     return (
       <div className={styles["explorer"]}>
         <div className={styles["detail-header"]}>
-          <ButtonComponent variant="text" size="small" icon={ArrowLeft} onClick={goBack}>
+          <ButtonComponent
+            variant="text"
+            size="small"
+            icon={ArrowLeft}
+            onClick={goBack}
+          >
             {backLabel(viewStack.at(-2))}
           </ButtonComponent>
           <h3 className={styles["detail-session-id"]}>
@@ -149,7 +196,9 @@ export default function SessionExplorerComponent({
                 {currentView.ip}
               </>
             ) : (
-              <span title={currentView.sessionId}>{shortId(currentView.sessionId, 8)}</span>
+              <span title={currentView.sessionId}>
+                {shortId(currentView.sessionId, 8)}
+              </span>
             )}
           </h3>
         </div>
@@ -182,7 +231,10 @@ export default function SessionExplorerComponent({
       totalItems={total}
       limit={PAGE_SIZE}
       onPageChange={(page) =>
-        setOffsets((previous) => ({ ...previous, [current]: (page - 1) * PAGE_SIZE }))
+        setOffsets((previous) => ({
+          ...previous,
+          [current]: (page - 1) * PAGE_SIZE,
+        }))
       }
     />
   );
@@ -197,19 +249,25 @@ export default function SessionExplorerComponent({
               key: "ips",
               label: "IPs",
               icon: <Network size={13} strokeWidth={2.2} />,
-              badge: ips.data?.total ? formatCompact(ips.data.total) : undefined,
+              badge: ips.data?.total
+                ? formatCompact(ips.data.total)
+                : undefined,
             },
             {
               key: "visitors",
               label: "Visitors",
               icon: <Users size={13} strokeWidth={2.2} />,
-              badge: visitors.data?.total ? formatCompact(visitors.data.total) : undefined,
+              badge: visitors.data?.total
+                ? formatCompact(visitors.data.total)
+                : undefined,
             },
             {
               key: "sessions",
               label: "Sessions",
               icon: <Clock size={13} strokeWidth={2.2} />,
-              badge: sessions.data?.total ? formatCompact(sessions.data.total) : undefined,
+              badge: sessions.data?.total
+                ? formatCompact(sessions.data.total)
+                : undefined,
             },
           ]}
           activeTab={tab}
@@ -222,8 +280,16 @@ export default function SessionExplorerComponent({
             onChange={setViewMode}
             ariaLabel="View mode"
             segments={[
-              { value: "cards", icon: <LayoutGrid size={14} strokeWidth={2.2} />, label: "Card view" },
-              { value: "table", icon: <Table2 size={14} strokeWidth={2.2} />, label: "Table view" },
+              {
+                value: "cards",
+                icon: <LayoutGrid size={14} strokeWidth={2.2} />,
+                label: "Card view",
+              },
+              {
+                value: "table",
+                icon: <Table2 size={14} strokeWidth={2.2} />,
+                label: "Table view",
+              },
             ]}
           />
           {/* The APIs have no search — this filters the loaded page only */}
@@ -302,7 +368,11 @@ export default function SessionExplorerComponent({
           filtered={filteredSessions}
           pagination={pagination("sessions", sessions.data?.total ?? 0)}
           cards={filteredSessions.map((session) => (
-            <SessionCard key={session.sessionId} session={session} onOpen={openSession} />
+            <SessionCard
+              key={session.sessionId}
+              session={session}
+              onOpen={openSession}
+            />
           ))}
           table={
             <TableComponent<ExplorerSession>
@@ -354,7 +424,8 @@ function ExplorerList<T>({
       </StateMessage>
     );
   }
-  if (!items || items.length === 0) return <StateMessage>No {noun} in this period.</StateMessage>;
+  if (!items || items.length === 0)
+    return <StateMessage>No {noun} in this period.</StateMessage>;
   return (
     <>
       {filtered.length === 0 ? (

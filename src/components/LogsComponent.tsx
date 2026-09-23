@@ -1,8 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowDown, Pause, Play, RotateCw, ScrollText, Search, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  Pause,
+  Play,
+  RotateCw,
+  ScrollText,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   IconButtonComponent,
   PageHeaderComponent,
@@ -18,7 +34,10 @@ import { thresholdsFromSettings } from "./monitoring/severity";
 import { useActionRunner } from "./monitoring/useActionRunner";
 import LogLineRow from "./logs/LogLineRow";
 import LogStatisticsPanel from "./logs/LogStatisticsPanel";
-import { buildContainerOptions, findLinkedContainer } from "./logs/logContainers";
+import {
+  buildContainerOptions,
+  findLinkedContainer,
+} from "./logs/logContainers";
 import { filterLogLines } from "./logs/logLines";
 import { useContainerStatistics } from "./logs/useContainerStatistics";
 import { useLogStream } from "./logs/useLogStream";
@@ -40,10 +59,13 @@ export default function LogsComponent() {
 
   const containerList = useAsyncData<LoggableContainer[]>(
     "loggable-containers",
-    async (signal) => (await ApiService.getLoggableContainers({ signal })).containers,
+    async (signal) =>
+      (await ApiService.getLoggableContainers({ signal })).containers,
   );
   const containers = containerList.data ?? NO_CONTAINERS;
-  const listError = containerList.error ? getErrorMessage(containerList.error) : null;
+  const listError = containerList.error
+    ? getErrorMessage(containerList.error)
+    : null;
   const [autoScroll, setAutoScroll] = useState(true);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -54,7 +76,9 @@ export default function LogsComponent() {
 
   const stream = useLogStream();
   const { target, connect } = stream;
-  const targetKey = target ? containerKey(target.device, target.container) : null;
+  const targetKey = target
+    ? containerKey(target.device, target.container)
+    : null;
   const statistics = useContainerStatistics(target, containerPollingInterval);
 
   const { pending, requestAction, actionUi } = useActionRunner({
@@ -66,7 +90,10 @@ export default function LogsComponent() {
   });
 
   // ── Container list ──────────────────────────────────────────────
-  const containerOptions = useMemo(() => buildContainerOptions(containers), [containers]);
+  const containerOptions = useMemo(
+    () => buildContainerOptions(containers),
+    [containers],
+  );
   const selectOptions = useMemo(
     () =>
       containerOptions.map((option) => ({
@@ -74,10 +101,10 @@ export default function LogsComponent() {
         label: option.label,
         icon: (
           <span
-            className={`${styles['status-dot']} ${
+            className={`${styles["status-dot"]} ${
               option.container.state === "running"
-                ? styles['status-dot-healthy']
-                : styles['status-dot-unhealthy']
+                ? styles["status-dot-healthy"]
+                : styles["status-dot-unhealthy"]
             }`}
           />
         ),
@@ -98,7 +125,11 @@ export default function LogsComponent() {
     if (autoConnectedRef.current || containers.length === 0) return;
     const name = searchParams.get("container") || searchParams.get("service");
     if (!name) return;
-    const match = findLinkedContainer(containers, name, searchParams.get("device"));
+    const match = findLinkedContainer(
+      containers,
+      name,
+      searchParams.get("device"),
+    );
     if (!match) return;
     autoConnectedRef.current = true;
     queueMicrotask(() => openContainer(match));
@@ -107,13 +138,17 @@ export default function LogsComponent() {
   // ── Follow the tail ─────────────────────────────────────────────
   useLayoutEffect(() => {
     const body = bodyRef.current;
-    if (autoScroll && !stream.paused && body) body.scrollTop = body.scrollHeight;
+    if (autoScroll && !stream.paused && body)
+      body.scrollTop = body.scrollHeight;
   }, [stream.lines, autoScroll, stream.paused]);
 
   const handleScroll = useCallback(() => {
     const body = bodyRef.current;
     if (!body) return;
-    setAutoScroll(body.scrollHeight - body.scrollTop - body.clientHeight < FOLLOW_THRESHOLD_PIXELS);
+    setAutoScroll(
+      body.scrollHeight - body.scrollTop - body.clientHeight <
+        FOLLOW_THRESHOLD_PIXELS,
+    );
   }, []);
 
   const scrollToBottom = () => {
@@ -175,15 +210,15 @@ export default function LogsComponent() {
     else if (!stream.error) message = "Connecting…";
     if (!message) return null;
     return (
-      <div className={styles['connecting']}>
-        <span className={styles['connecting-dot']} />
+      <div className={styles["connecting"]}>
+        <span className={styles["connecting-dot"]} />
         {message}
       </div>
     );
   };
 
   return (
-    <div className={`logs-component ${styles['logs']}`}>
+    <div className={`logs-component ${styles["logs"]}`}>
       <PageHeaderComponent
         sticky={false}
         title="Logs"
@@ -195,40 +230,46 @@ export default function LogsComponent() {
       />
 
       {/* ── Container Selector ── */}
-      <div className={styles['container-select']}>
+      <div className={styles["container-select"]}>
         <SelectComponent
           value={targetKey ?? ""}
           options={selectOptions}
           onChange={(value: string) => {
-            const option = containerOptions.find((candidate) => candidate.value === value);
+            const option = containerOptions.find(
+              (candidate) => candidate.value === value,
+            );
             if (option) openContainer(option.container);
           }}
           placeholder="Select a container…"
           searchable
-          triggerClassName={styles['container-select-trigger']}
+          triggerClassName={styles["container-select-trigger"]}
         />
       </div>
 
       {target ? (
         <>
-          {statistics && <LogStatisticsPanel stats={statistics} thresholds={thresholds} />}
+          {statistics && (
+            <LogStatisticsPanel stats={statistics} thresholds={thresholds} />
+          )}
 
-          <div className={styles['terminal']} data-theme="twilight">
-            <div className={styles['terminal-header']}>
-              <div className={styles['terminal-title']}>
+          <div className={styles["terminal"]} data-theme="twilight">
+            <div className={styles["terminal-header"]}>
+              <div className={styles["terminal-title"]}>
                 <span
-                  className={`${styles['terminal-dot']} ${stream.connected ? styles['connected'] : ""}`}
+                  className={`${styles["terminal-dot"]} ${stream.connected ? styles["connected"] : ""}`}
                 />
                 {target.container}
-                {stream.connected && <span className={styles['live-label']}>live</span>}
+                {stream.connected && (
+                  <span className={styles["live-label"]}>live</span>
+                )}
               </div>
 
-              <div className={styles['terminal-actions']}>
-                <span className={styles['line-count']}>
+              <div className={styles["terminal-actions"]}>
+                <span className={styles["line-count"]}>
                   {filteredLines.length.toLocaleString()}
                 </span>
 
-                <span className={styles['separator']} />
+                <span className={styles["separator"]} />
 
                 {showSearch && (
                   <SearchInputComponent
@@ -237,7 +278,7 @@ export default function LogsComponent() {
                     onChange={setSearch}
                     placeholder="Filter…"
                     autoFocus
-                    className={styles['search-input']}
+                    className={styles["search-input"]}
                   />
                 )}
 
@@ -252,7 +293,9 @@ export default function LogsComponent() {
                   active={showSearch}
                   tooltip="Search (Ctrl+F)"
                   aria-label={showSearch ? "Close search" : "Search logs"}
-                  onClick={() => (showSearch ? closeSearch() : setShowSearch(true))}
+                  onClick={() =>
+                    showSearch ? closeSearch() : setShowSearch(true)
+                  }
                 />
 
                 <IconButtonComponent
@@ -266,10 +309,12 @@ export default function LogsComponent() {
                   active={stream.paused}
                   tooltip={stream.paused ? "Resume" : "Pause"}
                   aria-label={stream.paused ? "Resume" : "Pause"}
-                  onClick={() => (stream.paused ? handleResume() : stream.pause())}
+                  onClick={() =>
+                    stream.paused ? handleResume() : stream.pause()
+                  }
                 />
 
-                <span className={styles['separator']} />
+                <span className={styles["separator"]} />
 
                 <IconButtonComponent
                   icon={<ArrowDown size={13} strokeWidth={1.8} />}
@@ -285,7 +330,7 @@ export default function LogsComponent() {
                   onClick={stream.clear}
                 />
 
-                <span className={styles['separator']} />
+                <span className={styles["separator"]} />
 
                 <IconButtonComponent
                   icon={<RotateCw size={13} strokeWidth={1.8} />}
@@ -293,14 +338,20 @@ export default function LogsComponent() {
                   aria-label={`Restart ${target.container}`}
                   onClick={handleRestart}
                   disabled={restarting}
-                  className={restarting ? styles['restart-spin'] : undefined}
+                  className={restarting ? styles["restart-spin"] : undefined}
                 />
               </div>
             </div>
 
-            {stream.error && <div className={styles['error-banner']}>✕ {stream.error}</div>}
+            {stream.error && (
+              <div className={styles["error-banner"]}>✕ {stream.error}</div>
+            )}
 
-            <div ref={bodyRef} className={styles['terminal-body']} onScroll={handleScroll}>
+            <div
+              ref={bodyRef}
+              className={styles["terminal-body"]}
+              onScroll={handleScroll}
+            >
               {renderBodyMessage()}
               {filteredLines.map((line) => (
                 <LogLineRow key={line.id} line={line} />
@@ -308,15 +359,18 @@ export default function LogsComponent() {
             </div>
 
             {stream.paused && stream.bufferedCount > 0 && (
-              <div className={styles['paused-banner']}>
-                ⏸ Paused — {stream.bufferedCount.toLocaleString()} new lines buffered
-                {stream.bufferedCount >= stream.maxLines ? " (newest kept)" : ""}
+              <div className={styles["paused-banner"]}>
+                ⏸ Paused — {stream.bufferedCount.toLocaleString()} new lines
+                buffered
+                {stream.bufferedCount >= stream.maxLines
+                  ? " (newest kept)"
+                  : ""}
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className={styles['empty-terminal']} data-theme="twilight">
+        <div className={styles["empty-terminal"]} data-theme="twilight">
           <ScrollText size={40} strokeWidth={1} />
           <span>
             {listError

@@ -32,7 +32,8 @@ const ANSI_BRIGHT_COLORS = [
 ];
 
 // CSI sequences (ESC [ params final-byte) and OSC sequences (ESC ] … BEL|ST).
-const ESCAPE_PATTERN = /\x1b\[([0-9;?]*)([@-~])|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g;
+const ESCAPE_PATTERN =
+  /\x1b\[([0-9;?]*)([@-~])|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g;
 
 export interface AnsiSegment {
   text: string;
@@ -100,15 +101,21 @@ function styleOf(state: SgrState): CSSProperties | undefined {
  * (the `5` or `2`). Returns the colour and how many codes it consumed.
  */
 function extendedColor(codes: number[], at: number): [string | null, number] {
-  if (codes[at] === 5 && codes[at + 1] != null) return [ansi256ToHex(codes[at + 1]), 2];
+  if (codes[at] === 5 && codes[at + 1] != null)
+    return [ansi256ToHex(codes[at + 1]), 2];
   if (codes[at] === 2 && codes[at + 3] != null) {
-    return [`#${hexByte(codes[at + 1])}${hexByte(codes[at + 2])}${hexByte(codes[at + 3])}`, 4];
+    return [
+      `#${hexByte(codes[at + 1])}${hexByte(codes[at + 2])}${hexByte(codes[at + 3])}`,
+      4,
+    ];
   }
   return [null, 0];
 }
 
 function applySgr(state: SgrState, params: string): SgrState {
-  const codes = params ? params.split(";").map((code) => Number(code) || 0) : [0];
+  const codes = params
+    ? params.split(";").map((code) => Number(code) || 0)
+    : [0];
   let next = { ...state };
   for (let index = 0; index < codes.length; index++) {
     const code = codes[index];
@@ -126,8 +133,10 @@ function applySgr(state: SgrState, params: string): SgrState {
     else if (code === 49) next.background = null;
     else if (code >= 30 && code <= 37) next.color = ANSI_COLORS[code - 30];
     else if (code >= 40 && code <= 47) next.background = ANSI_COLORS[code - 40];
-    else if (code >= 90 && code <= 97) next.color = ANSI_BRIGHT_COLORS[code - 90];
-    else if (code >= 100 && code <= 107) next.background = ANSI_BRIGHT_COLORS[code - 100];
+    else if (code >= 90 && code <= 97)
+      next.color = ANSI_BRIGHT_COLORS[code - 90];
+    else if (code >= 100 && code <= 107)
+      next.background = ANSI_BRIGHT_COLORS[code - 100];
     else if (code === 38 || code === 48) {
       const [color, consumed] = extendedColor(codes, index + 1);
       if (code === 38) next.color = color;

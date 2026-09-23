@@ -29,7 +29,11 @@ export default function IconSegmentedControlComponent<T extends string>({
   ariaLabel: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className={styles["icon-segments"]}>
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={styles["icon-segments"]}
+    >
       <SegmentedControlComponent
         value={value}
         onChange={(next: string) => onChange(next as T)}

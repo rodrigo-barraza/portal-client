@@ -82,7 +82,9 @@ describe("ApiService request building", () => {
     ).toBe("http://portal.test/logs/web%2F1?tail=50&follow=1&device=nas");
     expect(
       ApiService.buildStorageDownloadUrl("b", "dir/f #1.png", { inline: true }),
-    ).toBe("http://portal.test/object-store/buckets/b/download/dir/f%20%231.png?inline=true");
+    ).toBe(
+      "http://portal.test/object-store/buckets/b/download/dir/f%20%231.png?inline=true",
+    );
     expect(ApiService.buildContainerPreviewUrl("rod.dev")).toBe(
       "http://portal.test/containers/previews/rod.dev",
     );
@@ -118,7 +120,10 @@ describe("ApiService.streamStorageBuckets", () => {
     const source = FakeEventSource.last;
 
     source.emit("init", JSON.stringify({ totalBuckets: 1, buckets: [] }));
-    source.emit("bucket", JSON.stringify({ name: "a", objectCount: 1, totalSize: 2 }));
+    source.emit(
+      "bucket",
+      JSON.stringify({ name: "a", objectCount: 1, totalSize: 2 }),
+    );
     source.emit("done");
 
     expect(source.url).toBe("http://portal.test/object-store/buckets/stream");
@@ -145,7 +150,10 @@ describe("ApiService.streamStorageBuckets", () => {
   it("reports a server error once", () => {
     const onEvent = vi.fn();
     ApiService.streamStorageBuckets(onEvent);
-    FakeEventSource.last.emit("error", JSON.stringify({ message: "Failed to list buckets" }));
+    FakeEventSource.last.emit(
+      "error",
+      JSON.stringify({ message: "Failed to list buckets" }),
+    );
     FakeEventSource.last.emit("error");
 
     expect(onEvent).toHaveBeenCalledTimes(1);

@@ -18,13 +18,14 @@ import type {
   Visitor,
 } from "@/types/portal";
 
-
 // ── Search ────────────────────────────────────────────────────
 
 type SearchField = string | null | undefined;
 
 function matchesQuery(fields: SearchField[], normalizedQuery: string): boolean {
-  return fields.some((field) => !!field && field.toLowerCase().includes(normalizedQuery));
+  return fields.some(
+    (field) => !!field && field.toLowerCase().includes(normalizedQuery),
+  );
 }
 
 function filterByQuery<T>(
@@ -55,23 +56,42 @@ function clientFields(
   ];
 }
 
-export function filterIpUsers(items: readonly IpUser[], query: string): IpUser[] {
+export function filterIpUsers(
+  items: readonly IpUser[],
+  query: string,
+): IpUser[] {
   return filterByQuery(items, query, (item) => [
     item.ip,
     ...(item.visitorIds ?? []),
-    ...clientFields(item.lastBrowser, item.lastOs, item.lastDevice, item.lastGeo),
+    ...clientFields(
+      item.lastBrowser,
+      item.lastOs,
+      item.lastDevice,
+      item.lastGeo,
+    ),
   ]);
 }
 
-export function filterVisitors(items: readonly Visitor[], query: string): Visitor[] {
+export function filterVisitors(
+  items: readonly Visitor[],
+  query: string,
+): Visitor[] {
   return filterByQuery(items, query, (item) => [
     item.visitorId,
     item.lastIp,
-    ...clientFields(item.lastBrowser, item.lastOs, item.lastDevice, item.lastGeo),
+    ...clientFields(
+      item.lastBrowser,
+      item.lastOs,
+      item.lastDevice,
+      item.lastGeo,
+    ),
   ]);
 }
 
-export function filterSessions(items: readonly ExplorerSession[], query: string): ExplorerSession[] {
+export function filterSessions(
+  items: readonly ExplorerSession[],
+  query: string,
+): ExplorerSession[] {
   return filterByQuery(items, query, (item) => [
     item.sessionId,
     item.visitorId,
@@ -99,30 +119,32 @@ export function buildTimeline(
   events: readonly EventRecord[],
 ): TimelineEntry[] {
   const entries: TimelineEntry[] = [
-    ...pageViews.map(
-      (pageView): TimelineEntry => ({
-        type: "pageview",
-        timestamp: pageView.timestamp,
-        sessionId: pageView.sessionId,
-        path: pageView.path,
-        title: pageView.title,
-        url: pageView.url,
-      }),
-    ),
-    ...events.map(
-      (event): TimelineEntry => ({
-        type: "event",
-        timestamp: event.timestamp,
-        sessionId: event.sessionId,
-        category: event.category,
-        action: event.action,
-        label: event.label,
-      }),
-    ),
+    ...pageViews.map((pageView): TimelineEntry => ({
+      type: "pageview",
+      timestamp: pageView.timestamp,
+      sessionId: pageView.sessionId,
+      path: pageView.path,
+      title: pageView.title,
+      url: pageView.url,
+    })),
+    ...events.map((event): TimelineEntry => ({
+      type: "event",
+      timestamp: event.timestamp,
+      sessionId: event.sessionId,
+      category: event.category,
+      action: event.action,
+      label: event.label,
+    })),
   ];
   return entries
-    .map((entry, index) => ({ entry, index, time: timestampOf(entry.timestamp) }))
-    .sort((first, second) => first.time - second.time || first.index - second.index)
+    .map((entry, index) => ({
+      entry,
+      index,
+      time: timestampOf(entry.timestamp),
+    }))
+    .sort(
+      (first, second) => first.time - second.time || first.index - second.index,
+    )
     .map(({ entry }) => entry);
 }
 
@@ -136,7 +158,10 @@ export function ipTimeline(detail: IpDetail): TimelineEntry[] {
 
 /** The most recent fingerprint seen on this IP (the detail endpoint omits it). */
 export function ipFingerprint(detail: IpDetail): string | null {
-  return detail.sessions?.find((session) => session.fingerprintId)?.fingerprintId ?? null;
+  return (
+    detail.sessions?.find((session) => session.fingerprintId)?.fingerprintId ??
+    null
+  );
 }
 
 /**

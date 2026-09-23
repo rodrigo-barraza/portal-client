@@ -29,7 +29,9 @@ export default async function WebAnalyticsLayout({
     // Signed out on a public host → send to sign-in and return here.
     // Signed in without the admin role (or auth disabled) → home.
     if (AUTH_ENABLED && !session?.user) {
-      redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/web-analytics")}`);
+      redirect(
+        `/api/auth/signin?callbackUrl=${encodeURIComponent("/web-analytics")}`,
+      );
     }
     redirect("/");
   }

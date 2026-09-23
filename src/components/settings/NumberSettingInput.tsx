@@ -44,7 +44,12 @@ export default function NumberSettingInput({
     const text = event.target.value;
     setDraft(text);
     const parsed = Number(text);
-    if (text.trim() !== "" && Number.isInteger(parsed) && parsed >= min && parsed <= max) {
+    if (
+      text.trim() !== "" &&
+      Number.isInteger(parsed) &&
+      parsed >= min &&
+      parsed <= max
+    ) {
       apply(parsed);
     }
   };

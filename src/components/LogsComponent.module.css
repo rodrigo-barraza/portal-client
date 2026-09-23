@@ -65,7 +65,8 @@
   padding: 0 14px;
   height: 38px;
   background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--text-primary) 6%, transparent);
   flex-shrink: 0;
 }
 
@@ -106,10 +107,12 @@
 @keyframes dot-pulse {
   0%,
   100% {
-    box-shadow: 0 0 4px color-mix(in srgb, var(--color-success) 25%, transparent);
+    box-shadow: 0 0 4px
+      color-mix(in srgb, var(--color-success) 25%, transparent);
   }
   50% {
-    box-shadow: 0 0 10px color-mix(in srgb, var(--color-success) 50%, transparent);
+    box-shadow: 0 0 10px
+      color-mix(in srgb, var(--color-success) 50%, transparent);
   }
 }
 
@@ -213,7 +216,8 @@
   color: color-mix(in srgb, var(--text-primary) 8%, transparent);
   font-size: 0.625rem;
   user-select: none;
-  border-right: 1px solid color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-right: 1px solid
+    color-mix(in srgb, var(--text-primary) 3%, transparent);
   margin-right: 12px;
 }
 
@@ -314,7 +318,8 @@
   gap: 8px;
   padding: 8px 14px;
   background: color-mix(in srgb, var(--color-danger) 8%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-danger) 12%, transparent);
   color: var(--log-error);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -327,7 +332,8 @@
   gap: 8px;
   padding: 8px 14px;
   background: color-mix(in srgb, var(--color-warning) 8%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--color-warning) 12%, transparent);
   color: var(--log-warning);
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
@@ -359,7 +365,8 @@
   width: 200px;
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

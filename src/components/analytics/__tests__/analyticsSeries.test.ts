@@ -60,11 +60,17 @@ describe("periods", () => {
   });
 
   it("normalizes DatePicker selections into GA's whole-day period", () => {
-    expect(toCustomPeriod("2026-09-01", "2026-09-10")).toBe("2026-09-01_2026-09-10");
+    expect(toCustomPeriod("2026-09-01", "2026-09-10")).toBe(
+      "2026-09-01_2026-09-10",
+    );
     // datetimes are cut to their day
-    expect(toCustomPeriod("2026-09-01T08:30", "2026-09-10T17:00")).toBe("2026-09-01_2026-09-10");
+    expect(toCustomPeriod("2026-09-01T08:30", "2026-09-10T17:00")).toBe(
+      "2026-09-01_2026-09-10",
+    );
     // reversed selections are ordered
-    expect(toCustomPeriod("2026-09-10", "2026-09-01")).toBe("2026-09-01_2026-09-10");
+    expect(toCustomPeriod("2026-09-10", "2026-09-01")).toBe(
+      "2026-09-01_2026-09-10",
+    );
   });
 
   it("rejects empty or partial selections", () => {
@@ -77,7 +83,10 @@ describe("periods", () => {
 describe("series windows", () => {
   it("covers every UTC day a rolling sessions-service window can touch", () => {
     const now = Date.UTC(2026, 8, 22, 3, 0, 0); // 2026-09-22T03:00Z
-    expect(sessionsSeriesWindow("7d", now)).toEqual({ start: "2026-09-15", end: "2026-09-22" });
+    expect(sessionsSeriesWindow("7d", now)).toEqual({
+      start: "2026-09-15",
+      end: "2026-09-22",
+    });
     expect(sessionsSeriesWindow("2026-09-01_2026-09-02", now)).toBeNull();
   });
 
@@ -121,11 +130,17 @@ describe("fillDailySeries", () => {
       start: "2026-09-01",
       end: "2026-09-02",
     });
-    expect(filled.map((point) => point.date)).toEqual(["2026-08-31", "2026-09-01", "2026-09-02"]);
+    expect(filled.map((point) => point.date)).toEqual([
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+    ]);
   });
 
   it("builds an all-zero series for an empty window", () => {
-    expect(fillDailySeries([], empty, { start: "2026-09-01", end: "2026-09-03" })).toHaveLength(3);
+    expect(
+      fillDailySeries([], empty, { start: "2026-09-01", end: "2026-09-03" }),
+    ).toHaveLength(3);
   });
 
   it("sorts unordered input", () => {
@@ -225,14 +240,25 @@ describe("donut segments", () => {
       label: "Returning Users",
       color: SOURCE_COLORS.sessions,
     });
-    expect(returningFirst[1]).toMatchObject({ label: "New Users", color: SOURCE_COLORS.ga });
+    expect(returningFirst[1]).toMatchObject({
+      label: "New Users",
+      color: SOURCE_COLORS.ga,
+    });
     expect(returningFirst[2].label).toBe("(not set)");
-    expect([SOURCE_COLORS.ga, SOURCE_COLORS.sessions]).not.toContain(returningFirst[2].color);
+    expect([SOURCE_COLORS.ga, SOURCE_COLORS.sessions]).not.toContain(
+      returningFirst[2].color,
+    );
   });
 });
 
 describe("gaOverviewDelta", () => {
-  const base = { totalUsers: 50, pageviews: 0, sessions: 80, avgSessionDuration: 30, engagementRate: 0.5 };
+  const base = {
+    totalUsers: 50,
+    pageviews: 0,
+    sessions: 80,
+    avgSessionDuration: 30,
+    engagementRate: 0.5,
+  };
 
   it("computes the change from the previous period's totals", () => {
     const overview = { ...base, previous: { totalUsers: 40, sessions: 100 } };
@@ -250,7 +276,9 @@ describe("gaOverviewDelta", () => {
   });
 
   it("falls back to the service deltas when totals are missing", () => {
-    expect(gaOverviewDelta({ ...base, deltas: { pageviews: 0.1 } }, "pageviews")).toBe(0.1);
+    expect(
+      gaOverviewDelta({ ...base, deltas: { pageviews: 0.1 } }, "pageviews"),
+    ).toBe(0.1);
     expect(gaOverviewDelta(base, "pageviews")).toBeNull();
   });
 });

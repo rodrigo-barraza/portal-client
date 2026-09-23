@@ -19,7 +19,9 @@ const UNIT_SECONDS: Record<string, number> = {
 };
 
 /** "Up 2 hours (healthy)" → "2 hours"; null for anything not running. */
-export function parseDockerUptime(status: string | null | undefined): string | null {
+export function parseDockerUptime(
+  status: string | null | undefined,
+): string | null {
   const match = status?.trim().match(UP_PATTERN);
   const uptime = match?.[1]?.trim();
   return uptime ? uptime : null;
@@ -29,14 +31,18 @@ export function parseDockerUptime(status: string | null | undefined): string | n
  * Approximate uptime in seconds, for sorting. Inverts go-units'
  * HumanDuration ("About an hour", "3 days", "Less than a second").
  */
-export function dockerUptimeSeconds(status: string | null | undefined): number | null {
+export function dockerUptimeSeconds(
+  status: string | null | undefined,
+): number | null {
   const uptime = parseDockerUptime(status);
   if (!uptime) return null;
   const text = uptime.toLowerCase();
   if (text === "less than a second") return 0;
   if (text === "about a minute") return UNIT_SECONDS.minute;
   if (text === "about an hour") return UNIT_SECONDS.hour;
-  const match = text.match(/^(\d+)\s+(second|minute|hour|day|week|month|year)s?$/);
+  const match = text.match(
+    /^(\d+)\s+(second|minute|hour|day|week|month|year)s?$/,
+  );
   if (!match) return null;
   return Number(match[1]) * UNIT_SECONDS[match[2]];
 }
@@ -52,7 +58,9 @@ export function formatNanoseconds(nanoseconds: number): string {
 }
 
 /** Unix seconds → localized "Sep 22, 2026, 09:41 AM"; "—" when missing. */
-export function formatUnixTimestamp(unixSeconds: number | null | undefined): string {
+export function formatUnixTimestamp(
+  unixSeconds: number | null | undefined,
+): string {
   if (!unixSeconds) return "—";
   return new Date(unixSeconds * 1000).toLocaleDateString(undefined, {
     year: "numeric",

@@ -65,11 +65,31 @@ export function defaultEdgeVisibility(): Record<EdgeType, boolean> {
  */
 export const EDGE_DIRECTION_CONFIG: Record<
   EdgeDirection,
-  { color: string; label: string; markerSize: [number, number]; markerOpacity: number }
+  {
+    color: string;
+    label: string;
+    markerSize: [number, number];
+    markerOpacity: number;
+  }
 > = {
-  incoming: { color: "#00e5ff", label: "Upstream", markerSize: [8, 6], markerOpacity: 0.9 },
-  outgoing: { color: "#ff5722", label: "Downstream", markerSize: [8, 6], markerOpacity: 0.9 },
-  network: { color: "#b388ff", label: "Network", markerSize: [7, 5], markerOpacity: 0.7 },
+  incoming: {
+    color: "#00e5ff",
+    label: "Upstream",
+    markerSize: [8, 6],
+    markerOpacity: 0.9,
+  },
+  outgoing: {
+    color: "#ff5722",
+    label: "Downstream",
+    markerSize: [8, 6],
+    markerOpacity: 0.9,
+  },
+  network: {
+    color: "#b388ff",
+    label: "Network",
+    markerSize: [7, 5],
+    markerOpacity: 0.7,
+  },
 };
 
 export const TIER_LABELS = [

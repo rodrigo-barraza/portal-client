@@ -1,10 +1,20 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { DrawerComponent, TableComponent } from "@rodrigo-barraza/components-library";
-import type { LanguageBreakdown, PortalService, RepoSize } from "../types/portal";
+import {
+  DrawerComponent,
+  TableComponent,
+} from "@rodrigo-barraza/components-library";
+import type {
+  LanguageBreakdown,
+  PortalService,
+  RepoSize,
+} from "../types/portal";
 import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
-import { buildProjectColumns, getProjectRowClassName } from "./projects/projectColumns";
+import {
+  buildProjectColumns,
+  getProjectRowClassName,
+} from "./projects/projectColumns";
 import type { SortDirection } from "./projects/projectModel";
 
 interface ProjectTableProps {
@@ -46,11 +56,19 @@ export default function ProjectTableComponent({
     : null;
 
   const columns = useMemo(
-    () => buildProjectColumns(projectSizes, projectLanguages, new Set(excludeColumns)),
+    () =>
+      buildProjectColumns(
+        projectSizes,
+        projectLanguages,
+        new Set(excludeColumns),
+      ),
     [projectSizes, projectLanguages, excludeColumns],
   );
 
-  const handleRowClick = useCallback((row: PortalService) => setSelectedId(row.id), []);
+  const handleRowClick = useCallback(
+    (row: PortalService) => setSelectedId(row.id),
+    [],
+  );
 
   return (
     <>

@@ -1,7 +1,10 @@
 "use client";
 
 import { Download, Eye, Folder, Trash } from "lucide-react";
-import { IconButtonComponent, SearchInputComponent } from "@rodrigo-barraza/components-library";
+import {
+  IconButtonComponent,
+  SearchInputComponent,
+} from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../../services/ApiService";
 import type { StorageObject } from "../../types/portal";
@@ -47,7 +50,9 @@ function downloadObject(bucket: string, object: StorageObject) {
 }
 
 function thumbnailUrl(bucket: string, object: StorageObject) {
-  return ApiService.buildStorageDownloadUrl(bucket, object.name, { inline: true });
+  return ApiService.buildStorageDownloadUrl(bucket, object.name, {
+    inline: true,
+  });
 }
 
 function ListingHeader({
@@ -67,7 +72,9 @@ function ListingHeader({
     <div className={className}>
       <span className={styles["object-list-title"]}>{prefix || "Root"}</span>
       <div className={styles["listing-header-tools"]}>
-        <span className={styles["total-size"]}>{itemCount.toLocaleString()} items</span>
+        <span className={styles["total-size"]}>
+          {itemCount.toLocaleString()} items
+        </span>
         <SearchInputComponent
           value={search}
           onChange={onSearchChange}
@@ -79,9 +86,17 @@ function ListingHeader({
   );
 }
 
-function EmptyListing({ search, spanGrid }: { search: string; spanGrid?: boolean }) {
+function EmptyListing({
+  search,
+  spanGrid,
+}: {
+  search: string;
+  spanGrid?: boolean;
+}) {
   return (
-    <div className={`${styles["empty-state"]}${spanGrid ? ` ${styles["empty-state-grid"]}` : ""}`}>
+    <div
+      className={`${styles["empty-state"]}${spanGrid ? ` ${styles["empty-state-grid"]}` : ""}`}
+    >
       <Folder size={36} />
       <span>{search ? "No matches found" : "This folder is empty"}</span>
     </div>
@@ -124,7 +139,9 @@ export function ObjectTableView({
         >
           <div className={styles["object-name"]}>
             <Folder size={16} className={styles["object-icon"]} />
-            <span className={styles["object-name-text"]}>{folderLabel(folder, prefix)}</span>
+            <span className={styles["object-name-text"]}>
+              {folderLabel(folder, prefix)}
+            </span>
           </div>
           <span className={styles["object-size"]}>—</span>
           <span className={styles["object-date"]}>—</span>
@@ -156,8 +173,12 @@ export function ObjectTableView({
                 {name}
               </span>
             </div>
-            <span className={styles["object-size"]}>{formatBytes(object.size)}</span>
-            <span className={styles["object-date"]}>{formatDate(object.lastModified, true)}</span>
+            <span className={styles["object-size"]}>
+              {formatBytes(object.size)}
+            </span>
+            <span className={styles["object-date"]}>
+              {formatDate(object.lastModified, true)}
+            </span>
             <div className={styles["object-actions"]}>
               {isPreviewable(object.name) && (
                 <IconButtonComponent
@@ -185,7 +206,9 @@ export function ObjectTableView({
         );
       })}
 
-      {prefixes.length === 0 && objects.length === 0 && <EmptyListing search={search} />}
+      {prefixes.length === 0 && objects.length === 0 && (
+        <EmptyListing search={search} />
+      )}
     </div>
   );
 }
@@ -222,7 +245,9 @@ export function ObjectGridView({
               <Folder size={36} />
             </div>
             <div className={styles["grid-card-info"]}>
-              <span className={styles["grid-card-name"]}>{folderLabel(folder, prefix)}</span>
+              <span className={styles["grid-card-name"]}>
+                {folderLabel(folder, prefix)}
+              </span>
             </div>
           </div>
         ))}
@@ -231,7 +256,12 @@ export function ObjectGridView({
           const FileIcon = getFileIcon(object.name);
           const name = displayName(object.name, prefix);
           const thumbnail = isImage(object.name) ? (
-            <img className={styles["grid-thumb-img"]} src={thumbnailUrl(bucket, object)} alt="" loading="lazy" />
+            <img
+              className={styles["grid-thumb-img"]}
+              src={thumbnailUrl(bucket, object)}
+              alt=""
+              loading="lazy"
+            />
           ) : (
             <FileIcon size={36} />
           );
@@ -262,7 +292,9 @@ export function ObjectGridView({
                 <span className={styles["grid-card-name"]} title={name}>
                   {name}
                 </span>
-                <span className={styles["grid-card-meta"]}>{formatBytes(object.size)}</span>
+                <span className={styles["grid-card-meta"]}>
+                  {formatBytes(object.size)}
+                </span>
               </div>
               <div className={styles["grid-card-actions"]}>
                 <IconButtonComponent
@@ -291,7 +323,9 @@ export function ObjectGridView({
           );
         })}
 
-        {prefixes.length === 0 && objects.length === 0 && <EmptyListing search={search} spanGrid />}
+        {prefixes.length === 0 && objects.length === 0 && (
+          <EmptyListing search={search} spanGrid />
+        )}
       </div>
     </>
   );

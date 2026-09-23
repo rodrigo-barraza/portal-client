@@ -26,7 +26,10 @@ import {
   zoomAtPoint,
 } from "../topologyLayout";
 
-function service(id: string, overrides: Partial<PortalService> = {}): PortalService {
+function service(
+  id: string,
+  overrides: Partial<PortalService> = {},
+): PortalService {
   return { id, name: id, healthy: true, ...overrides };
 }
 
@@ -39,8 +42,16 @@ describe("grouping", () => {
       service("web", { projectType: "Client" }),
       service("orphan"),
     ]);
-    expect(groups.map((group) => group.type)).toEqual(["Service", "Client", "Inference", "Other"]);
-    expect(groups[0].members.map((member) => member.id)).toEqual(["alpha", "zeta"]);
+    expect(groups.map((group) => group.type)).toEqual([
+      "Service",
+      "Client",
+      "Inference",
+      "Other",
+    ]);
+    expect(groups[0].members.map((member) => member.id)).toEqual([
+      "alpha",
+      "zeta",
+    ]);
   });
 
   it("layers by deploy tier, defaulting to tier 2 and skipping non-tiered types", () => {
@@ -81,9 +92,19 @@ describe("layout", () => {
     const libraries = [service("lib1"), service("lib2"), service("lib3")];
     const positions = layoutTierNodes(tiers, libraries);
 
-    expect(Object.keys(positions).sort()).toEqual(["a", "b", "db", "lib1", "lib2", "lib3"]);
-    const libraryRight = Math.max(...["lib1", "lib2", "lib3"].map((id) => positions[id].x + NODE_W));
-    for (const id of ["db", "a", "b"]) expect(positions[id].x).toBeGreaterThan(libraryRight);
+    expect(Object.keys(positions).sort()).toEqual([
+      "a",
+      "b",
+      "db",
+      "lib1",
+      "lib2",
+      "lib3",
+    ]);
+    const libraryRight = Math.max(
+      ...["lib1", "lib2", "lib3"].map((id) => positions[id].x + NODE_W),
+    );
+    for (const id of ["db", "a", "b"])
+      expect(positions[id].x).toBeGreaterThan(libraryRight);
     // Two library columns: the third wraps under the first
     expect(positions.lib3.x).toBe(positions.lib1.x);
     expect(positions.lib3.y).toBeGreaterThan(positions.lib1.y);
@@ -120,7 +141,12 @@ describe("edges", () => {
       service("lib", { projectType: "Library" }),
     ]);
     expect(edges).toEqual([
-      { source: "mongodb", target: "api", criticality: "required", type: "infra" },
+      {
+        source: "mongodb",
+        target: "api",
+        criticality: "required",
+        type: "infra",
+      },
       { source: "lib", target: "api", criticality: "optional", type: "import" },
     ]);
   });
@@ -138,18 +164,22 @@ describe("edges", () => {
   });
 
   it("anchors side-by-side nodes horizontally and stacked nodes vertically", () => {
-    expect(computeEdgeAnchors({ x: 0, y: 0 }, { x: 300, y: 10 })).toMatchObject({
-      side1: "right",
-      side2: "left",
-      x1: NODE_W,
-      x2: 300,
-    });
-    expect(computeEdgeAnchors({ x: 0, y: 200 }, { x: 10, y: 0 })).toMatchObject({
-      side1: "top",
-      side2: "bottom",
-      y1: 200,
-      y2: NODE_H,
-    });
+    expect(computeEdgeAnchors({ x: 0, y: 0 }, { x: 300, y: 10 })).toMatchObject(
+      {
+        side1: "right",
+        side2: "left",
+        x1: NODE_W,
+        x2: 300,
+      },
+    );
+    expect(computeEdgeAnchors({ x: 0, y: 200 }, { x: 10, y: 0 })).toMatchObject(
+      {
+        side1: "top",
+        side2: "bottom",
+        y1: 200,
+        y2: NODE_H,
+      },
+    );
   });
 
   it("draws a cubic path between the anchors", () => {
@@ -177,7 +207,10 @@ describe("analysis merge", () => {
   });
 
   it("appends only newly detected dependencies, deduped", () => {
-    const [merged] = mergeAnalysisDeps([service("api", { dependsOn: ["mongodb"] })], analysis);
+    const [merged] = mergeAnalysisDeps(
+      [service("api", { dependsOn: ["mongodb"] })],
+      analysis,
+    );
     expect(merged.dependsOn).toEqual([
       "mongodb",
       { id: "lib", name: "lib", criticality: "required", source: "detected" },
@@ -196,7 +229,9 @@ describe("analysis merge", () => {
       { services: [service("api")], infrastructure: [service("mongodb")] },
       analysis,
     );
-    expect(flattened.map((entry) => [entry.id, entry.isInfrastructure])).toEqual([
+    expect(
+      flattened.map((entry) => [entry.id, entry.isInfrastructure]),
+    ).toEqual([
       ["api", false],
       ["mongodb", true],
     ]);
@@ -217,7 +252,13 @@ describe("selection", () => {
 
   it("walks the full upstream chain plus immediate consumers", () => {
     const { connectedNodes, edgeDirections } = computeSelection("web", edges);
-    expect([...connectedNodes].sort()).toEqual(["admin", "api", "db", "lib", "web"]);
+    expect([...connectedNodes].sort()).toEqual([
+      "admin",
+      "api",
+      "db",
+      "lib",
+      "web",
+    ]);
     expect(edgeDirections.get(edgeKey("api", "web"))).toBe("incoming");
     expect(edgeDirections.get(edgeKey("web", "admin"))).toBe("outgoing");
     expect(edgeDirections.get(edgeKey("db", "api"))).toBe("network");
@@ -264,22 +305,40 @@ describe("geometry", () => {
   });
 
   it("fits content centered and caps the zoom-in", () => {
-    const fit = fitViewport({ x: 0, y: 0, width: 100, height: 100 }, 1000, 800)!;
+    const fit = fitViewport(
+      { x: 0, y: 0, width: 100, height: 100 },
+      1000,
+      800,
+    )!;
     expect(fit.zoom).toBe(1.4);
     expect(fit.pan).toEqual({ x: 500 - 50 * 1.4, y: 400 - 50 * 1.4 });
-    expect(fitViewport({ x: 0, y: 0, width: 100, height: 100 }, 0, 800)).toBeNull();
+    expect(
+      fitViewport({ x: 0, y: 0, width: 100, height: 100 }, 0, 800),
+    ).toBeNull();
   });
 
   it("fits huge content below the manual minimum zoom", () => {
-    const fit = fitViewport({ x: 0, y: 0, width: 100_000, height: 100 }, 1000, 800)!;
+    const fit = fitViewport(
+      { x: 0, y: 0, width: 100_000, height: 100 },
+      1000,
+      800,
+    )!;
     expect(fit.zoom).toBeLessThan(MIN_ZOOM);
   });
 
   it("zooms about a fixed point and clamps", () => {
-    const zoomed = zoomAtPoint({ pan: { x: 0, y: 0 }, zoom: 1 }, { x: 100, y: 100 }, 2);
+    const zoomed = zoomAtPoint(
+      { pan: { x: 0, y: 0 }, zoom: 1 },
+      { x: 100, y: 100 },
+      2,
+    );
     expect(zoomed).toEqual({ pan: { x: -100, y: -100 }, zoom: 2 });
-    expect(zoomAtPoint({ pan: { x: 0, y: 0 }, zoom: 2.9 }, { x: 0, y: 0 }, 2).zoom).toBe(3);
+    expect(
+      zoomAtPoint({ pan: { x: 0, y: 0 }, zoom: 2.9 }, { x: 0, y: 0 }, 2).zoom,
+    ).toBe(3);
     // A fit below the minimum can zoom in, but never snaps or goes further out
-    expect(zoomAtPoint({ pan: { x: 0, y: 0 }, zoom: 0.1 }, { x: 0, y: 0 }, 0.5).zoom).toBe(0.1);
+    expect(
+      zoomAtPoint({ pan: { x: 0, y: 0 }, zoom: 0.1 }, { x: 0, y: 0 }, 0.5).zoom,
+    ).toBe(0.1);
   });
 });

@@ -153,7 +153,8 @@ function resolveLibraryRoot() {
  */
 export function parseBarrelModules(barrelSource) {
   const modules = new Set();
-  const exportPattern = /export\s+(type\s+)?\{[^}]*\}\s+from\s+["']\.\/([^"']+)["']/g;
+  const exportPattern =
+    /export\s+(type\s+)?\{[^}]*\}\s+from\s+["']\.\/([^"']+)["']/g;
   for (const match of barrelSource.matchAll(exportPattern)) {
     if (match[1]) continue;
     modules.add(match[2].replace(SOURCE_FILE_PATTERN, ""));
@@ -168,11 +169,13 @@ export function classifyModule(modulePath) {
   const [folder] = segments;
   const name = segments.at(-1);
 
-  if (folder === "hooks" && segments.length === 2) return { name, type: "hook" };
+  if (folder === "hooks" && segments.length === 2)
+    return { name, type: "hook" };
   if (folder === "services" && segments.length === 2) {
     return { name, type: "service" };
   }
-  if (folder === "utils" && segments.length === 2) return { name, type: "utility" };
+  if (folder === "utils" && segments.length === 2)
+    return { name, type: "utility" };
   if (folder !== "components") return null;
 
   const isProvider = name.endsWith("Provider");
@@ -306,7 +309,9 @@ function sizeOf(targetPath) {
   if (stat.isFile()) return stat.size;
   return fs.readdirSync(targetPath).reduce((sum, fileName) => {
     const filePath = path.join(targetPath, fileName);
-    return fs.statSync(filePath).isFile() ? sum + fs.statSync(filePath).size : sum;
+    return fs.statSync(filePath).isFile()
+      ? sum + fs.statSync(filePath).size
+      : sum;
   }, 0);
 }
 
@@ -367,9 +372,7 @@ function buildEntry(sourceDirectory, modulePath, { name, type, isFile }) {
     m3: type === "component" ? isM3(source) : false,
     hasTests: testFiles.length > 0,
     files: ownsFolder ? siblings.length : 1 + testFiles.length,
-    sizeKb: toKb(
-      ownsFolder ? sizeOf(folder) : mainPath ? sizeOf(mainPath) : 0,
-    ),
+    sizeKb: toKb(ownsFolder ? sizeOf(folder) : mainPath ? sizeOf(mainPath) : 0),
     description: extractDescription(source, name),
   };
 }
@@ -414,6 +417,9 @@ export function writeCatalog({ quiet = false } = {}) {
 }
 
 // Run only when executed directly, so the helpers above can be unit-tested.
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   writeCatalog();
 }

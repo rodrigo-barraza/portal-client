@@ -59,7 +59,8 @@ export function deriveServiceUrls(registry, projectIds) {
     if (registry.defaultHost && project.port) {
       urls[`${prefix}_URL`] = `http://${registry.defaultHost}:${project.port}`;
     }
-    if (project.domain) urls[`${prefix}_PUBLIC_URL`] = `https://${project.domain}`;
+    if (project.domain)
+      urls[`${prefix}_PUBLIC_URL`] = `https://${project.domain}`;
   }
   return urls;
 }
@@ -84,8 +85,12 @@ export function readRegistryServiceUrls(startDirectory, projectIds) {
 
 // CLI: `node scripts/registry-service-urls.mjs <project-id>…` prints the
 // derived KEY=VALUE lines (deploy.sh uses it for build args).
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
   const urls = readRegistryServiceUrls(scriptDirectory, process.argv.slice(2));
-  for (const [key, value] of Object.entries(urls)) console.log(`${key}=${value}`);
+  for (const [key, value] of Object.entries(urls))
+    console.log(`${key}=${value}`);
 }

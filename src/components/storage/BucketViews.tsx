@@ -16,7 +16,12 @@ function SkeletonLine({ width }: { width: number | string }) {
  * A bucket stat: the value once known, a shimmer while the stream is
  * still collecting it, and a dash if the stream ended without it.
  */
-function statValue(value: number | null, streaming: boolean, format: (value: number) => string, width: number): ReactNode {
+function statValue(
+  value: number | null,
+  streaming: boolean,
+  format: (value: number) => string,
+  width: number,
+): ReactNode {
   if (value != null) return format(value);
   return streaming ? <SkeletonLine width={width} /> : "—";
 }
@@ -30,7 +35,12 @@ interface BucketViewProps {
   onOpen: (bucketName: string) => void;
 }
 
-export function BucketCardGrid({ buckets, skeletonCount, streaming, onOpen }: BucketViewProps) {
+export function BucketCardGrid({
+  buckets,
+  skeletonCount,
+  streaming,
+  onOpen,
+}: BucketViewProps) {
   return (
     <div className={styles["bucket-grid"]}>
       {buckets.map((bucket, index) => (
@@ -63,7 +73,9 @@ export function BucketCardGrid({ buckets, skeletonCount, streaming, onOpen }: Bu
             </div>
           </div>
           {bucket.creationDate && (
-            <div className={styles["bucket-date"]}>Created {formatDate(bucket.creationDate)}</div>
+            <div className={styles["bucket-date"]}>
+              Created {formatDate(bucket.creationDate)}
+            </div>
           )}
         </div>
       ))}
@@ -77,7 +89,9 @@ export function BucketCardGrid({ buckets, skeletonCount, streaming, onOpen }: Bu
         >
           <div className={styles["bucket-card-inner"]}>
             <div className={styles["bucket-header"]}>
-              <div className={`${styles["bucket-icon-wrap"]} ${styles["skeleton-icon"]}`}>
+              <div
+                className={`${styles["bucket-icon-wrap"]} ${styles["skeleton-icon"]}`}
+              >
                 <HardDrive size={18} strokeWidth={1.8} />
               </div>
               <SkeletonLine width="60%" />
@@ -102,7 +116,12 @@ export function BucketCardGrid({ buckets, skeletonCount, streaming, onOpen }: Bu
   );
 }
 
-export function BucketTableView({ buckets, skeletonCount, streaming, onOpen }: BucketViewProps) {
+export function BucketTableView({
+  buckets,
+  skeletonCount,
+  streaming,
+  onOpen,
+}: BucketViewProps) {
   return (
     <div className={styles["object-list-container"]}>
       <div className={styles["bucket-column-header"]}>
@@ -131,7 +150,9 @@ export function BucketTableView({ buckets, skeletonCount, streaming, onOpen }: B
           <span className={styles["object-size"]}>
             {statValue(bucket.totalSize, streaming, formatBytes, 56)}
           </span>
-          <span className={styles["object-date"]}>{formatDate(bucket.creationDate)}</span>
+          <span className={styles["object-date"]}>
+            {formatDate(bucket.creationDate)}
+          </span>
         </div>
       ))}
 
@@ -143,7 +164,9 @@ export function BucketTableView({ buckets, skeletonCount, streaming, onOpen }: B
           aria-hidden="true"
         >
           <div className={styles["object-name"]}>
-            <div className={`${styles["bucket-row-icon"]} ${styles["skeleton-icon"]}`}>
+            <div
+              className={`${styles["bucket-row-icon"]} ${styles["skeleton-icon"]}`}
+            >
               <HardDrive size={15} strokeWidth={1.8} />
             </div>
             <SkeletonLine width="45%" />

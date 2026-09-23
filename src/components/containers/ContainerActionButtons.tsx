@@ -2,7 +2,10 @@ import type { MouseEvent } from "react";
 import { ScrollText } from "lucide-react";
 import { ButtonComponent } from "@rodrigo-barraza/components-library";
 import type { ContainerRow } from "@/types/portal";
-import { ACTION_COPY, type ContainerAction } from "../monitoring/useActionRunner";
+import {
+  ACTION_COPY,
+  type ContainerAction,
+} from "../monitoring/useActionRunner";
 import styles from "./ContainerActionButtons.module.css";
 
 const ACTION_VARIANT: Record<ContainerAction, string> = {
@@ -13,13 +16,17 @@ const ACTION_VARIANT: Record<ContainerAction, string> = {
 };
 
 /** Logs page deep link — the device disambiguates same-named containers. */
-export function logsHref(containerName: string, device?: string | null): string {
+export function logsHref(
+  containerName: string,
+  device?: string | null,
+): string {
   const params = new URLSearchParams({ container: containerName });
   if (device) params.set("device", device);
   return `/logs?${params.toString()}`;
 }
 
-const stopPropagation = (event: MouseEvent<HTMLElement>) => event.stopPropagation();
+const stopPropagation = (event: MouseEvent<HTMLElement>) =>
+  event.stopPropagation();
 
 /**
  * Icon-only action row for a container (table cell, card footer, drawer
@@ -41,7 +48,8 @@ export default function ContainerActionButtons({
 
   const renderAction = (action: ContainerAction) => {
     const copy = ACTION_COPY[action];
-    const label = action === "rollback" ? "Roll back to previous build" : copy.verb;
+    const label =
+      action === "rollback" ? "Roll back to previous build" : copy.verb;
     return (
       <ButtonComponent
         key={action}
@@ -53,7 +61,7 @@ export default function ContainerActionButtons({
         disabled={pending !== undefined}
         title={label}
         aria-label={`${label} ${row.containerName}`}
-        className={styles['action-button']}
+        className={styles["action-button"]}
         onClick={(event: MouseEvent<HTMLElement>) => {
           event.stopPropagation();
           onAction(row, action);
@@ -63,7 +71,7 @@ export default function ContainerActionButtons({
   };
 
   return (
-    <div className={styles['action-row']}>
+    <div className={styles["action-row"]}>
       {renderAction(isRunning ? "stop" : "start")}
       <ButtonComponent
         variant="secondary"
@@ -73,7 +81,7 @@ export default function ContainerActionButtons({
         href={logsHref(row.containerName, row.device)}
         title="Logs"
         aria-label={`Logs for ${row.containerName}`}
-        className={styles['action-button']}
+        className={styles["action-button"]}
         onClick={stopPropagation}
       />
       {rollbackAvailable && renderAction("rollback")}
