@@ -35,16 +35,21 @@ for (const [key, value] of Object.entries(
 }
 
 // Inject into process.env so server code (and the sessions proxy, which
-// reads its URLs by name at request time) sees them in dev.
+// reads its URLs by name at request time) sees them in dev. A variable
+// already exported wins — `PORTAL_SERVICE_URL=http://localhost:<port>`
+// points a dev client at a local portal-service.
 for (const [key, value] of Object.entries(secrets)) {
   if (value !== undefined && !process.env[key]) process.env[key] = value;
 }
 
+const PORTAL_SERVICE_URL = process.env.PORTAL_SERVICE_URL;
+const PORTAL_SERVICE_PUBLIC_URL = process.env.PORTAL_SERVICE_PUBLIC_URL;
+
 export default function nextConfig(phase: string): NextConfig {
   if (
     phase === PHASE_PRODUCTION_BUILD &&
-    !secrets.PORTAL_SERVICE_URL &&
-    !secrets.PORTAL_SERVICE_PUBLIC_URL
+    !PORTAL_SERVICE_URL &&
+    !PORTAL_SERVICE_PUBLIC_URL
   ) {
     throw new Error(
       "PORTAL_SERVICE_URL is unresolved: the vault was unreachable (check VAULT_SERVICE_URL/VAULT_SERVICE_TOKEN) and vault-service/projects.json is not on this machine. The browser bundle inlines the portal-service URL at build time, so this build could not reach its API.",
@@ -75,8 +80,8 @@ export default function nextConfig(phase: string): NextConfig {
     // sessions proxy URLs, AUTH_*, secrets) is read from process.env at
     // runtime, which boot.js fills from the vault in the container.
     env: {
-      NEXT_PUBLIC_PORTAL_SERVICE_URL: secrets.PORTAL_SERVICE_URL,
-      NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL: secrets.PORTAL_SERVICE_PUBLIC_URL,
+      NEXT_PUBLIC_PORTAL_SERVICE_URL: PORTAL_SERVICE_URL,
+      NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL: PORTAL_SERVICE_PUBLIC_URL,
     },
   };
 }
