@@ -11,6 +11,7 @@ import type {
   StorageSearchResult,
   StorageSummary,
 } from "../../types/portal";
+import useAsyncData from "../analytics/useAsyncData";
 import { normalizeDockerHosts, type DockerHostInfo } from "./storageOverview";
 
 // ── Bucket stream ────────────────────────────────────────────────
@@ -99,34 +100,27 @@ export function useBucketStream() {
 
 // ── Overview (MinIO summary + Docker disk usage) ─────────────────
 
+const NO_DOCKER_HOSTS: DockerHostInfo[] = [];
+
 export function useStorageOverview() {
-  const [overview, setOverview] = useState<{
-    summary: StorageSummary | null;
-    dockerHosts: DockerHostInfo[];
-    loading: boolean;
-  }>({ summary: null, dockerHosts: [], loading: true });
-  const requestIdRef = useRef(0);
+  const overview = useAsyncData<{ summary: StorageSummary | null; dockerHosts: DockerHostInfo[] }>(
+    "storage-overview",
+    async (signal) => {
+      // Each source degrades on its own — one failing never hides the other
+      const [systemResponse, summary] = await Promise.all([
+        ApiService.getSystemInfo(undefined, { signal }).catch(() => null),
+        ApiService.getStorageSummary({ signal }).catch(() => null),
+      ]);
+      return { summary, dockerHosts: normalizeDockerHosts(systemResponse) };
+    },
+  );
 
-  const load = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    // Each source degrades on its own — one failing never hides the other
-    const [systemResponse, summary] = await Promise.all([
-      ApiService.getSystemInfo().catch(() => null),
-      (ApiService.getStorageSummary() as Promise<StorageSummary>).catch(() => null),
-    ]);
-    if (requestId !== requestIdRef.current) return;
-    setOverview({ summary, dockerHosts: normalizeDockerHosts(systemResponse), loading: false });
-  }, []);
-
-  useEffect(() => {
-    const requestIds = requestIdRef;
-    load();
-    return () => {
-      requestIds.current++;
-    };
-  }, [load]);
-
-  return { ...overview, reload: load };
+  return {
+    summary: overview.data?.summary ?? null,
+    dockerHosts: overview.data?.dockerHosts ?? NO_DOCKER_HOSTS,
+    loading: overview.loading,
+    reload: overview.reload,
+  };
 }
 
 // ── Object listing ───────────────────────────────────────────────
@@ -136,61 +130,31 @@ export interface ObjectLocation {
   prefix: string;
 }
 
-interface ListingState {
-  key: string;
-  token: number;
-  objects: StorageObject[];
-  prefixes: string[];
-  error: string | null;
-}
-
 const locationKey = (location: ObjectLocation) => `${location.bucket}\u0000${location.prefix}`;
+const NO_OBJECTS: StorageObject[] = [];
+const NO_PREFIXES: string[] = [];
 
 /**
- * Objects and sub-folders at a bucket/prefix. Navigating away drops the
- * in-flight response, so a slow listing can never land under a newer
- * breadcrumb. `reload()` refetches in place (keeping rows on screen).
+ * Objects and sub-folders at a bucket/prefix. Navigating away aborts the
+ * in-flight listing, so a slow one can never land under a newer
+ * breadcrumb. `reload()` refetches in place (keeping rows on screen); a
+ * failed listing shows no rows, only its error.
  */
 export function useObjectListing(location: ObjectLocation | null) {
-  const [listing, setListing] = useState<ListingState | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
-  const bucket = location?.bucket;
-  const prefix = location?.prefix ?? "";
-
-  useEffect(() => {
-    if (!bucket) return;
-    let active = true;
-    const key = locationKey({ bucket, prefix });
-    ApiService.getStorageObjects(bucket, { prefix })
-      .then((response: { objects?: StorageObject[]; prefixes?: string[] }) => {
-        if (!active) return;
-        setListing({
-          key,
-          token: reloadToken,
-          objects: response.objects || [],
-          prefixes: response.prefixes || [],
-          error: null,
-        });
-      })
-      .catch((error: unknown) => {
-        if (!active) return;
-        setListing({ key, token: reloadToken, objects: [], prefixes: [], error: getErrorMessage(error) });
-      });
-    return () => {
-      active = false;
-    };
-  }, [bucket, prefix, reloadToken]);
-
-  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
-  const current = location && listing?.key === locationKey(location) ? listing : null;
+  const listing = useAsyncData<{ objects: StorageObject[]; prefixes: string[] }>(
+    location ? locationKey(location) : null,
+    (signal) =>
+      ApiService.getStorageObjects(location?.bucket ?? "", { prefix: location?.prefix ?? "" }, { signal }),
+  );
+  const failed = listing.error !== null;
 
   return {
-    objects: current?.objects ?? [],
-    prefixes: current?.prefixes ?? [],
-    error: current?.error ?? null,
-    isLoading: location !== null && current === null,
-    isReloading: current !== null && current.token !== reloadToken,
-    reload,
+    objects: failed ? NO_OBJECTS : (listing.data?.objects ?? NO_OBJECTS),
+    prefixes: failed ? NO_PREFIXES : (listing.data?.prefixes ?? NO_PREFIXES),
+    error: listing.error ? getErrorMessage(listing.error) : null,
+    isLoading: listing.loading,
+    isReloading: listing.reloading,
+    reload: listing.reload,
   };
 }
 
@@ -261,21 +225,9 @@ export function useGlobalSearch() {
 
 /** Full metadata for one object; null until it arrives (or if it fails). */
 export function useObjectStat(bucket: string | null, objectName: string | null) {
-  const [stat, setStat] = useState<{ key: string; value: StorageObject | null } | null>(null);
-  const key = bucket && objectName ? `${bucket}\u0000${objectName}` : null;
-
-  useEffect(() => {
-    if (!bucket || !objectName) return;
-    let active = true;
-    const statKey = `${bucket}\u0000${objectName}`;
-    ApiService.statStorageObject(bucket, objectName)
-      .then((value: StorageObject) => active && setStat({ key: statKey, value }))
-      .catch(() => active && setStat({ key: statKey, value: null }));
-    return () => {
-      active = false;
-    };
-  }, [bucket, objectName]);
-
-  // Never show the previously previewed object's metadata
-  return stat && stat.key === key ? stat.value : null;
+  const stat = useAsyncData(bucket && objectName ? `${bucket}\u0000${objectName}` : null, (signal) =>
+    ApiService.statStorageObject(bucket ?? "", objectName ?? "", { signal }),
+  );
+  // Keyed, so the previously previewed object's metadata never shows
+  return stat.error ? null : stat.data;
 }
