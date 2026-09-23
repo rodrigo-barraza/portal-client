@@ -1,103 +1,72 @@
 "use client";
 
 /**
- * LibraryCatalogComponent — reusable catalog page for non-component
- * library entries (hooks, providers, services, utilities).
+ * LibraryCatalogComponent — searchable catalog page for non-component
+ * library exports (hooks, providers, services, utilities).
  *
- * Renders a searchable, animated card grid showing each item's name,
- * description, size, file count, and test status.
+ * Renders an animated card grid showing each export's name, description,
+ * size, file count, and test status.
  */
 
-import { useState, useMemo } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { FlaskConical, Package, FileCode2 } from "lucide-react";
 import {
   PageHeaderComponent,
   SearchInputComponent,
 } from "@rodrigo-barraza/components-library";
 import { formatSize } from "@/lib/format";
+import {
+  humanizeExportName,
+  matchesCatalogQuery,
+  summarizeCatalog,
+  type CatalogEntry,
+} from "@/lib/libraryCatalog";
 import styles from "./LibraryCatalogComponent.module.css";
 
-/** Human-readable name from export name. */
-function humanize(name: string) {
-  return name
-    .replace(/Component$/, "")
-    .replace(/Service$/, "")
-    .replace(/^use/, "use\u200B") // zero-width space for visual break after "use"
-    .replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-/** Catalog entry emitted by the component-catalog generator. */
-export interface CatalogItem {
-  name: string;
-  type: string;
-  category?: string;
-  m3?: boolean;
-  hasTests?: boolean;
-  files?: number;
-  sizeKb: number;
-  description?: string;
+/** Singular/plural label of the entries shown ("utility"/"utilities"). */
+export interface CatalogNoun {
+  singular: string;
+  plural: string;
 }
 
 export default function LibraryCatalogComponent({
-  catalog = [],
-  type,
+  items,
+  noun,
   title,
   subtitle,
   icon,
   accentColor = "var(--accent-primary)",
-  accentSubtle,
 }: {
-  catalog?: CatalogItem[];
-  type: string;
+  /** Entries of a single type, pre-filtered by the page. */
+  items: CatalogEntry[];
+  noun: CatalogNoun;
   title: string;
-  subtitle?: string;
-  icon: React.ReactNode;
+  subtitle: string;
+  icon: ReactNode;
   /** Card accent — any CSS color, including a design-token var() reference. */
   accentColor?: string;
-  /** Optional override; defaults to a 10% color-mix of the accent. */
-  accentSubtle?: string;
 }) {
   const [search, setSearch] = useState("");
 
-  // Filter to this type only
-  const items = useMemo(
-    () => catalog.filter((c) => c.type === type),
-    [catalog, type],
+  const filtered = useMemo(
+    () => items.filter((item) => matchesCatalogQuery(item, search)),
+    [items, search],
   );
-
-  // Search filtering
-  const filtered = useMemo(() => {
-    if (!search.trim()) return items;
-    const normalizedSearch = search.toLowerCase();
-    return items.filter(
-      (c) =>
-        c.name.toLowerCase().includes(normalizedSearch) ||
-        c.description?.toLowerCase().includes(normalizedSearch) ||
-        humanize(c.name).toLowerCase().includes(normalizedSearch),
-    );
-  }, [items, search]);
-
-  const testedCount = items.filter((c) => c.hasTests).length;
-  const totalSize = items.reduce(
-    (sum: number, c: CatalogItem) => sum + c.sizeKb,
-    0,
+  const { totalSizeKb, testedCount } = useMemo(
+    () => summarizeCatalog(items),
+    [items],
   );
+  const cardStyle = { "--card-accent": accentColor } as CSSProperties;
 
   return (
-    <div className={`library-catalog-component ${styles['catalog']}`}>
-      <PageHeaderComponent
-        sticky={false}
-        title={title}
-        subtitle={
-          subtitle || `${items.length} ${type}s · ${testedCount} tested`
-        }
-      >
-        <div className={styles['header-stats']}>
-          <div className={styles['stat-pill']}>
+    <div className={`library-catalog-component ${styles["catalog"]}`}>
+      <PageHeaderComponent sticky={false} title={title} subtitle={subtitle}>
+        <div className={styles["header-stats"]}>
+          <div className={styles["stat-pill"]}>
             <Package size={13} />
-            <span>{formatSize(totalSize)}</span>
+            <span>{formatSize(totalSizeKb)}</span>
           </div>
-          <div className={styles['stat-pill']}>
+          <div className={styles["stat-pill"]}>
             <FlaskConical size={13} />
             <span>{testedCount} tested</span>
           </div>
@@ -105,62 +74,61 @@ export default function LibraryCatalogComponent({
       </PageHeaderComponent>
 
       {/* ── Toolbar ── */}
-      <div className={styles['toolbar']}>
+      <div className={styles["toolbar"]}>
         <SearchInputComponent
           value={search}
-          onChange={(value: string) => setSearch(value)}
-          placeholder={`Search ${type}s…`}
+          onChange={setSearch}
+          placeholder={`Search ${noun.plural}…`}
           compact
-          id={`${type}-search`}
+          id={`${noun.singular}-search`}
         />
-        <div className={styles['count-label']}>
-          {filtered.length} {type}
-          {filtered.length !== 1 ? "s" : ""}
+        <div className={styles["count-label"]} aria-live="polite">
+          {filtered.length}{" "}
+          {filtered.length === 1 ? noun.singular : noun.plural}
           {search && ` matching "${search}"`}
         </div>
       </div>
 
       {/* ── Grid ── */}
-      <div className={styles['grid']}>
-        {filtered.map((item: CatalogItem, i: number) => (
+      <div className={styles["grid"]}>
+        {filtered.map((item, index) => (
           <div
             key={item.name}
-            className={styles['card']}
-            style={
-              {
-                animationDelay: `${Math.min(i * 30, 600)}ms`,
-                "--card-accent": accentColor,
-                ...(accentSubtle && { "--card-accent-subtle": accentSubtle }),
-              } as React.CSSProperties
-            }
+            className={styles["card"]}
+            style={{
+              ...cardStyle,
+              animationDelay: `${Math.min(index * 30, 600)}ms`,
+            }}
           >
-            <div className={styles['card-header']}>
-              <div className={styles['card-icon']}>{icon}</div>
-              <div className={styles['card-meta']}>
+            <div className={styles["card-header"]}>
+              <div className={styles["card-icon"]}>{icon}</div>
+              <div className={styles["card-meta"]}>
                 {item.hasTests && (
-                  <span className={styles['test-badge']} title="Has unit tests">
+                  <span className={styles["test-badge"]} title="Has unit tests">
                     <FlaskConical size={10} />
                   </span>
                 )}
               </div>
             </div>
 
-            <h3 className={styles['card-name']}>{humanize(item.name)}</h3>
-            <code className={styles['card-import']}>{item.name}</code>
+            <h3 className={styles["card-name"]}>
+              {humanizeExportName(item.name)}
+            </h3>
+            <code className={styles["card-import"]}>{item.name}</code>
             {item.description && (
-              <p className={styles['card-desc']}>{item.description}</p>
+              <p className={styles["card-desc"]}>{item.description}</p>
             )}
 
-            <div className={styles['card-footer']}>
-              <span className={styles['card-stat']}>
+            <div className={styles["card-footer"]}>
+              <span className={styles["card-stat"]}>
                 <FileCode2 size={11} />
                 {item.files} file{item.files !== 1 ? "s" : ""}
               </span>
-              <span className={styles['card-stat']}>
+              <span className={styles["card-stat"]}>
                 <Package size={11} />
                 {formatSize(item.sizeKb)}
               </span>
-              <span className={styles['type-badge']}>{type}</span>
+              <span className={styles["type-badge"]}>{noun.singular}</span>
             </div>
           </div>
         ))}
@@ -168,9 +136,9 @@ export default function LibraryCatalogComponent({
 
       {/* ── Empty state ── */}
       {filtered.length === 0 && (
-        <div className={styles['empty-state']}>
+        <div className={styles["empty-state"]}>
           {icon}
-          <p>No {type}s match your search</p>
+          <p>No {noun.plural} match your search</p>
         </div>
       )}
     </div>

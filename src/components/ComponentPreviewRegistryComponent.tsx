@@ -1,11 +1,13 @@
 "use client";
 
 /**
- * ComponentPreviewRegistry — live demo renders for each component.
+ * ComponentPreviewRegistry — live demo renders for each library component.
  *
- * Each entry is a React element showing the component in a realistic
- * but minimal configuration. Components that require complex context
- * (providers, modals, routers) get a simplified static demo instead.
+ * Keyed by the catalog name of every component the library exports (see
+ * scripts/generate-component-catalog.mjs). Each entry shows the component in
+ * a realistic but minimal configuration; components that need app context
+ * (overlays, routers, providers, analytics, theme switching) get a short
+ * static placeholder instead of a live instance.
  */
 
 import {
@@ -31,14 +33,23 @@ import {
   Bookmark,
   AlertCircle,
   Info,
+  Blocks,
+  MessageSquare,
+  Palette,
+  Activity,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
+  AvatarComponent,
   BadgeComponent,
   ButtonComponent,
   CardComponent,
+  ChartLineComponent,
   CheckboxComponent,
+  ChipComponent,
   CloseButtonComponent,
   CollapsibleBlockComponent,
   CopyButtonComponent,
@@ -51,18 +62,27 @@ import {
   InputComponent,
   LoadingIndicatorComponent,
   LoadingStateComponent,
+  MultiSelectComponent,
+  PageHeroComponent,
   PaginationComponent,
+  ProgressBarComponent,
   RadioComponent,
   SearchInputComponent,
+  SegmentedControlComponent,
   SelectComponent,
+  SkeletonComponent,
   SliderComponent,
   SplitButtonComponent,
+  StatBadgeComponent,
   StatsCardComponent,
+  StatusDotComponent,
+  StreamingCursorComponent,
   SwitchComponent,
   TabBarComponent,
   TextAreaComponent,
   TextFieldComponent,
   ToggleComponent,
+  ToolCardComponent,
   ToolbarComponent,
   TooltipComponent,
   TopAppBarComponent,
@@ -107,16 +127,56 @@ function PreviewLabel({ children }: { children: ReactNode }) {
   return <span className={styles['preview-label']}>{children}</span>;
 }
 
+/** Static stand-in for components that need app context to render. */
+function PreviewPlaceholder({
+  icon,
+  children,
+}: {
+  icon?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles['preview-placeholder']}>
+      {icon}
+      <span>{children}</span>
+    </div>
+  );
+}
+
+const noop = () => {};
+
 // ── Preview Registry ─────────────────────────────────────────────
-const PREVIEWS = {
+/** Render functions (no hooks) keyed by catalog component name. */
+const PREVIEWS: Record<string, () => ReactNode> = {
   BadgeComponent: () => (
-    <PreviewRow>
-      <BadgeComponent>Default</BadgeComponent>
-      <BadgeComponent variant="success">Active</BadgeComponent>
-      <BadgeComponent variant="warning">Pending</BadgeComponent>
-      <BadgeComponent variant="danger">Error</BadgeComponent>
-      <BadgeComponent variant="info">Info</BadgeComponent>
-    </PreviewRow>
+    <PreviewStack>
+      <PreviewRow>
+        <BadgeComponent>Default</BadgeComponent>
+        <BadgeComponent variant="success">Active</BadgeComponent>
+        <BadgeComponent variant="warning">Pending</BadgeComponent>
+        <BadgeComponent variant="danger">Error</BadgeComponent>
+        <BadgeComponent variant="info">Info</BadgeComponent>
+      </PreviewRow>
+      <PreviewRow>
+        <BadgeComponent type="count" count={3} />
+        <BadgeComponent type="count" count={42} state="new" />
+        <BadgeComponent type="count" count="99+" rainbow />
+        <BadgeComponent type="responseTime" ms={42} />
+        <BadgeComponent type="responseTime" ms={1250} />
+      </PreviewRow>
+      <PreviewRow>
+        <BadgeComponent
+          type="visibility"
+          visibility="external"
+          icons={{ Globe, Lock }}
+        />
+        <BadgeComponent
+          type="visibility"
+          visibility="internal"
+          icons={{ Globe, Lock }}
+        />
+      </PreviewRow>
+    </PreviewStack>
   ),
 
   ButtonComponent: () => (
@@ -151,21 +211,21 @@ const PREVIEWS = {
 
   CheckboxComponent: () => (
     <PreviewStack gap={6}>
-      <CheckboxComponent label="Enabled" checked={false} onChange={() => {}} />
-      <CheckboxComponent label="Checked" checked={true} onChange={() => {}} />
+      <CheckboxComponent label="Enabled" checked={false} onChange={noop} />
+      <CheckboxComponent label="Checked" checked={true} onChange={noop} />
       <CheckboxComponent
         label="Disabled"
         disabled
         checked={false}
-        onChange={() => {}}
+        onChange={noop}
       />
     </PreviewStack>
   ),
 
   CloseButtonComponent: () => (
     <PreviewRow>
-      <CloseButtonComponent onClick={() => {}} />
-      <CloseButtonComponent onClick={() => {}} variant="dark" />
+      <CloseButtonComponent onClick={noop} />
+      <CloseButtonComponent onClick={noop} variant="dark" />
     </PreviewRow>
   ),
 
@@ -186,16 +246,9 @@ const PREVIEWS = {
     </PreviewRow>
   ),
 
-  CountBadgeComponent: () => (
-    <PreviewRow>
-      <BadgeComponent type="count" count={3} />
-      <BadgeComponent type="count" count={42} state="new" />
-      <BadgeComponent type="count" count="99+" rainbow />
-    </PreviewRow>
-  ),
 
   DatePickerComponent: () => (
-    <DatePickerComponent onChange={() => {}} placeholder="Select date…" />
+    <DatePickerComponent onChange={noop} placeholder="Select date…" />
   ),
 
   DialogComponent: () => (
@@ -230,10 +283,10 @@ const PREVIEWS = {
 
   ExtendedFabComponent: () => (
     <PreviewRow>
-      <ExtendedFabComponent icon={Plus} onClick={() => {}}>
+      <ExtendedFabComponent icon={Plus} onClick={noop}>
         Create
       </ExtendedFabComponent>
-      <ExtendedFabComponent icon={Edit} variant="secondary" onClick={() => {}}>
+      <ExtendedFabComponent icon={Edit} variant="secondary" onClick={noop}>
         Edit
       </ExtendedFabComponent>
     </PreviewRow>
@@ -241,10 +294,10 @@ const PREVIEWS = {
 
   FabComponent: () => (
     <PreviewRow>
-      <FabComponent icon={Plus} size="small" onClick={() => {}} />
-      <FabComponent icon={Plus} onClick={() => {}} />
-      <FabComponent icon={Plus} size="large" onClick={() => {}} />
-      <FabComponent icon={Plus} color="tertiary" onClick={() => {}} />
+      <FabComponent icon={Plus} size="small" onClick={noop} />
+      <FabComponent icon={Plus} onClick={noop} />
+      <FabComponent icon={Plus} size="large" onClick={noop} />
+      <FabComponent icon={Plus} color="tertiary" onClick={noop} />
     </PreviewRow>
   ),
 
@@ -262,7 +315,7 @@ const PREVIEWS = {
     >
       <InputComponent
         value=""
-        onChange={() => {}}
+        onChange={noop}
         placeholder="you@example.com"
       />
     </FormGroupComponent>
@@ -272,23 +325,23 @@ const PREVIEWS = {
     <PreviewRow>
       <IconButtonComponent
         icon={<Star size={14} />}
-        onClick={() => {}}
+        onClick={noop}
         tooltip="Favorite"
       />
       <IconButtonComponent
         icon={<Copy size={14} />}
-        onClick={() => {}}
+        onClick={noop}
         tooltip="Copy"
       />
       <IconButtonComponent
         icon={<Trash2 size={14} />}
-        onClick={() => {}}
+        onClick={noop}
         variant="destructive"
         tooltip="Delete"
       />
       <IconButtonComponent
         icon={<Settings size={14} />}
-        onClick={() => {}}
+        onClick={noop}
         disabled
       />
     </PreviewRow>
@@ -298,12 +351,12 @@ const PREVIEWS = {
     <PreviewStack>
       <InputComponent
         value=""
-        onChange={() => {}}
+        onChange={noop}
         placeholder="Standard input…"
       />
       <InputComponent
         value=""
-        onChange={() => {}}
+        onChange={noop}
         placeholder="With label…"
         label="Email"
       />
@@ -373,7 +426,7 @@ const PREVIEWS = {
           { id: "settings", label: "Settings", icon: Settings },
         ]}
         activeItem="home"
-        onNavigate={() => {}}
+        onNavigate={noop}
       />
     </div>
   ),
@@ -396,7 +449,7 @@ const PREVIEWS = {
       page={3}
       totalPages={10}
       totalItems={100}
-      onPageChange={() => {}}
+      onPageChange={noop}
     />
   ),
 
@@ -405,62 +458,52 @@ const PREVIEWS = {
       <RadioComponent
         value="a"
         selectedValue="a"
-        onChange={() => {}}
+        onChange={noop}
         label="Option A"
       />
       <RadioComponent
         value="b"
         selectedValue="a"
-        onChange={() => {}}
+        onChange={noop}
         label="Option B"
       />
       <RadioComponent
         value="c"
         selectedValue="a"
-        onChange={() => {}}
+        onChange={noop}
         label="Option C"
         disabled
       />
     </PreviewStack>
   ),
 
-  ResponseTimeBadgeComponent: () => (
-    <PreviewRow>
-      <BadgeComponent type="responseTime" ms={42} />
-      <BadgeComponent type="responseTime" ms={180} />
-      <BadgeComponent type="responseTime" ms={1250} />
-    </PreviewRow>
-  ),
 
   SearchInputComponent: () => (
     <SearchInputComponent
       value=""
-      onChange={() => {}}
+      onChange={noop}
       placeholder="Search anything…"
     />
   ),
 
   MultiSelectComponent: () => (
-    <PreviewStack>
-      <SelectComponent
-        multiple
-        value={[]}
-        onChange={() => {}}
-        options={[
-          { value: "a", label: "Alpha" },
-          { value: "b", label: "Bravo" },
-          { value: "c", label: "Charlie" },
-        ]}
-        allLabel="All"
-        label="Category"
-      />
-    </PreviewStack>
+    <MultiSelectComponent
+      value={["a"]}
+      onChange={noop}
+      options={[
+        { value: "a", label: "Alpha" },
+        { value: "b", label: "Bravo" },
+        { value: "c", label: "Charlie" },
+      ]}
+      allLabel="All"
+      label="Category"
+    />
   ),
 
   SelectComponent: () => (
     <SelectComponent
       value=""
-      onChange={() => {}}
+      onChange={noop}
       options={[
         { value: "opt1", label: "Option One" },
         { value: "opt2", label: "Option Two" },
@@ -473,8 +516,8 @@ const PREVIEWS = {
 
   SliderComponent: () => (
     <PreviewStack>
-      <SliderComponent value={40} min={0} max={100} onChange={() => {}} />
-      <SliderComponent value={[20, 80]} min={0} max={100} onChange={() => {}} />
+      <SliderComponent value={40} min={0} max={100} onChange={noop} />
+      <SliderComponent value={[20, 80]} min={0} max={100} onChange={noop} />
     </PreviewStack>
   ),
 
@@ -489,16 +532,16 @@ const PREVIEWS = {
     <PreviewRow>
       <SplitButtonComponent
         icon={Download}
-        onClick={() => {}}
-        onTrailingClick={() => {}}
+        onClick={noop}
+        onTrailingClick={noop}
       >
         Download
       </SplitButtonComponent>
       <SplitButtonComponent
         variant="outlined"
         icon={Share}
-        onClick={() => {}}
-        onTrailingClick={() => {}}
+        onClick={noop}
+        onTrailingClick={noop}
       >
         Share
       </SplitButtonComponent>
@@ -525,12 +568,12 @@ const PREVIEWS = {
 
   SwitchComponent: () => (
     <PreviewStack gap={6}>
-      <SwitchComponent label="Enabled" checked={true} onChange={() => {}} />
-      <SwitchComponent label="Disabled" checked={false} onChange={() => {}} />
+      <SwitchComponent label="Enabled" checked={true} onChange={noop} />
+      <SwitchComponent label="Disabled" checked={false} onChange={noop} />
       <SwitchComponent
         label="Inactive"
         checked={false}
-        onChange={() => {}}
+        onChange={noop}
         disabled
       />
     </PreviewStack>
@@ -544,7 +587,7 @@ const PREVIEWS = {
         { key: "settings", label: "Settings" },
       ]}
       activeTab="overview"
-      onChange={() => {}}
+      onChange={noop}
     />
   ),
 
@@ -558,7 +601,7 @@ const PREVIEWS = {
   TextAreaComponent: () => (
     <TextAreaComponent
       value=""
-      onChange={() => {}}
+      onChange={noop}
       placeholder="Write something…"
       minRows={2}
       maxRows={4}
@@ -569,13 +612,13 @@ const PREVIEWS = {
     <PreviewStack>
       <TextFieldComponent
         value=""
-        onChange={() => {}}
+        onChange={noop}
         label="Label"
         placeholder="Enter text…"
       />
       <TextFieldComponent
         value="Filled"
-        onChange={() => {}}
+        onChange={noop}
         label="With value"
       />
     </PreviewStack>
@@ -590,8 +633,8 @@ const PREVIEWS = {
 
   ToggleComponent: () => (
     <PreviewRow>
-      <ToggleComponent checked={true} onChange={() => {}} label="On" />
-      <ToggleComponent checked={false} onChange={() => {}} label="Off" />
+      <ToggleComponent checked={true} onChange={noop} label="On" />
+      <ToggleComponent checked={false} onChange={noop} label="Off" />
     </PreviewRow>
   ),
 
@@ -601,10 +644,10 @@ const PREVIEWS = {
         Back
       </ButtonComponent>
       <span style={{ flex: 1 }} />
-      <IconButtonComponent icon={<Bookmark size={14} />} onClick={() => {}} />
+      <IconButtonComponent icon={<Bookmark size={14} />} onClick={noop} />
       <IconButtonComponent
         icon={<MoreVertical size={14} />}
-        onClick={() => {}}
+        onClick={noop}
       />
     </ToolbarComponent>
   ),
@@ -624,27 +667,27 @@ const PREVIEWS = {
       variant="small"
       title="App Title"
       navigationIcon={<ArrowLeft size={20} />}
-      onNavigationClick={() => {}}
+      onNavigationClick={noop}
       position="static"
     >
       <TopAppBarComponent.Action
         icon={Search}
         ariaLabel="Search"
-        onClick={() => {}}
+        onClick={noop}
       />
       <TopAppBarComponent.Action
         icon={MoreVertical}
         ariaLabel="More"
-        onClick={() => {}}
+        onClick={noop}
       />
     </TopAppBarComponent>
   ),
 
   BottomAppBarComponent: () => (
     <BottomAppBarComponent position="relative" hideOnScroll={false}>
-      <IconButtonComponent icon={<Search size={18} />} onClick={() => {}} />
-      <IconButtonComponent icon={<Trash2 size={18} />} onClick={() => {}} />
-      <IconButtonComponent icon={<Share size={18} />} onClick={() => {}} />
+      <IconButtonComponent icon={<Search size={18} />} onClick={noop} />
+      <IconButtonComponent icon={<Trash2 size={18} />} onClick={noop} />
+      <IconButtonComponent icon={<Share size={18} />} onClick={noop} />
     </BottomAppBarComponent>
   ),
 
@@ -654,19 +697,188 @@ const PREVIEWS = {
     </div>
   ),
 
-  VisibilityBadgeComponent: () => (
+
+  AvatarComponent: () => (
     <PreviewRow>
-      <BadgeComponent
-        type="visibility"
-        visibility="external"
-        icons={{ Globe, Lock }}
-      />
-      <BadgeComponent
-        type="visibility"
-        visibility="internal"
-        icons={{ Globe, Lock }}
-      />
+      <AvatarComponent name="Ada Lovelace" size="sm" />
+      <AvatarComponent name="Grace Hopper" status="online" />
+      <AvatarComponent icon={Star} size="lg" />
     </PreviewRow>
+  ),
+
+  ChartLineComponent: () => (
+    <ChartLineComponent
+      data={[12, 18, 15, 26, 22, 31, 28, 36, 33, 41]}
+      maxValue={50}
+      height={48}
+    />
+  ),
+
+  ChipComponent: () => (
+    <PreviewRow gap={6}>
+      <ChipComponent variant="assist" icon={Star}>
+        Assist
+      </ChipComponent>
+      <ChipComponent variant="filter" selected>
+        Selected
+      </ChipComponent>
+      <ChipComponent variant="input" removable onRemove={noop}>
+        Removable
+      </ChipComponent>
+    </PreviewRow>
+  ),
+
+  PageHeroComponent: () => (
+    <PageHeroComponent
+      icon={Blocks}
+      title="Page title"
+      subtitle="In-content page introduction."
+      stats={[
+        { value: 42, label: "items" },
+        { value: 3, label: "errors", variant: "danger" },
+      ]}
+    />
+  ),
+
+  ProgressBarComponent: () => (
+    <PreviewStack gap={10}>
+      <ProgressBarComponent value={64} showValue label="Upload" />
+      <ProgressBarComponent value={null} />
+    </PreviewStack>
+  ),
+
+  SegmentedControlComponent: () => (
+    <SegmentedControlComponent
+      value="grid"
+      onChange={noop}
+      segments={[
+        { value: "grid", label: "Cards", icon: <LayoutGrid size={12} /> },
+        { value: "table", label: "Table", icon: <Table2 size={12} /> },
+      ]}
+    />
+  ),
+
+  SkeletonComponent: () => (
+    <PreviewRow gap={12}>
+      <SkeletonComponent variant="avatar" />
+      <div style={{ flex: 1 }}>
+        <SkeletonComponent variant="text" lines={2} />
+      </div>
+    </PreviewRow>
+  ),
+
+  StatBadgeComponent: () => (
+    <PreviewRow>
+      <StatBadgeComponent value={42} label="models" />
+      <StatBadgeComponent value="99.9%" label="uptime" variant="success" icon={Activity} />
+    </PreviewRow>
+  ),
+
+  StatusDotComponent: () => (
+    <PreviewRow gap={14}>
+      <StatusDotComponent variant="healthy" />
+      <StatusDotComponent variant="warning" />
+      <StatusDotComponent variant="unhealthy" />
+      <StatusDotComponent variant="inactive" pulse={false} />
+    </PreviewRow>
+  ),
+
+  StreamingCursorComponent: () => (
+    <PreviewRow>
+      <span style={{ fontSize: 13 }}>
+        Streaming a response
+        <StreamingCursorComponent active />
+      </span>
+    </PreviewRow>
+  ),
+
+  ToolCardComponent: () => (
+    <ToolCardComponent
+      name="get_weather"
+      description="Current conditions for a city."
+      emoji="🌤️"
+      domain="weather"
+    />
+  ),
+
+  AgentChatWindowComponent: () => (
+    <PreviewPlaceholder icon={<MessageSquare size={16} />}>
+      Streams from prism-service — needs a live service URL
+    </PreviewPlaceholder>
+  ),
+
+  AgentChatMessageListComponent: () => (
+    <PreviewPlaceholder icon={<MessageSquare size={16} />}>
+      Message list of the agent chat window
+    </PreviewPlaceholder>
+  ),
+
+  AgentChatInputComponent: () => (
+    <PreviewPlaceholder icon={<MessageSquare size={16} />}>
+      Input of the agent chat window
+    </PreviewPlaceholder>
+  ),
+
+  CustomThemeBootComponent: () => (
+    <PreviewPlaceholder icon={<Palette size={16} />}>
+      Invisible — injects custom theme styles on mount
+    </PreviewPlaceholder>
+  ),
+
+  DrawerComponent: () => (
+    <PreviewPlaceholder>Slides in over the page — opens via state</PreviewPlaceholder>
+  ),
+
+  ErrorBoundaryComponent: () => (
+    <PreviewPlaceholder icon={<AlertCircle size={16} />}>
+      Catches render errors — wraps each preview on this page
+    </PreviewPlaceholder>
+  ),
+
+  ErrorFallbackComponent: () => (
+    <PreviewPlaceholder icon={<AlertCircle size={16} />}>
+      Recovery UI for Next.js error.js boundaries
+    </PreviewPlaceholder>
+  ),
+
+  LayoutHeaderComponent: () => (
+    <PreviewPlaceholder>Page header bar — used as page chrome</PreviewPlaceholder>
+  ),
+
+  MarkdownContentComponent: () => (
+    <PreviewPlaceholder icon={<FileText size={16} />}>
+      Renders markdown with LaTeX, Mermaid and embeds
+    </PreviewPlaceholder>
+  ),
+
+  MobileHeaderComponent: () => (
+    <PreviewPlaceholder icon={<Menu size={16} />}>
+      Compact top bar — shown on mobile viewports
+    </PreviewPlaceholder>
+  ),
+
+  PageLayoutComponent: () => (
+    <PreviewPlaceholder icon={<Menu size={16} />}>
+      Sidebar + header + main — the chrome of this portal
+    </PreviewPlaceholder>
+  ),
+
+  SessionTrackerComponent: () => (
+    <PreviewPlaceholder icon={<Activity size={16} />}>
+      Invisible — sends session telemetry
+    </PreviewPlaceholder>
+  ),
+
+  ThemePickerComponent: () => (
+    <PreviewPlaceholder icon={<Palette size={16} />}>
+      Theme dropup — in this sidebar&apos;s footer
+    </PreviewPlaceholder>
+  ),
+
+  ThemeToggleButtonComponent: () => (
+    <PreviewPlaceholder icon={<Palette size={16} />}>
+      Cycles the app theme on click
+    </PreviewPlaceholder>
   ),
 
   ThemeProvider: () => (
@@ -677,12 +889,16 @@ const PREVIEWS = {
   ),
 };
 
-/**
- * Get the preview renderer for a given component name.
- * Returns null if no preview is available.
- */
-export function getPreview(componentName: string) {
-  return PREVIEWS[componentName as keyof typeof PREVIEWS] || null;
+/** Whether the registry has a live demo for this catalog component. */
+export function hasPreview(componentName: string): boolean {
+  return Object.hasOwn(PREVIEWS, componentName);
 }
 
-export default PREVIEWS;
+/**
+ * Renders the live demo of a catalog component (nothing when there is
+ * none). Rendering happens inside this component, so an error boundary
+ * around it catches a demo that throws.
+ */
+export function ComponentPreviewDemo({ name }: { name: string }) {
+  return hasPreview(name) ? PREVIEWS[name]() : null;
+}

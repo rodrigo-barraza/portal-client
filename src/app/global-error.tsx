@@ -4,14 +4,16 @@ import { useEffect } from "react";
 
 /**
  * Root-level error boundary — catches errors in the root layout itself.
- * Must include its own <html> and <body> since the root layout has failed.
+ * It replaces the root layout, so it brings its own <html>/<body> and
+ * inline styles (globals.css and the theme attribute never reach it);
+ * `light-dark()` follows the OS color scheme instead.
  */
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
     console.error("[Portal] Root layout error:", error);
@@ -22,12 +24,14 @@ export default function GlobalError({
       <body
         style={{
           margin: 0,
-          background: "#0a0a0a",
-          color: "#e5e5e5",
+          colorScheme: "light dark",
+          background: "light-dark(#fafafa, #0a0a0a)",
+          color: "light-dark(#171717, #e5e5e5)",
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
-        <div
+        <title>Something went wrong — Portal</title>
+        <main
           style={{
             display: "flex",
             flexDirection: "column",
@@ -38,7 +42,12 @@ export default function GlobalError({
             padding: "32px",
           }}
         >
-          <div style={{ fontSize: "48px", lineHeight: 1, opacity: 0.4 }}>⚠</div>
+          <div
+            aria-hidden
+            style={{ fontSize: "48px", lineHeight: 1, opacity: 0.4 }}
+          >
+            ⚠
+          </div>
           <h2
             style={{
               fontSize: "18px",
@@ -52,7 +61,7 @@ export default function GlobalError({
           <p
             style={{
               fontSize: "13px",
-              color: "#999",
+              color: "light-dark(#595959, #999)",
               margin: 0,
               textAlign: "center",
               maxWidth: "400px",
@@ -61,22 +70,24 @@ export default function GlobalError({
             {error?.message || "An unexpected error occurred."}
           </p>
           <button
-            onClick={reset}
+            type="button"
+            onClick={retry}
             style={{
               marginTop: "8px",
               padding: "8px 20px",
               fontSize: "13px",
               fontWeight: 500,
-              color: "#e5e5e5",
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              color: "inherit",
+              background: "light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.06))",
+              border:
+                "1px solid light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.08))",
               borderRadius: "6px",
               cursor: "pointer",
             }}
           >
             Try Again
           </button>
-        </div>
+        </main>
       </body>
     </html>
   );

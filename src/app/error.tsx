@@ -3,17 +3,19 @@
 import { ErrorFallbackComponent } from "@rodrigo-barraza/components-library";
 
 /**
- * Error boundary — catches unhandled client-side errors in route segments
- * and renders a recovery UI instead of a blank screen.
+ * Route error boundary — renders a recovery UI instead of a blank screen.
+ * "Try again" uses `retry` (stable since Next 16.3), which re-fetches the
+ * segment; `reset` only re-rendered it, so a failed server render came
+ * straight back.
  */
-export default function Error({
+export default function ErrorPage({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return (
-    <ErrorFallbackComponent error={error} reset={reset} logLabel="[Portal]" />
+    <ErrorFallbackComponent error={error} reset={retry} logLabel="[Portal]" />
   );
 }

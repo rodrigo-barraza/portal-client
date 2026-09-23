@@ -9,5 +9,7 @@
 export function formatSize(kb: number): string {
   if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(1)} GB`;
   if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
-  return `${kb} KB`;
+  // Round to one decimal: callers sum fractional sizes, and a raw float
+  // rendered as "22.299999999999997 KB".
+  return `${Math.round(kb * 10) / 10} KB`;
 }

@@ -125,19 +125,23 @@ const DESCRIPTION_MAX_LENGTH = 180;
 
 // ── Library location ────────────────────────────────────────────
 
-/** Resolve the installed library's root through normal module resolution
- *  (its exports map points "." at dist/index.js). */
+/** Find the installed library the way Node resolves a bare specifier:
+ *  node_modules/<name> in the project root, then each parent directory.
+ *  (`import.meta.resolve` is unavailable under Vite's module runner, and the
+ *  library's exports map has no "require" entry for require.resolve.) */
 function resolveLibraryRoot() {
-  const entryPath = fileURLToPath(import.meta.resolve(LIBRARY_NAME));
-  let directory = path.dirname(entryPath);
-  while (!fs.existsSync(path.join(directory, "package.json"))) {
+  let directory = PROJECT_ROOT;
+  for (;;) {
+    const candidate = path.join(directory, "node_modules", LIBRARY_NAME);
+    if (fs.existsSync(path.join(candidate, "package.json"))) {
+      return fs.realpathSync(candidate);
+    }
     const parent = path.dirname(directory);
     if (parent === directory) {
-      throw new Error(`Could not find the package root of ${LIBRARY_NAME}`);
+      throw new Error(`${LIBRARY_NAME} is not installed — run pnpm install`);
     }
     directory = parent;
   }
-  return directory;
 }
 
 // ── Barrel parsing ──────────────────────────────────────────────
@@ -372,7 +376,8 @@ function buildEntry(sourceDirectory, modulePath, { name, type, isFile }) {
 
 // ── Main ─────────────────────────────────────────────────────────
 
-function main() {
+/** Scan the library and write the catalog JSON. Returns the entries. */
+export function writeCatalog({ quiet = false } = {}) {
   const libraryRoot = resolveLibraryRoot();
   // The library ships its sources; scan them (dist has no tests or CSS
   // modules to count, and its comments are stripped of context).
@@ -392,6 +397,7 @@ function main() {
 
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(catalog, null, 2)}\n`);
+  if (quiet) return catalog;
 
   const countsByType = {};
   for (const entry of catalog) {
@@ -404,9 +410,10 @@ function main() {
   console.log(
     `✔ Generated catalog: ${catalog.length} entries (${summary}) → ${path.relative(process.cwd(), OUTPUT_PATH) || OUTPUT_PATH}`,
   );
+  return catalog;
 }
 
 // Run only when executed directly, so the helpers above can be unit-tested.
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main();
+  writeCatalog();
 }
