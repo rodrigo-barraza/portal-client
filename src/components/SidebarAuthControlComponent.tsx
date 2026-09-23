@@ -12,7 +12,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { LogIn, LogOut } from "lucide-react";
 import { useAuthEnabled } from "@/providers/AuthProvider";
-import { ADMIN_ROLE } from "@/utils/adminAccess";
+import { hasAdminRole } from "@/utils/adminAccess";
 import styles from "./SidebarAuthControlComponent.module.css";
 
 function AuthControlInner() {
@@ -22,7 +22,7 @@ function AuthControlInner() {
 
   if (session?.user) {
     const label = session.user.email || session.user.name || "Account";
-    const isAdmin = !!session.user.roles?.includes(ADMIN_ROLE);
+    const isAdmin = hasAdminRole(session.user.roles);
     return (
       <button
         type="button"
