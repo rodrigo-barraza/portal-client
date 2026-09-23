@@ -111,3 +111,15 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Defined locally, as in the panel this came from: CSS-module scoping
+   may rename `pulse` in this file's animation declarations. */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
