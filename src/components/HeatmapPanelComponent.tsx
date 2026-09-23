@@ -7,11 +7,18 @@
 // returned by sessions-service /stats/heatmap. Aggregates across many sessions
 // for one page path + viewport band (a phone and a desktop layout are never
 // mixed into the same grid).
+//
+// Coordinates are page-absolute fractions (0..1 of the page's width and
+// height), so the square canvas is a normalized map of the page, not a
+// to-scale screenshot — a tall page is compressed vertically.
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
 import { Flame } from "lucide-react";
+import { SegmentedControlComponent } from "@rodrigo-barraza/components-library";
 import ApiService from "../services/ApiService";
+import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
+import { formatExact } from "./analytics/analyticsFormat";
 import styles from "./HeatmapPanelComponent.module.css";
 
 interface HeatmapCell {
@@ -28,22 +35,59 @@ interface HeatmapData {
   total: number;
   cells: HeatmapCell[];
 }
-interface HeatmapResponse {
-  success?: boolean;
-  data?: HeatmapData;
-}
 
 type InteractionType = "move" | "click" | "scroll";
 type Band = "mobile" | "tablet" | "desktop";
-type PanelStatus = "loading" | "ready" | "empty" | "error";
 
 const CANVAS_RESOLUTION = 600;
-const TYPES: { key: InteractionType; label: string }[] = [
-  { key: "move", label: "Moves" },
-  { key: "click", label: "Clicks" },
-  { key: "scroll", label: "Scroll" },
+const DEFAULT_GRID = 50;
+/** The stage stays dark in every theme — the hue ramp needs it to read. */
+const STAGE_COLOR = "#0a0a0f";
+const TYPE_SEGMENTS: { value: InteractionType; label: string }[] = [
+  { value: "move", label: "Moves" },
+  { value: "click", label: "Clicks" },
+  { value: "scroll", label: "Scroll" },
 ];
-const BANDS: Band[] = ["mobile", "tablet", "desktop"];
+const BAND_SEGMENTS: { value: Band; label: string }[] = [
+  { value: "mobile", label: "Mobile" },
+  { value: "tablet", label: "Tablet" },
+  { value: "desktop", label: "Desktop" },
+];
+const TYPE_NOUNS: Record<InteractionType, string> = {
+  move: "cursor movement",
+  click: "click",
+  scroll: "scroll depth",
+};
+
+/**
+ * Paint the density grid. Blurred rects give a smooth heat gradient; hue runs
+ * from blue (cold/low) to red (hot/high) with alpha scaled by intensity.
+ * Cells are clamped into the grid so a malformed coordinate can't paint
+ * outside the canvas.
+ */
+function paintHeatmap(context: CanvasRenderingContext2D, data: HeatmapData | null) {
+  const size = CANVAS_RESOLUTION;
+  context.filter = "none";
+  context.clearRect(0, 0, size, size);
+  context.fillStyle = STAGE_COLOR;
+  context.fillRect(0, 0, size, size);
+
+  if (!data || data.cells.length === 0 || data.max <= 0) return;
+
+  const grid = data.grid > 0 ? data.grid : DEFAULT_GRID;
+  const cellSize = size / grid;
+  context.filter = `blur(${Math.max(cellSize * 0.75, 2)}px)`;
+  for (const cell of data.cells) {
+    const column = Math.min(Math.max(Math.floor(cell.gx), 0), grid - 1);
+    const row = Math.min(Math.max(Math.floor(cell.gy), 0), grid - 1);
+    const intensity = Math.min(cell.count / data.max, 1);
+    const hue = (1 - intensity) * 240;
+    const alpha = 0.15 + intensity * 0.8;
+    context.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+    context.fillRect(column * cellSize, row * cellSize, cellSize, cellSize);
+  }
+  context.filter = "none";
+}
 
 export default function HeatmapPanelComponent({
   projectId,
@@ -60,81 +104,51 @@ export default function HeatmapPanelComponent({
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [type, setType] = useState<InteractionType>("move");
   const [band, setBand] = useState<Band>("desktop");
-  const [data, setData] = useState<HeatmapData | null>(null);
-  const [status, setStatus] = useState<PanelStatus>("loading");
 
-  const path = selectedPath && paths.includes(selectedPath) ? selectedPath : paths[0] ?? "/";
+  const path = selectedPath && paths.includes(selectedPath) ? selectedPath : (paths[0] ?? "/");
 
-  // Fetch the density grid whenever a control changes.
+  const heatmap = useAsyncData(
+    JSON.stringify([projectId, path, period, type, band]),
+    () =>
+      ApiService.getSessionHeatmap(projectId, path, period, type, band).then(
+        unwrapData<HeatmapData | null>,
+      ),
+  );
+  const data = heatmap.data;
+  const status = heatmap.loading
+    ? "loading"
+    : heatmap.error
+      ? "error"
+      : data && data.cells.length > 0
+        ? "ready"
+        : "empty";
+
+  // Repaint on every result — `data` is null while a new grid loads and on
+  // failure, so a stale heatmap never sits under the "Loading…"/error text.
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setStatus("loading");
-      try {
-        const response = (await ApiService.getSessionHeatmap(
-          projectId,
-          path,
-          period,
-          type,
-          band,
-        )) as HeatmapResponse;
-        if (cancelled) return;
-        const payload = response?.data ?? null;
-        setData(payload);
-        setStatus(payload && payload.cells.length > 0 ? "ready" : "empty");
-      } catch {
-        if (!cancelled) setStatus("error");
-      }
-    }
-    if (path) void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, path, period, type, band]);
-
-  // Paint the grid. Blurred rects give a smooth heat gradient; hue runs from
-  // blue (cold/low) to red (hot/high) with alpha scaled by intensity.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    const size = CANVAS_RESOLUTION;
-    context.clearRect(0, 0, size, size);
-    context.fillStyle = "#0a0a0f";
-    context.fillRect(0, 0, size, size);
-
-    if (!data || data.cells.length === 0 || data.max <= 0) return;
-
-    const grid = data.grid || 50;
-    const cellSize = size / grid;
-    context.filter = `blur(${Math.max(cellSize * 0.75, 2)}px)`;
-    for (const cell of data.cells) {
-      const intensity = Math.min(cell.count / data.max, 1);
-      const hue = (1 - intensity) * 240;
-      const alpha = 0.15 + intensity * 0.8;
-      context.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
-      context.fillRect(cell.gx * cellSize, cell.gy * cellSize, cellSize, cellSize);
-    }
-    context.filter = "none";
+    const context = canvasRef.current?.getContext("2d");
+    if (context) paintHeatmap(context, data);
   }, [data]);
 
   const hasPaths = paths.length > 0;
+  const description =
+    status === "ready" && data
+      ? `${TYPE_NOUNS[type]} heatmap of ${path} on ${band}: ${formatExact(data.total)} points.`
+      : `${TYPE_NOUNS[type]} heatmap of ${path} on ${band}.`;
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <Flame size={14} strokeWidth={2.2} />
+    <section className={styles["panel"]} aria-label="Page heatmap">
+      <div className={styles["header"]}>
+        <Flame size={14} strokeWidth={2.2} aria-hidden />
         <span>Page Heatmap</span>
         {status === "ready" && data && (
-          <span className={styles.count}>{data.total.toLocaleString()} points</span>
+          <span className={styles["count"]}>{formatExact(data.total)} points</span>
         )}
       </div>
 
-      <div className={styles.controls}>
+      <div className={styles["controls"]}>
         <select
-          className={styles.select}
+          className={styles["select"]}
           value={path}
           onChange={(event) => setSelectedPath(event.target.value)}
           disabled={!hasPaths}
@@ -151,51 +165,46 @@ export default function HeatmapPanelComponent({
           )}
         </select>
 
-        <div className={styles.toggle}>
-          {TYPES.map((typeOption) => (
-            <button
-              key={typeOption.key}
-              className={`${styles.toggleButton} ${type === typeOption.key ? styles.toggleActive : ""}`}
-              onClick={() => setType(typeOption.key)}
-            >
-              {typeOption.label}
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.toggle}>
-          {BANDS.map((bandOption) => (
-            <button
-              key={bandOption}
-              className={`${styles.toggleButton} ${band === bandOption ? styles.toggleActive : ""}`}
-              onClick={() => setBand(bandOption)}
-            >
-              {bandOption[0].toUpperCase() + bandOption.slice(1)}
-            </button>
-          ))}
-        </div>
+        <SegmentedControlComponent
+          value={type}
+          onChange={(value: string) => setType(value as InteractionType)}
+          segments={TYPE_SEGMENTS}
+          compact
+        />
+        <SegmentedControlComponent
+          value={band}
+          onChange={(value: string) => setBand(value as Band)}
+          segments={BAND_SEGMENTS}
+          compact
+        />
       </div>
 
-      <div className={styles.stage}>
+      <div className={styles["stage"]}>
         <canvas
           ref={canvasRef}
           width={CANVAS_RESOLUTION}
           height={CANVAS_RESOLUTION}
-          className={styles.canvas}
+          className={styles["canvas"]}
+          role="img"
+          aria-label={description}
         />
-        {status === "loading" && <div className={styles.overlay}>Loading…</div>}
+        {status === "loading" && <div className={styles["overlay"]}>Loading…</div>}
         {status === "empty" && (
-          <div className={styles.overlay}>No {type} data for this page + band yet.</div>
+          <div className={styles["overlay"]}>No {type} data for this page + band yet.</div>
         )}
-        {status === "error" && <div className={styles.overlay}>Could not load heatmap.</div>}
+        {status === "error" && (
+          <div className={styles["overlay"]} role="alert">
+            Could not load heatmap.
+          </div>
+        )}
         {status === "ready" && (
-          <div className={styles.legend}>
+          <div className={styles["legend"]} aria-hidden>
             <span>Low</span>
-            <span className={styles.legendBar} />
+            <span className={styles["legend-bar"]} />
             <span>High</span>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
