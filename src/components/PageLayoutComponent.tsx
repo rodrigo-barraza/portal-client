@@ -7,7 +7,8 @@ import {
   PageLayoutComponent as LibraryPageLayout,
   useTheme,
 } from "@rodrigo-barraza/components-library";
-import { NAV_SECTIONS } from "../constants";
+import { NAV_SECTIONS } from "@/constants";
+import { NAV_COLLAPSED_STORAGE_KEY } from "@/lib/storageKeys";
 import SidebarAuthControlComponent from "./SidebarAuthControlComponent";
 
 /**
@@ -28,8 +29,9 @@ export default function PageLayoutComponent({
   onBack?: () => void;
 }) {
   const pathname = usePathname();
-  const { theme, themes, setTheme, mounted } = useTheme();
-  const currentTheme = !mounted ? "dark" : theme;
+  // ThemeProvider renders its default theme until it has read storage, on
+  // the server and the client alike, so `theme` is hydration-safe as is.
+  const { theme, themes, setTheme } = useTheme();
 
   return (
     <LibraryPageLayout
@@ -37,12 +39,12 @@ export default function PageLayoutComponent({
       brandLabel="Portal"
       sections={NAV_SECTIONS}
       activeItem={pathname}
-      theme={currentTheme}
+      theme={theme}
       themes={themes}
       setTheme={setTheme}
       LinkComponent={Link}
       bottomActions={<SidebarAuthControlComponent />}
-      storageKey="portal-nav-collapsed"
+      storageKey={NAV_COLLAPSED_STORAGE_KEY}
       mainStyle={mainStyle}
       mainClassName={mainClassName}
       title={title}
