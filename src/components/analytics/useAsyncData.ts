@@ -1,26 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useVisiblePolling } from "../monitoring/useVisiblePolling";
 
 /**
- * useAsyncData — race-safe data loading keyed by a request identity.
+ * useAsyncData — keyed data loading on the shared `useVisiblePolling`
+ * scheduler.
  *
  * `key` names the request (e.g. `${propertyId}|${period}`); `load` fetches
- * it. Whenever the key changes the hook reports `loading` in that same
- * render — no flash of the previous key's data — and a response that
- * arrives for a key that is no longer current is discarded, so a slow
+ * it and passes the `signal` it is given on to ApiService. Whenever the key
+ * changes the hook reports `loading` in that same render — no flash of the
+ * previous key's data. A newer run (key change, `reload()`) supersedes the
+ * one in flight: its request is aborted and its answer discarded, so a slow
  * reply for an old property/period/page can never overwrite a newer one.
- * `null` disables loading.
- *
- * Replaces the per-component `didFetch` refs (which skipped legitimate
- * refetches) and hand-rolled request counters. ApiService has no
- * AbortSignal support, so a superseded request still completes; its
- * result is just ignored.
+ * Unmounting aborts too. `null` disables loading.
  *
  * `refreshIntervalMs` re-runs `load` for the current key on an interval
  * (background refresh: `loading` stays false, data is replaced in place).
- * Ticks are skipped while the tab is hidden and one fires as soon as it
- * becomes visible again.
+ * It inherits the scheduler's rules: no tick while the previous load is
+ * still in flight, no timer while the tab is hidden, and one catch-up load
+ * on return only if a tick came due meanwhile.
+ *
+ * A failed refresh or reload keeps the last good data for the key and
+ * reports the error beside it (a blip in a 15s poll shouldn't blank the
+ * number on screen); a failed first load for a key has no data.
  */
 
 export interface AsyncDataOptions {
@@ -34,8 +37,10 @@ export interface AsyncDataResult<T> {
   data: T | null;
   error: Error | null;
   loading: boolean;
-  /** Re-run `load` for the current key. */
-  reload: () => void;
+  /** True from a `reload()` until that reload settles (not for background ticks). */
+  reloading: boolean;
+  /** Re-run `load` for the current key now; resolves when it settles. */
+  reload: () => Promise<void>;
 }
 
 interface Settled<T> {
@@ -48,70 +53,45 @@ function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
 
-function isDocumentHidden(): boolean {
-  return typeof document !== "undefined" && document.visibilityState === "hidden";
-}
-
 export default function useAsyncData<T>(
   key: string | null,
-  load: () => Promise<T>,
+  load: (signal: AbortSignal) => Promise<T>,
   { keepPreviousData = false, refreshIntervalMs }: AsyncDataOptions = {},
 ): AsyncDataResult<T> {
   const [settled, setSettled] = useState<Settled<T> | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
+  const [reloading, setReloading] = useState(false);
+  const reloadIdRef = useRef(0);
 
-  // Latest loader, read only inside effects. The key — not the closure's
-  // identity — decides when to fetch, so callers can pass inline lambdas.
-  const loadRef = useRef(load);
-  useEffect(() => {
-    loadRef.current = load;
-  });
-
-  useEffect(() => {
-    if (key === null) return;
-    let cancelled = false;
-
-    // A failed background refresh keeps the last good data for this key
-    // (a blip in a 15s poll shouldn't blank the number on screen).
-    const run = (isRefresh: boolean) => {
-      loadRef.current().then(
-        (data) => {
-          if (!cancelled) setSettled({ key, data, error: null });
-        },
-        (error: unknown) => {
-          if (cancelled) return;
-          setSettled((previous) =>
-            isRefresh && previous?.key === key
-              ? { ...previous, error: toError(error) }
-              : { key, data: null, error: toError(error) },
-          );
-        },
-      );
-    };
-
-    run(false);
-
-    let interval: ReturnType<typeof setInterval> | undefined;
-    const onVisibilityChange = () => {
-      if (!isDocumentHidden()) run(true);
-    };
-    if (refreshIntervalMs && refreshIntervalMs > 0) {
-      interval = setInterval(() => {
-        if (!isDocumentHidden()) run(true);
-      }, refreshIntervalMs);
-      document.addEventListener("visibilitychange", onVisibilityChange);
-    }
-
-    return () => {
-      cancelled = true;
-      if (interval) clearInterval(interval);
-      if (refreshIntervalMs && refreshIntervalMs > 0) {
-        document.removeEventListener("visibilitychange", onVisibilityChange);
+  // The scheduler always runs its latest task, so callers can pass inline
+  // lambdas: the key — not the closure's identity — decides when to fetch.
+  const refresh = useVisiblePolling(
+    async (isCurrent, signal) => {
+      if (key === null) return;
+      try {
+        const data = await load(signal);
+        if (isCurrent()) setSettled({ key, data, error: null });
+      } catch (error) {
+        if (!isCurrent()) return;
+        setSettled((previous) =>
+          previous?.key === key
+            ? { ...previous, error: toError(error) }
+            : { key, data: null, error: toError(error) },
+        );
       }
-    };
-  }, [key, reloadToken, refreshIntervalMs]);
+    },
+    refreshIntervalMs ?? null,
+    { enabled: key !== null, restartKey: key },
+  );
 
-  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+  const reload = useCallback(async () => {
+    const reloadId = ++reloadIdRef.current;
+    setReloading(true);
+    try {
+      await refresh();
+    } finally {
+      if (reloadId === reloadIdRef.current) setReloading(false);
+    }
+  }, [refresh]);
 
   const isCurrent = key !== null && settled?.key === key;
   const showPrevious = keepPreviousData && settled !== null;
@@ -120,6 +100,7 @@ export default function useAsyncData<T>(
     data: isCurrent || showPrevious ? (settled?.data ?? null) : null,
     error: isCurrent ? (settled?.error ?? null) : null,
     loading: key !== null && !isCurrent,
+    reloading,
     reload,
   };
 }

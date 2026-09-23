@@ -136,4 +136,112 @@ describe("useVisiblePolling", () => {
     });
     expect(task).not.toHaveBeenCalled();
   });
+
+  it("does not refetch on a tab flip shorter than the interval", async () => {
+    const task = vi.fn().mockResolvedValue(undefined);
+    renderHook(() => useVisiblePolling(task, 10_000));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    act(() => setVisibility("hidden"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+    act(() => setVisibility("visible"));
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(1);
+
+    // The timer resumes where it left off: the tick lands at 10s, not 15s
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4999);
+    });
+    expect(task).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(task).toHaveBeenCalledTimes(2);
+  });
+
+  it("loads once even when mounted in a hidden tab, then waits for it to show", async () => {
+    setVisibility("hidden");
+    const task = vi.fn().mockResolvedValue(undefined);
+    renderHook(() => useVisiblePolling(task, 1000));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(task).toHaveBeenCalledTimes(1);
+    act(() => setVisibility("visible"));
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(2);
+  });
+
+  it("with no interval runs once per restart key and on refresh, never on a timer", async () => {
+    const task = vi.fn().mockResolvedValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ target }) => useVisiblePolling(task, null, { restartKey: target }),
+      { initialProps: { target: "a" } },
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    act(() => setVisibility("hidden"));
+    act(() => setVisibility("visible"));
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(1);
+
+    rerender({ target: "b" });
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await result.current();
+    });
+    expect(task).toHaveBeenCalledTimes(3);
+  });
+
+  it("refresh() resolves once its run has settled", async () => {
+    let resolveRun: () => void = () => {};
+    const task = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRun = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useVisiblePolling(task, 60_000));
+    await act(async () => {});
+    let settled = false;
+    await act(async () => {
+      void result.current().then(() => {
+        settled = true;
+      });
+    });
+    expect(settled).toBe(false);
+    await act(async () => {
+      resolveRun();
+    });
+    expect(settled).toBe(true);
+  });
+
+  it("disabling supersedes the run in flight and a later run is not blocked by it", async () => {
+    const signals: AbortSignal[] = [];
+    const currents: IsCurrent[] = [];
+    const task = vi.fn(
+      (isCurrent: IsCurrent, signal: AbortSignal) =>
+        new Promise<void>(() => {
+          currents.push(isCurrent);
+          signals.push(signal);
+        }),
+    );
+    const { rerender } = renderHook(({ enabled }) => useVisiblePolling(task, 1000, { enabled }), {
+      initialProps: { enabled: true },
+    });
+    await act(async () => {});
+    rerender({ enabled: false });
+    expect(signals[0].aborted).toBe(true);
+    expect(currents[0]()).toBe(false);
+
+    rerender({ enabled: true });
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(2);
+    expect(signals[1].aborted).toBe(false);
+  });
 });
