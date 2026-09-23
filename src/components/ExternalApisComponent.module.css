@@ -1,4 +1,4 @@
-/* ─── Cloud Usage Component ─────────────────────────────────── */
+/* ─── External APIs Component ───────────────────────────────── */
 /* Shares the web-analytics design system (WebAnalytics.module.css)
    for the dashboard shell, stat cards, panels, and states — this
    module only styles the per-API card grid unique to this page.  */
@@ -50,10 +50,25 @@
 
 /* ── Card Header ────────────────────────────────────────────── */
 
+/* The header is the card's toggle button (its click bubbles to the card) */
 .api-card-header-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 4px;
+  }
 }
 
 .api-card-icon-tile {
@@ -133,12 +148,12 @@
 
 .metric-value-success {
   composes: metric-value;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .metric-value-error {
   composes: metric-value;
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 /* ── Success/Error Split Bar ────────────────────────────────── */
@@ -152,12 +167,12 @@
 }
 
 .success-bar-segment {
-  background: #10b981;
+  background: var(--color-success);
   transition: width var(--transition-normal);
 }
 
 .error-bar-segment {
-  background: #ef4444;
+  background: var(--color-danger);
   transition: width var(--transition-normal);
 }
 
@@ -223,6 +238,30 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+}
+
+.detail-error {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* ── Partial-data notice ────────────────────────────────────── */
+
+.partial-data-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  border-radius: var(--border-radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.partial-data-notice svg {
+  color: var(--color-warning);
+  flex-shrink: 0;
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
