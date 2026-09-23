@@ -1,635 +1,197 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowDown, Pause, Play, RotateCw, ScrollText, Search, Trash2, X } from "lucide-react";
 import {
-  ScrollText,
-  ArrowDown,
-  Trash2,
-  Pause,
-  Play,
-  Search,
-  X,
-  RotateCw,
-  Check,
-  Cpu,
-  MemoryStick,
-  Globe,
-} from "lucide-react";
-import {
+  IconButtonComponent,
   PageHeaderComponent,
   SearchInputComponent,
   SelectComponent,
-  IconButtonComponent,
-  StatsCardComponent,
 } from "@rodrigo-barraza/components-library";
-import {
-  formatBytes,
-  formatPercent,
-} from "@rodrigo-barraza/utilities-library";
-
+import { getErrorMessage } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
+import { usePortalSettings } from "@/lib/settings";
+import { containerKey } from "./monitoring/containerHistory";
+import { thresholdsFromSettings } from "./monitoring/severity";
+import { useActionRunner } from "./monitoring/useActionRunner";
+import LogLineRow from "./logs/LogLineRow";
+import LogStatisticsPanel from "./logs/LogStatisticsPanel";
+import {
+  buildContainerOptions,
+  findLinkedContainer,
+  type LoggableContainer,
+} from "./logs/logContainers";
+import { filterLogLines } from "./logs/logLines";
+import { useContainerStatistics } from "./logs/useContainerStatistics";
+import { useLogStream } from "./logs/useLogStream";
 import styles from "./LogsComponent.module.css";
 
-// ── Constants ──────────────────────────────────────────────────
-const MAX_LINES = 5000;
-const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)\s*/;
-
-// ── ANSI escape-code → React span parser ──────────────────────
-const ANSI_RE = /\x1b\[([0-9;]*)m/g;
-
-const ANSI_COLORS = [
-  null, // 0 – default (inherit)
-  "#ef4444", // 1 – red
-  "#22c55e", // 2 – green
-  "#eab308", // 3 – yellow
-  "#3b82f6", // 4 – blue
-  "#a855f7", // 5 – magenta
-  "#06b6d4", // 6 – cyan
-  "#d4d4d8", // 7 – white
-];
-
-const ANSI_BRIGHT_COLORS = [
-  "#71717a", // 0 – bright black (gray)
-  "#f87171", // 1 – bright red
-  "#4ade80", // 2 – bright green
-  "#fde047", // 3 – bright yellow
-  "#60a5fa", // 4 – bright blue
-  "#c084fc", // 5 – bright magenta
-  "#22d3ee", // 6 – bright cyan
-  "#ffffff", // 7 – bright white
-];
-
-/**
- * Convert a 256-color index to a hex color string.
- */
-function ansi256ToHex(n: number) {
-  if (n < 8) return ANSI_COLORS[n];
-  if (n < 16) return ANSI_BRIGHT_COLORS[n - 8];
-  if (n < 232) {
-    const index = n - 16;
-    const r = Math.floor(index / 36) * 51;
-    const g = (Math.floor(index / 6) % 6) * 51;
-    const b = (index % 6) * 51;
-    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-  }
-  // Grayscale 232-255
-  const grayscaleValue = (n - 232) * 10 + 8;
-  return `#${grayscaleValue.toString(16).padStart(2, "0")}${grayscaleValue.toString(16).padStart(2, "0")}${grayscaleValue.toString(16).padStart(2, "0")}`;
-}
-
-/**
- * Strip ANSI escape codes from a string.
- */
-function stripAnsi(text: string) {
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
-}
-
-/**
- * Parse ANSI-coded text into an array of React elements.
- * Supports SGR codes: reset, bold, dim, italic, underline,
- * strikethrough, standard 8 colors, bright colors, and 256-color.
- */
-function parseAnsi(text: string) {
-  // Fast path — no escape codes present
-  if (!text.includes("\x1b")) return text;
-
-  const parts = [];
-  let lastIndex = 0;
-  let key = 0;
-
-  // Active style state
-  let color = null;
-  let bgColor = null;
-  let bold = false;
-  let isDimmed = false;
-  let italic = false;
-  let underline = false;
-  let strikethrough = false;
-
-  let match;
-  ANSI_RE.lastIndex = 0;
-
-  while ((match = ANSI_RE.exec(text)) !== null) {
-    // Push text before this escape
-    if (match.index > lastIndex) {
-      const chunk = text.slice(lastIndex, match.index);
-      if (
-        color ||
-        bgColor ||
-        bold ||
-        isDimmed ||
-        italic ||
-        underline ||
-        strikethrough
-      ) {
-        const style: Record<string, string | number> = {};
-        if (color) style.color = color;
-        if (bgColor) style.backgroundColor = bgColor;
-        if (bold) style.fontWeight = 700;
-        if (isDimmed) style.opacity = 0.6;
-        if (italic) style.fontStyle = "italic";
-        if (underline) style.textDecoration = "underline";
-        if (strikethrough)
-          style.textDecoration = style.textDecoration
-            ? style.textDecoration + " line-through"
-            : "line-through";
-        parts.push(
-          <span key={key++} style={style}>
-            {chunk}
-          </span>,
-        );
-      } else {
-        parts.push(chunk);
-      }
-    }
-    lastIndex = match.index + match[0].length;
-
-    // Parse SGR parameters
-    const codes = match[1] ? match[1].split(";").map(Number) : [0];
-    for (let i = 0; i < codes.length; i++) {
-      const colorCode = codes[i];
-      if (colorCode === 0) {
-        color = null;
-        bgColor = null;
-        bold = false;
-        isDimmed = false;
-        italic = false;
-        underline = false;
-        strikethrough = false;
-      } else if (colorCode === 1) bold = true;
-      else if (colorCode === 2) isDimmed = true;
-      else if (colorCode === 3) italic = true;
-      else if (colorCode === 4) underline = true;
-      else if (colorCode === 9) strikethrough = true;
-      else if (colorCode === 22) {
-        bold = false;
-        isDimmed = false;
-      } else if (colorCode === 23) italic = false;
-      else if (colorCode === 24) underline = false;
-      else if (colorCode === 29) strikethrough = false;
-      else if (colorCode === 39) color = null;
-      else if (colorCode === 49) bgColor = null;
-      else if (colorCode >= 30 && colorCode <= 37)
-        color = ANSI_COLORS[colorCode - 30];
-      else if (colorCode >= 40 && colorCode <= 47)
-        bgColor = ANSI_COLORS[colorCode - 40];
-      else if (colorCode >= 90 && colorCode <= 97)
-        color = ANSI_BRIGHT_COLORS[colorCode - 90];
-      else if (colorCode >= 100 && colorCode <= 107)
-        bgColor = ANSI_BRIGHT_COLORS[colorCode - 100];
-      else if (colorCode === 38 && codes[i + 1] === 5 && codes[i + 2] != null) {
-        color = ansi256ToHex(codes[i + 2]);
-        i += 2;
-      } else if (
-        colorCode === 48 &&
-        codes[i + 1] === 5 &&
-        codes[i + 2] != null
-      ) {
-        bgColor = ansi256ToHex(codes[i + 2]);
-        i += 2;
-      }
-    }
-  }
-
-  // Push remaining text after last escape
-  if (lastIndex < text.length) {
-    const chunk = text.slice(lastIndex);
-    if (
-      color ||
-      bgColor ||
-      bold ||
-      isDimmed ||
-      italic ||
-      underline ||
-      strikethrough
-    ) {
-      const style: Record<string, string | number> = {};
-      if (color) style.color = color;
-      if (bgColor) style.backgroundColor = bgColor;
-      if (bold) style.fontWeight = 700;
-      if (isDimmed) style.opacity = 0.6;
-      if (italic) style.fontStyle = "italic";
-      if (underline) style.textDecoration = "underline";
-      if (strikethrough)
-        style.textDecoration = style.textDecoration
-          ? style.textDecoration + " line-through"
-          : "line-through";
-      parts.push(
-        <span key={key} style={style}>
-          {chunk}
-        </span>,
-      );
-    } else {
-      parts.push(chunk);
-    }
-  }
-
-  return parts.length === 1 ? parts[0] : parts;
-}
-
-/**
- * Detect the log level from a line of text.
- */
-function detectLevel(text: string) {
-  const clean = stripAnsi(text);
-  if (/\bERR(?:OR)?\b/i.test(clean)) return "error";
-  if (/\bWARN(?:ING)?\b/i.test(clean)) return "warn";
-  if (/\bINFO\b/i.test(clean)) return "info";
-  if (/\b(?:OK|SUCCESS)\b/i.test(clean)) return "success";
-  if (/\bDBG|DEBUG\b/i.test(clean)) return "debug";
-  return null;
-}
-
-const LEVEL_CLASS: Record<string, string> = {
-  error: styles['level-error'],
-  warn: styles['level-warn'],
-  info: styles['level-info'],
-  success: styles['level-success'],
-  debug: styles['level-debug'],
-};
-
-const LINE_LEVEL_CLASS: Record<string, string> = {
-  error: styles['log-line-error'],
-  warn: styles['log-line-warn'],
-  success: styles['log-line-success'],
-};
-
-/**
- * Parse a raw log line into { timestamp, content, level }.
- */
-function parseLine(raw: string) {
-  const match = raw.match(TIMESTAMP_REGEX);
-  if (match) {
-    const ts = match[1];
-    const content = raw.slice(match[0].length);
-    return {
-      timestamp: ts.slice(11, 23),
-      content,
-      level: detectLevel(content),
-    };
-  }
-  return { timestamp: null, content: raw, level: detectLevel(raw) };
-}
-
-/**
- * Map a usage percentage to a StatsCardComponent variant.
- * Note: the library's error-styled variant class is "danger".
- */
-function getSeverityVariant(
-  percentage: number,
-  thresholds: [number, number] = [40, 80],
-): "success" | "warning" | "danger" {
-  if (percentage > thresholds[1]) return "danger";
-  if (percentage > thresholds[0]) return "warning";
-  return "success";
-}
-
-interface LogLine {
-  timestamp: string | null;
-  content: string;
-  level: string | null;
-}
-
-interface LoggableContainer {
-  name: string;
-  device: string;
-  deviceName?: string;
-  state?: string;
-}
+/** Within this many pixels of the bottom counts as "following" the log. */
+const FOLLOW_THRESHOLD_PIXELS = 60;
 
 export default function LogsComponent() {
-  const [containers, setContainers] = useState<LoggableContainer[]>([]);
-  const [activeContainer, setActiveContainer] = useState<string | null>(null);
-  const [activeDevice, setActiveDevice] = useState<string | null>(null);
-  const [lines, setLines] = useState<LogLine[]>([]);
-  const [connected, setConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [paused, setPaused] = useState(false);
-  const [search, setSearch] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [bufferedCount, setBufferedCount] = useState(0);
-  const [restarting, setRestarting] = useState(false);
-  const [activeContainerStatistics, setActiveContainerStatistics] = useState<any | null>(null);
-
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const pauseBufferRef = useRef<LogLine[]>([]);
-  const didFetch = useRef(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const didAutoConnect = useRef(false);
+  const { alertThresholdCpu, alertThresholdMemory, containerPollingInterval } =
+    usePortalSettings();
+  const thresholds = useMemo(
+    () => thresholdsFromSettings({ alertThresholdCpu, alertThresholdMemory }),
+    [alertThresholdCpu, alertThresholdMemory],
+  );
   const searchParams = useSearchParams();
 
-  // ── Fetch containers on mount ────────────────────────────────
-  useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
+  const [containers, setContainers] = useState<LoggableContainer[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [search, setSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
-    ApiService.getLoggableContainers()
-      .then((res) => {
-        setContainers(res.containers || []);
-      })
-      .catch((error) => console.error("Failed to fetch containers:", error));
-  }, []);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const autoConnectedRef = useRef(false);
 
-  // ── Poll statistics for the active container ─────────────────
-  useEffect(() => {
-    if (!activeContainer || !activeDevice) {
-      return;
-    }
+  const stream = useLogStream();
+  const { target, connect } = stream;
+  const targetKey = target ? containerKey(target.device, target.container) : null;
+  const statistics = useContainerStatistics(target, containerPollingInterval);
 
-    const fetchContainerStatistics = async () => {
-      try {
-        const containerStatisticsResponse = await ApiService.getContainerStats(activeDevice);
-        const matchedContainerStatistics = containerStatisticsResponse?.containers?.find(
-          (container: any) => container.name === activeContainer,
-        );
-        if (matchedContainerStatistics) {
-          setActiveContainerStatistics(matchedContainerStatistics);
-        }
-      } catch (error) {
-        console.error("Failed to fetch container statistics:", error);
-      }
-    };
-
-    fetchContainerStatistics();
-    const statisticsPollingInterval = setInterval(fetchContainerStatistics, 5000);
-
-    return () => {
-      clearInterval(statisticsPollingInterval);
-    };
-  }, [activeContainer, activeDevice]);
-
-  // ── Auto-scroll to bottom ────────────────────────────────────
-  useEffect(() => {
-    if (autoScroll && bodyRef.current && !paused) {
-      if (bodyRef.current) {
-        bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-      }
-    }
-  }, [lines, autoScroll, paused]);
-
-  // ── Detect user scroll position ──────────────────────────────
-  const handleScroll = useCallback(() => {
-    if (!bodyRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = bodyRef.current;
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 60;
-    setAutoScroll(isAtBottom);
-  }, []);
-
-  // ── Connect to SSE stream ────────────────────────────────────
-  const connectToContainer = useCallback(
-    (containerName: string, device: string) => {
-      // Disconnect existing stream
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-
-      setActiveContainer(containerName);
-      setActiveDevice(device);
-      setActiveContainerStatistics(null);
-      setLines([]);
-      setConnected(false);
-      setError(null);
-      setAutoScroll(true);
-      setPaused(false);
-      pauseBufferRef.current = [];
-
-      const url = ApiService.buildLogStreamUrl(containerName, {
-        tail: 200,
-        follow: true,
-        device,
-      });
-
-      const es = new EventSource(url);
-      eventSourceRef.current = es;
-
-      es.addEventListener("connected", (_e) => {
-        setConnected(true);
-        setError(null);
-      });
-
-      // Server-sent `event: error` — these carry JSON in e.data
-      es.addEventListener("error", (e: Event) => {
-        // Only handle custom SSE error events (which have .data).
-        // Native EventSource errors also fire on this listener but
-        // have no .data — those are handled by es.onerror below.
-        const me = e as MessageEvent;
-        if (!me.data) return;
-        try {
-          const data = JSON.parse(me.data);
-          setError(data.error || "Connection error");
-        } catch {
-          setError(me.data);
-        }
-        setConnected(false);
-      });
-
-      es.addEventListener("end", () => {
-        // Close for real — otherwise EventSource auto-reconnects to a
-        // finished stream and re-appends the tail lines forever.
-        es.close();
-        if (eventSourceRef.current === es) eventSourceRef.current = null;
-        setConnected(false);
-      });
-
-      es.onmessage = (e) => {
-        const raw = e.data;
-        const parsed = parseLine(raw);
-
-        if (paused) {
-          pauseBufferRef.current.push(parsed);
-          setBufferedCount(pauseBufferRef.current.length);
-          return;
-        }
-
-        setLines((prev) => {
-          const next = [...prev, parsed];
-          return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
-        });
-      };
-
-      // Native EventSource error — fires on connection loss AND
-      // during auto-reconnect attempts. Only show "Connection lost"
-      // if the EventSource has given up (readyState === CLOSED).
-      es.onerror = () => {
-        if (es.readyState === EventSource.CLOSED) {
-          setConnected(false);
-          setError("Connection lost");
-        } else if (es.readyState === EventSource.CONNECTING) {
-          // EventSource is auto-reconnecting — mark disconnected
-          // but don't set an error since it's transient
-          setConnected(false);
-        }
-      };
+  const { pending, requestAction, actionUi } = useActionRunner({
+    onSettled: (request, succeeded) => {
+      // The restart ended the old log stream — follow the new container,
+      // unless the user has moved on to another one meanwhile.
+      if (succeeded && target && request.key === targetKey) connect(target);
     },
-    [paused],
-  );
+  });
 
-  // ── Auto-connect when ?container= is in the URL ─────────────
+  // ── Container list ──────────────────────────────────────────────
   useEffect(() => {
-    if (didAutoConnect.current) return;
-    const containerParam =
-      searchParams.get("container") || searchParams.get("service");
-    if (!containerParam || containers.length === 0) return;
-
-    const match = containers.find((c) => c.name === containerParam);
-    if (match) {
-      didAutoConnect.current = true;
-      queueMicrotask(() => connectToContainer(match.name, match.device));
-    }
-  }, [searchParams, containers, connectToContainer]);
-
-  // ── Cleanup on unmount ───────────────────────────────────────
-  useEffect(() => {
+    let cancelled = false;
+    ApiService.getLoggableContainers()
+      .then((response) => {
+        if (!cancelled) setContainers(response?.containers ?? []);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setListError(getErrorMessage(error));
+      });
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
+      cancelled = true;
     };
   }, []);
 
-  // ── Container options for the selector ──────────────────────
-  // Sorted by device, running containers first, then by name —
-  // same ordering the old hand-rolled dropdown used.
-  const { containerOptions, containersByValue } = useMemo(() => {
-    const sortedContainers = [...containers].sort(
-      (a: LoggableContainer, b: LoggableContainer) => {
-        if (a.device !== b.device) return a.device.localeCompare(b.device);
-        if (a.state === "running" && b.state !== "running") return -1;
-        if (a.state !== "running" && b.state === "running") return 1;
-        return a.name.localeCompare(b.name);
-      },
-    );
-
-    const nameCounts = new Map<string, number>();
-    for (const container of sortedContainers) {
-      nameCounts.set(container.name, (nameCounts.get(container.name) || 0) + 1);
-    }
-
-    const byValue = new Map<string, LoggableContainer>();
-    const options = sortedContainers.map((container) => {
-      const optionValue = `${container.device}::${container.name}`;
-      byValue.set(optionValue, container);
-      const isDuplicatedName = (nameCounts.get(container.name) || 0) > 1;
-      return {
-        value: optionValue,
-        label: isDuplicatedName
-          ? `${container.name} (${container.deviceName || container.device})`
-          : container.name,
+  const containerOptions = useMemo(() => buildContainerOptions(containers), [containers]);
+  const selectOptions = useMemo(
+    () =>
+      containerOptions.map((option) => ({
+        value: option.value,
+        label: option.label,
         icon: (
           <span
             className={`${styles['status-dot']} ${
-              container.state === "running"
+              option.container.state === "running"
                 ? styles['status-dot-healthy']
                 : styles['status-dot-unhealthy']
             }`}
           />
         ),
-      };
-    });
+      })),
+    [containerOptions],
+  );
 
-    return { containerOptions: options, containersByValue: byValue };
-  }, [containers]);
+  const openContainer = useCallback(
+    (container: LoggableContainer) => {
+      connect({ container: container.name, device: container.device });
+      setAutoScroll(true);
+    },
+    [connect],
+  );
 
-  // ── Re-wire the onmessage handler when `paused` changes ─────
+  // ── Deep link: /logs?container=<name>&device=<id> ───────────────
   useEffect(() => {
-    const es = eventSourceRef.current;
-    if (!es) return;
+    if (autoConnectedRef.current || containers.length === 0) return;
+    const name = searchParams.get("container") || searchParams.get("service");
+    if (!name) return;
+    const match = findLinkedContainer(containers, name, searchParams.get("device"));
+    if (!match) return;
+    autoConnectedRef.current = true;
+    queueMicrotask(() => openContainer(match));
+  }, [searchParams, containers, openContainer]);
 
-    es.onmessage = (e: MessageEvent) => {
-      const raw = e.data;
-      const parsed = parseLine(raw);
+  // ── Follow the tail ─────────────────────────────────────────────
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    if (autoScroll && !stream.paused && body) body.scrollTop = body.scrollHeight;
+  }, [stream.lines, autoScroll, stream.paused]);
 
-      if (paused) {
-        pauseBufferRef.current.push(parsed);
-        setBufferedCount(pauseBufferRef.current.length);
-        return;
-      }
+  const handleScroll = useCallback(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    setAutoScroll(body.scrollHeight - body.scrollTop - body.clientHeight < FOLLOW_THRESHOLD_PIXELS);
+  }, []);
 
-      setLines((prev) => {
-        const next = [...prev, parsed];
-        return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
-      });
-    };
-  }, [paused]);
-
-  // ── Resume: flush buffer ─────────────────────────────────────
-  const handleResume = () => {
-    setPaused(false);
-    const buffered = pauseBufferRef.current;
-    if (buffered.length > 0) {
-      setLines((prev) => {
-        const next = [...prev, ...buffered];
-        return next.length > MAX_LINES ? next.slice(-MAX_LINES) : next;
-      });
-      pauseBufferRef.current = [];
-      setBufferedCount(0);
-    }
-    setAutoScroll(true);
-  };
-
-  // ── Clear ────────────────────────────────────────────────────
-  const handleClear = () => {
-    setLines([]);
-    pauseBufferRef.current = [];
-    setBufferedCount(0);
-  };
-
-  // ── Restart container ───────────────────────────────────────
-  const handleRestart = async () => {
-    if (!activeContainer || !activeDevice || restarting) return;
-    setRestarting(true);
-    try {
-      await ApiService.restartContainer(activeContainer, activeDevice);
-      // Reconnect to the log stream after restart
-      connectToContainer(activeContainer, activeDevice);
-    } catch (err: unknown) {
-      setError((err as Error)?.message || "Failed to restart container");
-    } finally {
-      setRestarting(false);
-    }
-  };
-
-  // ── Scroll to bottom ────────────────────────────────────────
   const scrollToBottom = () => {
-    if (bodyRef.current) {
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-    }
+    const body = bodyRef.current;
+    if (body) body.scrollTop = body.scrollHeight;
     setAutoScroll(true);
   };
 
-  // ── Search filter ────────────────────────────────────────────
-  const filteredLines = search
-    ? lines.filter(
-        (l) =>
-          stripAnsi(l.content).toLowerCase().includes(search.toLowerCase()) ||
-          (l.timestamp && l.timestamp.includes(search)),
-      )
-    : lines;
+  const handleResume = () => {
+    stream.resume();
+    setAutoScroll(true);
+  };
 
-  // ── Keyboard shortcut for search ────────────────────────────
+  const closeSearch = () => {
+    setShowSearch(false);
+    setSearch("");
+  };
+
+  // ── Ctrl/⌘+F opens the filter (only while a log is open) ────────
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
-        e.preventDefault();
+    if (!target) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
         setShowSearch(true);
-        setTimeout(() => searchInputRef.current?.focus(), 50);
-      }
-      if (e.key === "Escape" && showSearch) {
+        searchInputRef.current?.focus();
+      } else if (event.key === "Escape" && showSearch) {
         setShowSearch(false);
         setSearch("");
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [showSearch]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [target, showSearch]);
 
-  const activeContainerName = activeContainer || "";
-  const selectedContainerValue =
-    activeContainer && activeDevice ? `${activeDevice}::${activeContainer}` : "";
+  const filteredLines = useMemo(
+    () => filterLogLines(stream.lines, search),
+    [stream.lines, search],
+  );
+
+  const restarting = targetKey !== null && pending[targetKey] !== undefined;
+  const handleRestart = () => {
+    if (!target || !targetKey) return;
+    const { container, device } = target;
+    requestAction({
+      key: targetKey,
+      name: container,
+      action: "restart",
+      run: () => ApiService.restartContainer(container, device),
+    });
+  };
+
+  const renderBodyMessage = () => {
+    if (filteredLines.length > 0) return null;
+    let message: string | null = null;
+    if (stream.lines.length > 0) message = `No lines match “${search.trim()}”`;
+    else if (stream.ended) message = "Log stream ended";
+    else if (stream.connected) message = "Waiting for log output…";
+    else if (!stream.error) message = "Connecting…";
+    if (!message) return null;
+    return (
+      <div className={styles['connecting']}>
+        <span className={styles['connecting-dot']} />
+        {message}
+      </div>
+    );
+  };
 
   return (
     <div className={`logs-component ${styles['logs']}`}>
@@ -637,8 +199,8 @@ export default function LogsComponent() {
         sticky={false}
         title="Logs"
         subtitle={
-          activeContainer
-            ? `Streaming ${activeContainerName} logs`
+          target
+            ? `Streaming ${target.container} logs`
             : "Select a container to view live Docker logs"
         }
       />
@@ -646,11 +208,11 @@ export default function LogsComponent() {
       {/* ── Container Selector ── */}
       <div className={styles['container-select']}>
         <SelectComponent
-          value={selectedContainerValue}
-          options={containerOptions}
+          value={targetKey ?? ""}
+          options={selectOptions}
           onChange={(value: string) => {
-            const match = containersByValue.get(value);
-            if (match) connectToContainer(match.name, match.device);
+            const option = containerOptions.find((candidate) => candidate.value === value);
+            if (option) openContainer(option.container);
           }}
           placeholder="Select a container…"
           searchable
@@ -658,213 +220,124 @@ export default function LogsComponent() {
         />
       </div>
 
-      {/* ── Terminal Viewer ── */}
-      {activeContainer ? (
+      {target ? (
         <>
-          {/* ── Container Statistics Panel ── */}
-          {activeContainerStatistics && (
-            <div className={styles['container-statistics-panel']}>
-              <StatsCardComponent
-                label="Status"
-                value={activeContainerStatistics.state || "unknown"}
-                subtitle={
-                  <span title={activeContainerStatistics.status || ""}>
-                    {activeContainerStatistics.status || "No status"}
-                  </span>
-                }
-                icon={activeContainerStatistics.state === "running" ? Check : X}
-                variant={
-                  activeContainerStatistics.state === "running"
-                    ? "success"
-                    : "danger"
-                }
-              />
-
-              <StatsCardComponent
-                label="CPU Usage"
-                value={formatPercent(
-                  activeContainerStatistics.cpu?.percent || 0,
-                  "adaptive",
-                )}
-                subtitle={`${activeContainerStatistics.cpu?.cores || 0} core${
-                  activeContainerStatistics.cpu?.cores !== 1 ? "s" : ""
-                }`}
-                icon={Cpu}
-                variant={getSeverityVariant(
-                  activeContainerStatistics.cpu?.percent || 0,
-                )}
-              />
-
-              <StatsCardComponent
-                label="Memory Used"
-                value={formatBytes(activeContainerStatistics.memory?.used || 0)}
-                subtitle={
-                  activeContainerStatistics.memory?.limit
-                    ? `Limit: ${formatBytes(activeContainerStatistics.memory.limit)}`
-                    : "No limit"
-                }
-                icon={MemoryStick}
-                variant={getSeverityVariant(
-                  activeContainerStatistics.memory?.percent || 0,
-                  [60, 85],
-                )}
-              />
-
-              <StatsCardComponent
-                label="Network I/O"
-                value={formatBytes(
-                  (activeContainerStatistics.network?.rx || 0) +
-                    (activeContainerStatistics.network?.tx || 0),
-                )}
-                subtitle={`↓ ${formatBytes(activeContainerStatistics.network?.rx || 0)} · ↑ ${formatBytes(activeContainerStatistics.network?.tx || 0)}`}
-                icon={Globe}
-                variant="accent"
-              />
-            </div>
-          )}
+          {statistics && <LogStatisticsPanel stats={statistics} thresholds={thresholds} />}
 
           <div className={styles['terminal']} data-theme="twilight">
-          {/* Header */}
-          <div className={styles['terminal-header']}>
-            <div className={styles['terminal-title']}>
-              <span
-                className={`${styles['terminal-dot']} ${connected ? styles['connected'] : ""}`}
-              />
-              {activeContainerName}
-              {connected && (
-                <span style={{ opacity: 0.5, marginLeft: 2 }}>live</span>
-              )}
-            </div>
-
-            <div className={styles['terminal-actions']}>
-              <span className={styles['line-count']}>
-                {filteredLines.length.toLocaleString()}
-              </span>
-
-              <span className={styles['separator']} />
-
-              {/* Search */}
-              {showSearch && (
-                <SearchInputComponent
-                  value={search}
-                  onChange={setSearch}
-                  placeholder="Filter…"
-                  autoFocus
-                  className={styles['search-input']}
-                />
-              )}
-
-              <IconButtonComponent
-                icon={
-                  showSearch ? (
-                    <X size={13} strokeWidth={1.8} />
-                  ) : (
-                    <Search size={13} strokeWidth={1.8} />
-                  )
-                }
-                active={showSearch}
-                tooltip="Search (Ctrl+F)"
-                onClick={() => {
-                  setShowSearch((v) => !v);
-                  if (showSearch) setSearch("");
-                  else setTimeout(() => searchInputRef.current?.focus(), 50);
-                }}
-              />
-
-              <IconButtonComponent
-                icon={
-                  paused ? (
-                    <Play size={13} strokeWidth={1.8} />
-                  ) : (
-                    <Pause size={13} strokeWidth={1.8} />
-                  )
-                }
-                active={paused}
-                tooltip={paused ? "Resume" : "Pause"}
-                onClick={() => (paused ? handleResume() : setPaused(true))}
-              />
-
-              <span className={styles['separator']} />
-
-              <IconButtonComponent
-                icon={<ArrowDown size={13} strokeWidth={1.8} />}
-                tooltip="Scroll to bottom"
-                onClick={scrollToBottom}
-              />
-
-              <IconButtonComponent
-                icon={<Trash2 size={13} strokeWidth={1.8} />}
-                tooltip="Clear"
-                onClick={handleClear}
-              />
-
-              <span className={styles['separator']} />
-
-              <IconButtonComponent
-                icon={<RotateCw size={13} strokeWidth={1.8} />}
-                tooltip="Restart container"
-                onClick={handleRestart}
-                disabled={restarting}
-                className={restarting ? styles['restart-spin'] : undefined}
-              />
-            </div>
-          </div>
-
-          {/* Error banner */}
-          {error && <div className={styles['error-banner']}>✕ {error}</div>}
-
-          {/* Log body */}
-          <div
-            ref={bodyRef}
-            className={styles['terminal-body']}
-            onScroll={handleScroll}
-          >
-            {filteredLines.length === 0 && connected && (
-              <div className={styles['connecting']}>
-                <span className={styles['connecting-dot']} />
-                Waiting for log output…
-              </div>
-            )}
-
-            {filteredLines.length === 0 && !connected && !error && (
-              <div className={styles['connecting']}>
-                <span className={styles['connecting-dot']} />
-                Connecting…
-              </div>
-            )}
-
-            {filteredLines.map((line, i) => (
-              <div
-                key={i}
-                className={`${styles['log-line']} ${LINE_LEVEL_CLASS[line.level || ""] || ""}`}
-              >
-                <span className={styles['line-number']}>{i + 1}</span>
-                {line.timestamp && (
-                  <span className={styles['line-timestamp']}>{line.timestamp}</span>
-                )}
+            <div className={styles['terminal-header']}>
+              <div className={styles['terminal-title']}>
                 <span
-                  className={`${styles['line-content']} ${line.level ? LEVEL_CLASS[line.level] || "" : ""}`}
-                >
-                  {parseAnsi(line.content)}
-                </span>
+                  className={`${styles['terminal-dot']} ${stream.connected ? styles['connected'] : ""}`}
+                />
+                {target.container}
+                {stream.connected && <span className={styles['live-label']}>live</span>}
               </div>
-            ))}
-          </div>
 
-          {/* Paused indicator */}
-          {paused && bufferedCount > 0 && (
-            <div className={styles['paused-banner']}>
-              ⏸ Paused — {bufferedCount} new lines buffered
+              <div className={styles['terminal-actions']}>
+                <span className={styles['line-count']}>
+                  {filteredLines.length.toLocaleString()}
+                </span>
+
+                <span className={styles['separator']} />
+
+                {showSearch && (
+                  <SearchInputComponent
+                    ref={searchInputRef}
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Filter…"
+                    autoFocus
+                    className={styles['search-input']}
+                  />
+                )}
+
+                <IconButtonComponent
+                  icon={
+                    showSearch ? (
+                      <X size={13} strokeWidth={1.8} />
+                    ) : (
+                      <Search size={13} strokeWidth={1.8} />
+                    )
+                  }
+                  active={showSearch}
+                  tooltip="Search (Ctrl+F)"
+                  aria-label={showSearch ? "Close search" : "Search logs"}
+                  onClick={() => (showSearch ? closeSearch() : setShowSearch(true))}
+                />
+
+                <IconButtonComponent
+                  icon={
+                    stream.paused ? (
+                      <Play size={13} strokeWidth={1.8} />
+                    ) : (
+                      <Pause size={13} strokeWidth={1.8} />
+                    )
+                  }
+                  active={stream.paused}
+                  tooltip={stream.paused ? "Resume" : "Pause"}
+                  aria-label={stream.paused ? "Resume" : "Pause"}
+                  onClick={() => (stream.paused ? handleResume() : stream.pause())}
+                />
+
+                <span className={styles['separator']} />
+
+                <IconButtonComponent
+                  icon={<ArrowDown size={13} strokeWidth={1.8} />}
+                  tooltip="Scroll to bottom"
+                  aria-label="Scroll to bottom"
+                  onClick={scrollToBottom}
+                />
+
+                <IconButtonComponent
+                  icon={<Trash2 size={13} strokeWidth={1.8} />}
+                  tooltip="Clear"
+                  aria-label="Clear"
+                  onClick={stream.clear}
+                />
+
+                <span className={styles['separator']} />
+
+                <IconButtonComponent
+                  icon={<RotateCw size={13} strokeWidth={1.8} />}
+                  tooltip="Restart container"
+                  aria-label={`Restart ${target.container}`}
+                  onClick={handleRestart}
+                  disabled={restarting}
+                  className={restarting ? styles['restart-spin'] : undefined}
+                />
+              </div>
             </div>
-          )}
-        </div>
-      </>
+
+            {stream.error && <div className={styles['error-banner']}>✕ {stream.error}</div>}
+
+            <div ref={bodyRef} className={styles['terminal-body']} onScroll={handleScroll}>
+              {renderBodyMessage()}
+              {filteredLines.map((line) => (
+                <LogLineRow key={line.id} line={line} />
+              ))}
+            </div>
+
+            {stream.paused && stream.bufferedCount > 0 && (
+              <div className={styles['paused-banner']}>
+                ⏸ Paused — {stream.bufferedCount.toLocaleString()} new lines buffered
+                {stream.bufferedCount >= stream.maxLines ? " (newest kept)" : ""}
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         <div className={styles['empty-terminal']} data-theme="twilight">
           <ScrollText size={40} strokeWidth={1} />
-          <span>Select a container to start streaming logs</span>
+          <span>
+            {listError
+              ? `Couldn't load containers: ${listError}`
+              : "Select a container to start streaming logs"}
+          </span>
         </div>
       )}
+
+      {actionUi}
     </div>
   );
 }

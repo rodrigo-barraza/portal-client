@@ -96,9 +96,22 @@ describe("useVisiblePolling", () => {
     expect(isCurrent()).toBe(false);
   });
 
+  it("restarts with a fresh run when the restart key changes", async () => {
+    const task = vi.fn().mockResolvedValue(undefined);
+    const { rerender } = renderHook(
+      ({ target }) => useVisiblePolling(task, 60_000, { restartKey: target }),
+      { initialProps: { target: "a" } },
+    );
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(1);
+    rerender({ target: "b" });
+    await act(async () => {});
+    expect(task).toHaveBeenCalledTimes(2);
+  });
+
   it("does nothing while disabled", async () => {
     const task = vi.fn().mockResolvedValue(undefined);
-    renderHook(() => useVisiblePolling(task, 1000, false));
+    renderHook(() => useVisiblePolling(task, 1000, { enabled: false }));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5000);
     });

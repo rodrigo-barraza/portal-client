@@ -16,11 +16,13 @@ export type IsCurrent = () => boolean;
  *   sees `isCurrent()` turn false, so an older response can never overwrite
  *   a newer one; `isCurrent()` is also false once the host unmounts. Tasks
  *   check it after every `await`, before touching state.
+ * - Changing `restartKey` (e.g. the thing being polled) restarts the cycle
+ *   with an immediate run that supersedes any run still in flight.
  */
 export function useVisiblePolling(
   task: (isCurrent: IsCurrent) => Promise<void>,
   intervalMs: number,
-  enabled = true,
+  { enabled = true, restartKey }: { enabled?: boolean; restartKey?: string | number | null } = {},
 ): () => Promise<void> {
   const taskRef = useRef(task);
   const latestRunRef = useRef(0);
@@ -74,7 +76,7 @@ export function useVisiblePolling(
     };
 
     if (document.visibilityState !== "hidden") {
-      void run(false);
+      void run(true);
       start();
     }
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -82,7 +84,7 @@ export function useVisiblePolling(
       stop();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [enabled, intervalMs, run]);
+  }, [enabled, intervalMs, restartKey, run]);
 
   return useCallback(() => run(true), [run]);
 }

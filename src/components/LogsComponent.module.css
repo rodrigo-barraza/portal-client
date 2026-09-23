@@ -1,4 +1,7 @@
-/* ── LogsComponent.module.css ── */
+/* ── LogsComponent.module.css ──
+   The terminal always renders on the twilight theme (data-theme on the
+   element), so the text-primary tints below resolve to twilight's light
+   foreground whatever the page theme is. */
 
 .logs {
   animation: fade-in var(--transition-normal) ease-out;
@@ -42,7 +45,7 @@
 
 .terminal {
   background: var(--background-base);
-  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);
   border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
@@ -61,8 +64,8 @@
   justify-content: space-between;
   padding: 0 14px;
   height: 38px;
-  background: oklch(100.0% 0.0001 263.3 / 0.025);
-  border-bottom: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
+  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);
   flex-shrink: 0;
 }
 
@@ -72,17 +75,22 @@
   gap: 8px;
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: oklch(100.0% 0.0001 263.3 / 0.4);
+  color: color-mix(in srgb, var(--text-primary) 40%, transparent);
   letter-spacing: 0.02em;
   font-family: var(--font-mono);
   white-space: nowrap;
+}
+
+.live-label {
+  opacity: 0.5;
+  margin-left: 2px;
 }
 
 .terminal-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: oklch(100.0% 0.0001 263.3 / 0.2);
+  background: color-mix(in srgb, var(--text-primary) 20%, transparent);
   flex-shrink: 0;
   transition:
     background var(--transition-fast),
@@ -133,18 +141,16 @@
 
 .line-count {
   font-size: 0.625rem;
-  color: oklch(100.0% 0.0001 263.3 / 0.25);
+  color: color-mix(in srgb, var(--text-primary) 25%, transparent);
   font-family: var(--font-mono);
   font-weight: 400;
   padding: 0 8px;
 }
 
-/* ── Separator ── */
-
 .separator {
   width: 1px;
   height: 14px;
-  background: oklch(100.0% 0.0001 263.3 / 0.06);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   margin: 0 4px;
   flex-shrink: 0;
 }
@@ -171,10 +177,14 @@
   white-space: pre;
   border-left: 2px solid transparent;
   transition: background 60ms ease;
+  /* Up to 5,000 lines: let the browser skip layout/paint for rows that
+     are off screen (one-line rows are ~1.15rem tall). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1.15rem;
 }
 
 .log-line:hover {
-  background: oklch(100.0% 0.0001 263.3 / 0.018);
+  background: color-mix(in srgb, var(--text-primary) 1.8%, transparent);
 }
 
 /* Level accent borders — subtle left-edge indicators */
@@ -200,22 +210,22 @@
   width: 40px;
   text-align: right;
   padding-right: 12px;
-  color: oklch(100.0% 0.0001 263.3 / 0.08);
+  color: color-mix(in srgb, var(--text-primary) 8%, transparent);
   font-size: 0.625rem;
   user-select: none;
-  border-right: 1px solid oklch(100.0% 0.0001 263.3 / 0.03);
+  border-right: 1px solid color-mix(in srgb, var(--text-primary) 3%, transparent);
   margin-right: 12px;
 }
 
 .log-line:hover .line-number {
-  color: oklch(100.0% 0.0001 263.3 / 0.15);
+  color: color-mix(in srgb, var(--text-primary) 15%, transparent);
 }
 
 /* ── Timestamp ── */
 
 .line-timestamp {
   flex-shrink: 0;
-  color: oklch(100.0% 0.0001 263.3 / 0.2);
+  color: color-mix(in srgb, var(--text-primary) 20%, transparent);
   margin-right: 10px;
   font-size: 0.65625rem;
 }
@@ -261,11 +271,11 @@
   gap: 16px;
   height: calc(100dvh - 220px);
   min-height: 400px;
-  color: oklch(100.0% 0.0001 263.3 / 0.3);
+  color: color-mix(in srgb, var(--text-primary) 30%, transparent);
   font-size: 0.8125rem;
   animation: fade-in var(--transition-normal) ease-out;
   background: var(--background-base);
-  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.06);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);
   border-radius: var(--border-radius-sm);
 }
 
@@ -283,7 +293,7 @@
   justify-content: center;
   gap: 10px;
   padding: 32px;
-  color: oklch(100.0% 0.0001 263.3 / 0.35);
+  color: color-mix(in srgb, var(--text-primary) 35%, transparent);
   font-size: var(--font-size-sm);
   font-family: var(--font-mono);
 }
@@ -324,54 +334,32 @@
   font-weight: 500;
 }
 
-/* ── Search ── */
+/* ── Search (SearchInputComponent root; the <input> is inside) ── */
 
 .search-input {
   height: 26px;
   padding: 0 8px;
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
-  background: oklch(100.0% 0.0001 263.3 / 0.04);
-  border: 1px solid oklch(100.0% 0.0001 263.3 / 0.08);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
   border-radius: var(--border-radius-sm);
-  color: oklch(100.0% 0.0001 263.3 / 0.9);
+  color: color-mix(in srgb, var(--text-primary) 90%, transparent);
   width: 140px;
   transition:
     width var(--transition-fast),
     border-color var(--transition-fast);
 }
 
-.search-input::placeholder {
-  color: oklch(100.0% 0.0001 263.3 / 0.2);
+.search-input input::placeholder {
+  color: color-mix(in srgb, var(--text-primary) 20%, transparent);
 }
 
-.search-input:focus {
+.search-input:focus-within {
   width: 200px;
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary) 30%, transparent);
-}
-
-/* ── Container Statistics Panel ── */
-
-.container-statistics-panel {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-  animation: fade-in var(--transition-normal) ease-out;
-}
-
-@media (max-width: 1200px) {
-  .container-statistics-panel {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .container-statistics-panel {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -408,7 +396,7 @@
     width: 100px;
   }
 
-  .search-input:focus {
+  .search-input:focus-within {
     width: 140px;
   }
 
