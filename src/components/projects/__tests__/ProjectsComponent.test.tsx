@@ -5,7 +5,7 @@ import ApiService from "@/services/ApiService";
 import type { PortalService } from "@/types/portal";
 import ProjectsComponent from "../../ProjectsComponent";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../monitoring/__tests__/libraryStub"));
+vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
 vi.mock("@/services/ApiService", () => ({
   default: {
@@ -72,7 +72,7 @@ describe("ProjectsComponent", () => {
     fireEvent.click(stop);
     expect(api.stopService).not.toHaveBeenCalled();
 
-    const dialog = screen.getByRole("dialog", { name: "Stop Prism Service?" });
+    const dialog = screen.getByRole("alertdialog", { name: "Stop Prism Service?" });
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Stop" }));
     });
@@ -86,7 +86,7 @@ describe("ProjectsComponent", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
     await act(async () => {
       fireEvent.click(
-        within(screen.getByRole("dialog")).getByRole("button", { name: "Stop" }),
+        within(screen.getByRole("alertdialog")).getByRole("button", { name: "Stop" }),
       );
     });
     expect(

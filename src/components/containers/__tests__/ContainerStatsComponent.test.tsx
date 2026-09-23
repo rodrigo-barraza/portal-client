@@ -4,7 +4,7 @@ import { resetSettings, updateSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import ContainerStatsComponent from "../../ContainerStatsComponent";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../monitoring/__tests__/libraryStub"));
+vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
 vi.mock("@/services/ApiService", () => ({
   default: {
@@ -90,7 +90,7 @@ describe("ContainerStatsComponent", () => {
     fireEvent.click(stopButtons[1]);
     expect(api.stopContainer).not.toHaveBeenCalled();
 
-    const dialog = await screen.findByRole("dialog", { name: "Stop prism-service?" });
+    const dialog = await screen.findByRole("alertdialog", { name: "Stop prism-service?" });
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Stop" }));
     });

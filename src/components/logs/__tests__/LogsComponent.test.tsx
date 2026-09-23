@@ -5,7 +5,7 @@ import { resetSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import LogsComponent from "../../LogsComponent";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../monitoring/__tests__/libraryStub"));
+vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
 vi.mock("@/services/ApiService", () => ({
   default: {
@@ -116,7 +116,7 @@ describe("LogsComponent", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Restart prism-service" }));
     expect(api.restartContainer).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", { name: "Restart prism-service?" });
+    const dialog = screen.getByRole("alertdialog", { name: "Restart prism-service?" });
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Restart" }));
     });

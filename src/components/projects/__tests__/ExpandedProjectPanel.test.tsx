@@ -5,7 +5,7 @@ import ApiService from "@/services/ApiService";
 import type { PortalService } from "@/types/portal";
 import ExpandedProjectPanel from "../../ExpandedProjectPanelComponent";
 
-vi.mock("@rodrigo-barraza/components-library", () => import("../../monitoring/__tests__/libraryStub"));
+vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
 vi.mock("@/services/ApiService", () => ({
   default: {

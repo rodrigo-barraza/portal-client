@@ -1,13 +1,18 @@
 /**
- * Minimal stand-ins for @rodrigo-barraza/components-library, for component
- * tests. vitest externalizes node_modules and the library's dist imports
- * its `.module.css` files, which Node cannot load — so tests that render
- * library components swap the module for these accessible equivalents:
+ * The one set of stand-ins for @rodrigo-barraza/components-library in
+ * component tests. The real library needs ResizeObserver / canvas and
+ * sound, and its dist imports `.module.css`, so tests that render portal
+ * components swap the module for these plain, accessible elements:
  *
- *   vi.mock("@rodrigo-barraza/components-library", () => import("<path>/componentsLibraryStub"));
+ *   vi.mock("@rodrigo-barraza/components-library", () => import("<path>/components/__tests__/componentsLibraryStub"));
+ *
+ * Each stub keeps the library's accessible roles (alertdialog, progressbar,
+ * radiogroup, searchbox, tablist) and only the behaviour tests exercise —
+ * labels, click handlers, disabled state, table rows, dialog
+ * confirm/cancel, toasts. Add to this file; never start a second stub.
  */
 
-import type { ReactNode } from "react";
+import { useCallback, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 
 type Children = { children?: ReactNode };
 
@@ -17,18 +22,36 @@ export function ButtonComponent({
   href,
   disabled,
   loading,
+  title,
+  "aria-label": ariaLabel,
 }: Children & {
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
   href?: string;
   disabled?: boolean;
   loading?: boolean;
   variant?: string;
   size?: string;
   icon?: unknown;
+  title?: string;
+  className?: string;
+  "aria-label"?: string;
 }) {
-  if (href) return <a href={href}>{children}</a>;
+  const label = ariaLabel ?? title;
+  if (href) {
+    return (
+      <a href={href} aria-label={label} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-busy={loading || undefined}>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      aria-busy={loading || undefined}
+    >
       {children}
     </button>
   );
@@ -41,8 +64,8 @@ export function IconButtonComponent({
   disabled,
   ...rest
 }: {
-  icon: ReactNode;
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  icon?: ReactNode;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   tooltip?: string;
   disabled?: boolean;
   variant?: string;
@@ -63,7 +86,100 @@ export function IconButtonComponent({
 }
 
 export function LoadingIndicatorComponent({ label }: { label?: string; size?: string; className?: string }) {
-  return <div role="status">{label}</div>;
+  return <div role="progressbar">{label}</div>;
+}
+
+export function StatsCardComponent({
+  label,
+  value,
+  subtitle,
+}: {
+  label?: ReactNode;
+  value?: ReactNode;
+  subtitle?: ReactNode;
+  icon?: unknown;
+  variant?: string;
+}) {
+  return (
+    <div>
+      <span>{label}</span>
+      <span>{value}</span>
+      <span>{subtitle}</span>
+    </div>
+  );
+}
+
+export function SelectComponent({
+  value,
+  options,
+  onChange,
+  placeholder,
+  label,
+}: {
+  value?: string | string[];
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  label?: string;
+}) {
+  if (Array.isArray(value)) return null;
+  return (
+    <select
+      aria-label={label ?? placeholder}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+export function TabBarComponent({
+  tabs,
+  activeTab,
+  onChange,
+  ariaLabel,
+}: {
+  tabs: { key: string; label: ReactNode }[];
+  activeTab?: string;
+  onChange: (key: string) => void;
+  ariaLabel?: string;
+}) {
+  return (
+    <div role="tablist" aria-label={ariaLabel}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.key}
+          type="button"
+          role="tab"
+          aria-selected={tab.key === activeTab}
+          onClick={() => onChange(tab.key)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function DrawerComponent({
+  open,
+  title,
+  headerActions,
+  children,
+}: Children & { open: boolean; title?: string; headerActions?: ReactNode; onClose?: () => void }) {
+  if (!open) return null;
+  return (
+    <aside aria-label={title}>
+      {headerActions}
+      {children}
+    </aside>
+  );
 }
 
 export function SearchInputComponent({
@@ -217,8 +333,26 @@ export function DialogComponent({
   );
 }
 
-export function BadgeComponent({ children }: Children & { variant?: string }) {
-  return <span>{children}</span>;
+/** Typed badges render what the real one shows: status words or their one value. */
+export function BadgeComponent({
+  children,
+  type,
+  healthy,
+  ...rest
+}: Children & {
+  variant?: string;
+  type?: string;
+  healthy?: boolean;
+  device?: ReactNode;
+  domain?: ReactNode;
+  port?: ReactNode;
+  address?: ReactNode;
+  visibility?: ReactNode;
+  icons?: unknown;
+}) {
+  if (type === "status") return <span>{healthy ? "Healthy" : "Down"}</span>;
+  const shown = rest.device ?? rest.domain ?? rest.port ?? rest.address ?? rest.visibility;
+  return <span>{children ?? shown ?? null}</span>;
 }
 
 export function StatusDotComponent({ variant }: { variant?: string; size?: string; pulse?: boolean }) {
@@ -246,8 +380,8 @@ export function ChartLineComponent({ data }: { data: number[] }) {
 
 interface StubColumn<Row> {
   key: string;
-  label: ReactNode;
-  render?: (row: Row) => ReactNode;
+  label?: ReactNode;
+  render?: (row: Row, index: number) => ReactNode;
 }
 
 export function TableComponent<Row>({
@@ -255,15 +389,30 @@ export function TableComponent<Row>({
   data,
   getRowKey,
   emptyText,
+  onRowClick,
+  title,
 }: {
   columns: StubColumn<Row>[];
-  data: Row[];
-  getRowKey: (row: Row) => string;
+  data: Row[] | null | undefined;
+  getRowKey: (row: Row, index: number) => string;
   emptyText?: string;
+  onRowClick?: (row: Row) => void;
+  title?: string;
 }) {
-  if (data.length === 0) return <p>{emptyText}</p>;
+  const rows = data ?? [];
+  if (rows.length === 0) return <p>{emptyText}</p>;
+  // Clickable rows answer Enter/Space like the library's interactive rows.
+  const rowProps = (row: Row) =>
+    onRowClick
+      ? {
+          onClick: () => onRowClick(row),
+          onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+            if (event.key === "Enter" || event.key === " ") onRowClick(row);
+          },
+        }
+      : {};
   return (
-    <table>
+    <table aria-label={title}>
       <thead>
         <tr>
           {columns.map((column) => (
@@ -272,12 +421,12 @@ export function TableComponent<Row>({
         </tr>
       </thead>
       <tbody>
-        {data.map((row) => (
-          <tr key={getRowKey(row)}>
+        {rows.map((row, index) => (
+          <tr key={getRowKey(row, index)} {...rowProps(row)}>
             {columns.map((column) => (
               <td key={column.key}>
                 {column.render
-                  ? column.render(row)
+                  ? column.render(row, index)
                   : String((row as Record<string, unknown>)[column.key] ?? "")}
               </td>
             ))}
@@ -285,5 +434,34 @@ export function TableComponent<Row>({
         ))}
       </tbody>
     </table>
+  );
+}
+
+interface StubToast {
+  id: number;
+  message: string;
+  type: string;
+}
+
+export function useToast() {
+  const [toasts, setToasts] = useState<StubToast[]>([]);
+  const addToast = useCallback((message: string, type = "info") => {
+    setToasts((previous) => [...previous, { id: previous.length + 1, message, type }]);
+  }, []);
+  const removeToast = useCallback((id: number) => {
+    setToasts((previous) => previous.filter((toast) => toast.id !== id));
+  }, []);
+  return { toasts, addToast, removeToast };
+}
+
+export function ToastComponent({ toasts }: { toasts?: StubToast[]; onDismiss?: (id: number) => void }) {
+  return (
+    <div>
+      {(toasts ?? []).map((toast) => (
+        <div key={toast.id} role="status" data-type={toast.type}>
+          {toast.message}
+        </div>
+      ))}
+    </div>
   );
 }
