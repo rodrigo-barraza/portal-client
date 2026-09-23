@@ -2,11 +2,20 @@
 // ============================================================
 // Generate Component Catalog — Prebuild Script
 // ============================================================
-// Scans the installed @rodrigo-barraza/components-library package at
-// build time and writes src/generated/component-catalog.json.
+// Scans the installed @rodrigo-barraza/components-library and
+// writes src/generated/component-catalog.json for the Developer
+// pages (Components, Hooks, Providers, Services, Utilities).
 //
-// Outputs entries with a `type` field: "component", "hook",
-// "provider", "service", or "utility".
+// Only modules the library's barrel (src/index.tsx) actually
+// re-exports are listed — a folder that exists but is not
+// exported cannot be imported by a consumer, so it is not shown.
+//
+// Every entry: { name, type, category, m3, hasTests, files,
+// sizeKb, description } with type "component" | "provider" |
+// "hook" | "service" | "utility".
+//
+// Paths resolve from this script's location, so it can be run
+// from any working directory.
 //
 // Run: node scripts/generate-component-catalog.mjs
 // Hooked into: "prebuild" in package.json
@@ -14,374 +23,390 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SCRIPT_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.resolve(SCRIPT_DIRECTORY, "..");
+const OUTPUT_PATH = path.join(
+  PROJECT_ROOT,
+  "src/generated/component-catalog.json",
+);
+const LIBRARY_NAME = "@rodrigo-barraza/components-library";
 
 // ── Category map (components only) ──────────────────────────────
+// Unmapped components fall back to "layout" with a warning, so a new
+// library component shows up here to be categorized.
 const CATEGORY_MAP = {
+  // Actions
   ButtonComponent: "actions",
-  IconButtonComponent: "actions",
-  FabComponent: "actions",
-  ExtendedFabComponent: "actions",
-  FabMenuComponent: "actions",
-  SplitButtonComponent: "actions",
-  CopyButtonComponent: "actions",
   CloseButtonComponent: "actions",
+  CopyButtonComponent: "actions",
+  ExtendedFabComponent: "actions",
+  FabComponent: "actions",
+  FabMenuComponent: "actions",
+  IconButtonComponent: "actions",
+  SegmentedControlComponent: "actions",
+  SplitButtonComponent: "actions",
+  ThemeToggleButtonComponent: "actions",
+  // Communication
+  AvatarComponent: "communication",
+  BadgeComponent: "communication",
   SnackbarComponent: "communication",
+  StatBadgeComponent: "communication",
   ToastComponent: "communication",
   TooltipComponent: "communication",
-  BadgeComponent: "communication",
-  CountBadgeComponent: "communication",
-  ResponseTimeBadgeComponent: "communication",
-  VisibilityBadgeComponent: "communication",
+  // Containment
+  AgentChatMessageListComponent: "containment",
+  AgentChatWindowComponent: "containment",
   CardComponent: "containment",
-  DialogComponent: "containment",
-  ModalComponent: "containment",
   CarouselComponent: "containment",
   CollapsibleBlockComponent: "containment",
-  StatsCardComponent: "containment",
-  EmptyStateComponent: "containment",
+  DialogComponent: "containment",
   DiscordChatComponent: "containment",
-  TextFieldComponent: "inputs",
-  InputComponent: "inputs",
-  TextAreaComponent: "inputs",
-  SearchInputComponent: "inputs",
-  SelectComponent: "inputs",
+  DrawerComponent: "containment",
+  EmptyStateComponent: "containment",
+  ErrorBoundaryComponent: "containment",
+  ErrorFallbackComponent: "containment",
+  MarkdownContentComponent: "containment",
+  ModalComponent: "containment",
+  StatsCardComponent: "containment",
+  ToolCardComponent: "containment",
+  // Inputs
+  AgentChatInputComponent: "inputs",
   CheckboxComponent: "inputs",
-  RadioComponent: "inputs",
-  SwitchComponent: "inputs",
-  ToggleComponent: "inputs",
-  SliderComponent: "inputs",
+  ChipComponent: "inputs",
   DatePickerComponent: "inputs",
   FormGroupComponent: "inputs",
-  NavigationSidebarComponent: "navigation",
+  InputComponent: "inputs",
+  MultiSelectComponent: "inputs",
+  RadioComponent: "inputs",
+  SearchInputComponent: "inputs",
+  SelectComponent: "inputs",
+  SliderComponent: "inputs",
+  SwitchComponent: "inputs",
+  TextAreaComponent: "inputs",
+  TextFieldComponent: "inputs",
+  ThemePickerComponent: "inputs",
+  ToggleComponent: "inputs",
+  // Navigation
+  BottomAppBarComponent: "navigation",
+  MenuComponent: "navigation",
+  MobileHeaderComponent: "navigation",
   NavigationDrawerComponent: "navigation",
   NavigationRailComponent: "navigation",
-  TabBarComponent: "navigation",
-  MenuComponent: "navigation",
+  NavigationSidebarComponent: "navigation",
   PaginationComponent: "navigation",
+  TabBarComponent: "navigation",
   TopAppBarComponent: "navigation",
-  BottomAppBarComponent: "navigation",
-  ProgressIndicatorComponent: "indicators",
+  // Indicators
+  ChartLineComponent: "indicators",
   LoadingIndicatorComponent: "indicators",
   LoadingStateComponent: "indicators",
-  PageHeaderComponent: "layout",
-  ToolbarComponent: "layout",
+  ProgressBarComponent: "indicators",
+  SkeletonComponent: "indicators",
+  StatusDotComponent: "indicators",
+  StreamingCursorComponent: "indicators",
+  // Layout
+  CustomThemeBootComponent: "layout",
   DividerComponent: "layout",
+  LayoutHeaderComponent: "layout",
+  PageHeaderComponent: "layout",
+  PageHeroComponent: "layout",
+  PageLayoutComponent: "layout",
+  SessionTrackerComponent: "layout",
   TableComponent: "layout",
+  ToolbarComponent: "layout",
 };
 
-// ── Known providers (live under components/ but are context wrappers) ─
-const PROVIDER_NAMES = new Set(["ThemeProvider", "ComponentsProvider"]);
+const DEFAULT_CATEGORY = "layout";
+const SOURCE_FILE_PATTERN = /\.(js|jsx|ts|tsx)$/;
+const TEST_FILE_PATTERN = /\.(test|spec)\./;
+const DESCRIPTION_MAX_LENGTH = 180;
+
+// ── Library location ────────────────────────────────────────────
+
+/** Resolve the installed library's root through normal module resolution
+ *  (its exports map points "." at dist/index.js). */
+function resolveLibraryRoot() {
+  const entryPath = fileURLToPath(import.meta.resolve(LIBRARY_NAME));
+  let directory = path.dirname(entryPath);
+  while (!fs.existsSync(path.join(directory, "package.json"))) {
+    const parent = path.dirname(directory);
+    if (parent === directory) {
+      throw new Error(`Could not find the package root of ${LIBRARY_NAME}`);
+    }
+    directory = parent;
+  }
+  return directory;
+}
+
+// ── Barrel parsing ──────────────────────────────────────────────
 
 /**
- * Extract the first JSDoc/block-comment description from a JS file.
+ * Every module path the barrel re-exports a runtime value from, relative to
+ * src/ and without extension (e.g. "components/ButtonComponent/ButtonComponent").
+ * Type-only exports are skipped.
  */
-function extractDescription(filePath) {
-  try {
-    const source = fs.readFileSync(filePath, "utf8");
-    const dashMatch = source.match(/\*\s+\w+\s*[—–-]\s*(.+?)(?:\n|\*\/)/);
-    if (dashMatch) return dashMatch[1].trim();
-    const descMatch = source.match(/@description\s+(.+?)(?:\n|\*\/)/);
-    if (descMatch) return descMatch[1].trim();
+export function parseBarrelModules(barrelSource) {
+  const modules = new Set();
+  const exportPattern = /export\s+(type\s+)?\{[^}]*\}\s+from\s+["']\.\/([^"']+)["']/g;
+  for (const match of barrelSource.matchAll(exportPattern)) {
+    if (match[1]) continue;
+    modules.add(match[2].replace(SOURCE_FILE_PATTERN, ""));
+  }
+  return [...modules];
+}
 
-    // Fallback: first @param line hint
-    const paramMatch = source.match(
-      /@param\s+\{[^}]+\}\s+\[?\w+\]?\s+[—–-]\s*(.+)/,
+/** Map a barrel module path to its catalog type, or null when it is not a
+ *  catalog entry (constants, a component's helper module, …). */
+export function classifyModule(modulePath) {
+  const segments = modulePath.split("/");
+  const [folder] = segments;
+  const name = segments.at(-1);
+
+  if (folder === "hooks" && segments.length === 2) return { name, type: "hook" };
+  if (folder === "services" && segments.length === 2) {
+    return { name, type: "service" };
+  }
+  if (folder === "utils" && segments.length === 2) return { name, type: "utility" };
+  if (folder !== "components") return null;
+
+  const isProvider = name.endsWith("Provider");
+  if (segments.length === 2) {
+    return isProvider ? { name, type: "provider", isFile: true } : null;
+  }
+  // components/<Dir>/<File> — only the folder's main module, not helpers
+  // such as ThemeProvider/themeConstants.
+  if (segments.length === 3 && segments[1] === name) {
+    return { name, type: isProvider ? "provider" : "component" };
+  }
+  return null;
+}
+
+// ── Description extraction ──────────────────────────────────────
+
+/** Comment blocks in source order, each normalized to plain text lines. */
+function commentBlocks(source) {
+  const blocks = [];
+  const pattern = /\/\*[\s\S]*?\*\/|(?:^[ \t]*\/\/.*(?:\r?\n|$))+/gm;
+  for (const match of source.matchAll(pattern)) {
+    const lines = match[0]
+      .replace(/^\/\*+|\*+\/$/g, "")
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*(?:\/\/+|\*)?\s?/, "").trimEnd())
+      // A ruler line (─── / ===) separates a title from its body: treat it
+      // as a paragraph break.
+      .map((line) => (/^[─━═=\-*\s]+$/.test(line) ? "" : line));
+    blocks.push({
+      index: match.index,
+      end: match.index + match[0].length,
+      lines,
+    });
+  }
+  return blocks;
+}
+
+/** First paragraph → first sentence, capped in length. Stops at JSDoc tags. */
+function firstSentence(lines) {
+  const paragraph = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("@")) break;
+    if (!trimmed) {
+      if (paragraph.length) break;
+      continue;
+    }
+    paragraph.push(trimmed);
+  }
+  const joined = paragraph.join(" ").replace(/\s+/g, " ").trim();
+  // Sentence-case a lowercase lead word ("styled input" → "Styled input"),
+  // but leave mixed-case words such as "iOS" alone.
+  const text = /^[a-z]+\b/.test(joined)
+    ? joined.charAt(0).toUpperCase() + joined.slice(1)
+    : joined;
+  // A sentence ends at . ! ? followed by an uppercase start or the end —
+  // "e.g. a" does not end one.
+  const end = text.search(/[.!?](?=\s+[A-Z`"(]|$)/);
+  const sentence = end === -1 ? text : text.slice(0, end + 1);
+  if (sentence.length <= DESCRIPTION_MAX_LENGTH) return sentence;
+  const cut = sentence.slice(0, DESCRIPTION_MAX_LENGTH);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:—–-]$/, "")}…`;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Pick the best description comment for `name` in `source`:
+ * 1. a comment introducing the module by name ("Name — does X"),
+ * 2. the doc comment directly above the default/named export of `name`,
+ * 3. the file's leading comment, if it precedes all code.
+ */
+export function extractDescription(source, name) {
+  const blocks = commentBlocks(source);
+  // "ThemeProvider — …" or its context's name ("ThemeContext — …").
+  const names = [name, name.replace(/Provider$/, "Context")].map(escapeRegExp);
+  const namePattern = new RegExp(
+    `^(?:${names.join("|")})(?:\\(\\))?\\s*[—–:-]\\s*(.*)$`,
+    "i",
+  );
+
+  for (const block of blocks) {
+    const start = block.lines.findIndex((line) =>
+      namePattern.test(line.trim()),
     );
-    if (paramMatch) return paramMatch[1].trim();
-  } catch {
-    /* ignore */
+    if (start === -1) continue;
+    const [, rest] = block.lines[start].trim().match(namePattern);
+    const description = firstSentence([rest, ...block.lines.slice(start + 1)]);
+    if (description) return description;
+  }
+
+  const exportPattern = new RegExp(
+    `export\\s+(?:default\\s+)?(?:async\\s+)?(?:function|class|const)\\s+${escapeRegExp(name)}\\b|export\\s+default\\s+(?:async\\s+)?(?:function|class)\\b`,
+  );
+  const exportMatch = exportPattern.exec(source);
+  if (exportMatch) {
+    // Only a comment that sits directly on top of the export counts.
+    const attached = blocks.findLast(
+      (block) =>
+        block.end <= exportMatch.index &&
+        !source.slice(block.end, exportMatch.index).trim(),
+    );
+    const description = attached ? firstSentence(attached.lines) : "";
+    if (description) return description;
+  }
+
+  const leading = blocks[0];
+  if (leading) {
+    const beforeFirstComment = source.slice(0, leading.index);
+    if (!beforeFirstComment.replace(/["']use client["'];?/, "").trim()) {
+      return firstSentence(leading.lines);
+    }
   }
   return "";
 }
 
-/**
- * Check if a file references M3.
- */
-function isM3(filePath) {
-  try {
-    const source = fs.readFileSync(filePath, "utf8");
-    return (
-      source.includes("m3.material.io") ||
-      /Material Design 3/i.test(source) ||
-      /\bM3\b/.test(source.slice(0, 2000))
-    );
-  } catch {
-    return false;
-  }
+// ── File helpers ────────────────────────────────────────────────
+
+function isSourceFile(fileName) {
+  return (
+    SOURCE_FILE_PATTERN.test(fileName) &&
+    !TEST_FILE_PATTERN.test(fileName) &&
+    !fileName.endsWith(".d.ts")
+  );
 }
 
-/**
- * Calculate total size of files in a directory or of a single file.
- */
-function totalSize(targetPath) {
+function sizeOf(targetPath) {
   const stat = fs.statSync(targetPath);
   if (stat.isFile()) return stat.size;
-
-  return fs.readdirSync(targetPath).reduce((sum, f) => {
-    try {
-      return sum + fs.statSync(path.join(targetPath, f)).size;
-    } catch {
-      return sum;
-    }
+  return fs.readdirSync(targetPath).reduce((sum, fileName) => {
+    const filePath = path.join(targetPath, fileName);
+    return fs.statSync(filePath).isFile() ? sum + fs.statSync(filePath).size : sum;
   }, 0);
 }
 
-// ── Scan component directories ──────────────────────────────────
-function scanComponents(componentsDir) {
-  if (!fs.existsSync(componentsDir)) return [];
+function toKb(bytes) {
+  return +(bytes / 1024).toFixed(1);
+}
 
-  const entries = fs.readdirSync(componentsDir, { withFileTypes: true });
-  const catalog = [];
+function readSource(filePath) {
+  try {
+    return fs.readFileSync(filePath, "utf8");
+  } catch {
+    return "";
+  }
+}
 
-  for (const entry of entries) {
-    const name = entry.name.replace(/\.(js|ts|tsx)$/, "");
+function isM3(source) {
+  return (
+    source.includes("m3.material.io") ||
+    /Material Design 3/i.test(source) ||
+    /\bM3\b/.test(source.slice(0, 2000))
+  );
+}
 
-    // Skip providers — they get their own section
-    if (PROVIDER_NAMES.has(name)) continue;
+/** Build the catalog entry for one classified barrel module. */
+function buildEntry(sourceDirectory, modulePath, { name, type, isFile }) {
+  const folder = path.join(sourceDirectory, path.dirname(modulePath));
+  const siblings = fs.readdirSync(folder);
+  const mainFile = siblings.find(
+    (fileName) =>
+      isSourceFile(fileName) &&
+      fileName.replace(SOURCE_FILE_PATTERN, "") === name,
+  );
+  const mainPath = mainFile ? path.join(folder, mainFile) : null;
+  const source = mainPath ? readSource(mainPath) : "";
+  const ownsFolder = (type === "component" || type === "provider") && !isFile;
 
-    if (entry.isDirectory()) {
-      const dirPath = path.join(componentsDir, entry.name);
-      const files = fs.readdirSync(dirPath);
-      const testFiles = files.filter(
-        (f) => f.includes(".test.") || f.includes(".spec."),
+  const testFiles = siblings.filter(
+    (fileName) =>
+      TEST_FILE_PATTERN.test(fileName) &&
+      (ownsFolder || fileName.startsWith(`${name}.`)),
+  );
+
+  let category = type === "hook" ? "hooks" : `${type}s`;
+  if (type === "utility") category = "utilities";
+  if (type === "component") {
+    category = CATEGORY_MAP[name] ?? DEFAULT_CATEGORY;
+    if (!CATEGORY_MAP[name]) {
+      console.warn(
+        `⚠ ${name} has no category in CATEGORY_MAP — listed under "${DEFAULT_CATEGORY}"`,
       );
-      const mainFile = files.find(
-        (f) =>
-          /\.(js|ts|tsx)$/.test(f) &&
-          !f.includes(".test.") &&
-          !f.includes(".spec.") &&
-          !f.endsWith(".d.ts"),
-      );
-      const mainPath = mainFile ? path.join(dirPath, mainFile) : null;
-
-      catalog.push({
-        name: entry.name,
-        type: "component",
-        category: CATEGORY_MAP[entry.name] || "layout",
-        m3: mainPath ? isM3(mainPath) : false,
-        hasTests: testFiles.length > 0,
-        files: files.length,
-        sizeKb: +(totalSize(dirPath) / 1024).toFixed(1),
-        description: mainPath ? extractDescription(mainPath) : "",
-      });
     }
   }
 
-  return catalog;
-}
-
-// ── Scan hooks directory ────────────────────────────────────────
-function scanHooks(hooksDir) {
-  if (!fs.existsSync(hooksDir)) return [];
-
-  const files = fs.readdirSync(hooksDir);
-  const catalog = [];
-
-  const hookFiles = files.filter(
-    (f) =>
-      /\.(js|ts|tsx)$/.test(f) &&
-      !f.includes(".test.") &&
-      !f.includes(".spec.") &&
-      !f.endsWith(".d.ts"),
-  );
-
-  for (const file of hookFiles) {
-    const name = file.replace(/\.(js|ts|tsx)$/, "");
-    const filePath = path.join(hooksDir, file);
-    const testExists = files.some(
-      (f) =>
-        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
-    );
-
-    catalog.push({
-      name,
-      type: "hook",
-      category: "hooks",
-      m3: false,
-      hasTests: testExists,
-      files: testExists ? 2 : 1,
-      sizeKb: +(totalSize(filePath) / 1024).toFixed(1),
-      description: extractDescription(filePath),
-    });
-  }
-
-  return catalog;
-}
-
-// ── Scan services directory ─────────────────────────────────────
-function scanServices(servicesDir) {
-  if (!fs.existsSync(servicesDir)) return [];
-
-  const files = fs.readdirSync(servicesDir);
-  const catalog = [];
-
-  const serviceFiles = files.filter(
-    (f) =>
-      /\.(js|ts|tsx)$/.test(f) &&
-      !f.includes(".test.") &&
-      !f.includes(".spec.") &&
-      !f.endsWith(".d.ts"),
-  );
-
-  for (const file of serviceFiles) {
-    const name = file.replace(/\.(js|ts|tsx)$/, "");
-    const filePath = path.join(servicesDir, file);
-    const testExists = files.some(
-      (f) =>
-        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
-    );
-
-    catalog.push({
-      name,
-      type: "service",
-      category: "services",
-      m3: false,
-      hasTests: testExists,
-      files: testExists ? 2 : 1,
-      sizeKb: +(totalSize(filePath) / 1024).toFixed(1),
-      description: extractDescription(filePath),
-    });
-  }
-
-  return catalog;
-}
-
-// ── Scan utilities directory ────────────────────────────────────
-function scanUtilities(utilsDir) {
-  if (!fs.existsSync(utilsDir)) return [];
-
-  const files = fs.readdirSync(utilsDir);
-  const catalog = [];
-
-  const utilFiles = files.filter(
-    (f) =>
-      /\.(js|ts|tsx)$/.test(f) &&
-      !f.includes(".test.") &&
-      !f.includes(".spec.") &&
-      !f.endsWith(".d.ts"),
-  );
-
-  for (const file of utilFiles) {
-    const name = file.replace(/\.(js|ts|tsx)$/, "");
-    const filePath = path.join(utilsDir, file);
-    const testExists = files.some(
-      (f) =>
-        f.startsWith(name) && (f.includes(".test.") || f.includes(".spec.")),
-    );
-
-    catalog.push({
-      name,
-      type: "utility",
-      category: "utilities",
-      m3: false,
-      hasTests: testExists,
-      files: testExists ? 2 : 1,
-      sizeKb: +(totalSize(filePath) / 1024).toFixed(1),
-      description: extractDescription(filePath),
-    });
-  }
-
-  return catalog;
-}
-
-// ── Scan providers ──────────────────────────────────────────────
-function scanProviders(componentsDir) {
-  if (!fs.existsSync(componentsDir)) return [];
-
-  const entries = fs.readdirSync(componentsDir, { withFileTypes: true });
-  const catalog = [];
-
-  for (const entry of entries) {
-    const name = entry.name.replace(/\.(js|ts|tsx)$/, "");
-    if (!PROVIDER_NAMES.has(name)) continue;
-
-    if (entry.isDirectory()) {
-      const dirPath = path.join(componentsDir, entry.name);
-      const files = fs.readdirSync(dirPath);
-      const testFiles = files.filter(
-        (f) => f.includes(".test.") || f.includes(".spec."),
-      );
-      const mainFile = files.find(
-        (f) =>
-          /\.(js|ts|tsx)$/.test(f) &&
-          !f.includes(".test.") &&
-          !f.includes(".spec.") &&
-          !f.endsWith(".d.ts"),
-      );
-
-      catalog.push({
-        name,
-        type: "provider",
-        category: "providers",
-        m3: false,
-        hasTests: testFiles.length > 0,
-        files: files.length,
-        sizeKb: +(totalSize(dirPath) / 1024).toFixed(1),
-        description: mainFile
-          ? extractDescription(path.join(dirPath, mainFile))
-          : "",
-      });
-    } else if (
-      entry.isFile() &&
-      /\.(js|ts|tsx)$/.test(entry.name) &&
-      !entry.name.endsWith(".d.ts")
-    ) {
-      const filePath = path.join(componentsDir, entry.name);
-      catalog.push({
-        name,
-        type: "provider",
-        category: "providers",
-        m3: false,
-        hasTests: false,
-        files: 1,
-        sizeKb: +(totalSize(filePath) / 1024).toFixed(1),
-        description: extractDescription(filePath),
-      });
-    }
-  }
-
-  return catalog;
+  return {
+    name,
+    type,
+    category,
+    m3: type === "component" ? isM3(source) : false,
+    hasTests: testFiles.length > 0,
+    files: ownsFolder ? siblings.length : 1 + testFiles.length,
+    sizeKb: toKb(
+      ownsFolder ? sizeOf(folder) : mainPath ? sizeOf(mainPath) : 0,
+    ),
+    description: extractDescription(source, name),
+  };
 }
 
 // ── Main ─────────────────────────────────────────────────────────
+
 function main() {
-  // Resolve directly to src/ — the library uses source-first architecture
-  // so require.resolve() fails on the strict exports map.
-  const libRoot = path.resolve(
-    process.cwd(),
-    "node_modules/@rodrigo-barraza/components-library",
+  const libraryRoot = resolveLibraryRoot();
+  // The library ships its sources; scan them (dist has no tests or CSS
+  // modules to count, and its comments are stripped of context).
+  const sourceDirectory = path.join(libraryRoot, "src");
+  const barrelSource = fs.readFileSync(
+    path.join(sourceDirectory, "index.tsx"),
+    "utf8",
   );
-  const srcDir = path.join(libRoot, "src");
-  const componentsDir = path.resolve(srcDir, "components");
-  const hooksDir = path.resolve(srcDir, "hooks");
-  const servicesDir = path.resolve(srcDir, "services");
-  const utilsDir = path.resolve(srcDir, "utils");
 
-  const catalog = [
-    ...scanComponents(componentsDir),
-    ...scanProviders(componentsDir),
-    ...scanHooks(hooksDir),
-    ...scanServices(servicesDir),
-    ...scanUtilities(utilsDir),
-  ].sort((a, b) => a.name.localeCompare(b.name));
-
-  const outDir = path.resolve(process.cwd(), "src/generated");
-  fs.mkdirSync(outDir, { recursive: true });
-
-  const outPath = path.join(outDir, "component-catalog.json");
-  fs.writeFileSync(outPath, JSON.stringify(catalog, null, 2) + "\n");
-
-  // Print summary by type
-  const byType = {};
-  for (const item of catalog) {
-    byType[item.type] = (byType[item.type] || 0) + 1;
+  const catalog = [];
+  for (const modulePath of parseBarrelModules(barrelSource)) {
+    const classification = classifyModule(modulePath);
+    if (!classification) continue;
+    catalog.push(buildEntry(sourceDirectory, modulePath, classification));
   }
-  const summary = Object.entries(byType)
-    .map(([t, n]) => `${n} ${t}s`)
+  catalog.sort((a, b) => a.name.localeCompare(b.name));
+
+  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(catalog, null, 2)}\n`);
+
+  const countsByType = {};
+  for (const entry of catalog) {
+    countsByType[entry.type] = (countsByType[entry.type] ?? 0) + 1;
+  }
+  const plural = (type) => (type === "utility" ? "utilities" : `${type}s`);
+  const summary = Object.entries(countsByType)
+    .map(([type, count]) => `${count} ${plural(type)}`)
     .join(", ");
   console.log(
-    `✔ Generated catalog: ${catalog.length} entries (${summary}) → ${outPath}`,
+    `✔ Generated catalog: ${catalog.length} entries (${summary}) → ${path.relative(process.cwd(), OUTPUT_PATH) || OUTPUT_PATH}`,
   );
 }
 
-main();
+// Run only when executed directly, so the helpers above can be unit-tested.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}
