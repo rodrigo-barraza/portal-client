@@ -38,9 +38,11 @@ import useAsyncData, { settleReports } from "./analytics/useAsyncData";
 import { formatLocation, formatRatioPercent, joinMeta } from "./analytics/analyticsFormat";
 import {
   fillDailySeries,
+  gaOverviewDelta,
   gaSeriesWindow,
   newVsReturningSegments,
   toDonutSegments,
+  type GAOverviewWithPrevious,
 } from "./analytics/analyticsSeries";
 import styles from "./WebAnalytics.module.css";
 import type {
@@ -64,7 +66,7 @@ const REALTIME_REFRESH_MS = 15_000;
 type GATopPageRow = GAPageRow & { pageTitle?: string };
 
 interface GAReports {
-  overview: GAOverview;
+  overview: GAOverview & GAOverviewWithPrevious;
   pages: { pages: GATopPageRow[] };
   sources: { sources: GASource[] };
   geography: { locations: GALocation[] };
@@ -281,7 +283,7 @@ export default function GAReportComponent({
             sub={`${formatNumber(overview.newUsers)} new`}
             color="#6366f1"
             delay={0}
-            delta={overview.deltas?.totalUsers}
+            delta={gaOverviewDelta(overview, "totalUsers")}
           />
           <StatCard
             icon={Eye}
@@ -289,7 +291,7 @@ export default function GAReportComponent({
             value={formatNumber(overview.pageviews)}
             color="#8b5cf6"
             delay={50}
-            delta={overview.deltas?.pageviews}
+            delta={gaOverviewDelta(overview, "pageviews")}
           />
           <StatCard
             icon={Activity}
@@ -298,7 +300,7 @@ export default function GAReportComponent({
             sub={`${formatNumber(overview.engagedSessions)} engaged`}
             color="#10b981"
             delay={100}
-            delta={overview.deltas?.sessions}
+            delta={gaOverviewDelta(overview, "sessions")}
           />
           <StatCard
             icon={Clock}
@@ -306,7 +308,7 @@ export default function GAReportComponent({
             value={formatElapsedTime(overview.avgSessionDuration)}
             color="#3b82f6"
             delay={150}
-            delta={overview.deltas?.avgSessionDuration}
+            delta={gaOverviewDelta(overview, "avgSessionDuration")}
           />
           <StatCard
             icon={MousePointerClick}
@@ -315,7 +317,7 @@ export default function GAReportComponent({
             sub={`${formatRatioPercent(overview.bounceRate)} bounce`}
             color="#f59e0b"
             delay={200}
-            delta={overview.deltas?.engagementRate}
+            delta={gaOverviewDelta(overview, "engagementRate")}
           />
         </div>
       )}

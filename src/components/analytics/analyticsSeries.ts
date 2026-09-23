@@ -7,7 +7,7 @@
  * a day is always exactly 24h — no DST drift from local-time arithmetic.
  */
 
-import { formatExact } from "./analyticsFormat";
+import { formatExact, percentChange } from "./analyticsFormat";
 import { CHART_COLORS, SOURCE_COLORS, chartColor } from "./palette";
 import type { DonutSegment } from "../../types/portal";
 
@@ -277,4 +277,40 @@ export function newVsReturningSegments(
       color: known?.color ?? CHART_COLORS[(2 + otherIndex++) % CHART_COLORS.length],
     };
   });
+}
+
+// ── GA overview deltas ────────────────────────────────────────
+
+export type GADeltaMetric =
+  | "totalUsers"
+  | "pageviews"
+  | "sessions"
+  | "avgSessionDuration"
+  | "engagementRate";
+
+export interface GAOverviewWithPrevious {
+  totalUsers: number;
+  pageviews: number;
+  sessions: number;
+  avgSessionDuration: number;
+  engagementRate: number;
+  /** The comparison window's totals (portal-service sends these). */
+  previous?: Partial<Record<GADeltaMetric, number>>;
+  deltas?: Partial<Record<GADeltaMetric, number>>;
+}
+
+/**
+ * Period-over-period change for one GA overview metric, from the raw
+ * current/previous totals. portal-service's precomputed `deltas` report
+ * a zero previous period as +100% (its `delta()` returns 1), which reads
+ * as "doubled" for a brand-new site; from the totals, a zero baseline has
+ * no percentage and the badge is hidden. Falls back to `deltas` when the
+ * totals are absent.
+ */
+export function gaOverviewDelta(
+  overview: GAOverviewWithPrevious,
+  metric: GADeltaMetric,
+): number | null {
+  if (overview.previous) return percentChange(overview[metric], overview.previous[metric]);
+  return overview.deltas?.[metric] ?? null;
 }

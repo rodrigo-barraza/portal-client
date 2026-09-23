@@ -89,12 +89,15 @@ export function HorizontalBar({
   max,
   color,
   suffix = "",
+  formatValue = formatNumber,
 }: {
   label: string;
   value: number;
   max: number;
   color: string;
   suffix?: string;
+  /** Value formatter — e.g. formatBytes for storage sizes. */
+  formatValue?: (value: number) => string;
 }) {
   const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
@@ -104,7 +107,7 @@ export function HorizontalBar({
           {label}
         </span>
         <span className={styles["bar-value"]}>
-          {formatNumber(value)}
+          {formatValue(value)}
           {suffix}
         </span>
       </div>
@@ -125,11 +128,14 @@ export function DonutChart({
   size = 120,
   strokeWidth = 14,
   centerLabel = "Total",
+  formatValue = formatNumber,
 }: {
   segments: DonutSegment[];
   size?: number;
   strokeWidth?: number;
   centerLabel?: string;
+  /** Center-total formatter — e.g. formatBytes for storage sizes. */
+  formatValue?: (value: number) => string;
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -144,8 +150,10 @@ export function DonutChart({
     running += segment.value;
   }
 
-  const description = `${centerLabel}: ${formatExact(total)}. ${segments
-    .map((segment) => `${segment.label} ${formatExact(segment.value)}`)
+  // Exact numbers for screen readers; a custom formatter (bytes) as given
+  const describeValue = formatValue === formatNumber ? formatExact : formatValue;
+  const description = `${centerLabel}: ${describeValue(total)}. ${segments
+    .map((segment) => `${segment.label} ${describeValue(segment.value)}`)
     .join(", ")}.`;
 
   return (
@@ -195,7 +203,7 @@ export function DonutChart({
         className={styles["donut-center"]}
         aria-hidden
       >
-        {formatNumber(total)}
+        {formatValue(total)}
       </text>
       <text
         x={center}
@@ -246,19 +254,27 @@ export function DonutPanel({
   segments,
   centerLabel = "Sessions",
   suffix = " sessions",
+  formatValue = formatNumber,
 }: {
   icon: PanelIcon;
   title: string;
   segments: DonutSegment[];
   centerLabel?: string;
   suffix?: string;
+  formatValue?: (value: number) => string;
 }) {
   if (segments.length === 0) return null;
   const max = Math.max(...segments.map((segment) => segment.value));
   return (
     <Panel icon={icon} title={title}>
       <div className={styles["donut-wrapper"]}>
-        <DonutChart segments={segments} size={130} strokeWidth={16} centerLabel={centerLabel} />
+        <DonutChart
+          segments={segments}
+          size={130}
+          strokeWidth={16}
+          centerLabel={centerLabel}
+          formatValue={formatValue}
+        />
         <div className={styles["donut-legend"]}>
           {segments.slice(0, DONUT_LEGEND_LIMIT).map((segment, index) => (
             <HorizontalBar
@@ -268,6 +284,7 @@ export function DonutPanel({
               max={max}
               color={segment.color}
               suffix={suffix}
+              formatValue={formatValue}
             />
           ))}
         </div>

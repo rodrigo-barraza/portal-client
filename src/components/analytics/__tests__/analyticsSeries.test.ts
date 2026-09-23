@@ -3,6 +3,7 @@ import {
   buildHourlyGrid,
   describeSeries,
   fillDailySeries,
+  gaOverviewDelta,
   gaSeriesWindow,
   isCustomPeriod,
   newVsReturningSegments,
@@ -227,5 +228,29 @@ describe("donut segments", () => {
     expect(returningFirst[1]).toMatchObject({ label: "New Users", color: SOURCE_COLORS.ga });
     expect(returningFirst[2].label).toBe("(not set)");
     expect([SOURCE_COLORS.ga, SOURCE_COLORS.sessions]).not.toContain(returningFirst[2].color);
+  });
+});
+
+describe("gaOverviewDelta", () => {
+  const base = { totalUsers: 50, pageviews: 0, sessions: 80, avgSessionDuration: 30, engagementRate: 0.5 };
+
+  it("computes the change from the previous period's totals", () => {
+    const overview = { ...base, previous: { totalUsers: 40, sessions: 100 } };
+    expect(gaOverviewDelta(overview, "totalUsers")).toBeCloseTo(0.25);
+    expect(gaOverviewDelta(overview, "sessions")).toBeCloseTo(-0.2);
+  });
+
+  it("hides the badge for a zero previous period instead of claiming +100%", () => {
+    const overview = {
+      ...base,
+      previous: { totalUsers: 0 },
+      deltas: { totalUsers: 1 }, // the service's sentinel for "was zero"
+    };
+    expect(gaOverviewDelta(overview, "totalUsers")).toBeNull();
+  });
+
+  it("falls back to the service deltas when totals are missing", () => {
+    expect(gaOverviewDelta({ ...base, deltas: { pageviews: 0.1 } }, "pageviews")).toBe(0.1);
+    expect(gaOverviewDelta(base, "pageviews")).toBeNull();
   });
 });
