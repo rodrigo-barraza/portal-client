@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { SETTINGS_STORAGE_KEY } from "./storageKeys";
 
 /**
  * Portal settings store — single source of truth for user preferences.
@@ -61,31 +62,75 @@ export const LANDING_PAGES = [
   { value: "/object-store", label: "Object Store" },
 ] as const;
 
-const STORAGE_KEY = "portal:settings";
+/** Allowed range of every numeric setting (inclusive). Values outside it are
+ *  clamped on write and on read, so a hand-edited or stale stored value can
+ *  never, say, poll health every 0 seconds. */
+export const SETTING_LIMITS = {
+  healthCheckInterval: { min: 5, max: 300 },
+  containerPollingInterval: { min: 1, max: 60 },
+  alertThresholdCpu: { min: 10, max: 100 },
+  alertThresholdMemory: { min: 10, max: 100 },
+} as const satisfies Partial<
+  Record<keyof PortalSettings, { min: number; max: number }>
+>;
+
+type LimitedSetting = keyof typeof SETTING_LIMITS;
+
+const VIEW_MODES: readonly PortalSettings["defaultView"][] = ["card", "table"];
+
 const CHANGE_EVENT = "portal:settings-change";
 
 let cachedSnapshot: PortalSettings | null = null;
 
-/** Keep only known keys with sane types; drop legacy/dead keys silently. */
-function sanitize(stored: Record<string, unknown>): Partial<PortalSettings> {
-  const next: Partial<PortalSettings> = {};
+function isLimitedSetting(key: keyof PortalSettings): key is LimitedSetting {
+  return key in SETTING_LIMITS;
+}
+
+/** Clamp a numeric setting into its allowed range (whole numbers only). */
+export function clampSetting(key: LimitedSetting, value: number): number {
+  const { min, max } = SETTING_LIMITS[key];
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/**
+ * Keep only known keys with valid values: right type, numbers finite and
+ * clamped into range, enums and landing pages from their allowed sets.
+ * Legacy/dead keys and invalid values are dropped silently.
+ */
+export function sanitizeSettings(
+  stored: Record<string, unknown>,
+): Partial<PortalSettings> {
+  const next: Record<string, unknown> = {};
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof PortalSettings)[]) {
     const value = stored[key];
-    const defaultValue = DEFAULT_SETTINGS[key];
-    if (typeof value === typeof defaultValue) {
-      if (typeof value === "number" && !Number.isFinite(value)) continue;
-      (next as Record<string, unknown>)[key] = value;
+    if (typeof value !== typeof DEFAULT_SETTINGS[key]) continue;
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) continue;
+      next[key] = isLimitedSetting(key) ? clampSetting(key, value) : value;
+    } else if (key === "defaultView") {
+      if (VIEW_MODES.includes(value as PortalSettings["defaultView"])) {
+        next[key] = value;
+      }
+    } else if (key === "defaultPage") {
+      if (LANDING_PAGES.some((page) => page.value === value)) next[key] = value;
+    } else {
+      next[key] = value;
     }
   }
-  return next;
+  return next as Partial<PortalSettings>;
 }
 
 function readFromStorage(): PortalSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (!stored) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...sanitize(JSON.parse(stored)) };
+    const parsed: unknown = JSON.parse(stored);
+    if (typeof parsed !== "object" || parsed === null) return DEFAULT_SETTINGS;
+    return {
+      ...DEFAULT_SETTINGS,
+      ...sanitizeSettings(parsed as Record<string, unknown>),
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -96,10 +141,15 @@ export function getSettings(): PortalSettings {
   return cachedSnapshot;
 }
 
+/** Merge `partial` into the settings. Invalid values are dropped and
+ *  numbers are clamped into {@link SETTING_LIMITS}. */
 export function updateSettings(partial: Partial<PortalSettings>): void {
-  cachedSnapshot = { ...getSettings(), ...partial };
+  cachedSnapshot = { ...getSettings(), ...sanitizeSettings(partial) };
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedSnapshot));
+    window.localStorage.setItem(
+      SETTINGS_STORAGE_KEY,
+      JSON.stringify(cachedSnapshot),
+    );
   } catch {
     // localStorage unavailable/full — keep the in-memory value
   }
@@ -109,7 +159,7 @@ export function updateSettings(partial: Partial<PortalSettings>): void {
 export function resetSettings(): void {
   cachedSnapshot = { ...DEFAULT_SETTINGS };
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(SETTINGS_STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -118,7 +168,7 @@ export function resetSettings(): void {
 
 function subscribe(callback: () => void): () => void {
   const handleStorage = (event: StorageEvent) => {
-    if (event.key !== STORAGE_KEY && event.key !== null) return;
+    if (event.key !== SETTINGS_STORAGE_KEY && event.key !== null) return;
     cachedSnapshot = null; // another tab wrote — re-read
     callback();
   };
