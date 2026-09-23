@@ -24,40 +24,6 @@
   gap: 10px;
 }
 
-/* ── View Mode Toggle ────────────────────────────────────────── */
-
-.view-mode-toggle {
-  display: flex;
-  gap: 2px;
-  background: var(--background-elevated);
-  border-radius: var(--border-radius-sm);
-  padding: 3px;
-}
-
-.view-mode-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 8px;
-  color: var(--text-muted);
-  border-radius: calc(var(--border-radius-sm) - 1px);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    box-shadow var(--transition-fast);
-
-  &:hover {
-    color: var(--text-secondary);
-  }
-}
-
-.view-mode-button-is-active-state {
-  background: var(--background-surface);
-  color: var(--accent-primary);
-  box-shadow: 0 1px 3px oklch(0.0% 0.0 0.0 / 0.06);
-}
-
 /* ── Visitor Cards ───────────────────────────────────────────── */
 
 .card-list {
@@ -77,7 +43,7 @@
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
-  animation: fade-in var(--transition-normal) ease-out both;
+  animation: fade-in var(--transition-normal) both;
 
   &:hover {
     border-color: var(--calculated-border-subtle);
@@ -178,51 +144,7 @@
   color: var(--text-muted);
 }
 
-/* ── Sessions Table ──────────────────────────────────────────── */
-
-.session-table {
-  display: flex;
-  flex-direction: column;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  overflow: hidden;
-}
-
-.session-table-header {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-bottom: 1px solid var(--calculated-border-color);
-  background: var(--background-surface);
-}
-
-.session-table-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1.5fr 0.75fr 0.75fr;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--calculated-border-color);
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--transition-fast);
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background: var(--background-elevated);
-  }
-}
+/* ── Table cells ─────────────────────────────────────────────── */
 
 .session-table-id {
   display: flex;
@@ -234,10 +156,25 @@
   font-size: var(--font-size-xs);
 }
 
-.session-table-visitor {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+/* The id cell doubles as the row's keyboard-focusable open button. */
+.table-open-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+
+  &:hover {
+    color: var(--accent-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 .session-table-device {
@@ -371,7 +308,9 @@
 
 .timeline {
   position: relative;
+  margin: 0;
   padding: 16px 18px;
+  list-style: none;
 }
 
 .timeline-item {
@@ -521,6 +460,12 @@
   border-radius: var(--border-radius-sm);
 }
 
+.empty-state-error {
+  color: var(--color-danger);
+  padding: 0 24px;
+  text-align: center;
+}
+
 .empty-timeline {
   padding: 24px 18px;
   text-align: center;
@@ -647,14 +592,32 @@
 
 /* ── Visitor Meta Link (clickable IP in visitor card) ─────────── */
 
-.visitor-meta-link {
+.visitor-meta-item.visitor-meta-link,
+.session-table-ip.visitor-meta-link {
   cursor: pointer;
-  color: var(--accent-primary) !important;
+  color: var(--accent-primary);
   transition: opacity var(--transition-fast);
 
   &:hover {
     opacity: 0.8;
   }
+}
+
+/* ── Bot Tag (crawler sessions stay listed, flagged) ─────────── */
+
+.bot-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-radius: 999px;
 }
 
 /* ── Timeline Session Tag ────────────────────────────────────── */
@@ -673,6 +636,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -692,18 +656,13 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .visitor-card {
+    animation: none;
+  }
+}
+
 @media (max-width: 768px) {
-  .session-table-header,
-  .session-table-row {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  .session-table-geo,
-  .session-table-duration,
-  .session-table-time {
-    display: none;
-  }
-
   .meta-grid {
     grid-template-columns: repeat(2, 1fr);
   }
