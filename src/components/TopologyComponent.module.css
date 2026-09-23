@@ -68,6 +68,12 @@
   gap: 8px;
 }
 
+/* The search box beside it grows to fill the row; without this the toggle
+   is the one that gives way, and "By Tier" slid under "By Type". */
+.view-toggle {
+  flex-shrink: 0;
+}
+
 /* ── SVG canvas ── */
 
 .canvas-wrapper {

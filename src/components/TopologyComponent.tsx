@@ -402,6 +402,7 @@ export default function TopologyComponent() {
               value={viewMode}
               onChange={handleViewModeChange}
               segments={VIEW_SEGMENTS}
+              className={styles["view-toggle"]}
             />
             <SearchInputComponent
               value={searchQuery}
