@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { formatElapsedTime, formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "@/services/ApiService";
 import type { GAOverview, GAPageRow } from "@/types/portal";
+import useAsyncData from "../analytics/useAsyncData";
 import panelStyles from "../ExpandedProjectPanelComponent.module.css";
 import styles from "./ProjectAnalyticsTab.module.css";
 
@@ -28,27 +28,19 @@ interface AnalyticsSnapshot {
 
 /** 30-day GA4 snapshot for a project (drawer's Web Analytics tab). */
 export default function ProjectAnalyticsTab({ propertyId }: { propertyId: string }) {
-  const [snapshot, setSnapshot] = useState<AnalyticsSnapshot | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-    (async () => {
-      // Each report is independent — one failing must not blank the rest.
-      const [overview, pages, realtime] = await Promise.all([
-        ApiService.getGAOverview(propertyId, PERIOD, { signal }).catch(() => null),
-        ApiService.getGAPages(propertyId, PERIOD, { signal }).catch(() => null),
-        ApiService.getGARealtime(propertyId, { signal }).catch(() => null),
-      ]);
-      if (signal.aborted) return;
-      setSnapshot({
-        overview: overview ?? null,
-        pages: Array.isArray(pages?.pages) ? pages.pages : [],
-        activeUsers: typeof realtime?.activeUsers === "number" ? realtime.activeUsers : null,
-      });
-    })();
-    return () => controller.abort();
-  }, [propertyId]);
+  const { data: snapshot } = useAsyncData<AnalyticsSnapshot>(propertyId, async (signal) => {
+    // Each report is independent — one failing must not blank the rest.
+    const [overview, pages, realtime] = await Promise.all([
+      ApiService.getGAOverview(propertyId, PERIOD, { signal }).catch(() => null),
+      ApiService.getGAPages(propertyId, PERIOD, { signal }).catch(() => null),
+      ApiService.getGARealtime(propertyId, { signal }).catch(() => null),
+    ]);
+    return {
+      overview: overview ?? null,
+      pages: Array.isArray(pages?.pages) ? pages.pages : [],
+      activeUsers: typeof realtime?.activeUsers === "number" ? realtime.activeUsers : null,
+    };
+  });
 
   if (!snapshot) {
     return (

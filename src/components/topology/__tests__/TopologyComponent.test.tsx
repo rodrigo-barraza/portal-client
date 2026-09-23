@@ -36,11 +36,12 @@ describe("TopologyComponent", () => {
 
     expect(await screen.findByText("API")).toBeInTheDocument();
     expect(screen.getByText("4 services · 3 healthy")).toBeInTheDocument();
-    expect(getServices).toHaveBeenCalledWith(true);
-    expect(getProjectAnalysis).toHaveBeenCalledWith(false);
+    const withSignal = { signal: expect.any(AbortSignal) };
+    expect(getServices).toHaveBeenCalledWith(true, withSignal);
+    expect(getProjectAnalysis).toHaveBeenCalledWith(false, withSignal);
 
     fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
-    await waitFor(() => expect(getProjectAnalysis).toHaveBeenLastCalledWith(true));
+    await waitFor(() => expect(getProjectAnalysis).toHaveBeenLastCalledWith(true, withSignal));
   });
 
   it("shows an error state with retry instead of an empty graph", async () => {

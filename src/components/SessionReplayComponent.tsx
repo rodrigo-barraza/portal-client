@@ -67,13 +67,17 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
   useEffect(() => {
     let cancelled = false;
     let player: ReplayPlayer | null = null;
+    // A new session (or leaving) cancels the replay download, which can be large
+    const controller = new AbortController();
     const settle = (state: ReplayStatus) => {
       if (!cancelled) setStatus({ sessionId, state });
     };
 
     (async () => {
       try {
-        const payload = unwrapData<ReplayPayload | null>(await ApiService.getSessionReplay(sessionId));
+        const payload = unwrapData<ReplayPayload | null>(
+          await ApiService.getSessionReplay(sessionId, { signal: controller.signal }),
+        );
         const events = Array.isArray(payload?.events) ? payload.events : [];
         if (cancelled) return;
 
@@ -106,6 +110,7 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
 
     return () => {
       cancelled = true;
+      controller.abort();
       destroyPlayer(player);
       player = null;
     };
