@@ -1,0 +1,67 @@
+/* ── Site Preview Thumbnail (screenshot, live iframe on hover) ── */
+
+.container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--calculated-border-color);
+  background: var(--background-elevated);
+  isolation: isolate;
+  container-type: inline-size;
+}
+
+/* Cached screenshot from portal-service — captured at 1280×800, the same
+   16:10 ratio as the container, so cover crops nothing. */
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.iframe {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1280px;
+  height: 800px;
+  border: none;
+  transform-origin: top left;
+  /* Dynamically scale the 1280px viewport to fit the card's content width.
+     100cqi = container query inline size (from .container's
+     container-type). Dividing by 1280px (not 1280) is required: length ÷ length
+     is a <number>, which `scale` accepts — length ÷ number is a length, which
+     gets dropped as invalid and left the iframe unscaled. */
+  scale: calc(100cqi / 1280px);
+  pointer-events: none;
+  /* Sits above the screenshot; stays invisible until the site has loaded
+     so hover shows screenshot → live without a white flash. */
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.iframe-ready {
+  opacity: 1;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 12px 2px oklch(0% 0 0 / 0.25);
+  border-radius: 6px;
+}

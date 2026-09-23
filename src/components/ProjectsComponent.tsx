@@ -1,396 +1,359 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  RefreshCw,
   ArrowUpDown,
-  LayoutGrid,
-  Table2,
-  FolderKanban,
-  HeartPulse,
-  Server,
-  Layers,
-  HardDrive,
   BookOpen,
+  FolderKanban,
+  HardDrive,
+  HeartPulse,
+  LayoutGrid,
+  Layers,
+  RefreshCw,
+  Server,
+  Table2,
 } from "lucide-react";
 import {
   ButtonComponent,
   LoadingIndicatorComponent,
   PageHeaderComponent,
-  SelectComponent,
   SearchInputComponent,
   SegmentedControlComponent,
+  SelectComponent,
   StatsCardComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatBytes } from "@rodrigo-barraza/utilities-library";
-
+import {
+  formatBytes,
+  getErrorMessage,
+} from "@rodrigo-barraza/utilities-library";
 import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
-import { usePortalSettings, getSettings } from "@/lib/settings";
+import { getSettings, usePortalSettings } from "@/lib/settings";
+import type {
+  LanguageBreakdown,
+  PortalService,
+  RepoSize,
+  ServicesResponse,
+} from "../types/portal";
+import {
+  useActionRunner,
+  type ContainerAction,
+} from "./monitoring/useActionRunner";
+import { useRollbackAvailability } from "./monitoring/useRollbackAvailability";
+import { useVisiblePolling } from "./monitoring/useVisiblePolling";
+import {
+  EMPTY_FILTERS,
+  buildFilterOptions,
+  filterProjects,
+  hasActiveFilters,
+  isDeployedProject,
+  projectsFromResponse,
+  sortProjects,
+  summarizeProjects,
+  type FilterDimension,
+  type ProjectFilters,
+  type SortDirection,
+} from "./projects/projectModel";
 import styles from "./ProjectsComponent.module.css";
-import type { PortalService } from "../types/portal";
 
-// ── Project type classification ──────────────────────────────────
-// Non-deployed project types — these don't run as Docker containers
-const NON_DEPLOYED_TYPES = new Set(["Library", "Kit", "Tool"]);
+/** portal-service re-checks health 3 s after an action; look just after. */
+const POST_ACTION_RECHECK_MILLISECONDS = 4_000;
 
-/** Whether a project is a deployed (containerized) service. */
-function isDeployedProject(service: PortalService) {
-  return !NON_DEPLOYED_TYPES.has(service.projectType as string);
-}
+const LIBRARY_EXCLUDED_COLUMNS = [
+  "tier",
+  "domain",
+  "database",
+  "containers",
+] as const;
 
-// ── Static filter option definitions ─────────────────────────────
-const STATIC_FILTER_OPTIONS = {
-  status: {
-    label: "Status",
-    values: [
-      { value: "healthy", label: "Healthy" },
-      { value: "unhealthy", label: "Down" },
-    ],
-  },
-  visibility: {
-    label: "Visibility",
-    values: [
-      { value: "external", label: "External" },
-      { value: "internal", label: "Internal" },
-    ],
-  },
-  environment: {
-    label: "Environment",
-    values: [
-      { value: "Production", label: "Production" },
-      { value: "Development", label: "Development" },
-    ],
-  },
-};
-
-/** Compare two services by the chosen sort key. */
-function compareBySortKey(
-  firstService: PortalService,
-  secondService: PortalService,
-  sortKey: string,
-  sortDir: string,
-) {
-  const dir = sortDir === "asc" ? 1 : -1;
-  switch (sortKey) {
-    case "name":
-      return dir * (firstService.name || "").localeCompare(secondService.name || "");
-    case "status":
-      // healthy first in asc, down first in desc
-      return dir * ((secondService.healthy ? 1 : 0) - (firstService.healthy ? 1 : 0));
-    case "type":
-      return dir * (firstService.projectType || "").localeCompare(secondService.projectType || "");
-    case "tier":
-      return dir * ((firstService.deployTier ?? 99) - (secondService.deployTier ?? 99));
-    case "essential":
-      return dir * ((secondService.essential ? 1 : 0) - (firstService.essential ? 1 : 0));
-    case "domain":
-      return dir * (firstService.domain || "").localeCompare(secondService.domain || "");
-    case "repo":
-      return dir * (firstService.repo || "").localeCompare(secondService.repo || "");
-    case "dependencies":
-      return dir * ((firstService.dependsOn || []).length - (secondService.dependsOn || []).length);
-    case "database":
-      return dir * (firstService.db || "").localeCompare(secondService.db || "");
-    case "containers":
-      return dir * ((firstService.dockerProject ? 1 : 0) - (secondService.dockerProject ? 1 : 0));
-    default:
-      return 0;
-  }
-}
-
-/**
- * Derive Type and Host filter options from loaded service data.
- * Returns the full SORT_OPTIONS object, extending the static ones.
- */
-function buildFilterOptions(items: PortalService[]) {
-  const types: string[] = [
-    ...new Set<string>(
-      items.map((s: PortalService) => s.projectType as string).filter(Boolean),
-    ),
-  ].sort();
-  const hosts: string[] = [
-    ...new Set<string>(
-      items.map((s: PortalService) => s.device as string).filter(Boolean),
-    ),
-  ].sort();
-
-  return {
-    ...STATIC_FILTER_OPTIONS,
-    projectType: {
-      label: "Type",
-      values: types.map((projectType) => ({ value: projectType, label: projectType })),
-    },
-    device: {
-      label: "Device",
-      values: hosts.map((h) => ({ value: h, label: h })),
-    },
-  };
-}
+const VIEW_SEGMENTS = [
+  { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
+  { value: "table", icon: <Table2 size={12} strokeWidth={2.2} /> },
+];
 
 export default function ProjectsComponent() {
-  const settings = usePortalSettings();
-  const [services, setServices] = useState<PortalService[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    showInfrastructure,
+    showSystemSummary,
+    autoRefreshEnabled,
+    healthCheckInterval,
+  } = usePortalSettings();
+
+  const [registry, setRegistry] = useState<ServicesResponse | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [projectSizes, setProjectSizes] = useState<
-    Record<string, { sizeBytes: number; sizeKB: number }>
-  >({});
+  const [projectSizes, setProjectSizes] = useState<Record<string, RepoSize>>(
+    {},
+  );
   const [projectLanguages, setProjectLanguages] = useState<
-    Record<
-      string,
-      { primary: string; breakdown: { language: string; percent: number }[] }
-    >
+    Record<string, LanguageBreakdown>
   >({});
-  const didFetch = useRef(false);
-
-  // ── Filter state ────────────────────────────────────────────────
-  const [filters, setFilters] = useState<Record<string, string[]>>({
-    status: [],
-    visibility: [],
-    environment: [],
-    projectType: [],
-    device: [],
-  });
-
-  // ── Sort state ──────────────────────────────────────────────────
+  const [filters, setFilters] = useState<ProjectFilters>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState("name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-
-  // ── Search state ───────────────────────────────────────────────
+  const [sortDir, setSortDir] = useState<SortDirection>("asc");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // ── View mode state (initial mode comes from settings) ────────
+  // Initial view comes from Settings → Dashboard.
   const [viewMode, setViewMode] = useState<string>(
     () => getSettings().defaultView,
   );
+  const recheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function loadServices(refresh = false) {
-    try {
-      const servicesResponse = await ApiService.getServices(refresh);
-      setServices(servicesResponse.services || []);
-    } catch (error) {
-      console.error("Services fetch failed:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }
+  // ── Health: probe on the user's interval (Settings → Monitoring) ──
+  // `refresh=true` runs a real health round server-side, so it only runs
+  // while the tab is visible and never overlaps a round still running.
+  const refreshHealth = useVisiblePolling(
+    async (isCurrent, signal) => {
+      try {
+        const response = await ApiService.getServices(true, { signal });
+        if (!isCurrent()) return;
+        setRegistry(response);
+        setLoadError(null);
+      } catch (error) {
+        if (isCurrent()) setLoadError(getErrorMessage(error));
+      }
+    },
+    Math.max(5, healthCheckInterval) * 1000,
+    { enabled: autoRefreshEnabled },
+  );
 
-  async function loadSizes() {
-    try {
-      const sizesResponse = await ApiService.getProjectSizes();
-      setProjectSizes(sizesResponse.sizes || {});
-    } catch (error) {
-      console.error("Project sizes fetch failed:", error);
-    }
-  }
-
-  async function loadLanguages() {
-    try {
-      const languagesResponse = await ApiService.getProjectLanguages();
-      setProjectLanguages(languagesResponse.languages || {});
-    } catch (error) {
-      console.error("Project languages fetch failed:", error);
-    }
-  }
-
+  // First paint from the cached registry (instant) while the first real
+  // health round runs; with auto-refresh off, run that round once here.
   useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
-    loadServices(true);
-    loadSizes();
-    loadLanguages();
+    const controller = new AbortController();
+    ApiService.getServices(false, { signal: controller.signal })
+      .then((response) => {
+        if (!controller.signal.aborted) {
+          setRegistry((current) => current ?? response);
+        }
+      })
+      // The health round that always follows reports failures.
+      .catch(() => undefined);
+    if (!getSettings().autoRefreshEnabled) void refreshHealth();
+    return () => controller.abort();
+  }, [refreshHealth]);
+
+  // Repo sizes and languages are supplementary — the page works without.
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+    ApiService.getProjectSizes({ signal })
+      .then((response) => {
+        if (!signal.aborted) setProjectSizes(response.sizes);
+      })
+      .catch(() => undefined);
+    ApiService.getProjectLanguages({ signal })
+      .then((response) => {
+        if (!signal.aborted) setProjectLanguages(response.languages);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
   }, []);
 
-  // ── Auto-refresh health polling (Settings → Monitoring) ────────
-  const { autoRefreshEnabled, healthCheckInterval } = settings;
-  useEffect(() => {
-    if (!autoRefreshEnabled) return;
-    const everyMs = Math.max(5, healthCheckInterval) * 1000;
-    const intervalId = window.setInterval(() => loadServices(true), everyMs);
-    return () => window.clearInterval(intervalId);
-  }, [autoRefreshEnabled, healthCheckInterval]);
+  useEffect(
+    () => () => {
+      if (recheckTimerRef.current) clearTimeout(recheckTimerRef.current);
+    },
+    [],
+  );
 
-  const handleRefresh = () => {
+  const handleCheckAll = async () => {
     setRefreshing(true);
-    loadServices(true);
+    try {
+      await refreshHealth();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
-  const setFilter = (dimension: string, values: string[]) => {
-    setFilters((previousState) => ({ ...previousState, [dimension]: values }));
-  };
-
-  // ── Apply filters & sort ────────────────────────────────────────
-  // Infrastructure projects (databases, stores) are opt-in via Settings
-  const allItems = settings.showInfrastructure
-    ? services
-    : services.filter(
-        (s: PortalService) => s.projectType !== "Infrastructure",
-      );
-  const filterOptions = buildFilterOptions(allItems);
-
-  const filtered = allItems
-    .filter((s) => {
-      // Text search across key fields
-      if (searchQuery.trim()) {
-        const normalizedQuery = searchQuery.toLowerCase();
-        const searchableFields = [
-          s.name,
-          s.repo,
-          s.domain,
-          s.description,
-          s.projectType,
-        ]
-          .filter(Boolean)
-          .map((field) => (field as string).toLowerCase());
-        if (!searchableFields.some((field) => field.includes(normalizedQuery)))
-          return false;
-      }
-
-      if (filters.status.length) {
-        const isHealthy = s.healthy;
-        if (
-          !filters.status.some(
-            (statusValue) =>
-              (statusValue === "healthy" && isHealthy) ||
-              (statusValue === "unhealthy" && !isHealthy),
+  // ── Derived lists ───────────────────────────────────────────────
+  const allItems = useMemo(
+    () =>
+      registry
+        ? projectsFromResponse(
+            registry.services,
+            registry.infrastructure,
+            showInfrastructure,
           )
-        )
-          return false;
-      }
-      if (
-        filters.visibility.length &&
-        !filters.visibility.includes(s.visibility as string)
-      )
-        return false;
-      if (
-        filters.environment.length &&
-        !filters.environment.includes(s.environment as string)
-      )
-        return false;
-      if (
-        filters.projectType.length &&
-        !filters.projectType.includes(s.projectType as string)
-      )
-        return false;
-      if (filters.device.length && !filters.device.includes(s.device as string))
-        return false;
-      return true;
-    })
-    .sort((firstService: PortalService, secondService: PortalService) =>
-      compareBySortKey(firstService, secondService, sortKey, sortDir),
-    );
-
-  // ── Split into deployed services vs libraries/toolkits ──────────
-  const deployedItems = filtered.filter(isDeployedProject);
-  const nonDeployedItems = filtered.filter((s) => !isDeployedProject(s));
-
-  // ── Summary stats (based on all unfiltered items) ───────────────
-  const allDeployed = allItems.filter(isDeployedProject);
-  const allNonDeployed = allItems.filter((s) => !isDeployedProject(s));
-  const healthyCount = allDeployed.filter((s) => s.healthy).length;
-  const hasActiveFilter =
-    Object.values(filters).some((value) => value.length > 0) ||
-    searchQuery.trim().length > 0;
-
-  // ── Project summary computed values ─────────────────────────────
-  const unhealthyCount = allDeployed.length - healthyCount;
-  const uniqueDevices = [
-    ...new Set(allDeployed.map((s) => s.device).filter(Boolean)),
-  ];
-  const uniqueTypes = [
-    ...new Set(allItems.map((s) => s.projectType).filter(Boolean)),
-  ];
+        : [],
+    [registry, showInfrastructure],
+  );
+  const filterOptions = useMemo(() => buildFilterOptions(allItems), [allItems]);
+  const filtered = useMemo(
+    () =>
+      sortProjects(
+        filterProjects(allItems, filters, searchQuery),
+        sortKey,
+        sortDir,
+        {
+          sizes: projectSizes,
+          languages: projectLanguages,
+        },
+      ),
+    [
+      allItems,
+      filters,
+      searchQuery,
+      sortKey,
+      sortDir,
+      projectSizes,
+      projectLanguages,
+    ],
+  );
+  const deployedItems = useMemo(
+    () => filtered.filter(isDeployedProject),
+    [filtered],
+  );
+  const nonDeployedItems = useMemo(
+    () => filtered.filter((service) => !isDeployedProject(service)),
+    [filtered],
+  );
+  const summary = useMemo(() => summarizeProjects(allItems), [allItems]);
+  const filterActive = hasActiveFilters(filters, searchQuery);
   const totalSizeBytes = Object.values(projectSizes).reduce(
-    (sum: number, s: { sizeBytes?: number }) => sum + (s.sizeBytes || 0),
+    (sum, size) => sum + (size.sizeBytes || 0),
     0,
   );
 
+  // ── Card actions ────────────────────────────────────────────────
+  const restartableIds = useMemo(
+    () =>
+      allItems
+        .filter((service) => service.restartable)
+        .map((service) => service.id),
+    [allItems],
+  );
+  const { statuses: rollbackStatuses, recheck: recheckRollback } =
+    useRollbackAvailability(restartableIds);
+
+  const { pending, requestAction, actionUi } = useActionRunner({
+    onSettled: (_request, succeeded) => {
+      if (!succeeded) return;
+      if (recheckTimerRef.current) clearTimeout(recheckTimerRef.current);
+      recheckTimerRef.current = setTimeout(() => {
+        recheckTimerRef.current = null;
+        void refreshHealth();
+      }, POST_ACTION_RECHECK_MILLISECONDS);
+    },
+  });
+
+  const handleAction = useCallback(
+    (service: PortalService, action: ContainerAction) => {
+      const run = async () => {
+        switch (action) {
+          case "start":
+            return ApiService.startService(service.id);
+          case "stop":
+            return ApiService.stopService(service.id);
+          case "restart":
+            return ApiService.restartService(service.id);
+          case "rollback":
+            try {
+              return await ApiService.rollbackService(service.id);
+            } finally {
+              void recheckRollback(service.id);
+            }
+        }
+      };
+      requestAction({ key: service.id, name: service.name, action, run });
+    },
+    [requestAction, recheckRollback],
+  );
+
+  const handleSort = useCallback((key: string, direction: SortDirection) => {
+    setSortKey(key);
+    setSortDir(direction);
+  }, []);
+
+  const setFilter = (dimension: FilterDimension, values: string[]) =>
+    setFilters((previous) => ({ ...previous, [dimension]: values }));
+
+  const loading = registry === null && loadError === null;
+
+  const renderCards = (items: PortalService[]) => (
+    <div className={styles["grid"]}>
+      {items.map((service) => (
+        <ServiceCardComponent
+          key={service.id}
+          service={service}
+          pending={pending[service.id]}
+          rollbackAvailable={rollbackStatuses[service.id]?.available ?? false}
+          onAction={handleAction}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <div className={`projects-component ${styles['services']}`}>
+    <div className={`projects-component ${styles["services"]}`}>
       {/* ── Filter + Sort Bar ── */}
       {!loading && (
-        <div className={styles['sort-bar']}>
-          {/* ── Search ── */}
+        <div className={styles["sort-bar"]}>
           <SearchInputComponent
             value={searchQuery}
-            onChange={(value: string) => setSearchQuery(value)}
+            onChange={setSearchQuery}
             placeholder="Search projects…"
             compact
             id="projects-search-input"
           />
 
-          {/* ── Divider ── */}
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
-          {/* ── Filters ── */}
-          <div className={styles['sort-bar-icon']}>
+          <div className={styles["sort-bar-icon"]}>
             <ArrowUpDown size={13} strokeWidth={2.2} />
             <span>Filter</span>
           </div>
 
-          {Object.entries(filterOptions).map(([dimension, config]) => (
-            <SelectComponent
-              multiple
-              key={dimension}
-              label={config.label}
-              value={filters[dimension] as string[]}
-              options={config.values}
-              onChange={(values: string[]) => setFilter(dimension, values)}
-              allLabel="All"
-            />
-          ))}
+          {(Object.keys(filterOptions) as FilterDimension[]).map(
+            (dimension) => (
+              <SelectComponent
+                multiple
+                key={dimension}
+                label={filterOptions[dimension].label}
+                value={filters[dimension]}
+                options={filterOptions[dimension].values}
+                onChange={(values: string[]) => setFilter(dimension, values)}
+                allLabel="All"
+              />
+            ),
+          )}
 
-          {hasActiveFilter && (
+          {filterActive && (
             <ButtonComponent
               variant="text"
               size="small"
               onClick={() => {
                 setSearchQuery("");
-                setFilters({
-                  status: [],
-                  visibility: [],
-                  environment: [],
-                  projectType: [],
-                  device: [],
-                });
+                setFilters(EMPTY_FILTERS);
               }}
             >
               Clear
             </ButtonComponent>
           )}
 
-          {/* ── Divider ── */}
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
-          {/* ── View Mode Toggle ── */}
-          <div className={styles['sort-bar-icon']}>
+          <div className={styles["sort-bar-icon"]}>
             <span>View</span>
           </div>
 
-          <div className={styles['sort-group']}>
+          <div className={styles["sort-group"]}>
             <SegmentedControlComponent
               value={viewMode}
-              onChange={(value: string) => setViewMode(value)}
-              segments={[
-                { value: "card", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
-                { value: "table", icon: <Table2 size={12} strokeWidth={2.2} /> },
-              ]}
+              onChange={setViewMode}
+              segments={VIEW_SEGMENTS}
               compact
             />
           </div>
 
-          {/* ── Divider ── */}
-          <div className={styles['bar-divider']} />
+          <div className={styles["bar-divider"]} />
 
-          {/* ── Refresh Button ── */}
           <ButtonComponent
             variant="secondary"
             icon={RefreshCw}
             loading={refreshing}
-            onClick={handleRefresh}
+            disabled={refreshing}
+            onClick={handleCheckAll}
           >
             Check All
           </ButtonComponent>
@@ -403,42 +366,50 @@ export default function ProjectsComponent() {
         subtitle={
           loading
             ? "Checking project health…"
-            : `${healthyCount} of ${allDeployed.length} services healthy · ${allItems.length} total projects`
+            : `${summary.healthy} of ${summary.deployed} services healthy · ${summary.total} total projects`
         }
       />
 
+      {loadError && registry && (
+        <div className={styles["error-banner"]} role="status">
+          Showing the last health check — refresh failed: {loadError}
+        </div>
+      )}
+
       {/* ── Project Summary Cards (Settings → Dashboard) ─────────── */}
-      {!loading && settings.showSystemSummary && (
-        <div className={styles['summary-grid']}>
+      {!loading && registry && showSystemSummary && (
+        <div className={styles["summary-grid"]}>
           <StatsCardComponent
             label="Projects"
-            value={allItems.length}
-            subtitle={`${allDeployed.length} deployed · ${allNonDeployed.length} libraries & tools`}
+            value={summary.total}
+            subtitle={`${summary.deployed} deployed · ${summary.nonDeployed} libraries & tools`}
             icon={FolderKanban}
             variant="accent"
           />
           <StatsCardComponent
             label="Healthy"
-            value={healthyCount}
+            value={summary.healthy}
             subtitle={
-              unhealthyCount > 0
-                ? `${unhealthyCount} unhealthy`
-                : "All systems nominal"
+              summary.down > 0
+                ? `${summary.down} unhealthy`
+                : summary.unknown > 0
+                  ? `${summary.unknown} not checked yet`
+                  : "All systems nominal"
             }
             icon={HeartPulse}
-            variant={unhealthyCount > 0 ? "warning" : "success"}
+            variant={summary.down > 0 ? "warning" : "success"}
           />
           <StatsCardComponent
             label="Devices"
-            value={uniqueDevices.length}
-            subtitle={uniqueDevices.join(" · ") || "No devices"}
+            value={summary.devices.length}
+            subtitle={summary.devices.join(" · ") || "No devices"}
             icon={Server}
             variant="info"
           />
           <StatsCardComponent
             label="Types"
-            value={uniqueTypes.length}
-            subtitle={uniqueTypes.join(" · ") || "No types"}
+            value={summary.types.length}
+            subtitle={summary.types.join(" · ") || "No types"}
             icon={Layers}
             color="var(--accent-secondary)"
           />
@@ -452,121 +423,96 @@ export default function ProjectsComponent() {
         </div>
       )}
 
-
-
       {loading ? (
         <LoadingIndicatorComponent
           size="small"
           label="Polling projects…"
           className="is-loading-centered-state"
         />
+      ) : !registry ? (
+        <div className={styles["empty-state"]}>
+          Couldn&apos;t load projects: {loadError}
+        </div>
       ) : (
         <>
-          {hasActiveFilter && (
-            <div className={styles['filter-summary']}>
+          {filterActive && (
+            <div className={styles["filter-summary"]}>
               Showing {filtered.length} of {allItems.length} projects
             </div>
           )}
 
-          {/* ═══ Deployed Services Section ═══════════════════════════ */}
-          {deployedItems.length > 0 && (
-            <>
-              {viewMode === "card" ? (
-                <>
-                  {nonDeployedItems.length > 0 && (
-                    <div className={styles['section-label']}>
-                      <Server size={13} strokeWidth={2.2} />
-                      <span>Deployed Services</span>
-                      <span className={styles['section-count']}>
-                        {deployedItems.length}
-                      </span>
-                    </div>
-                  )}
-                  <div className={styles['grid']}>
-                    {deployedItems.map((service: PortalService) => (
-                      <ServiceCardComponent
-                        key={service.id}
-                        service={service}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <ProjectTableComponent
-                  services={deployedItems}
-                  allServices={allItems}
-                  projectSizes={projectSizes}
-                  projectLanguages={projectLanguages}
-                  sortKey={sortKey}
-                  sortDir={sortDir}
-                  title={
-                    nonDeployedItems.length > 0
-                      ? "Deployed Services"
-                      : undefined
-                  }
-                  subtitle={
-                    nonDeployedItems.length > 0
-                      ? `${deployedItems.length} projects`
-                      : undefined
-                  }
-                  onSort={(key: string, dir: "asc" | "desc") => {
-                    setSortKey(key);
-                    setSortDir(dir);
-                  }}
-                />
-              )}
-            </>
-          )}
-
-          {/* ═══ Libraries & Toolkits Section ════════════════════════ */}
-          {nonDeployedItems.length > 0 && (
-            <>
-              {viewMode === "card" ? (
-                <>
-                  <div className={styles['section-label']}>
-                    <BookOpen size={13} strokeWidth={2.2} />
-                    <span>Libraries & Toolkits</span>
-                    <span className={styles['section-count']}>
-                      {nonDeployedItems.length}
+          {/* ═══ Deployed Services ═══════════════════════════════════ */}
+          {deployedItems.length > 0 &&
+            (viewMode === "card" ? (
+              <>
+                {nonDeployedItems.length > 0 && (
+                  <div className={styles["section-label"]}>
+                    <Server size={13} strokeWidth={2.2} />
+                    <span>Deployed Services</span>
+                    <span className={styles["section-count"]}>
+                      {deployedItems.length}
                     </span>
                   </div>
-                  <div className={styles['grid']}>
-                    {nonDeployedItems.map((service: PortalService) => (
-                      <ServiceCardComponent
-                        key={service.id}
-                        service={service}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <ProjectTableComponent
-                  services={nonDeployedItems}
-                  allServices={allItems}
-                  projectSizes={projectSizes}
-                  projectLanguages={projectLanguages}
-                  excludeColumns={["tier", "domain", "database", "containers"]}
-                  sortKey={sortKey}
-                  sortDir={sortDir}
-                  title="Libraries & Toolkits"
-                  subtitle={`${nonDeployedItems.length} projects`}
-                  onSort={(key: string, dir: "asc" | "desc") => {
-                    setSortKey(key);
-                    setSortDir(dir);
-                  }}
-                />
-              )}
-            </>
-          )}
+                )}
+                {renderCards(deployedItems)}
+              </>
+            ) : (
+              <ProjectTableComponent
+                services={deployedItems}
+                allServices={allItems}
+                projectSizes={projectSizes}
+                projectLanguages={projectLanguages}
+                sortKey={sortKey}
+                sortDir={sortDir}
+                title={
+                  nonDeployedItems.length > 0 ? "Deployed Services" : undefined
+                }
+                subtitle={
+                  nonDeployedItems.length > 0
+                    ? `${deployedItems.length} projects`
+                    : undefined
+                }
+                onSort={handleSort}
+              />
+            ))}
 
-          {/* ═══ Empty state ════════════════════════════════════════ */}
+          {/* ═══ Libraries & Toolkits ════════════════════════════════ */}
+          {nonDeployedItems.length > 0 &&
+            (viewMode === "card" ? (
+              <>
+                <div className={styles["section-label"]}>
+                  <BookOpen size={13} strokeWidth={2.2} />
+                  <span>Libraries & Toolkits</span>
+                  <span className={styles["section-count"]}>
+                    {nonDeployedItems.length}
+                  </span>
+                </div>
+                {renderCards(nonDeployedItems)}
+              </>
+            ) : (
+              <ProjectTableComponent
+                services={nonDeployedItems}
+                allServices={allItems}
+                projectSizes={projectSizes}
+                projectLanguages={projectLanguages}
+                excludeColumns={LIBRARY_EXCLUDED_COLUMNS}
+                sortKey={sortKey}
+                sortDir={sortDir}
+                title="Libraries & Toolkits"
+                subtitle={`${nonDeployedItems.length} projects`}
+                onSort={handleSort}
+              />
+            ))}
+
           {filtered.length === 0 && (
-            <div className={styles['empty-state']}>
+            <div className={styles["empty-state"]}>
               No projects match the selected filters
             </div>
           )}
         </>
       )}
+
+      {actionUi}
     </div>
   );
 }

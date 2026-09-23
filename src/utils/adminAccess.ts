@@ -27,7 +27,9 @@ export function isPrivateHost(host: string | null | undefined): boolean {
 }
 
 /** True when the session roles include the admin role. */
-export function hasAdminRole(roles: readonly string[] | null | undefined): boolean {
+export function hasAdminRole(
+  roles: readonly string[] | null | undefined,
+): boolean {
   return !!roles?.includes(ADMIN_ROLE);
 }
 

@@ -1,49 +1,52 @@
 /* ── Session Replay player ─────────────────────────────────── */
 
 .replay-section {
-  margin-top: 1.25rem;
-  padding: 1rem;
-  background: var(--surface-raised, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-sm);
 }
 
 .replay-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.85rem;
-  font-size: 0.8rem;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  color: var(--text-primary);
 }
 
 .replay-count {
   margin-left: auto;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.7rem;
+  padding: 1px 8px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
   font-weight: 500;
-  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
-  background: var(--surface-sunken, rgba(0, 0, 0, 0.2));
+  color: var(--text-muted);
+  background: var(--background-elevated);
   border-radius: 999px;
 }
 
 .replay-message {
-  padding: 1.5rem 1rem;
+  padding: 24px 16px;
   text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
 }
 
 /* rrweb-player renders its own fixed-width canvas + controller; center it and
-   let it scroll horizontally on narrow viewports rather than overflowing. */
+   let it scroll horizontally on narrow viewports rather than overflowing.
+   Hidden (not display:none) until ready: the player is sized from this
+   element's clientWidth, which display:none reports as 0. */
 .replay-canvas {
-  display: none;
+  display: flex;
+  justify-content: center;
   overflow-x: auto;
 }
 
-.replay-canvas[data-active="true"] {
-  display: flex;
-  justify-content: center;
+.replay-canvas[data-active="false"] {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
 }

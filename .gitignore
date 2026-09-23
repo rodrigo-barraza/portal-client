@@ -54,3 +54,6 @@ next-env.d.ts
 
 # Migrated to pnpm
 package-lock.json
+
+# agent worktrees (nested checkouts of this repo)
+/.claude/worktrees/

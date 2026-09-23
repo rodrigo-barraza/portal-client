@@ -1,0 +1,102 @@
+/* ── Metric Card ─────────────────────────────────────────────────── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-sm);
+  transition: border-color 180ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.value {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dim {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+/* ── Transfer Figures ────────────────────────────────────────────── */
+
+.transfer-row {
+  display: flex;
+  gap: 20px;
+  padding-top: 4px;
+}
+
+.transfer-row-warning {
+  display: flex;
+  gap: 20px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--color-danger) 15%, transparent);
+  margin-top: 4px;
+}
+
+.transfer-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.transfer-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.transfer-value {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.transfer-value-danger {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--color-danger);
+  font-weight: 700;
+}

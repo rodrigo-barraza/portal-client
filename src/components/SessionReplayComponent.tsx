@@ -4,8 +4,12 @@
 // SessionReplayComponent — rrweb session-replay player
 // ============================================================
 // Fetches the ordered rrweb event stream for one session and mounts the
-// rrweb-player (scrubber + play/pause) into a ref'd container. Both the player
-// module and its styles load only when a session with a recording is opened.
+// rrweb-player (scrubber + play/pause) into a ref'd container.
+//
+// SessionDetailComponent loads this module through next/dynamic, so the
+// player stylesheet imported here — and the player itself, imported on
+// demand below — ship in a separate chunk fetched only when a session
+// with a recording is opened.
 // ============================================================
 
 import { useEffect, useRef, useState } from "react";
@@ -13,118 +17,141 @@ import "rrweb-player/dist/style.css";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
 import { Film } from "lucide-react";
 import ApiService from "../services/ApiService";
+import { unwrapData } from "./analytics/useAsyncData";
+import { formatCount } from "./analytics/analyticsFormat";
 import styles from "./SessionReplayComponent.module.css";
 
-interface ReplayResponse {
-  success?: boolean;
-  data?: { sessionId: string; eventCount: number; events: unknown[] };
+/** The slice of rrweb-player's Svelte component this component drives. */
+interface ReplayPlayer {
+  $destroy: () => void;
+  getReplayer: () => { destroy: () => void };
 }
-
-// Minimal shape of the rrweb-player default export (a Svelte component ctor).
-interface RrwebPlayerInstance {
-  $destroy?: () => void;
-}
-type RrwebPlayerConstructor = new (options: {
-  target: HTMLElement;
-  props: {
-    events: unknown[];
-    width?: number;
-    height?: number;
-    autoPlay?: boolean;
-    showController?: boolean;
-    skipInactive?: boolean;
-  };
-}) => RrwebPlayerInstance;
 
 type ReplayStatus = "loading" | "ready" | "empty" | "error";
 
-export default function SessionReplayComponent({ sessionId }: { sessionId: string }) {
+const FALLBACK_PLAYER_WIDTH = 900;
+
+/**
+ * Tear down a player completely. The Svelte `$destroy` only pauses the
+ * replayer via its controller; `Replayer.destroy()` also resets its
+ * mirrors and removes the replay iframe and listeners.
+ */
+function destroyPlayer(player: ReplayPlayer | null) {
+  if (!player) return;
+  try {
+    player.getReplayer().destroy();
+  } catch {
+    // Already torn down
+  }
+  try {
+    player.$destroy();
+  } catch {
+    // Teardown is best-effort
+  }
+}
+
+export default function SessionReplayComponent({
+  sessionId,
+}: {
+  sessionId: string;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<ReplayStatus>("loading");
+  const [status, setStatus] = useState<{
+    sessionId: string;
+    state: ReplayStatus;
+  } | null>(null);
   const [eventCount, setEventCount] = useState(0);
 
-  useEffect(() => {
-    let destroyed = false;
-    let player: RrwebPlayerInstance | null = null;
+  // Derived, so a new sessionId reads as loading in the same render
+  const replayStatus: ReplayStatus =
+    status?.sessionId === sessionId ? status.state : "loading";
 
-    async function load() {
-      setStatus("loading");
+  useEffect(() => {
+    let cancelled = false;
+    let player: ReplayPlayer | null = null;
+    // A new session (or leaving) cancels the replay download, which can be large
+    const controller = new AbortController();
+    const settle = (state: ReplayStatus) => {
+      if (!cancelled) setStatus({ sessionId, state });
+    };
+
+    (async () => {
       try {
-        const response = (await ApiService.getSessionReplay(sessionId)) as ReplayResponse;
-        const events = response?.data?.events ?? [];
-        if (destroyed) return;
+        const { events } = unwrapData(
+          await ApiService.getSessionReplay(sessionId, {
+            signal: controller.signal,
+          }),
+        );
+        if (cancelled) return;
 
         // rrweb needs at least a full snapshot plus one incremental event.
-        if (events.length < 2) {
-          setStatus("empty");
-          return;
-        }
+        if (events.length < 2) return settle("empty");
 
+        const { default: RrwebPlayer } = await import("rrweb-player");
         const target = containerRef.current;
-        if (!target) return;
-        target.innerHTML = "";
-
-        const playerModule = await import("rrweb-player");
-        if (destroyed) return;
-        const RrwebPlayer = (playerModule.default ??
-          playerModule) as unknown as RrwebPlayerConstructor;
+        if (cancelled) return;
+        if (!target) return settle("error");
+        target.replaceChildren();
 
         player = new RrwebPlayer({
           target,
           props: {
-            events,
-            width: target.clientWidth || 900,
+            // Recorded by @rrweb/record; the service stores them verbatim
+            events: events as ConstructorParameters<
+              typeof RrwebPlayer
+            >[0]["props"]["events"],
+            width: target.clientWidth || FALLBACK_PLAYER_WIDTH,
             autoPlay: false,
             showController: true,
             skipInactive: true,
           },
-        });
+        }) as unknown as ReplayPlayer;
         setEventCount(events.length);
-        setStatus("ready");
+        settle("ready");
       } catch {
-        if (!destroyed) setStatus("error");
+        settle("error");
       }
-    }
-
-    void load();
+    })();
 
     return () => {
-      destroyed = true;
-      try {
-        player?.$destroy?.();
-      } catch {
-        // Player teardown is best-effort.
-      }
+      cancelled = true;
+      controller.abort();
+      destroyPlayer(player);
+      player = null;
     };
   }, [sessionId]);
 
   return (
-    <div className={styles["replay-section"]}>
+    <section className={styles["replay-section"]} aria-label="Session replay">
       <div className={styles["replay-header"]}>
-        <Film size={14} strokeWidth={2.2} />
+        <Film size={14} strokeWidth={2.2} aria-hidden />
         <span>Session Replay</span>
-        {status === "ready" && (
-          <span className={styles["replay-count"]}>{eventCount} events</span>
+        {replayStatus === "ready" && (
+          <span className={styles["replay-count"]}>
+            {formatCount(eventCount, "event")}
+          </span>
         )}
       </div>
 
-      {status === "loading" && (
+      {replayStatus === "loading" && (
         <LoadingIndicatorComponent size="small" label="Loading recording…" />
       )}
-      {status === "empty" && (
+      {replayStatus === "empty" && (
         <div className={styles["replay-message"]}>
           No recording was captured for this session.
         </div>
       )}
-      {status === "error" && (
-        <div className={styles["replay-message"]}>Could not load the recording.</div>
+      {replayStatus === "error" && (
+        <div className={styles["replay-message"]} role="alert">
+          Could not load the recording.
+        </div>
       )}
 
       <div
         ref={containerRef}
         className={styles["replay-canvas"]}
-        data-active={status === "ready"}
+        data-active={replayStatus === "ready"}
       />
-    </div>
+    </section>
   );
 }

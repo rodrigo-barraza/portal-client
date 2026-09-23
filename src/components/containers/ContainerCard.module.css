@@ -1,0 +1,178 @@
+/* ── Container Cards View ──────────────────────────────────────── */
+
+.card {
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  container-type: inline-size;
+  transition:
+    border-color var(--transition-normal),
+    box-shadow var(--transition-normal),
+    transform var(--transition-normal);
+
+  &:hover {
+    border-color: var(--calculated-border-subtle);
+    box-shadow: 0 8px 24px oklch(0% 0 0 / 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+.card-healthy {
+  border-left: 3px solid var(--color-success);
+}
+
+.card-unhealthy {
+  border-left: 3px solid var(--color-danger);
+}
+
+.card-unknown {
+  border-left: 3px solid var(--calculated-border-color);
+}
+
+.card-active {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--calculated-accent-primary-glow);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-name {
+  /* A button for keyboard access, styled as the plain title it was. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.card-badge-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.card-device-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.card-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: color-mix(in srgb, var(--text-primary) 1.5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.card-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-icon-cpu {
+  color: var(--color-success);
+}
+
+.metric-icon-ram {
+  color: var(--color-info);
+}
+
+.card-metric-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-metric-value {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-left: auto;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  border-top: 1px solid color-mix(in srgb, var(--text-primary) 3%, transparent);
+  padding-top: 10px;
+}
+
+.card-uptime {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.uptime-label {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.uptime-value {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}

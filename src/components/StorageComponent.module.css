@@ -24,6 +24,12 @@
   flex-wrap: wrap;
 }
 
+.breadcrumb-segment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .breadcrumb-item {
   display: flex;
   align-items: center;
@@ -190,6 +196,7 @@
 }
 
 .skeleton-line {
+  display: block;
   height: 14px;
   border-radius: 4px;
   background: var(--calculated-border-color);
@@ -238,7 +245,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   user-select: none;
-  background: oklch(100.0% 0.0001 263.3 / 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 /* ── Bucket Row Icon ── */
@@ -287,7 +294,13 @@
   justify-content: space-between;
   padding: 12px 20px;
   border-bottom: 1px solid var(--calculated-border-color);
-  background: oklch(100.0% 0.0001 263.3 / 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+}
+
+.listing-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .object-list-title {
@@ -314,6 +327,10 @@
   user-select: none;
 }
 
+.column-header-actions {
+  text-align: right;
+}
+
 /* ── Object Row ── */
 
 .object-row {
@@ -337,6 +354,16 @@
 
 .folder-row {
   cursor: pointer;
+}
+
+/* Keyboard focus for the card/row "buttons" (role="button") */
+.bucket-card:focus-visible,
+.folder-row:focus-visible,
+.grid-card-folder:focus-visible,
+.global-search-result-row:focus-visible,
+.grid-card-thumb-button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 
 .folder-row:hover {
@@ -380,7 +407,7 @@
   object-fit: cover;
   border-radius: 4px;
   flex-shrink: 0;
-  background: oklch(100.0% 0.0001 263.3 / 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
   border: 1px solid var(--calculated-border-subtle);
 }
 
@@ -458,8 +485,18 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: oklch(100.0% 0.0001 263.3 / 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
   color: var(--text-muted);
+}
+
+.grid-card-previewable {
+  cursor: pointer;
+}
+
+.grid-card-thumb-button {
+  padding: 0;
+  border: none;
+  font: inherit;
 }
 
 .grid-card-folder .grid-card-thumb {
@@ -523,15 +560,15 @@
 .grid-card-actions .grid-action-button {
   width: 26px;
   height: 26px;
-  background: oklch(0.0% 0.0 0.0 / 0.55);
+  background: oklch(0% 0 0 / 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border-radius: 6px;
-  color: oklch(100.0% 0.0001 263.3 / 0.8);
+  color: oklch(100% 0.0001 263.3 / 0.8);
 }
 
 .grid-card-actions .grid-action-button:hover {
-  background: oklch(0.0% 0.0 0.0 / 0.75);
+  background: oklch(0% 0 0 / 0.75);
   color: var(--accent-primary);
 }
 
@@ -554,7 +591,7 @@
   object-fit: contain;
   border-radius: var(--border-radius-sm);
   background: repeating-conic-gradient(
-      oklch(60.0% 0.0001 263.3 / 0.08) 0% 25%,
+      oklch(60% 0.0001 263.3 / 0.08) 0% 25%,
       transparent 0% 50%
     )
     50% / 16px 16px;
@@ -617,6 +654,32 @@
 
 .empty-state svg {
   opacity: 0.3;
+}
+
+.empty-state-grid {
+  grid-column: 1 / -1;
+}
+
+.inline-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+}
+
+/* ── Delete confirmation ── */
+
+.delete-dialog-key {
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.delete-dialog-error {
+  display: block;
+  margin-top: 12px;
+  color: var(--color-danger);
 }
 
 /* ── Total Size Badge ── */
@@ -699,45 +762,6 @@
   min-width: 0;
 }
 
-.legend-item {
-  display: contents;
-}
-
-/* ── Donut Chart ──────────────────────────────────────────────────── */
-
-.donut {
-  flex-shrink: 0;
-}
-
-.donut-segment {
-  animation: donut-grow 600ms ease-out both;
-}
-
-@keyframes donut-grow {
-  from {
-    stroke-dasharray: 0 9999;
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.donut-total {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  fill: var(--text-primary);
-  font-family: var(--font-mono);
-}
-
-.donut-label {
-  font-size: 0.625rem;
-  fill: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 500;
-}
-
 /* ── Usage Bars ───────────────────────────────────────────────────── */
 
 .usage-bar-row {
@@ -787,8 +811,7 @@
 .usage-bar-fill {
   height: 100%;
   border-radius: 2px;
-  transform-origin: left;
-  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Image / Volume List ──────────────────────────────────────────── */
@@ -867,7 +890,7 @@
   justify-content: space-between;
   padding: 12px 20px;
   border-bottom: 1px solid var(--calculated-border-color);
-  background: oklch(100.0% 0.0001 263.3 / 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 .global-search-results-title {
@@ -1019,7 +1042,8 @@
     gap: 16px;
   }
 
-  .donut {
+  /* the shared DonutChart (AnalyticsPrimitives) */
+  .storage-panel-body > svg {
     align-self: center;
   }
 

@@ -11,9 +11,23 @@
 }
 
 .service-name {
+  /* A button for keyboard access, styled as the plain name it was. */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.8125rem;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 .type-icon {
@@ -26,12 +40,20 @@
 
 .icon-healthy {
   color: var(--color-success);
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-success) 40%, transparent));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--color-success) 40%, transparent)
+  );
 }
 
 .icon-unhealthy {
   color: var(--color-danger);
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-danger) 40%, transparent));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--color-danger) 40%, transparent)
+  );
+}
+
+.icon-unknown {
+  color: var(--text-muted);
 }
 
 .icon-neutral {
@@ -49,8 +71,19 @@
   border-left: 3px solid var(--color-danger);
 }
 
+.status-row-unknown {
+  border-left: 3px solid var(--calculated-border-color);
+}
+
 .status-row-neutral {
-  border-left: 3px solid color-mix(in srgb, var(--node-service) 40%, transparent);
+  border-left: 3px solid
+    color-mix(in srgb, var(--node-service) 40%, transparent);
+}
+
+/* ── Badge leading icons ── */
+
+.badge-icon {
+  margin-right: 4px;
 }
 
 /* ── Description Cell ── */
@@ -126,18 +159,10 @@
   opacity: 0;
   transition: opacity var(--transition-fast);
 
-  .repo-link:hover & {
+  .repo-link:hover &,
+  .repo-link:focus-visible & {
     opacity: 0.6;
   }
-}
-
-/* ── Empty State ── */
-
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text-muted);
-  font-size: var(--font-size-base);
 }
 
 /* ═══════════════════════════════════════════════════════════════════

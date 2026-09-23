@@ -1,1157 +1,223 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { LayoutGrid, List } from "lucide-react";
 import {
-  Check,
-  Clock,
-  Container,
-  Cpu,
-  Globe,
-  LayoutGrid,
-  List,
-  Lock,
-  MemoryStick,
-  Minus,
-  Network,
-  Play,
-  RotateCcw,
-  ScrollText,
-  Server,
-  Square,
-  Undo2,
-  X,
-} from "lucide-react";
-import {
-  BadgeComponent,
-  ButtonComponent,
   DrawerComponent,
   LoadingIndicatorComponent,
-  SelectComponent,
   PageHeaderComponent,
-  ChartLineComponent,
-  SegmentedControlComponent,
-  StatsCardComponent,
-  TableComponent,
   SearchInputComponent,
+  SegmentedControlComponent,
+  SelectComponent,
+  TableComponent,
 } from "@rodrigo-barraza/components-library";
-import {
-  formatBytes,
-  formatDuration,
-  formatPercent,
-  getRootDomain,
-  ACTION_COOLDOWN_MILLISECONDS,
-  ACTION_COOLDOWN_LONG_MILLISECONDS,
-  HIGHLIGHT_DURATION_MILLISECONDS,
-} from "@rodrigo-barraza/utilities-library";
-import type {
-  ContainerRow,
-  ContainerStatusKind,
-  ContainerHistory,
-  ContainerStats,
-  ContainerMetricsData,
-  SystemInfo,
-  PortalService,
-} from "../types/portal";
 import ApiService from "../services/ApiService";
-import ContainerDetailPanel from "./ContainerDetailPanelComponent";
+import type { ContainerRow } from "../types/portal";
 import { usePortalSettings } from "@/lib/settings";
-import { PORTAL_SERVICE_URL } from "@/config";
+import ContainerDetailPanel from "./ContainerDetailPanelComponent";
+import { sumAligned } from "./monitoring/containerHistory";
+import { thresholdsFromSettings } from "./monitoring/severity";
+import {
+  useActionRunner,
+  type ContainerAction,
+} from "./monitoring/useActionRunner";
+import { useRollbackAvailability } from "./monitoring/useRollbackAvailability";
+import ContainerActionButtons from "./containers/ContainerActionButtons";
+import ContainerCard from "./containers/ContainerCard";
+import ContainerSummaryCards from "./containers/ContainerSummaryCards";
+import {
+  buildContainerColumns,
+  getContainerRowClassName,
+} from "./containers/containerColumns";
+import {
+  CONTAINER_TYPES,
+  filterContainerRows,
+  hostRamByDevice,
+  summarizeContainers,
+} from "./containers/containerRows";
+import { useContainerDashboard } from "./containers/useContainerDashboard";
 import styles from "./ContainerStatsComponent.module.css";
 
-const HISTORY_MAX = 60; // e.g. 60 samples × 5s = 5 minutes at default polling
+type ViewMode = "table" | "cards";
 
-const LIVE_PREVIEW_HOVER_DELAY_MILLISECONDS = 350;
+const VIEW_MODE_STORAGE_KEY = "portal-container-view-mode";
 
-/**
- * Card thumbnail for a client site: a cached screenshot served by
- * portal-service, upgraded to a live scaled iframe while hovered.
- * Screenshots keep card view cheap — mounting every client as a live
- * iframe booted all their SPAs at once and dragged the whole page down.
- */
-function CardSitePreview({ domain }: { domain: string }) {
-  const [liveActive, setLiveActive] = useState(false);
-  const [liveReady, setLiveReady] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const VIEW_SEGMENTS = [
+  { value: "table", icon: <List size={12} strokeWidth={2.4} /> },
+  { value: "cards", icon: <LayoutGrid size={12} strokeWidth={2.4} /> },
+];
 
-  const startLivePreview = () => {
-    if (hoverTimerRef.current || liveActive) return;
-    hoverTimerRef.current = setTimeout(() => {
-      hoverTimerRef.current = null;
-      setLiveActive(true);
-    }, LIVE_PREVIEW_HOVER_DELAY_MILLISECONDS);
-  };
+const TYPE_OPTIONS = CONTAINER_TYPES.map((type) => ({
+  value: type,
+  label: `${type}s`,
+}));
 
-  const stopLivePreview = () => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setLiveActive(false);
-    setLiveReady(false);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    };
-  }, []);
-
-  return (
-    <div
-      className={styles['card-preview-container']}
-      onMouseEnter={startLivePreview}
-      onMouseLeave={stopLivePreview}
-    >
-      {imageFailed ? (
-        <div className={styles['card-preview-fallback']}>
-          <Globe size={14} strokeWidth={2.2} />
-          <span>{domain}</span>
-        </div>
-      ) : (
-        <img
-          src={`${PORTAL_SERVICE_URL}/containers/previews/${encodeURIComponent(domain)}`}
-          alt={`Preview of ${domain}`}
-          className={styles['card-preview-image']}
-          loading="lazy"
-          onError={() => setImageFailed(true)}
-        />
-      )}
-      {liveActive && (
-        <iframe
-          src={`https://${domain}`}
-          className={`${styles['card-preview-iframe']} ${liveReady ? styles['card-preview-iframe-ready'] : ''}`}
-          title={`Live preview of ${domain}`}
-          tabIndex={-1}
-          sandbox="allow-scripts allow-same-origin"
-          onLoad={() => setLiveReady(true)}
-        />
-      )}
-      <div className={styles['card-preview-overlay']} />
-    </div>
-  );
-}
-
-const STATUS_ICON_CLASS: Record<ContainerStatusKind, string> = {
-  healthy: "icon-healthy",
-  down: "icon-unhealthy",
-  unknown: "icon-unknown",
-};
-
-function StatusIndicator({ statusKind }: { statusKind: ContainerStatusKind }) {
-  const title =
-    statusKind === "healthy"
-      ? "Healthy"
-      : statusKind === "down"
-        ? "Down"
-        : "Not yet checked";
-  return (
-    <span
-      className={`${styles['status-indicator']} ${
-        statusKind === "healthy"
-          ? styles['status-healthy']
-          : statusKind === "down"
-            ? styles['status-down']
-            : styles['status-unknown']
-      }`}
-      title={title}
-    >
-      {statusKind === "healthy" ? (
-        <Check size={12} strokeWidth={3} />
-      ) : statusKind === "down" ? (
-        <X size={12} strokeWidth={3} />
-      ) : (
-        <Minus size={12} strokeWidth={3} />
-      )}
-    </span>
-  );
-}
-
-function severityColor(
-  percentage: number,
-  thresholds: [number, number] = [40, 80],
-): string {
-  if (percentage > thresholds[1]) return "var(--color-danger)";
-  if (percentage > thresholds[0]) return "var(--color-warning)";
-  return "var(--color-success)";
-}
-
-// ── Inline Percent Bar ──────────────────────────────────────────
-function MiniBar({ percent, color }: { percent: number; color: string }) {
-  const clamped = Math.min(percent, 100);
-  return (
-    <div className={styles['mini-bar-track']}>
-      <div
-        className={styles['mini-bar-fill']}
-        style={{ width: `${clamped}%`, background: color }}
-      />
-    </div>
-  );
-}
-
-// ── Action Cell ─────────────────────────────────────────────────
-
-function ActionCell({
-  service,
-  onRestart,
-  onStop,
-  onStart,
-  onRollback,
-  rollbackAvailable,
-}: {
-  service: ContainerRow;
-  onRestart?: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onStop?: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onStart?: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onRollback?: (serviceId: string, row: ContainerRow) => Promise<void>;
-  rollbackAvailable?: boolean;
-}) {
-  const [restarting, setRestarting] = useState(false);
-  const [stopping, setStopping] = useState(false);
-  const [starting, setStarting] = useState(false);
-  const [rollingBack, setRollingBack] = useState(false);
-
-  const isHealthy = service.healthy;
-
-  return (
-    <div className={styles['action-row']}>
-      {isHealthy ? (
-        <ButtonComponent
-          variant="destructive"
-          size="small"
-          icon={Square}
-          iconSize={9}
-          loading={stopping}
-          disabled={stopping || restarting || rollingBack}
-          title="Stop"
-          className={styles['action-button']}
-          onClick={(event: React.MouseEvent<HTMLElement>) => {
-            event.stopPropagation();
-            setStopping(true);
-            (async () => {
-              try {
-                await onStop?.(service.id, service);
-              } finally {
-                setTimeout(() => setStopping(false), ACTION_COOLDOWN_MILLISECONDS);
-              }
-            })();
-          }}
-        />
-      ) : (
-        <ButtonComponent
-          variant="tonal"
-          size="small"
-          icon={Play}
-          iconSize={9}
-          loading={starting}
-          disabled={starting || restarting || rollingBack}
-          title="Start"
-          className={styles['action-button']}
-          onClick={(event: React.MouseEvent<HTMLElement>) => {
-            event.stopPropagation();
-            setStarting(true);
-            (async () => {
-              try {
-                await onStart?.(service.id, service);
-              } finally {
-                setTimeout(() => setStarting(false), ACTION_COOLDOWN_MILLISECONDS);
-              }
-            })();
-          }}
-        />
-      )}
-
-      <ButtonComponent
-        variant="secondary"
-        size="small"
-        icon={ScrollText}
-        iconSize={9}
-        href={`/logs?container=${service.dockerProject || service.id}`}
-        title="Logs"
-        className={styles['action-button']}
-        onClick={(event: React.MouseEvent<HTMLElement>) => event.stopPropagation()}
-      />
-
-      {rollbackAvailable && (
-        <ButtonComponent
-          variant="secondary"
-          size="small"
-          icon={Undo2}
-          iconSize={9}
-          loading={rollingBack}
-          disabled={rollingBack || restarting || stopping || starting}
-          title="Rollback to previous build"
-          className={styles['action-button']}
-          onClick={(event: React.MouseEvent<HTMLElement>) => {
-            event.stopPropagation();
-            setRollingBack(true);
-            (async () => {
-              try {
-                await onRollback?.(service.id, service);
-              } finally {
-                setTimeout(() => setRollingBack(false), ACTION_COOLDOWN_LONG_MILLISECONDS);
-              }
-            })();
-          }}
-        />
-      )}
-
-      <ButtonComponent
-        variant="secondary"
-        size="small"
-        icon={RotateCcw}
-        iconSize={9}
-        loading={restarting}
-        disabled={restarting || stopping || starting || rollingBack}
-        title="Restart"
-        className={styles['action-button']}
-        onClick={(event: React.MouseEvent<HTMLElement>) => {
-          event.stopPropagation();
-          setRestarting(true);
-          (async () => {
-            try {
-              await onRestart?.(service.id, service);
-            } finally {
-              setTimeout(() => setRestarting(false), ACTION_COOLDOWN_MILLISECONDS);
-            }
-          })();
-        }}
-      />
-    </div>
-  );
-}
-
-// ── Column Definitions ──────────────────────────────────────────
-
-function buildColumns({
-  onRestart,
-  onStop,
-  onStart,
-  onRollback,
-  rollbackMap,
-  systemInfo,
-  containerHistory,
-  cpuAlertAt,
-  memoryAlertAt,
-  showResponseTimes,
-}: {
-  onRestart: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onStop: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onStart: (serviceId: string, row: ContainerRow) => Promise<void>;
-  onRollback: (serviceId: string) => Promise<void>;
-  rollbackMap: Record<string, boolean>;
-  systemInfo: SystemInfo | SystemInfo[] | null;
-  containerHistory: Record<string, ContainerHistory>;
-  cpuAlertAt: number;
-  memoryAlertAt: number;
-  showResponseTimes: boolean;
-}) {
-  // Build per-device host RAM lookup for detecting uncapped containers
-  const sysDevices: SystemInfo[] = systemInfo
-    ? Array.isArray(systemInfo)
-      ? systemInfo
-      : [systemInfo]
-    : [];
-  const hostRamByDevice: Record<string, number> = {};
-  for (const deviceInfo of sysDevices) {
-    hostRamByDevice[deviceInfo.deviceId] = deviceInfo.totalMemory || 0;
+function readViewMode(): ViewMode {
+  if (typeof window === "undefined") return "table";
+  try {
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === "cards"
+      ? "cards"
+      : "table";
+  } catch {
+    return "table";
   }
-
-  const columns = [
-    {
-      key: "name",
-      label: "Container",
-      sortable: true,
-      render: (row: ContainerRow) => (
-        <div className={styles['name-cell']}>
-          <Container
-            size={14}
-            strokeWidth={2.6}
-            className={`${styles['type-icon']} ${styles[STATUS_ICON_CLASS[row.statusKind]]}`}
-          />
-          <span className={styles['container-name']}>{row.containerName}</span>
-        </div>
-      ),
-      sortValue: (row: ContainerRow) => row.containerName || "",
-    },
-    {
-      key: "status",
-      label: "Status",
-      sortable: true,
-      render: (row: ContainerRow) => (
-        <StatusIndicator statusKind={row.statusKind} />
-      ),
-      sortValue: (row: ContainerRow) =>
-        row.statusKind === "healthy" ? 2 : row.statusKind === "unknown" ? 1 : 0,
-    },
-    {
-      key: "cpu",
-      label: "CPU",
-      sortable: true,
-      render: (row: ContainerRow) => {
-        const cpuPercent = row._stats?.cpu?.percent;
-        if (cpuPercent == null) return <span className={styles['dim-text']}>—</span>;
-        const color = severityColor(cpuPercent, [40, cpuAlertAt]);
-        return (
-          <div className={styles['metric-cell']}>
-            <span className={styles['metric-value']} style={{ color }}>
-              {formatPercent(cpuPercent, "adaptive")}
-            </span>
-            <MiniBar percent={cpuPercent} color={color} />
-          </div>
-        );
-      },
-      sortValue: (row: ContainerRow) => row._stats?.cpu?.percent ?? -1,
-    },
-    {
-      key: "cpuTrend",
-      label: "CPU Trend",
-      sortable: false,
-      render: (row: ContainerRow) => {
-        const history = containerHistory?.[row.containerName]?.cpu;
-        if (!history || history.length < 2)
-          return <span className={styles['dim-text']}>—</span>;
-        return (
-          <div className={styles['inline-sparkline']}>
-            <ChartLineComponent
-              data={history}
-              color="var(--color-success)"
-              maxValue={100}
-              height={24}
-              historyMax={HISTORY_MAX}
-              showGrid
-              formatValue={(value: number) => formatPercent(value, "adaptive")}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      key: "ram",
-      label: "RAM",
-      sortable: true,
-      render: (row: ContainerRow) => {
-        const memoryStats = row._stats?.memory;
-        if (!memoryStats) return <span className={styles['dim-text']}>—</span>;
-        const hostRam = hostRamByDevice[row.device || ""] || 0;
-        const isCapped =
-          memoryStats.limit > 0 &&
-          hostRam > 0 &&
-          memoryStats.limit < hostRam * 0.99;
-        const percentage = isCapped
-          ? (memoryStats.used / memoryStats.limit) * 100
-          : memoryStats.percent;
-        const color = severityColor(percentage, [60, memoryAlertAt]);
-        return (
-          <div className={styles['metric-cell']}>
-            <span className={styles['metric-value']} style={{ color }}>
-              {formatBytes(memoryStats.used)}
-              <span className={styles['metric-limit']}>
-                {" "}
-                / {isCapped ? formatBytes(memoryStats.limit) : "∞"}
-              </span>
-            </span>
-            <MiniBar percent={percentage} color={color} />
-          </div>
-        );
-      },
-      sortValue: (row: ContainerRow) => row._stats?.memory?.used ?? -1,
-    },
-    {
-      key: "ramTrend",
-      label: "RAM Trend",
-      sortable: false,
-      render: (row: ContainerRow) => {
-        const history = containerHistory?.[row.containerName]?.mem;
-        if (!history || history.length < 2)
-          return <span className={styles['dim-text']}>—</span>;
-        const maximumValue = row._stats?.memory?.limit || Math.max(...history, 1);
-        return (
-          <div className={styles['inline-sparkline']}>
-            <ChartLineComponent
-              data={history}
-              color="var(--color-info)"
-              maxValue={maximumValue}
-              height={24}
-              historyMax={HISTORY_MAX}
-              showGrid
-              formatValue={(value: number) => formatBytes(value)}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      key: "netio",
-      label: "Net I/O",
-      sortable: true,
-      render: (row: ContainerRow) => {
-        const networkStats = row._stats?.network;
-        if (!networkStats || (networkStats.rx === 0 && networkStats.tx === 0))
-          return <span className={styles['dim-text']}>—</span>;
-        return (
-          <div className={styles['input-output-cell']}>
-            <span className={styles['input-output-compact']}>
-              <span className={styles['input-output-arrow']}>↓</span>
-              {formatBytes(networkStats.rx)}
-            </span>
-            <span className={styles['input-output-compact']}>
-              <span className={styles['input-output-arrow']}>↑</span>
-              {formatBytes(networkStats.tx)}
-            </span>
-          </div>
-        );
-      },
-      sortValue: (row: ContainerRow) =>
-        (row._stats?.network?.rx || 0) + (row._stats?.network?.tx || 0),
-    },
-
-    {
-      key: "uptime",
-      label: "Uptime",
-      sortable: true,
-      render: (row: ContainerRow) => {
-        const created = row._stats?.created;
-        if (!created) return <span className={styles['dim-text']}>—</span>;
-        return (
-          <BadgeComponent
-            type="dateTime"
-            date={created * 1000}
-            showIcon={false}
-          />
-        );
-      },
-      sortValue: (row: ContainerRow) => row._stats?.created ?? Infinity,
-    },
-    {
-      key: "visibility",
-      label: "Visibility",
-      sortable: true,
-      render: (row: ContainerRow) =>
-        row.visibility ? (
-          <BadgeComponent
-            type="visibility"
-            visibility={row.visibility}
-            icons={{ Globe, Lock }}
-          />
-        ) : null,
-      sortValue: (row: ContainerRow) => row.visibility || "",
-    },
-    {
-      key: "port",
-      label: "Port",
-      sortable: true,
-      render: (row: ContainerRow) =>
-        row.port ? <BadgeComponent type="port" port={row.port} /> : null,
-      sortValue: (row: ContainerRow) => row.port || 0,
-    },
-    {
-      key: "address",
-      label: "Address",
-      sortable: true,
-      description: "Internal IP and port (socket address)",
-      render: (row: ContainerRow) =>
-        row.url ? (
-          <BadgeComponent type="address" address={row.url} link />
-        ) : null,
-      sortValue: (row: ContainerRow) => row.url || "",
-    },
-    {
-      key: "domain",
-      label: "Domain",
-      sortable: true,
-      description: "Registrable root domain",
-      render: (row: ContainerRow) => {
-        const domain = row.domain;
-        return domain && getRootDomain(domain) ? (
-          <BadgeComponent type="domain" domain={domain} icons={{ Globe }} />
-        ) : null;
-      },
-      sortValue: (row: ContainerRow) => getRootDomain(row.domain),
-    },
-    {
-      key: "response",
-      label: "Response",
-      sortable: true,
-      render: (row: ContainerRow) =>
-        row.responseTimeMs != null ? (
-          <BadgeComponent
-            type="responseTime"
-            ms={row.responseTimeMs}
-            formatter={formatDuration}
-          />
-        ) : null,
-      sortValue: (row: ContainerRow) => row.responseTimeMs ?? Infinity,
-    },
-    {
-      key: "device",
-      label: "Device",
-      sortable: true,
-      render: (row: ContainerRow) =>
-        row.device ? (
-          <BadgeComponent
-            type="device"
-            device={row.device}
-            icons={{ Server }}
-          />
-        ) : null,
-      sortValue: (row: ContainerRow) => row.device || "",
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      sortable: false,
-      align: "right" as const,
-      render: (row: ContainerRow) => (
-        <ActionCell
-          service={row}
-          onRestart={onRestart}
-          onStop={onStop}
-          onStart={onStart}
-          onRollback={onRollback}
-          rollbackAvailable={row.restartable && !!rollbackMap[row.id]}
-        />
-      ),
-    },
-  ];
-
-  // Response-time visibility is a user setting (Settings → Monitoring)
-  return showResponseTimes
-    ? columns
-    : columns.filter((column) => column.key !== "response");
 }
 
-// ── Main Component ──────────────────────────────────────────────
+function saveViewMode(mode: ViewMode) {
+  try {
+    window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+  } catch {
+    // Storage unavailable — the choice just isn't remembered.
+  }
+}
 
 export default function ContainerStatsComponent() {
-  const settings = usePortalSettings();
-  const [containerRows, setContainerRows] = useState<ContainerRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [systemInfo, setSystemInfo] = useState<
-    SystemInfo | SystemInfo[] | null
-  >(null);
-  const [containerStats, setContainerStats] = useState<
-    Record<string, Partial<ContainerStats>>
-  >({});
-  const [cpuHistory, setCpuHistory] = useState<number[]>([]);
-  const [memoryHistory, setMemoryHistory] = useState<number[]>([]);
-  const [selectedContainer, setSelectedContainer] =
-    useState<ContainerRow | null>(null);
+  const {
+    alertThresholdCpu,
+    alertThresholdMemory,
+    containerPollingInterval,
+    showResponseTimes,
+  } = usePortalSettings();
+  const thresholds = useMemo(
+    () => thresholdsFromSettings({ alertThresholdCpu, alertThresholdMemory }),
+    [alertThresholdCpu, alertThresholdMemory],
+  );
+
+  const { rows, history, systemInfo, loading, error, refreshAfterAction } =
+    useContainerDashboard(containerPollingInterval);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeDevices, setActiveDevices] = useState<string[]>([]);
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"table" | "cards">(() => {
-    if (typeof window === "undefined") return "table";
-    const saved = localStorage.getItem("portal-container-view-mode");
-    return saved === "table" || saved === "cards" ? saved : "table";
-  });
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>(readViewMode);
 
-  const handleToggleViewMode = (mode: "table" | "cards") => {
-    setViewMode(mode);
-    localStorage.setItem("portal-container-view-mode", mode);
-  };
+  // ── Actions ─────────────────────────────────────────────────────
+  const registeredServiceIds = useMemo(
+    () => rows.flatMap((row) => (row.serviceId ? [row.serviceId] : [])),
+    [rows],
+  );
+  const { statuses: rollbackStatuses, recheck: recheckRollback } =
+    useRollbackAvailability(registeredServiceIds);
 
-  const [rollbackMap, setRollbackMap] = useState<Record<string, boolean>>({});
-  const didFetch = useRef(false);
-  const [containerHistory, setContainerHistory] = useState<
-    Record<string, { cpu: number[]; mem: number[] }>
-  >({});
-
-  // Fetch container stats and project registry, then join them
-  const fetchData = useCallback(async () => {
-    try {
-      const [containerRes, servicesRes] = await Promise.all([
-        ApiService.getContainerStats(),
-        ApiService.getServices(),
-      ]);
-
-      const containers = containerRes?.containers || [];
-      const services = servicesRes?.services || [];
-
-      const projectByDocker: Record<string, PortalService> = {};
-      for (const service of services) {
-        if (service.dockerProject) {
-          projectByDocker[service.dockerProject] = service;
-        }
-      }
-
-      // Merge container data with project metadata + stats
-      const rows: ContainerRow[] = containers.map(
-        (container: Record<string, unknown>) => {
-          const matchedService = projectByDocker[container.name as string] || null;
-
-          let type: "client" | "service" | "bot";
-          const rawType = (matchedService?.projectType || "").toLowerCase();
-          const nameLower = (container.name as string).toLowerCase();
-          if (rawType === "client" || nameLower.includes("client")) {
-            type = "client";
-          } else if (rawType === "bot" || nameLower.includes("bot")) {
-            type = "bot";
-          } else {
-            type = "service";
-          }
-
-          const healthy = matchedService?.healthy ?? container.state === "running";
-          // A registered service that hasn't been health-checked yet
-          // (portal-service just booted) is "unknown", not "down".
-          const statusKind: ContainerStatusKind =
-            matchedService && matchedService.checkedAt == null
-              ? "unknown"
-              : healthy
-                ? "healthy"
-                : "down";
-
-          return {
-            // Container identity
-            id:
-              matchedService?.id ||
-              `${(container.device as string) || "unknown"}-${container.name}`,
-            containerName: container.name as string,
-            // Project registry fields
-            healthy,
-            statusKind,
-            registered: !!matchedService,
-            visibility: matchedService?.visibility || null,
-            port: matchedService?.port || null,
-            url: matchedService?.url || null,
-            domain: matchedService?.domain || null,
-            responseTimeMs: matchedService?.responseTimeMs ?? null,
-            device: (container.device as string) || matchedService?.device || null,
-            restartable: matchedService?.restartable ?? false,
-            controllable: true,
-            dockerProject: container.name as string,
-            projectType: type,
-            // Per-container Docker stats (for table columns + drawer)
-            _stats: {
-              cpu: container.cpu,
-              cpuThrottling: container.cpuThrottling,
-              memory: container.memory,
-              memoryDetail: container.memoryDetail,
-              network: container.network,
-              blockIO: container.blockIO,
-              pids: container.pids,
-              // Container metadata
-              image: container.image,
-              state: container.state,
-              status: container.status,
-              created: container.created,
-              command: container.command,
-              ports: container.ports,
-              mounts: container.mounts,
-              labels: container.labels,
-            },
-          };
-        },
-      );
-
-      // Sort by name
-      rows.sort((firstItem, secondItem) => firstItem.containerName.localeCompare(secondItem.containerName));
-
-      setContainerRows(rows);
-
-      // Build stats map for summary cards
-      const statsMap: Record<string, Partial<ContainerStats>> = {};
-      for (const container of containers) {
-        statsMap[container.name as string] = {
-          cpu: container.cpu,
-          memory: container.memory,
-          network: container.network,
-          blockIO: container.blockIO,
-          pids: container.pids,
-        };
-      }
-      setContainerStats(statsMap);
-
-      // Accumulate sparkline history for CPU and memory
-      const totalCpu = containers.reduce(
-        (sum: number, container: Partial<ContainerStats>) =>
-          sum + (container.cpu?.percent || 0),
-        0,
-      );
-      const totalMemory = containers.reduce(
-        (sum: number, container: Partial<ContainerStats>) =>
-          sum + (container.memory?.used || 0),
-        0,
-      );
-      setCpuHistory((previousState) => [...previousState.slice(-(HISTORY_MAX - 1)), totalCpu]);
-      setMemoryHistory((previousState) => [...previousState.slice(-(HISTORY_MAX - 1)), totalMemory]);
-
-      // Accumulate per-container sparkline history
-      setContainerHistory((previousState) => {
-        const next = { ...previousState };
-        for (const container of containers) {
-          const existing = next[container.name] || { cpu: [], mem: [] };
-          next[container.name] = {
-            cpu: [
-              ...existing.cpu.slice(-(HISTORY_MAX - 1)),
-              container.cpu?.percent || 0,
-            ],
-            mem: [
-              ...existing.mem.slice(-(HISTORY_MAX - 1)),
-              container.memory?.used || 0,
-            ],
-          };
-        }
-        return next;
-      });
-
-      // Update selected container if drawer is open
-      setSelectedContainer((previousState) => {
-        if (!previousState) return null;
-        return rows.find((r) => r.id === previousState.id) || null;
-      });
-    } catch {
-      // Don't break the page on error
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch system info for container count breakdown. The call can take
-  // 30s+ server-side, so guard against stacking a new request on every
-  // poll tick while one is still in flight.
-  const systemInfoInflightRef = useRef(false);
-  const fetchSystemInfo = useCallback(async () => {
-    if (systemInfoInflightRef.current) return;
-    systemInfoInflightRef.current = true;
-    try {
-      const systemInfoResponse = await ApiService.getSystemInfo().catch(() => null);
-      // An empty array means every Docker host failed — keep it null so
-      // the next poll retries (served from the service-side cache).
-      const hasData =
-        systemInfoResponse &&
-        (!Array.isArray(systemInfoResponse) || systemInfoResponse.length > 0);
-      setSystemInfo(hasData ? (systemInfoResponse as SystemInfo | SystemInfo[]) : null);
-    } catch {
-      // Supplementary — silently ignore
-    } finally {
-      systemInfoInflightRef.current = false;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
-    fetchData();
-    fetchSystemInfo();
-
-    // Seed sparklines from persistent MongoDB metrics so trends are
-    // immediately visible instead of building from zero on each visit.
-    (async () => {
-      try {
-        const metricsResponse = await ApiService.getContainerMetrics({
-          range: "1h",
-          limit: HISTORY_MAX,
-        });
-        if (!metricsResponse?.containers) return;
-
-        // Build per-container history from persistent data
-        const seededHistory: Record<string, { cpu: number[]; mem: number[] }> =
-          {};
-        let totalCpuPoints: number[] = [];
-        let totalMemoryPoints: number[] = [];
-
-        // Find the longest series length across all containers
-        let maxLength = 0;
-        for (const [_name, data] of Object.entries(metricsResponse.containers) as [
-          string,
-          ContainerMetricsData,
-        ][]) {
-          if (data.points?.length > maxLength) maxLength = data.points.length;
-        }
-
-        // Initialize totalCpu/Mem arrays with zeroes
-        totalCpuPoints = new Array(maxLength).fill(0);
-        totalMemoryPoints = new Array(maxLength).fill(0);
-
-        for (const [_name, data] of Object.entries(metricsResponse.containers) as [
-          string,
-          ContainerMetricsData,
-        ][]) {
-          if (!data.points || data.points.length === 0) continue;
-
-          const cpuPoints = data.points.map((point) => point.cpu);
-          const memoryPoints = data.points.map((point) => point.mem);
-          seededHistory[_name] = { cpu: cpuPoints, mem: memoryPoints };
-
-          // Accumulate totals — right-align shorter series
-          const offset = maxLength - data.points.length;
-          for (let i = 0; i < data.points.length; i++) {
-            totalCpuPoints[offset + i] += data.points[i].cpu || 0;
-            totalMemoryPoints[offset + i] += data.points[i].mem || 0;
-          }
-        }
-
-        // Only seed if we got meaningful data
-        if (Object.keys(seededHistory).length > 0) {
-          setContainerHistory((previousState) => {
-            // Don't overwrite if live polling has already populated data
-            if (Object.keys(previousState).length > 0) return previousState;
-            return seededHistory;
-          });
-          setCpuHistory((previousState) => (previousState.length > 2 ? previousState : totalCpuPoints));
-          setMemoryHistory((previousState) => (previousState.length > 2 ? previousState : totalMemoryPoints));
-        }
-      } catch {
-        // Non-critical — sparklines will just build from live data
-      }
-    })();
-  }, [fetchData, fetchSystemInfo]);
-
-  // Poll on the user-configured interval (Settings → Monitoring);
-  // includes systemInfo retry if the initial call was slow
-  const pollMs = Math.max(1, settings.containerPollingInterval) * 1000;
-  useEffect(() => {
-    const timer = setInterval(() => {
-      fetchData();
-      if (!systemInfo) fetchSystemInfo();
-    }, pollMs);
-    return () => clearInterval(timer);
-  }, [fetchData, fetchSystemInfo, systemInfo, pollMs]);
-
-  const handleRestart = async (serviceId: string, row: ContainerRow) => {
-    try {
-      if (row?.registered && row?.restartable) {
-        await ApiService.restartService(serviceId);
-      } else {
-        await ApiService.restartContainer(row.containerName, row.device || "");
-      }
-      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
-    } catch (error) {
-      console.error("Restart failed:", error);
-    }
-  };
-
-  const handleStop = async (serviceId: string, row: ContainerRow) => {
-    try {
-      if (row?.registered && row?.restartable) {
-        await ApiService.stopService(serviceId);
-      } else {
-        await ApiService.stopContainer(row.containerName, row.device || "");
-      }
-      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
-    } catch (error) {
-      console.error("Stop failed:", error);
-    }
-  };
-
-  const handleStart = async (serviceId: string, row: ContainerRow) => {
-    try {
-      if (row?.registered && row?.restartable) {
-        await ApiService.startService(serviceId);
-      } else {
-        await ApiService.startContainer(row.containerName, row.device || "");
-      }
-      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
-    } catch (error) {
-      console.error("Start failed:", error);
-    }
-  };
-
-  const handleRollback = async (serviceId: string) => {
-    try {
-      await ApiService.rollbackService(serviceId);
-      setTimeout(fetchData, ACTION_COOLDOWN_MILLISECONDS);
-      // Refresh rollback availability
-      setTimeout(
-        () =>
-          checkRollbackAvailability(
-            containerRows.filter((row) => row.restartable).map((row) => row.id),
-          ),
-        HIGHLIGHT_DURATION_MILLISECONDS,
-      );
-    } catch (error) {
-      console.error("Rollback failed:", error);
-    }
-  };
-
-  // Check rollback availability for all restartable containers
-  const checkRollbackAvailability = useCallback(
-    async (restartableIds: string[]) => {
-      if (restartableIds.length === 0) return;
-
-      const results = await Promise.allSettled(
-        restartableIds.map(async (id) => {
-          const rollbackStatusResponse = await ApiService.getRollbackStatus(id);
-          return { id, available: rollbackStatusResponse.available === true };
-        }),
-      );
-
-      const map: Record<string, boolean> = {};
-      for (const result of results) {
-        if (result.status === "fulfilled") {
-          map[result.value.id] = result.value.available;
-        }
-      }
-      setRollbackMap(map);
+  const { pending, requestAction, actionUi } = useActionRunner({
+    onSettled: (_request, succeeded) => {
+      if (succeeded) void refreshAfterAction();
     },
+  });
+
+  // Start/stop/restart address the container by name + device, so a
+  // same-named container on another host is never the one acted on.
+  const handleAction = useCallback(
+    (row: ContainerRow, action: ContainerAction) => {
+      const device = row.device || "";
+      const run = async () => {
+        switch (action) {
+          case "start":
+            return ApiService.startContainer(row.containerName, device);
+          case "stop":
+            return ApiService.stopContainer(row.containerName, device);
+          case "restart":
+            return ApiService.restartContainer(row.containerName, device);
+          case "rollback": {
+            const serviceId = row.serviceId;
+            if (!serviceId)
+              throw new Error("Only registered services can be rolled back");
+            try {
+              return await ApiService.rollbackService(serviceId);
+            } finally {
+              void recheckRollback(serviceId);
+            }
+          }
+        }
+      };
+      requestAction({ key: row.id, name: row.containerName, action, run });
+    },
+    [requestAction, recheckRollback],
+  );
+
+  // Rollback re-tags the service's image on its registry device — only
+  // offer it on the row that actually runs there.
+  const isRollbackAvailable = useCallback(
+    (row: ContainerRow) => {
+      const status = row.serviceId
+        ? rollbackStatuses[row.serviceId]
+        : undefined;
+      return Boolean(
+        status?.available && (!status.device || status.device === row.device),
+      );
+    },
+    [rollbackStatuses],
+  );
+
+  const renderActions = useCallback(
+    (row: ContainerRow) => (
+      <ContainerActionButtons
+        row={row}
+        pending={pending[row.id]}
+        rollbackAvailable={isRollbackAvailable(row)}
+        onAction={handleAction}
+      />
+    ),
+    [pending, isRollbackAvailable, handleAction],
+  );
+
+  // ── Derived data ────────────────────────────────────────────────
+  const deviceIds = useMemo(
+    () =>
+      [
+        ...new Set(rows.flatMap((row) => (row.device ? [row.device] : []))),
+      ].sort(),
+    [rows],
+  );
+  const filteredRows = useMemo(
+    () =>
+      filterContainerRows(rows, {
+        devices: activeDevices,
+        types: activeTypes,
+        query: searchQuery,
+      }),
+    [rows, activeDevices, activeTypes, searchQuery],
+  );
+  const summary = useMemo(
+    () => summarizeContainers(filteredRows, systemInfo, activeDevices),
+    [filteredRows, systemInfo, activeDevices],
+  );
+  const hostRam = useMemo(() => hostRamByDevice(systemInfo), [systemInfo]);
+  // Summary sparklines are the sum of the shown containers' own series,
+  // so they follow the filters exactly like the figures above them.
+  const cpuSeries = useMemo(
+    () => sumAligned(filteredRows.map((row) => history[row.id]?.cpu ?? [])),
+    [filteredRows, history],
+  );
+  const memorySeries = useMemo(
+    () => sumAligned(filteredRows.map((row) => history[row.id]?.mem ?? [])),
+    [filteredRows, history],
+  );
+
+  const columns = useMemo(
+    () =>
+      buildContainerColumns({
+        history,
+        hostRam,
+        thresholds,
+        showResponseTimes,
+        renderActions,
+      }),
+    [history, hostRam, thresholds, showResponseTimes, renderActions],
+  );
+
+  const selectedContainer = selectedId
+    ? (rows.find((row) => row.id === selectedId) ?? null)
+    : null;
+  const selectRow = useCallback(
+    (row: ContainerRow) => setSelectedId(row.id),
     [],
   );
 
-  // ── Derive unique device IDs for filter pills ─────────────────
-  const deviceIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const row of containerRows) {
-      if (row.device) ids.add(row.device);
-    }
-    return [...ids].sort();
-  }, [containerRows]);
-
-  // ── Filter rows by active device, container type, and search query ──
-  const filteredRows = useMemo(() => {
-    let rows = containerRows;
-    if (activeDevices.length > 0) {
-      rows = rows.filter((r) => r.device && activeDevices.includes(r.device));
-    }
-    if (activeTypes.length > 0) {
-      rows = rows.filter((r) => r.projectType && activeTypes.includes(r.projectType));
-    }
-    if (searchQuery.trim()) {
-      const normalizedQuery = searchQuery.toLowerCase().trim();
-      rows = rows.filter((r) => {
-        const nameMatch = r.containerName
-          .toLowerCase()
-          .includes(normalizedQuery);
-        const deviceMatch = r.device
-          ? r.device.toLowerCase().includes(normalizedQuery)
-          : false;
-        const typeMatch = r.projectType
-          ? r.projectType.toLowerCase().includes(normalizedQuery)
-          : false;
-        const portMatch = r.port
-          ? String(r.port).includes(normalizedQuery)
-          : false;
-        const domainMatch = r.domain
-          ? r.domain.toLowerCase().includes(normalizedQuery)
-          : false;
-        return (
-          nameMatch || deviceMatch || typeMatch || portMatch || domainMatch
-        );
-      });
-    }
-    return rows;
-  }, [containerRows, activeDevices, activeTypes, searchQuery]);
-
-  const columns = buildColumns({
-    onRestart: handleRestart,
-    onStop: handleStop,
-    onStart: handleStart,
-    onRollback: handleRollback,
-    rollbackMap,
-    systemInfo,
-    containerHistory,
-    cpuAlertAt: settings.alertThresholdCpu,
-    memoryAlertAt: settings.alertThresholdMemory,
-    showResponseTimes: settings.showResponseTimes,
-  });
-  const healthyCount = filteredRows.filter((r) => r.healthy).length;
-
-  // Check rollback availability when the set of restartable services changes
-  // (NOT on every poll — containerRows is a fresh array every 5 s).
-  const restartableIdsSignature = useMemo(
-    () =>
-      containerRows
-        .filter((row) => row.restartable)
-        .map((row) => row.id)
-        .sort()
-        .join(","),
-    [containerRows],
-  );
-
-  useEffect(() => {
-    if (restartableIdsSignature) {
-      checkRollbackAvailability(restartableIdsSignature.split(","));
-    }
-  }, [restartableIdsSignature, checkRollbackAvailability]);
-
-  // ── Container-centric summary computed values ──────────────────
-  const filteredStats = useMemo(() => {
-    if (activeDevices.length === 0 && activeTypes.length === 0 && !searchQuery.trim())
-      return Object.values(containerStats);
-    return filteredRows
-      .map((r) => containerStats[r.containerName])
-      .filter(Boolean);
-  }, [containerStats, activeDevices, activeTypes, searchQuery, filteredRows]);
-
-  const avgCpuUsage =
-    filteredStats.length > 0
-      ? filteredStats.reduce((sum, container) => sum + (container.cpu?.percent || 0), 0) /
-        filteredStats.length
-      : 0;
-  const totalCpuUsage = filteredStats.reduce(
-    (sum, container) => sum + (container.cpu?.percent || 0),
-    0,
-  );
-  const totalMemoryUsed = filteredStats.reduce(
-    (sum, container) => sum + (container.memory?.used || 0),
-    0,
-  );
-
-  const rowsWithResponseTime = filteredRows.filter(
-    (row) => row.responseTimeMs !== null,
-  );
-  const averageResponseTime =
-    rowsWithResponseTime.length > 0
-      ? Math.round(
-          rowsWithResponseTime.reduce(
-            (sum, row) => sum + (row.responseTimeMs ?? 0),
-            0,
-          ) / rowsWithResponseTime.length
-        )
-      : 0;
-
-
-  // Use actual host RAM from systemInfo instead of summing per-container cgroup limits.
-  // Fallback: deduplicate per-device cgroup limits (each container reports host RAM as its limit).
-  const totalMemoryLimit = useMemo((): number => {
-    if (systemInfo) {
-      const devices: SystemInfo[] = Array.isArray(systemInfo)
-        ? systemInfo
-        : [systemInfo];
-      if (activeDevices.length > 0) {
-        return devices
-          .filter((deviceInfo) => activeDevices.includes(deviceInfo.deviceId))
-          .reduce((sum, deviceInfo) => sum + (deviceInfo.totalMemory || 0), 0);
-      }
-      return devices.reduce((sum, deviceInfo) => sum + (deviceInfo.totalMemory || 0), 0);
-    }
-    // Fallback: take max memory.limit per device (cgroup limit = host RAM for uncapped containers)
-    const perDevice: Record<string, number> = {};
-    for (const row of filteredRows) {
-      const dev = row.device || "_default";
-      const limit = row._stats?.memory?.limit || 0;
-      perDevice[dev] = Math.max(perDevice[dev] || 0, limit);
-    }
-    return (Object.values(perDevice) as number[]).reduce(
-      (sum, value) => sum + value,
-      0,
-    );
-  }, [systemInfo, activeDevices, filteredRows]);
-
-  const memoryPercent =
-    totalMemoryLimit > 0 ? (totalMemoryUsed / totalMemoryLimit) * 100 : 0;
-  const totalNetRx = filteredRows.reduce(
-    (sum, r) => sum + (r._stats?.network?.rx || 0),
-    0,
-  );
-  const totalNetTx = filteredRows.reduce(
-    (sum, r) => sum + (r._stats?.network?.tx || 0),
-    0,
-  );
-
-  const getRowClassName = (row: ContainerRow) =>
-    row.statusKind === "healthy"
-      ? styles['status-row-healthy']
-      : row.statusKind === "down"
-        ? styles['status-row-unhealthy']
-        : styles['status-row-unknown'];
-
-  // Build full stats object for drawer
-  const selectedStats = selectedContainer?._stats || null;
-
   if (loading) {
     return (
-      <div className={styles['section']}>
+      <div className={styles["section"]}>
         <LoadingIndicatorComponent
           size="small"
           label="Querying containers…"
@@ -1162,18 +228,17 @@ export default function ContainerStatsComponent() {
   }
 
   return (
-    <div className={`container-stats-component ${styles['section']}`}>
+    <div className={`container-stats-component ${styles["section"]}`}>
       <PageHeaderComponent
         sticky={false}
         title="Containers"
-        subtitle={`${healthyCount} of ${filteredRows.length} containers healthy · polling every 5s`}
+        subtitle={`${summary.healthy} of ${summary.total} containers healthy · polling every ${containerPollingInterval}s`}
       />
 
       {/* ── Filters & View Toggle ────────────────────────────────── */}
-      <div className={styles['filters-bar']}>
-        <div className={styles['filters-container']}>
-          {/* ── Search Input ───────────────────────────────────────── */}
-          <div className={styles['search-wrapper']}>
+      <div className={styles["filters-bar"]}>
+        <div className={styles["filters-container"]}>
+          <div className={styles["search-wrapper"]}>
             <SearchInputComponent
               value={searchQuery}
               onChange={setSearchQuery}
@@ -1182,7 +247,6 @@ export default function ContainerStatsComponent() {
             />
           </div>
 
-          {/* ── Device Filter ──────────────────────────────────────── */}
           {deviceIds.length > 1 && (
             <SelectComponent
               multiple
@@ -1197,330 +261,101 @@ export default function ContainerStatsComponent() {
             />
           )}
 
-          {/* ── Type Filter ────────────────────────────────────────── */}
           <SelectComponent
             multiple
             label="Type"
             value={activeTypes}
-            options={(["client", "service", "bot"] as const).map((type) => ({
-              value: type,
-              label: `${type}s`,
-            }))}
+            options={TYPE_OPTIONS}
             onChange={setActiveTypes}
             allLabel="All Types"
           />
         </div>
 
-        {/* ── View Mode Switcher ──────────────────────────────────── */}
         <SegmentedControlComponent
           value={viewMode}
-          onChange={(value: string) =>
-            handleToggleViewMode(value as "table" | "cards")
-          }
-          segments={[
-            { value: "table", icon: <List size={12} strokeWidth={2.4} /> },
-            { value: "cards", icon: <LayoutGrid size={12} strokeWidth={2.4} /> },
-          ]}
+          onChange={(value: string) => {
+            const mode: ViewMode = value === "cards" ? "cards" : "table";
+            setViewMode(mode);
+            saveViewMode(mode);
+          }}
+          segments={VIEW_SEGMENTS}
           compact
         />
       </div>
 
-      {/* ── Infrastructure Summary Cards ──────────────────────────── */}
-      {!loading && (
-        <div className={styles['summary-grid']}>
-          <StatsCardComponent
-            label="Containers"
-            value={filteredRows.length}
-            subtitle={
-              activeDevices.length > 0
-                ? `${healthyCount} healthy on ${activeDevices.join(", ")}`
-                : systemInfo
-                  ? `${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersRunning || 0), 0) : systemInfo.containersRunning || 0} running · ${Array.isArray(systemInfo) ? systemInfo.reduce((sum, deviceInfo) => sum + (deviceInfo.containersStopped || 0), 0) : systemInfo.containersStopped || 0} stopped`
-                  : `${healthyCount} healthy`
-            }
-            icon={Server}
-            variant="accent"
-          />
-
-          <div
-            className={styles['chart-stat-card']}
-            style={{ "--chart-stat-accent": "var(--color-success)" } as React.CSSProperties}
-          >
-            <div className={styles['chart-stat-header']}>
-              <span className={styles['chart-stat-label']}>CPU Usage</span>
-              <div className={styles['chart-stat-icon']}>
-                <Cpu size={14} strokeWidth={2} />
-              </div>
-            </div>
-            <span
-              className={styles['chart-stat-value']}
-              style={{ color: severityColor(avgCpuUsage, [40, settings.alertThresholdCpu]) }}
-            >
-              {totalCpuUsage.toFixed(1)}%
-            </span>
-            <span className={styles['chart-stat-subtitle']}>
-              {avgCpuUsage.toFixed(1)}% avg per container
-            </span>
-            <ChartLineComponent
-              data={cpuHistory}
-              color="var(--color-success)"
-              maxValue={100}
-              height={48}
-              historyMax={HISTORY_MAX}
-              showGrid
-              formatValue={(value: number) => formatPercent(value, "adaptive")}
-            />
-          </div>
-
-          <div
-            className={styles['chart-stat-card']}
-            style={{ "--chart-stat-accent": "var(--color-info)" } as React.CSSProperties}
-          >
-            <div className={styles['chart-stat-header']}>
-              <span className={styles['chart-stat-label']}>Memory Used</span>
-              <div className={styles['chart-stat-icon']}>
-                <MemoryStick size={14} strokeWidth={2} />
-              </div>
-            </div>
-            <span
-              className={styles['chart-stat-value']}
-              style={{
-                color: severityColor(memoryPercent, [60, settings.alertThresholdMemory]),
-              }}
-            >
-              {formatBytes(totalMemoryUsed)}
-            </span>
-            <span className={styles['chart-stat-subtitle']}>
-              {totalMemoryLimit
-                ? `${formatPercent(memoryPercent, "adaptive")} of ${formatBytes(totalMemoryLimit)} total`
-                : "—"}
-            </span>
-            <ChartLineComponent
-              data={memoryHistory}
-              color="var(--color-info)"
-              maxValue={totalMemoryLimit || 1}
-              height={48}
-              historyMax={HISTORY_MAX}
-              showGrid
-              formatValue={(value: number) => formatBytes(value)}
-            />
-          </div>
-
-          <StatsCardComponent
-            label="Network I/O"
-            value={formatBytes(totalNetRx + totalNetTx)}
-            subtitle={`↓ ${formatBytes(totalNetRx)} rx · ↑ ${formatBytes(totalNetTx)} tx`}
-            icon={Network}
-            color="var(--accent-secondary)"
-          />
-
-          {settings.showResponseTimes && (
-            <StatsCardComponent
-              label="Avg Response"
-              value={
-                averageResponseTime > 0
-                  ? formatDuration(averageResponseTime)
-                  : "—"
-              }
-              subtitle={
-                rowsWithResponseTime.length > 0
-                  ? `Based on ${rowsWithResponseTime.length} active service${rowsWithResponseTime.length === 1 ? "" : "s"}`
-                  : "No services with active responses"
-              }
-              icon={Clock}
-              variant="warning"
-            />
-          )}
+      {error && rows.length > 0 && (
+        <div className={styles["error-banner"]} role="status">
+          Showing the last successful poll — refresh failed: {error}
         </div>
       )}
 
+      <ContainerSummaryCards
+        summary={summary}
+        activeDevices={activeDevices}
+        cpuSeries={cpuSeries}
+        memorySeries={memorySeries}
+        thresholds={thresholds}
+        showResponseTimes={showResponseTimes}
+      />
+
       {filteredRows.length === 0 ? (
-        <div className={styles['empty-state']}>
-          No containers found{activeDevices.length > 0 ? ` on ${activeDevices.join(", ")}` : ""}
+        <div className={styles["empty-state"]}>
+          {error && rows.length === 0
+            ? `Couldn't load containers: ${error}`
+            : `No containers found${activeDevices.length > 0 ? ` on ${activeDevices.join(", ")}` : ""}`}
         </div>
       ) : viewMode === "table" ? (
         <TableComponent
           title="Containers"
-          subtitle={`${filteredRows.length} containers · ${healthyCount} healthy`}
+          subtitle={`${summary.total} containers · ${summary.healthy} healthy`}
           columns={columns}
           data={filteredRows}
           getRowKey={(row: ContainerRow) => row.id}
           emptyText="No containers found"
-          getRowClassName={getRowClassName}
-          onRowClick={(row: ContainerRow) => setSelectedContainer(row)}
-          activeRowKey={selectedContainer?.id}
+          getRowClassName={getContainerRowClassName}
+          onRowClick={selectRow}
+          activeRowKey={selectedId}
           storageKey="container-table"
         />
       ) : (
-        /* ── Cards Grid View ────────────────────────────────────── */
-        <div className={styles['cards-grid']}>
+        <div className={styles["cards-grid"]}>
           {filteredRows.map((row) => (
-            <div
+            <ContainerCard
               key={row.id}
-              className={`${styles['container-card']} ${
-                row.statusKind === "healthy"
-                  ? styles['card-healthy']
-                  : row.statusKind === "down"
-                    ? styles['card-unhealthy']
-                    : styles['card-unknown']
-              } ${selectedContainer?.id === row.id ? styles['card-active'] : ""}`}
-              onClick={() => setSelectedContainer(row)}
-            >
-              <div className={styles['card-header']}>
-                <div className={styles['card-title-section']}>
-                  <Container
-                    size={14}
-                    strokeWidth={2.6}
-                    className={`${styles['type-icon']} ${styles[STATUS_ICON_CLASS[row.statusKind]]}`}
-                  />
-                  <span className={styles['card-name']}>{row.containerName}</span>
-                </div>
-                <div className={styles['card-badge-section']}>
-                  {row.statusKind === "unknown" ? (
-                    <span
-                      className={styles['card-status-unknown-pill']}
-                      title="Not yet checked"
-                    >
-                      Checking…
-                    </span>
-                  ) : (
-                    <BadgeComponent type="status" healthy={row.healthy} />
-                  )}
-                  {row.device && (
-                    <span className={styles['card-device-pill']}>{row.device}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles['card-meta']}>
-                {row.port && <BadgeComponent type="port" port={row.port} />}
-                {row.visibility && (
-                  <BadgeComponent
-                    type="visibility"
-                    visibility={row.visibility}
-                    icons={{ Globe, Lock }}
-                  />
-                )}
-                {row.domain && (
-                  <BadgeComponent
-                    type="domain"
-                    domain={row.domain}
-                    icons={{ Globe }}
-                  />
-                )}
-              </div>
-
-              {row.projectType === "client" && row.healthy && row.domain && (
-                <CardSitePreview domain={row.domain} />
-              )}
-
-              <div className={styles['card-metrics-grid']}>
-                <div className={styles['card-metric']}>
-                  <div className={styles['card-metric-header']}>
-                    <Cpu size={12} className={styles['metric-icon-cpu']} />
-                    <span className={styles['card-metric-label']}>CPU</span>
-                    <span className={styles['card-metric-value']}>
-                      {row._stats?.cpu?.percent != null
-                        ? formatPercent(row._stats.cpu.percent, "adaptive")
-                        : "—"}
-                    </span>
-                  </div>
-                  {row._stats?.cpu?.percent != null && (
-                    <MiniBar
-                      percent={row._stats.cpu.percent}
-                      color={severityColor(row._stats.cpu.percent)}
-                    />
-                  )}
-                </div>
-
-                <div className={styles['card-metric']}>
-                  <div className={styles['card-metric-header']}>
-                    <MemoryStick size={12} className={styles['metric-icon-ram']} />
-                    <span className={styles['card-metric-label']}>RAM</span>
-                    <span className={styles['card-metric-value']}>
-                      {row._stats?.memory
-                        ? formatBytes(row._stats.memory.used)
-                        : "—"}
-                    </span>
-                  </div>
-                  {row._stats?.memory && (
-                    <MiniBar
-                      percent={
-                        row._stats.memory.limit > 0
-                          ? (row._stats.memory.used / row._stats.memory.limit) *
-                            100
-                          : row._stats.memory.percent
-                      }
-                      color={severityColor(
-                        row._stats.memory.limit > 0
-                          ? (row._stats.memory.used / row._stats.memory.limit) *
-                              100
-                          : row._stats.memory.percent,
-                        [60, 85],
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className={styles['card-footer']}>
-                <div className={styles['card-uptime']}>
-                  {row._stats?.created ? (
-                    <>
-                      <span className={styles['uptime-label']}>Uptime:</span>
-                      <BadgeComponent
-                        type="dateTime"
-                        date={row._stats.created * 1000}
-                        showIcon={false}
-                      />
-                    </>
-                  ) : (
-                    "—"
-                  )}
-                </div>
-                <ActionCell
-                  service={row}
-                  onRestart={handleRestart}
-                  onStop={handleStop}
-                  onStart={handleStart}
-                  onRollback={handleRollback}
-                  rollbackAvailable={row.restartable && !!rollbackMap[row.id]}
-                />
-              </div>
-            </div>
+              row={row}
+              hostRam={hostRam[row.device || ""] || 0}
+              thresholds={thresholds}
+              active={selectedId === row.id}
+              pending={pending[row.id]}
+              rollbackAvailable={isRollbackAvailable(row)}
+              onSelect={selectRow}
+              onAction={handleAction}
+            />
           ))}
         </div>
       )}
 
       <DrawerComponent
-        open={!!selectedContainer}
-        onClose={() => setSelectedContainer(null)}
+        open={selectedContainer !== null}
+        onClose={() => setSelectedId(null)}
         title={selectedContainer?.containerName || "Container Detail"}
         width={540}
         headerActions={
-          selectedContainer ? (
-            <ActionCell
-              service={selectedContainer}
-              onRestart={handleRestart}
-              onStop={handleStop}
-              onStart={handleStart}
-              onRollback={handleRollback}
-              rollbackAvailable={
-                selectedContainer?.restartable &&
-                !!rollbackMap[selectedContainer.id]
-              }
-            />
-          ) : null
+          selectedContainer ? renderActions(selectedContainer) : null
         }
       >
         {selectedContainer && (
           <ContainerDetailPanel
             key={selectedContainer.id}
             container={selectedContainer}
-            stats={selectedStats}
+            stats={selectedContainer._stats}
+            history={history[selectedContainer.id]}
+            thresholds={thresholds}
           />
         )}
       </DrawerComponent>
+
+      {actionUi}
     </div>
   );
 }

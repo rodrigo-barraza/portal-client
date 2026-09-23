@@ -81,6 +81,17 @@
   flex-shrink: 0;
 }
 
+/* ── Refresh failure (last good data still shown) ── */
+
+.error-banner {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--border-radius-sm);
+  background: var(--calculated-color-danger-subtle);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
 /* ── Filter Summary ── */
 
 .filter-summary {

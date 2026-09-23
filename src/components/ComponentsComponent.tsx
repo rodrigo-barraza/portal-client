@@ -1,189 +1,130 @@
 "use client";
 
-import { useState, useMemo, Component } from "react";
+import { useMemo, useState } from "react";
 import {
   Blocks,
-  LayoutGrid,
-  List,
-  ChevronRight,
-  FlaskConical,
-  Package,
-  Paintbrush,
-  FileCode2,
   Eye,
   EyeOff,
-  AlertTriangle,
+  FlaskConical,
+  LayoutGrid,
+  List,
+  Package,
+  Paintbrush,
 } from "lucide-react";
 import {
   ButtonComponent,
+  IconButtonComponent,
   PageHeaderComponent,
   SearchInputComponent,
-  IconButtonComponent,
 } from "@rodrigo-barraza/components-library";
-import { getPreview } from "./ComponentPreviewRegistryComponent";
+import ComponentCatalogItemComponent from "./ComponentCatalogItemComponent";
 import { formatSize } from "@/lib/format";
+import {
+  COMPONENT_CATEGORY_KEYS,
+  getComponentCategory,
+} from "@/lib/componentCategories";
+import {
+  matchesCatalogQuery,
+  summarizeCatalog,
+  type CatalogEntry,
+} from "@/lib/libraryCatalog";
 import styles from "./ComponentsComponent.module.css";
 
-// ── Error boundary for individual preview isolation ─────────────
-class PreviewErrorBoundary extends Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className={styles['preview-error']}>
-          <AlertTriangle size={14} />
-          <span>Preview failed to render</span>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
+const ALL_CATEGORIES = "all";
 
-interface Category {
+type ViewMode = "grid" | "list";
+
+function CategoryFilterButton({
+  active,
+  count,
+  onSelect,
+  emoji,
+  label,
+}: {
+  active: boolean;
+  count: number;
+  onSelect: () => void;
+  emoji?: string;
   label: string;
-  description: string;
-  icon: string;
-}
-
-// ── Category definitions (presentation only) ────────────────────
-const CATEGORIES: Record<string, Category> = {
-  actions: {
-    label: "Actions",
-    description: "Buttons, FABs, and interactive triggers",
-    icon: "⚡",
-  },
-  communication: {
-    label: "Communication",
-    description: "Snackbars, toasts, tooltips, and badges",
-    icon: "💬",
-  },
-  containment: {
-    label: "Containment",
-    description: "Cards, dialogs, modals, and containers",
-    icon: "📦",
-  },
-  inputs: {
-    label: "Inputs",
-    description: "Text fields, selectors, toggles, and form controls",
-    icon: "✏️",
-  },
-  navigation: {
-    label: "Navigation",
-    description: "Sidebars, drawers, rails, tabs, and menus",
-    icon: "🧭",
-  },
-  indicators: {
-    label: "Indicators",
-    description: "Progress, loading, and status feedback",
-    icon: "📊",
-  },
-  layout: {
-    label: "Layout",
-    description: "Page structure, toolbars, dividers, and tables",
-    icon: "📐",
-  },
-};
-
-/** Human-readable name from component folder name. */
-function humanize(name: string): string {
-  return name.replace(/Component$/, "").replace(/([a-z])([A-Z])/g, "$1 $2");
-}
-
-interface CatalogItem {
-  name: string;
-  category: string;
-  type?: string;
-  m3?: boolean;
-  hasTests?: boolean;
-  files?: number;
-  sizeKb: number;
-  description: string;
+}) {
+  return (
+    <ButtonComponent
+      size="small"
+      variant={active ? "tonal" : "outlined"}
+      aria-pressed={active}
+      onClick={onSelect}
+    >
+      {emoji && <span className={styles["pill-emoji"]}>{emoji}</span>}
+      {label}
+      <span
+        className={`${styles["pill-count"]}${active ? ` ${styles["pill-count-active"]}` : ""}`}
+      >
+        {count}
+      </span>
+    </ButtonComponent>
+  );
 }
 
 /**
- * ComponentsComponent — catalog page for the components library.
+ * ComponentsComponent — catalog page for the components library, with
+ * category filters, search, grid/list views and live previews.
  *
- * Receives `catalog` from the server component which scans the
- * installed @rodrigo-barraza/components-library package at render time.
+ * Receives the component entries of the catalog generated at prebuild.
  */
 export default function ComponentsComponent({
-  catalog = [],
+  components,
 }: {
-  catalog?: CatalogItem[];
+  components: CatalogEntry[];
 }) {
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [viewMode, setViewMode] = useState("grid");
+  const [activeCategory, setActiveCategory] = useState(ALL_CATEGORIES);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [showPreviews, setShowPreviews] = useState(true);
 
-  // ── Filter to components only ─────────────────────────────────
-  const components = useMemo(
-    () => catalog.filter((c) => c.type === "component" || !c.type),
-    [catalog],
+  const filtered = useMemo(
+    () =>
+      components.filter(
+        (component) =>
+          (activeCategory === ALL_CATEGORIES ||
+            component.category === activeCategory) &&
+          matchesCatalogQuery(component, search),
+      ),
+    [components, search, activeCategory],
   );
 
-  // ── Filter logic ─────────────────────────────────────────────
-  const filtered = useMemo(() => {
-    let items = components;
-
-    if (activeCategory !== "all") {
-      items = items.filter((c) => c.category === activeCategory);
-    }
-
-    if (search.trim()) {
-      const normalizedSearch = search.toLowerCase();
-      items = items.filter(
-        (c) =>
-          c.name.toLowerCase().includes(normalizedSearch) ||
-          c.description.toLowerCase().includes(normalizedSearch) ||
-          humanize(c.name).toLowerCase().includes(normalizedSearch),
-      );
-    }
-
-    return items;
-  }, [components, search, activeCategory]);
-
-  // ── Category counts ──────────────────────────────────────────
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: components.length };
-    for (const catalogItem of components) {
-      counts[catalogItem.category] = (counts[catalogItem.category] || 0) + 1;
+    const counts: Record<string, number> = {};
+    for (const component of components) {
+      counts[component.category] = (counts[component.category] ?? 0) + 1;
     }
     return counts;
   }, [components]);
 
-  // ── Stats ────────────────────────────────────────────────────
-  const m3Count = components.filter((c) => c.m3).length;
-  const testedCount = components.filter((c) => c.hasTests).length;
-  const totalSize = components.reduce((sum, c) => sum + c.sizeKb, 0);
+  const { totalSizeKb, testedCount, m3Count } = useMemo(
+    () => summarizeCatalog(components),
+    [components],
+  );
+
+  const activeCategoryInfo = getComponentCategory(activeCategory);
+  const isFiltering = Boolean(search) || activeCategory !== ALL_CATEGORIES;
 
   return (
-    <div className={`components-component ${styles['components']}`}>
+    <div className={`components-component ${styles["components"]}`}>
       <PageHeaderComponent
         sticky={false}
         title="Components"
         subtitle={`${components.length} components · ${m3Count} M3 · ${testedCount} tested`}
       >
-        <div className={styles['header-stats']}>
-          <div className={styles['stat-pill']}>
+        <div className={styles["header-stats"]}>
+          <div className={styles["stat-pill"]}>
             <Package size={13} />
-            <span>{formatSize(totalSize)}</span>
+            <span>{formatSize(totalSizeKb)}</span>
           </div>
-          <div className={styles['stat-pill']}>
+          <div className={styles["stat-pill"]}>
             <FlaskConical size={13} />
             <span>{testedCount} tested</span>
           </div>
-          <div className={styles['stat-pill']}>
+          <div className={styles["stat-pill"]}>
             <Paintbrush size={13} />
             <span>{m3Count} M3</span>
           </div>
@@ -191,216 +132,111 @@ export default function ComponentsComponent({
       </PageHeaderComponent>
 
       {/* ── Toolbar ── */}
-      <div className={styles['toolbar']}>
-        {/* Search */}
+      <div className={styles["toolbar"]}>
         <SearchInputComponent
           value={search}
-          onChange={(value: string) => setSearch(value)}
+          onChange={setSearch}
           placeholder="Search components…"
           compact
           id="component-search"
         />
 
         {/* Category filter buttons (M3 outlined → tonal when selected) */}
-        <div className={styles['category-pills']}>
-          <ButtonComponent
-            size="small"
-            variant={activeCategory === "all" ? "tonal" : "outlined"}
-            aria-pressed={activeCategory === "all"}
-            onClick={() => setActiveCategory("all")}
-          >
-            All
-            <span
-              className={`${styles['pill-count']}${activeCategory === "all" ? ` ${styles['pill-count-active']}` : ""}`}
-            >
-              {categoryCounts.all}
-            </span>
-          </ButtonComponent>
-          {Object.entries(CATEGORIES).map(([key, cat]) => (
-            <ButtonComponent
-              key={key}
-              size="small"
-              variant={activeCategory === key ? "tonal" : "outlined"}
-              aria-pressed={activeCategory === key}
-              onClick={() => setActiveCategory(key)}
-            >
-              <span className={styles['pill-emoji']}>{cat.icon}</span>
-              {cat.label}
-              <span
-                className={`${styles['pill-count']}${activeCategory === key ? ` ${styles['pill-count-active']}` : ""}`}
-              >
-                {categoryCounts[key] || 0}
-              </span>
-            </ButtonComponent>
-          ))}
+        <div className={styles["category-pills"]}>
+          <CategoryFilterButton
+            label="All"
+            active={activeCategory === ALL_CATEGORIES}
+            count={components.length}
+            onSelect={() => setActiveCategory(ALL_CATEGORIES)}
+          />
+          {COMPONENT_CATEGORY_KEYS.map((key) => {
+            const category = getComponentCategory(key);
+            return (
+              <CategoryFilterButton
+                key={key}
+                label={category?.label ?? key}
+                emoji={category?.emoji}
+                active={activeCategory === key}
+                count={categoryCounts[key] ?? 0}
+                onSelect={() => setActiveCategory(key)}
+              />
+            );
+          })}
         </div>
 
         {/* View toggle */}
-        <div className={styles['view-toggle']}>
+        <div className={styles["view-toggle"]}>
           <IconButtonComponent
             icon={showPreviews ? <Eye size={14} /> : <EyeOff size={14} />}
-            onClick={() => setShowPreviews((v) => !v)}
+            onClick={() => setShowPreviews((visible) => !visible)}
             tooltip={showPreviews ? "Hide previews" : "Show previews"}
+            aria-label={showPreviews ? "Hide previews" : "Show previews"}
+            aria-pressed={showPreviews}
             active={showPreviews}
-            className={styles['view-button']}
+            className={styles["view-button"]}
           />
           <IconButtonComponent
             icon={<LayoutGrid size={14} />}
             onClick={() => setViewMode("grid")}
             tooltip="Grid view"
+            aria-label="Grid view"
+            aria-pressed={viewMode === "grid"}
             active={viewMode === "grid"}
-            className={styles['view-button']}
+            className={styles["view-button"]}
           />
           <IconButtonComponent
             icon={<List size={14} />}
             onClick={() => setViewMode("list")}
             tooltip="List view"
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
             active={viewMode === "list"}
-            className={styles['view-button']}
+            className={styles["view-button"]}
           />
         </div>
       </div>
 
       {/* ── Category header ── */}
-      {activeCategory !== "all" && CATEGORIES[activeCategory] && (
-        <div className={styles['category-header']}>
-          <span className={styles['category-emoji']}>
-            {CATEGORIES[activeCategory].icon}
+      {activeCategoryInfo && (
+        <div className={styles["category-header"]}>
+          <span className={styles["category-emoji"]}>
+            {activeCategoryInfo.emoji}
           </span>
           <div>
-            <h2 className={styles['category-title']}>
-              {CATEGORIES[activeCategory].label}
+            <h2 className={styles["category-title"]}>
+              {activeCategoryInfo.label}
             </h2>
-            <p className={styles['category-desc']}>
-              {CATEGORIES[activeCategory].description}
+            <p className={styles["category-desc"]}>
+              {activeCategoryInfo.description}
             </p>
           </div>
         </div>
       )}
 
       {/* ── Results count ── */}
-      {(search || activeCategory !== "all") && (
-        <div className={styles['results-count']}>
+      {isFiltering && (
+        <div className={styles["results-count"]} aria-live="polite">
           {filtered.length} component{filtered.length !== 1 ? "s" : ""}
           {search && ` matching "${search}"`}
         </div>
       )}
 
       {/* ── Grid / List ── */}
-      {viewMode === "grid" ? (
-        <div className={styles['grid']}>
-          {filtered.map((comp, i) => (
-            <div
-              key={comp.name}
-              className={styles['card']}
-              style={{ animationDelay: `${Math.min(i * 30, 600)}ms` }}
-            >
-              <div className={styles['card-header']}>
-                <div className={styles['card-icon']}>
-                  <Blocks size={18} />
-                </div>
-                <div className={styles['card-meta']}>
-                  {comp.m3 && (
-                    <span
-                      className={styles['m3-badge']}
-                      title="Material Design 3 compliant"
-                    >
-                      M3
-                    </span>
-                  )}
-                  {comp.hasTests && (
-                    <span className={styles['test-badge']} title="Has unit tests">
-                      <FlaskConical size={10} />
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <h3 className={styles['card-name']}>{humanize(comp.name)}</h3>
-              <p className={styles['card-desc']}>{comp.description}</p>
-
-              {/* ── Inline Preview ── */}
-              {showPreviews && getPreview(comp.name) && (
-                <div className={styles['preview-area']}>
-                  <PreviewErrorBoundary key={comp.name}>
-                    {getPreview(comp.name)()}
-                  </PreviewErrorBoundary>
-                </div>
-              )}
-
-              <div className={styles['card-footer']}>
-                <span className={styles['card-stat']}>
-                  <FileCode2 size={11} />
-                  {comp.files} file{comp.files !== 1 ? "s" : ""}
-                </span>
-                <span className={styles['card-stat']}>
-                  <Package size={11} />
-                  {formatSize(comp.sizeKb)}
-                </span>
-                <span
-                  className={`${styles['card-category']} ${styles[`component-category-${comp.category}`]}`}
-                >
-                  {CATEGORIES[comp.category]?.label}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className={styles['list']}>
-          {filtered.map((comp, i) => (
-            <div
-              key={comp.name}
-              className={styles['list-row']}
-              style={{ animationDelay: `${Math.min(i * 20, 400)}ms` }}
-            >
-              <div className={styles['list-icon']}>
-                <Blocks size={16} />
-              </div>
-              <div className={styles['list-main']}>
-                <div className={styles['list-name']}>
-                  {humanize(comp.name)}
-                  {comp.m3 && <span className={styles['m3-badge']}>M3</span>}
-                  {comp.hasTests && (
-                    <span className={styles['test-badge']}>
-                      <FlaskConical size={10} />
-                    </span>
-                  )}
-                </div>
-                <div className={styles['list-desc']}>{comp.description}</div>
-                {/* ── Inline Preview (list mode) ── */}
-                {showPreviews && getPreview(comp.name) && (
-                  <div className={styles['preview-area-list']}>
-                    <PreviewErrorBoundary key={comp.name}>
-                      {getPreview(comp.name)()}
-                    </PreviewErrorBoundary>
-                  </div>
-                )}
-              </div>
-              <div className={styles['list-stats']}>
-                <span
-                  className={`${styles['card-category']} ${styles[`component-category-${comp.category}`]}`}
-                >
-                  {CATEGORIES[comp.category]?.label}
-                </span>
-                <span className={styles['card-stat']}>
-                  <FileCode2 size={11} />
-                  {comp.files}
-                </span>
-                <span className={styles['card-stat']}>
-                  <Package size={11} />
-                  {formatSize(comp.sizeKb)}
-                </span>
-              </div>
-              <ChevronRight size={14} className={styles['list-chevron']} />
-            </div>
-          ))}
-        </div>
-      )}
+      <div className={styles[viewMode === "grid" ? "grid" : "list"]}>
+        {filtered.map((component, index) => (
+          <ComponentCatalogItemComponent
+            key={component.name}
+            component={component}
+            variant={viewMode === "grid" ? "card" : "row"}
+            index={index}
+            showPreview={showPreviews}
+          />
+        ))}
+      </div>
 
       {/* ── Empty state ── */}
       {filtered.length === 0 && (
-        <div className={styles['empty-state']}>
+        <div className={styles["empty-state"]}>
           <Blocks size={40} strokeWidth={1} />
           <p>No components match your search</p>
         </div>

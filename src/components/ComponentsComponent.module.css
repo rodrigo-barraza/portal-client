@@ -107,7 +107,7 @@
 
 .view-button:hover {
   color: var(--text-secondary);
-  background: oklch(100.0% 0.0001 263.3 / 0.03);
+  background: oklch(100% 0.0001 263.3 / 0.03);
 }
 
 /* ── Category Header ──────────────────────────────────────────── */
@@ -284,31 +284,59 @@
 
 .component-category-actions {
   color: var(--component-category-actions);
-  background: color-mix(in srgb, var(--component-category-actions) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-actions) 10%,
+    transparent
+  );
 }
 .component-category-communication {
   color: var(--component-category-communication);
-  background: color-mix(in srgb, var(--component-category-communication) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-communication) 10%,
+    transparent
+  );
 }
 .component-category-containment {
   color: var(--component-category-containment);
-  background: color-mix(in srgb, var(--component-category-containment) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-containment) 10%,
+    transparent
+  );
 }
 .component-category-inputs {
   color: var(--component-category-inputs);
-  background: color-mix(in srgb, var(--component-category-inputs) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-inputs) 10%,
+    transparent
+  );
 }
 .component-category-navigation {
   color: var(--component-category-navigation);
-  background: color-mix(in srgb, var(--component-category-navigation) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-navigation) 10%,
+    transparent
+  );
 }
 .component-category-indicators {
   color: var(--component-category-indicators);
-  background: color-mix(in srgb, var(--component-category-indicators) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-indicators) 10%,
+    transparent
+  );
 }
 .component-category-layout {
   color: var(--component-category-layout);
-  background: color-mix(in srgb, var(--component-category-layout) 10%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--component-category-layout) 10%,
+    transparent
+  );
 }
 
 /* ── List View ────────────────────────────────────────────────── */

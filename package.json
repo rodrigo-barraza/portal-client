@@ -17,35 +17,35 @@
     "catalog:generate": "node scripts/generate-component-catalog.mjs",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
+    "pretypecheck": "node scripts/generate-component-catalog.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@rodrigo-barraza/components-library": "github:rodrigo-barraza/components-library",
     "@rodrigo-barraza/utilities-library": "github:rodrigo-barraza/utilities-library",
-    "lucide-react": "^1.14.0",
+    "lucide-react": "^1.47.0",
     "luxon": "^3.7.2",
     "next": "16.3.5",
-    "next-auth": "^5.0.0-beta.31",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "recharts": "^3.8.1",
-    "rrweb-player": "2.1.0"
+    "next-auth": "5.0.0-beta.32",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "recharts": "^3.10.1",
+    "rrweb-player": "2.1.6"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/luxon": "^3.7.1",
-    "@types/node": "^25.9.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/testing-library__jest-dom": "^5.14.9",
-    "@vitejs/plugin-react": "^6.0.1",
-    "jsdom": "^29.1.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/luxon": "^3.7.5",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.1.1",
     "oxlint": "^1.85.0",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.8",
     "typescript": "next",
-    "vite": "^8.0.11",
-    "vitest": "^4.1.5"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   },
   "packageManager": "pnpm@11.8.0"
 }

@@ -8,6 +8,7 @@ import type { ServiceTypeColor, DeployTierColor } from "./types/portal";
 import {
   BookOpen,
   Bot,
+  BrainCircuit,
   Database,
   Globe,
   HardDrive,
@@ -111,13 +112,6 @@ export const NAV_SECTIONS = [
   },
 ];
 
-// ── Service status colors ───────────────────────────────────────
-export const SERVICE_STATUS = {
-  healthy: { label: "Healthy", color: "var(--color-success)" },
-  unhealthy: { label: "Down", color: "var(--color-danger)" },
-  unknown: { label: "Unknown", color: "var(--text-muted)" },
-};
-
 // ── Service type → Lucide icon map ──────────────────────────────
 export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
   Service: Server,
@@ -128,6 +122,7 @@ export const SERVICE_TYPE_ICONS: Record<string, LucideIcon> = {
   Library: BookOpen,
   Kit: Rocket,
   Tool: Wrench,
+  Inference: BrainCircuit,
 };
 
 /** Default icon when projectType is unrecognized. */
@@ -143,6 +138,9 @@ export const SERVICE_TYPE_COLORS: Record<string, ServiceTypeColor> = {
   Library: { color: "#06b6d4", subtle: "rgba(6, 182, 212, 0.12)" },
   Kit: { color: "#f59e0b", subtle: "rgba(245, 158, 11, 0.12)" },
   Tool: { color: "#8b5cf6", subtle: "rgba(139, 92, 246, 0.12)" },
+  // Model servers (lm-studio, llama-cpp) — portal-service labels the
+  // registry's `inference` infrastructure type "Inference".
+  Inference: { color: "#ec4899", subtle: "rgba(236, 72, 153, 0.12)" },
 };
 
 // ── Deploy tier → topology colors (mirrors vault-service) ───────

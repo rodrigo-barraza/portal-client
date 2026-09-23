@@ -1,292 +1,330 @@
 /**
- * ApiService — HTTP client for the API backend.
+ * ApiService — HTTP client for portal-service.
  * Follows the same static-method pattern as Prism Client's PrismService.
+ *
+ * Every request method takes a trailing `{ signal }` so callers can abort
+ * on unmount, and fails with an `ApiError` (from utilities-library) whose
+ * `status` is the HTTP status — 0 when portal-service was unreachable —
+ * and whose `message` is the service's own error text. Aborts reject with
+ * the platform's AbortError unchanged.
+ *
+ * Every method resolves to the body portal-service sends for that route
+ * (types in `@/types/portal`, matching the service's handlers); session
+ * analytics come back in sessions-service's `{ success, data }` envelope.
  */
 
 import { PORTAL_SERVICE_URL } from "@/config";
-import { createApiClient } from "@rodrigo-barraza/components-library";
-import type { BucketStreamEvent } from "../types/portal";
+import type {
+  BucketStreamEvent,
+  ContainerActionResponse,
+  ContainerMetricsResponse,
+  ContainerStatsHistoryResponse,
+  ContainerStatsResponse,
+  DevicesResponse,
+  ExternalApiTimeSeries,
+  ExternalApiUsageData,
+  GAPropertiesResponse,
+  GARealtimeReport,
+  GAReportsByName,
+  IntegrationsData,
+  IpDetail,
+  LanguagesResponse,
+  LoggableContainersResponse,
+  ProjectAnalysis,
+  RepoSizesResponse,
+  ServiceActionResponse,
+  ServiceRollbackStatus,
+  ServicesResponse,
+  SessionDetail,
+  SessionReplay,
+  SessionReportsByName,
+  SessionsEnvelope,
+  StorageBucket,
+  StorageDeleteResponse,
+  StorageObjectListing,
+  StorageObjectStat,
+  StorageSearchResponse,
+  StorageSummary,
+  SystemInfoResponse,
+} from "@/types/portal";
+import {
+  createJsonRequester,
+  objectPath,
+  pathSegment,
+  queryString,
+  type HttpMethod,
+  type RequestOptions,
+} from "./apiRequest";
 
-const request = createApiClient(PORTAL_SERVICE_URL ?? "", { noCache: true });
+export { ApiError, NETWORK_ERROR_STATUS } from "./apiRequest";
+export type { RequestOptions } from "./apiRequest";
 
-/** Encode an object key for use in a URL path, preserving `/` separators. */
-function encodeObjectPath(objectName: string) {
-  return objectName.split("/").map(encodeURIComponent).join("/");
+const request = createJsonRequester(PORTAL_SERVICE_URL);
+
+/** GET `path`; `Body` is what portal-service sends for that route. */
+function get<Body>(path: string, options?: RequestOptions): Promise<Body> {
+  return request<Body>("GET", path, options);
 }
 
+function send<Body>(
+  method: Exclude<HttpMethod, "GET">,
+  path: string,
+  options?: RequestOptions,
+): Promise<Body> {
+  return request<Body>(method, path, options);
+}
+
+type SessionSort = "createdAt" | "updatedAt" | "duration" | (string & {});
+
+/** A GA4 period report's body, by report name. */
+type GAReport<Report extends keyof GAReportsByName> = Promise<
+  GAReportsByName[Report]
+>;
+
+/** A sessions-service stats report, still in its `{ success, data }` envelope. */
+type SessionReport<Report extends keyof SessionReportsByName> = Promise<
+  SessionsEnvelope<SessionReportsByName[Report]>
+>;
+
 export default class ApiService {
-  /**
-   * Shared fetch helper — delegates to components-library.
-   *
-   * Response payloads are untyped (`any`) — callers narrow the shape they
-   * consume. Tightening this to per-endpoint response types is a separate
-   * project; `unknown` here would force casts at every call site.
-   */
-   
-  static async _request<T = any>(
-    endpoint: string,
-    { method = "GET", body }: { method?: string; body?: unknown } = {},
-  ): Promise<T> {
-    return (await request(
-      method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
-      endpoint,
-      body as object | undefined,
-    )) as T;
-  }
-
-  // ── Root ──────────────────────────────────────────────────────
-
-  /**
-   * Root health check — returns name, version, endpoints.
-   */
-  static async getHealth() {
-    return ApiService._request("/");
-  }
-
   // ── Projects ──────────────────────────────────────────────────
 
-  /**
-   * Get service health status for all services.
-
-   */
-  static async getServices(refresh = false) {
-    const queryString = refresh ? "?refresh=true" : "";
-    return ApiService._request(`/services${queryString}`);
+  /** Health status of every registered service and infrastructure entry. */
+  static getServices(
+    refresh = false,
+    options?: RequestOptions,
+  ): Promise<ServicesResponse> {
+    return get(
+      `/services${queryString({ refresh: refresh || undefined })}`,
+      options,
+    );
   }
 
-  /**
-   * Trigger a manual health check for all services.
-   */
-  static async checkServices() {
-    return ApiService._request("/services/check", { method: "POST" });
+  // Start / stop / restart a registered, containerized service by project
+  // id — the Projects page's card actions (they have no device id to use
+  // the container-direct routes below).
+
+  static startService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
+    return ApiService.serviceAction("start", serviceId, options);
   }
 
-  /**
-   * Reload the vault registry — picks up newly added projects
-   * without requiring a portal-service container restart.
-   */
-  static async reloadRegistry() {
-    return ApiService._request("/services/reload", { method: "POST" });
+  static stopService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
+    return ApiService.serviceAction("stop", serviceId, options);
   }
 
-  /**
-   * Restart a containerized service via SSH + Docker Compose.
-
-   */
-  static async restartService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/restart`, {
-      method: "POST",
-    });
+  static restartService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
+    return ApiService.serviceAction("restart", serviceId, options);
   }
 
-  /**
-   * Stop a containerized service via SSH + Docker Compose.
-
-   */
-  static async stopService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/stop`, {
-      method: "POST",
-    });
+  private static serviceAction(
+    action: "restart" | "stop" | "start",
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
+    return send(
+      "POST",
+      `/services/${pathSegment(serviceId)}/${action}`,
+      options,
+    );
   }
 
-  /**
-   * Start a containerized service via SSH + Docker Compose.
-
-   */
-  static async startService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/start`, {
-      method: "POST",
-    });
+  /** Roll a containerized service back to its previous image. */
+  static rollbackService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
+    return send(
+      "POST",
+      `/services/${pathSegment(serviceId)}/rollback`,
+      options,
+    );
   }
 
-  /**
-   * Rollback a containerized service to its previous image.
-
-   */
-  static async rollbackService(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/rollback`, {
-      method: "POST",
-    });
+  /** Whether a previous image exists to roll a service back to. */
+  static getRollbackStatus(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceRollbackStatus> {
+    return get(`/services/${pathSegment(serviceId)}/rollback-status`, options);
   }
 
-  /**
-   * Check if a rollback is available for a containerized service.
+  /** Rollback status of every containerized service, keyed by project id. */
+  static getRollbackStatuses(
+    options?: RequestOptions,
+  ): Promise<Record<string, ServiceRollbackStatus>> {
+    return get("/services/rollback-status", options);
+  }
 
-   */
-  static async getRollbackStatus(serviceId: string) {
-    return ApiService._request(`/services/${serviceId}/rollback-status`);
+  /** GitHub repository sizes of every project. */
+  static getProjectSizes(options?: RequestOptions): Promise<RepoSizesResponse> {
+    return get("/services/sizes", options);
+  }
+
+  /** Auto-detected ecosystem dependencies (imports, API calls, repo sizes). */
+  static getProjectAnalysis(
+    refresh = false,
+    options?: RequestOptions,
+  ): Promise<ProjectAnalysis> {
+    return get(
+      `/services/analysis${queryString({ refresh: refresh || undefined })}`,
+      options,
+    );
+  }
+
+  /** GitHub Linguist language breakdown of every project. */
+  static getProjectLanguages(
+    options?: RequestOptions,
+  ): Promise<LanguagesResponse> {
+    return get("/services/languages", options);
   }
 
   // ── Container-Direct Actions ─────────────────────────────────
-  // These operate by Docker container name + device ID, bypassing the
-  // project registry — enabling control of any Docker container.
+  // By Docker container name + device ID, bypassing the project registry —
+  // control of any Docker container.
 
-  /**
-   * Restart a Docker container by name on a specific device.
-
-
-   */
-  static async restartContainer(containerName: string, device: string) {
-    return ApiService._request(
-      `/containers/${containerName}/restart?device=${encodeURIComponent(device)}`,
-      { method: "POST" },
+  static restartContainer(
+    containerName: string,
+    device: string,
+    options?: RequestOptions,
+  ): Promise<ContainerActionResponse> {
+    return ApiService.containerAction(
+      "restart",
+      containerName,
+      device,
+      options,
     );
   }
 
-  /**
-   * Stop a Docker container by name on a specific device.
+  static stopContainer(
+    containerName: string,
+    device: string,
+    options?: RequestOptions,
+  ): Promise<ContainerActionResponse> {
+    return ApiService.containerAction("stop", containerName, device, options);
+  }
 
+  static startContainer(
+    containerName: string,
+    device: string,
+    options?: RequestOptions,
+  ): Promise<ContainerActionResponse> {
+    return ApiService.containerAction("start", containerName, device, options);
+  }
 
-   */
-  static async stopContainer(containerName: string, device: string) {
-    return ApiService._request(
-      `/containers/${containerName}/stop?device=${encodeURIComponent(device)}`,
-      { method: "POST" },
+  private static containerAction(
+    action: "restart" | "stop" | "start",
+    containerName: string,
+    device: string,
+    options?: RequestOptions,
+  ): Promise<ContainerActionResponse> {
+    return send(
+      "POST",
+      `/containers/${pathSegment(containerName)}/${action}${queryString({ device })}`,
+      options,
     );
   }
 
-  /**
-   * Start a Docker container by name on a specific device.
-
-
-   */
-  static async startContainer(containerName: string, device: string) {
-    return ApiService._request(
-      `/containers/${containerName}/start?device=${encodeURIComponent(device)}`,
-      { method: "POST" },
-    );
-  }
-
-  /**
-   * Get GitHub repository sizes for all projects.
-   */
-  static async getProjectSizes() {
-    return ApiService._request("/services/sizes");
-  }
-
-  /**
-   * Get auto-detected ecosystem dependencies (imports, API calls, repo sizes).
-   */
-  static async getProjectAnalysis(refresh = false) {
-    const queryString = refresh ? "?refresh=true" : "";
-    return ApiService._request(`/services/analysis${queryString}`);
-  }
-
-  /**
-   * Get GitHub Linguist language breakdown for all projects.
-   */
-  static async getProjectLanguages() {
-    return ApiService._request("/services/languages");
+  /** Screenshot of a site, for container/property cards (an <img> src). */
+  static buildContainerPreviewUrl(domain: string) {
+    return `${PORTAL_SERVICE_URL}/containers/previews/${pathSegment(domain)}`;
   }
 
   // ── Stats ─────────────────────────────────────────────────────
 
-  /**
-   * Get overview stats from Prism.
-   */
-  static async getStats() {
-    return ApiService._request("/stats");
+  /** Docker container resource usage (CPU, memory, network). */
+  static getContainerStats(
+    deviceId?: string,
+    options?: RequestOptions,
+  ): Promise<ContainerStatsResponse> {
+    return get(
+      `/stats/containers${queryString({ device: deviceId })}`,
+      options,
+    );
   }
 
-  /**
-   * Get request breakdown stats.
-
-   */
-  static async getStatsBreakdown(period = "24h") {
-    return ApiService._request(`/stats/breakdown?period=${period}`);
+  /** In-memory time series of container stats, keyed by device ID. */
+  static getContainerStatsHistory(
+    deviceId?: string,
+    options?: RequestOptions,
+  ): Promise<ContainerStatsHistoryResponse> {
+    return get(
+      `/stats/containers/history${queryString({ device: deviceId })}`,
+      options,
+    );
   }
 
-  /**
-   * Get per-project stats.
-   */
-  static async getProjectStats() {
-    return ApiService._request("/stats/projects");
-  }
-
-  /**
-   * Get Docker container resource usage (CPU, memory, network).
-
-   */
-  static async getContainerStats(deviceId?: string) {
-    const queryString = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/containers${queryString}`);
-  }
-
-  /**
-   * Get time-series container stats history.
-   * Returns per-device history keyed by device ID.
-
-   */
-  static async getContainerStatsHistory(deviceId?: string) {
-    const queryString = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/containers/history${queryString}`);
-  }
-
-  /**
-   * Get persistent container metrics from MongoDB time-series collection.
-   * Returns per-container historical data points with configurable range.
-   */
-  static async getContainerMetrics({
-    range = "1h",
-    container,
-    device,
-    limit = 120,
-  }: {
-    range?: string;
-    container?: string;
-    device?: string;
-    limit?: number;
-  } = {}) {
-    const queryString = new URLSearchParams();
-    queryString.set("range", range);
-    if (container) queryString.set("container", container);
-    if (device) queryString.set("device", device);
-    if (limit !== 120) queryString.set("limit", String(limit));
-    return ApiService._request(
-      `/stats/containers/metrics?${queryString.toString()}`,
+  /** Persisted container metrics (MongoDB time series) over a range. */
+  static getContainerMetrics(
+    {
+      range = "1h",
+      container,
+      device,
+      limit,
+    }: {
+      range?: string;
+      container?: string;
+      device?: string;
+      limit?: number;
+    } = {},
+    options?: RequestOptions,
+  ): Promise<ContainerMetricsResponse> {
+    return get(
+      `/stats/containers/metrics${queryString({ range, container, device, limit })}`,
+      options,
     );
   }
 
   /**
-   * Get Docker system info — disk usage breakdown (images, volumes, build cache).
-
+   * Docker system info — disk usage breakdown (images, volumes, build
+   * cache). One host's object with a device; without, an array with one
+   * entry per device that answered.
    */
-  static async getSystemInfo(deviceId?: string) {
-    const queryString = deviceId ? `?device=${deviceId}` : "";
-    return ApiService._request(`/stats/system${queryString}`);
+  static getSystemInfo(
+    deviceId?: string,
+    options?: RequestOptions,
+  ): Promise<SystemInfoResponse> {
+    return get(`/stats/system${queryString({ device: deviceId })}`, options);
   }
 
   /**
-   * Get MinIO storage summary — bucket counts and total sizes.
+   * Drop portal-service's cached container stats so the next read reflects
+   * a start/stop/restart immediately instead of up to 10 s later.
    */
-  static async getStorageSummary() {
-    return ApiService._request("/stats/storage");
+  static invalidateStats(options?: RequestOptions): Promise<{ ok: true }> {
+    return send("POST", "/stats/invalidate", options);
+  }
+
+  /** MinIO storage summary — bucket counts and total sizes. */
+  static getStorageSummary(options?: RequestOptions): Promise<StorageSummary> {
+    return get("/stats/storage", options);
   }
 
   // ── Integrations ─────────────────────────────────────────────
 
-  /**
-   * Get all external API integrations and their configuration status.
-   */
-  static async getIntegrations() {
-    return ApiService._request("/integrations");
+  /** External API integrations and whether each is configured. */
+  static getIntegrations(options?: RequestOptions): Promise<IntegrationsData> {
+    return get("/integrations", options);
   }
 
-  // ── Logs ────────────────────────────────────────────────────
+  // ── Logs ─────────────────────────────────────────────────────
 
-  /**
-   * Get the list of all Docker containers available for log streaming.
-   */
-  static async getLoggableContainers() {
-    return ApiService._request("/logs");
+  /** Every Docker container available for log streaming. */
+  static getLoggableContainers(
+    options?: RequestOptions,
+  ): Promise<LoggableContainersResponse> {
+    return get("/logs", options);
   }
 
-  /**
-   * Build the SSE URL for streaming container logs.
-   * The caller should use `new EventSource(url)` to connect.
-
-
-   */
+  /** SSE URL for streaming a container's logs (`new EventSource(url)`). */
   static buildLogStreamUrl(
     containerName: string,
     {
@@ -295,535 +333,480 @@ export default class ApiService {
       device,
     }: { tail?: number; follow?: boolean; device?: string } = {},
   ) {
-    let url = `${PORTAL_SERVICE_URL}/logs/${containerName}?tail=${tail}&follow=${follow ? "1" : "0"}`;
-    if (device) url += `&device=${encodeURIComponent(device)}`;
-    return url;
+    return `${PORTAL_SERVICE_URL}/logs/${pathSegment(containerName)}${queryString(
+      { tail, follow: follow ? "1" : "0", device },
+    )}`;
   }
 
   // ── Devices ──────────────────────────────────────────────────
 
-  /**
-   * Get device topology — physical devices with their hosted services.
-   */
-  static async getDevices() {
-    return ApiService._request("/devices");
+  /** Physical devices with their hosted services and live specs. */
+  static getDevices(options?: RequestOptions): Promise<DevicesResponse> {
+    return get("/devices", options);
   }
 
   // ── Object Store ────────────────────────────────────────────
 
   /**
-   * List all MinIO buckets with object counts and sizes.
-   */
-  static async getStorageBuckets() {
-    return ApiService._request("/object-store/buckets");
-  }
-
-  /**
-   * Stream bucket data via SSE for progressive loading.
-   * Calls onEvent for each server-sent event:
-   *   { type: "init", totalBuckets }
-   *   { type: "bucket", bucket: { name, creationDate, objectCount, totalSize } }
+   * Stream bucket data via SSE for progressive loading. Calls onEvent for:
+   *   { type: "init", totalBuckets, buckets }  (names up front, stats null)
+   *   { type: "bucket", bucket }               (one bucket's stats)
    *   { type: "done" }
-   *   { type: "error", message }
-
+   *   { type: "error", message }               (stream over)
    */
   static streamStorageBuckets(onEvent: (event: BucketStreamEvent) => void) {
-    const es = new EventSource(
+    const eventSource = new EventSource(
       `${PORTAL_SERVICE_URL}/object-store/buckets/stream`,
     );
+    let finished = false;
+    const finish = (event: BucketStreamEvent) => {
+      if (finished) return;
+      finished = true;
+      eventSource.close();
+      onEvent(event);
+    };
+    const parse = <T>(event: Event): T | null => {
+      try {
+        return JSON.parse((event as MessageEvent<string>).data) as T;
+      } catch {
+        finish({ type: "error", message: "Malformed bucket stream event" });
+        return null;
+      }
+    };
 
-    es.addEventListener("init", (e: Event) => {
-      onEvent({ type: "init", ...JSON.parse((e as MessageEvent).data) });
+    eventSource.addEventListener("init", (event) => {
+      const data = parse<{ totalBuckets: number; buckets: StorageBucket[] }>(
+        event,
+      );
+      if (data) onEvent({ ...data, type: "init" });
     });
-
-    es.addEventListener("bucket", (e: Event) => {
-      onEvent({ type: "bucket", bucket: JSON.parse((e as MessageEvent).data) });
+    eventSource.addEventListener("bucket", (event) => {
+      const bucket = parse<StorageBucket>(event);
+      if (bucket) onEvent({ type: "bucket", bucket });
     });
-
-    es.addEventListener("done", () => {
-      onEvent({ type: "done" });
-      es.close();
-    });
-
-    es.addEventListener("error", (e: Event) => {
-      // Fired both for server-sent `event: error` (has data) and for
-      // connection failures (no data). Either way the stream is over —
+    eventSource.addEventListener("done", () => finish({ type: "done" }));
+    eventSource.addEventListener("error", (event) => {
+      // Fired both for a server-sent `event: error` (has data) and for a
+      // connection failure (no data). Either way the stream is over —
       // always notify so the UI doesn't hang in its loading state.
-      const me = e as MessageEvent;
       let message = "Connection to bucket stream lost";
-      if (me.data) {
+      const data = (event as MessageEvent<string>).data;
+      if (data) {
         try {
-          message = JSON.parse(me.data).message || message;
+          message =
+            (JSON.parse(data) as { message?: string }).message || message;
         } catch {
-          // fall through with the generic message
+          // keep the generic message
         }
       }
-      onEvent({ type: "error", message });
-      es.close();
+      finish({ type: "error", message });
     });
 
-    return { close: () => es.close() };
+    return { close: () => eventSource.close() };
   }
 
-  /**
-   * List objects in a bucket.
-
-   */
-  static async getStorageObjects(
+  /** Objects and prefixes ("folders") in a bucket. */
+  static getStorageObjects(
     bucketName: string,
     {
       prefix = "",
       recursive = false,
     }: { prefix?: string; recursive?: boolean } = {},
-  ) {
-    const queryString = new URLSearchParams();
-    if (prefix) queryString.set("prefix", prefix);
-    if (recursive) queryString.set("recursive", "true");
-    const query = queryString.toString();
-    return ApiService._request(
-      `/object-store/buckets/${bucketName}${query ? `?${query}` : ""}`,
+    options?: RequestOptions,
+  ): Promise<StorageObjectListing> {
+    return get(
+      `/object-store/buckets/${pathSegment(bucketName)}${queryString({
+        prefix,
+        recursive: recursive || undefined,
+      })}`,
+      options,
     );
   }
 
-  /**
-   * Get metadata for a single object.
-
-
-   */
-  static async statStorageObject(bucketName: string, objectName: string) {
-    return ApiService._request(
-      `/object-store/buckets/${encodeURIComponent(bucketName)}/stat/${encodeObjectPath(objectName)}`,
+  /** Metadata of a single object. */
+  static statStorageObject(
+    bucketName: string,
+    objectName: string,
+    options?: RequestOptions,
+  ): Promise<StorageObjectStat> {
+    return get(
+      `/object-store/buckets/${pathSegment(bucketName)}/stat/${objectPath(objectName)}`,
+      options,
     );
   }
 
-  /**
-   * Build a download URL for an object-store object.
-
-
-   */
+  /** Download URL of an object; `inline` asks the browser to display it. */
   static buildStorageDownloadUrl(
     bucketName: string,
     objectName: string,
     { inline = false }: { inline?: boolean } = {},
   ) {
-    const queryString = inline ? "?inline=true" : "";
-    return `${PORTAL_SERVICE_URL}/object-store/buckets/${encodeURIComponent(bucketName)}/download/${encodeObjectPath(objectName)}${queryString}`;
+    return `${PORTAL_SERVICE_URL}/object-store/buckets/${pathSegment(bucketName)}/download/${objectPath(objectName)}${queryString(
+      { inline: inline || undefined },
+    )}`;
   }
 
-  /**
-   * Delete an object-store object.
-
-
-   */
-  static async deleteStorageObject(bucketName: string, objectName: string) {
-    return ApiService._request(
-      `/object-store/buckets/${encodeURIComponent(bucketName)}/${encodeObjectPath(objectName)}`,
-      { method: "DELETE" },
+  static deleteStorageObject(
+    bucketName: string,
+    objectName: string,
+    options?: RequestOptions,
+  ): Promise<StorageDeleteResponse> {
+    return send(
+      "DELETE",
+      `/object-store/buckets/${pathSegment(bucketName)}/${objectPath(objectName)}`,
+      options,
     );
   }
 
-  static async searchStorageObjects(
+  /** Search object names across buckets (or within one). */
+  static searchStorageObjects(
     query: string,
-    { bucket, limit = 200 }: { bucket?: string; limit?: number } = {},
-  ) {
-    const queryString = new URLSearchParams();
-    queryString.set("query", query);
-    if (bucket) queryString.set("bucket", bucket);
-    if (limit !== 200) queryString.set("limit", String(limit));
-    return ApiService._request(
-      `/object-store/search?${queryString.toString()}`,
+    { bucket, limit }: { bucket?: string; limit?: number } = {},
+    options?: RequestOptions,
+  ): Promise<StorageSearchResponse> {
+    return get(
+      `/object-store/search${queryString({ query, bucket, limit })}`,
+      options,
     );
   }
 
   // ── Google Analytics ────────────────────────────────────────
+  // `period`: "7d" | "30d" | "90d" | "YYYY-MM-DD_YYYY-MM-DD".
 
-  /**
-   * List configured GA4 properties.
-   */
-  static async getGAProperties() {
-    return ApiService._request("/google-analytics/properties");
+  /** Configured GA4 properties. */
+  static getGAProperties(
+    options?: RequestOptions,
+  ): Promise<GAPropertiesResponse> {
+    return get("/google-analytics/properties", options);
   }
 
-  /**
-   * Get realtime active users for a GA4 property.
-
-   */
-  static async getGARealtime(propertyId: string) {
-    return ApiService._request(`/google-analytics/${propertyId}/realtime`);
-  }
-
-  /**
-   * Get overview metrics for a GA4 property.
-
-
-   */
-  static async getGAOverview(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/overview?period=${period}`,
+  /** Realtime active users of a GA4 property. */
+  static getGARealtime(
+    propertyId: string,
+    options?: RequestOptions,
+  ): Promise<GARealtimeReport> {
+    return get(
+      `/google-analytics/${pathSegment(propertyId)}/realtime`,
+      options,
     );
   }
 
-  /**
-   * Get top pages for a GA4 property.
+  static getGAOverview(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"overview"> {
+    return ApiService.gaReport(propertyId, "overview", period, options);
+  }
 
+  static getGAPages(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"pages"> {
+    return ApiService.gaReport(propertyId, "pages", period, options);
+  }
 
-   */
-  static async getGAPages(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/pages?period=${period}`,
+  static getGASources(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"sources"> {
+    return ApiService.gaReport(propertyId, "sources", period, options);
+  }
+
+  static getGAGeography(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"geography"> {
+    return ApiService.gaReport(propertyId, "geography", period, options);
+  }
+
+  /** Device category, browser, OS and screen breakdown. */
+  static getGADevices(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"devices"> {
+    return ApiService.gaReport(propertyId, "devices", period, options);
+  }
+
+  /** Daily pageviews, users and sessions. */
+  static getGATimeSeries(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"timeseries"> {
+    return ApiService.gaReport(propertyId, "timeseries", period, options);
+  }
+
+  /** Channel grouping breakdown (Organic Search, Direct, Referral, …). */
+  static getGAChannels(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"channels"> {
+    return ApiService.gaReport(propertyId, "channels", period, options);
+  }
+
+  /** Landing page performance (entry points). */
+  static getGALandingPages(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"landing-pages"> {
+    return ApiService.gaReport(propertyId, "landing-pages", period, options);
+  }
+
+  /** Day × hour traffic matrix. */
+  static getGAHeatmap(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"heatmap"> {
+    return ApiService.gaReport(propertyId, "heatmap", period, options);
+  }
+
+  static getGANewVsReturning(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"new-vs-returning"> {
+    return ApiService.gaReport(propertyId, "new-vs-returning", period, options);
+  }
+
+  static getGAEvents(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"events"> {
+    return ApiService.gaReport(propertyId, "events", period, options);
+  }
+
+  private static gaReport<Report extends keyof GAReportsByName>(
+    propertyId: string,
+    report: Report,
+    period: string,
+    options?: RequestOptions,
+  ): GAReport<Report> {
+    return get(
+      `/google-analytics/${pathSegment(propertyId)}/${report}${queryString({ period })}`,
+      options,
     );
   }
 
-  /**
-   * Get traffic source breakdown for a GA4 property.
+  // ── Session Analytics (first-party, proxied sessions-service) ──
+  // Success bodies come back in sessions-service's `{ success, data }`
+  // envelope.
 
-
-   */
-  static async getGASources(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/sources?period=${period}`,
-    );
+  /** Distinct projects tracked by sessions-service. */
+  static getSessionProjects(
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"projects"> {
+    return ApiService.sessionStats("projects", { period }, options);
   }
 
-  /**
-   * Get geographic breakdown for a GA4 property.
-
-
-   */
-  static async getGAGeography(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/geography?period=${period}`,
-    );
+  static getSessionOverview(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"overview"> {
+    return ApiService.sessionStats("overview", { projectId, period }, options);
   }
 
-  /**
-   * Get device and browser breakdown for a GA4 property.
-
-
-   */
-  static async getGADevices(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/devices?period=${period}`,
-    );
-  }
-
-  /**
-   * Get daily time-series data (pageviews, users, sessions).
-
-
-   */
-  static async getGATimeSeries(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/timeseries?period=${period}`,
-    );
-  }
-
-  /**
-   * Get channel grouping breakdown (Organic Search, Direct, Referral, etc.).
-
-
-   */
-  static async getGAChannels(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/channels?period=${period}`,
-    );
-  }
-
-  /**
-   * Get landing page performance (entry points).
-
-
-   */
-  static async getGALandingPages(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/landing-pages?period=${period}`,
-    );
-  }
-
-  /**
-   * Get hourly traffic heatmap (day × hour matrix).
-
-
-   */
-  static async getGAHeatmap(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/heatmap?period=${period}`,
-    );
-  }
-
-  /**
-   * Get new vs returning users breakdown.
-
-
-   */
-  static async getGANewVsReturning(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/new-vs-returning?period=${period}`,
-    );
-  }
-
-  /**
-   * Get top events breakdown.
-
-
-   */
-  static async getGAEvents(propertyId: string, period = "30d") {
-    return ApiService._request(
-      `/google-analytics/${propertyId}/events?period=${period}`,
-    );
-  }
-
-  // ── Session Analytics (First-Party) ─────────────────────────
-
-  /**
-   * List distinct projects tracked by sessions-service.
-   */
-  static async getSessionProjects(period = "30d") {
-    return ApiService._request(`/session-analytics/projects?period=${period}`);
-  }
-
-  /**
-   * Get overview stats for a project from sessions-service.
-   */
-  static async getSessionOverview(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/overview?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get paginated session list with full detail (IP, geo, device).
-   */
-  static async getSessionsList(
+  /** Paginated session list with full detail (IP, geo, device). */
+  static getSessionsList(
     projectId: string,
     period = "30d",
     limit = 50,
     offset = 0,
-    sort = "createdAt",
-    order = "desc",
-  ) {
-    const queryString = new URLSearchParams({
-      projectId,
-      period,
-      limit: String(limit),
-      offset: String(offset),
-      sort,
-      order,
-    });
-    return ApiService._request(
-      `/session-analytics/sessions?${queryString.toString()}`,
+    sort: SessionSort = "createdAt",
+    order: "asc" | "desc" = "desc",
+    options?: RequestOptions,
+  ): SessionReport<"sessions"> {
+    return ApiService.sessionStats(
+      "sessions",
+      { projectId, period, limit, offset, sort, order },
+      options,
     );
   }
 
-  /**
-   * Get top pages by view count.
-   */
-  static async getSessionPages(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/pages?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get top referrers.
-   */
-  static async getSessionReferrers(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/referrers?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get geographic breakdown.
-   */
-  static async getSessionGeo(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/geo?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get device/browser/OS breakdown.
-   */
-  static async getSessionDevices(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/devices?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get daily time-series data.
-   */
-  static async getSessionTimeSeries(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/timeseries?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get live/active sessions.
-   */
-  static async getSessionLive(projectId: string, minutes = 5) {
-    return ApiService._request(
-      `/session-analytics/live?projectId=${projectId}&minutes=${minutes}`,
-    );
-  }
-
-  /**
-   * Get top events by category/action.
-   */
-  static async getSessionEvents(projectId: string, period = "30d") {
-    return ApiService._request(
-      `/session-analytics/events?projectId=${projectId}&period=${period}`,
-    );
-  }
-
-  /**
-   * Get chronological event feed with pagination.
-   */
-  static async getSessionEventsFeed(
+  /** Top pages by view count. */
+  static getSessionPages(
     projectId: string,
     period = "30d",
-    limit = 50,
-    offset = 0,
-  ) {
-    const queryString = new URLSearchParams({
-      projectId,
-      period,
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return ApiService._request(
-      `/session-analytics/events/feed?${queryString.toString()}`,
+    options?: RequestOptions,
+  ): SessionReport<"pages"> {
+    return ApiService.sessionStats("pages", { projectId, period }, options);
+  }
+
+  static getSessionReferrers(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"referrers"> {
+    return ApiService.sessionStats("referrers", { projectId, period }, options);
+  }
+
+  static getSessionGeo(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"geo"> {
+    return ApiService.sessionStats("geo", { projectId, period }, options);
+  }
+
+  /** Device/browser/OS breakdown. */
+  static getSessionDevices(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"devices"> {
+    return ApiService.sessionStats("devices", { projectId, period }, options);
+  }
+
+  static getSessionTimeSeries(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"timeseries"> {
+    return ApiService.sessionStats(
+      "timeseries",
+      { projectId, period },
+      options,
+    );
+  }
+
+  /** Sessions active within the last `minutes`. */
+  static getSessionLive(
+    projectId: string,
+    minutes = 5,
+    options?: RequestOptions,
+  ): SessionReport<"live"> {
+    return ApiService.sessionStats("live", { projectId, minutes }, options);
+  }
+
+  /** Top events by category/action. */
+  static getSessionEvents(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"events"> {
+    return ApiService.sessionStats("events", { projectId, period }, options);
+  }
+
+  /** One session with its page views, events and timeline. */
+  static getSessionDetail(
+    sessionId: string,
+    options?: RequestOptions,
+  ): Promise<SessionsEnvelope<SessionDetail>> {
+    return get(`/session-analytics/session/${pathSegment(sessionId)}`, options);
+  }
+
+  /** The ordered rrweb event stream of a session's replay. */
+  static getSessionReplay(
+    sessionId: string,
+    options?: RequestOptions,
+  ): Promise<SessionsEnvelope<SessionReplay>> {
+    return get(
+      `/session-analytics/session/${pathSegment(sessionId)}/replay`,
+      options,
     );
   }
 
   /**
-   * Get cross-client visitor correlation.
+   * Normalized cursor/click/scroll density grid for one page path. Pass a
+   * viewport band (mobile/tablet/desktop) so a phone and a desktop layout
+   * aren't averaged into the same grid.
    */
-  static async getSessionCrossClient(period = "30d") {
-    return ApiService._request(
-      `/session-analytics/cross-client?period=${period}`,
-    );
-  }
-
-  /**
-   * Get single session detail with page views, events, and timeline.
-   */
-  static async getSessionDetail(sessionId: string) {
-    return ApiService._request(
-      `/session-analytics/session/${encodeURIComponent(sessionId)}`,
-    );
-  }
-
-  /**
-   * Get the full ordered rrweb event stream for a session's replay playback.
-   */
-  static async getSessionReplay(sessionId: string) {
-    return ApiService._request(
-      `/session-analytics/session/${encodeURIComponent(sessionId)}/replay`,
-    );
-  }
-
-  /**
-   * Get the normalized cursor/click/scroll density grid for one page path.
-   * Pass a viewport band (mobile/tablet/desktop) so a phone and a desktop
-   * layout aren't averaged into the same grid.
-   */
-  static async getSessionHeatmap(
+  static getSessionHeatmap(
     projectId: string,
     path: string,
     period = "30d",
     type: "move" | "click" | "scroll" = "move",
     band?: "mobile" | "tablet" | "desktop",
     grid = 50,
-  ) {
-    const queryString = new URLSearchParams({
-      projectId,
-      path,
-      period,
-      type,
-      grid: String(grid),
-    });
-    if (band) queryString.set("band", band);
-    return ApiService._request(
-      `/session-analytics/heatmap?${queryString.toString()}`,
+    options?: RequestOptions,
+  ): SessionReport<"heatmap"> {
+    return ApiService.sessionStats(
+      "heatmap",
+      { projectId, path, period, type, band, grid },
+      options,
     );
   }
 
-  /**
-   * Get distinct visitors with session counts and device metadata.
-   */
-  static async getSessionVisitors(
+  /** Distinct visitors with session counts and device metadata. */
+  static getSessionVisitors(
     projectId: string,
     period = "30d",
     limit = 50,
     offset = 0,
-  ) {
-    const queryString = new URLSearchParams({
-      projectId,
-      period,
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return ApiService._request(
-      `/session-analytics/visitors?${queryString.toString()}`,
+    options?: RequestOptions,
+  ): SessionReport<"visitors"> {
+    return ApiService.sessionStats(
+      "visitors",
+      { projectId, period, limit, offset },
+      options,
     );
   }
 
-  /**
-   * Get IP-based pseudo-user listing with session/visitor aggregation.
-   */
-  static async getSessionIpUsers(
+  /** IP-based pseudo-users with session/visitor aggregation. */
+  static getSessionIpUsers(
     projectId: string,
     period = "30d",
     limit = 50,
     offset = 0,
-  ) {
-    const queryString = new URLSearchParams({
-      projectId,
-      period,
-      limit: String(limit),
-      offset: String(offset),
-    });
-    return ApiService._request(
-      `/session-analytics/ips?${queryString.toString()}`,
+    options?: RequestOptions,
+  ): SessionReport<"ips"> {
+    return ApiService.sessionStats(
+      "ips",
+      { projectId, period, limit, offset },
+      options,
     );
   }
 
-  /**
-   * Get single IP detail — all sessions + cross-session timeline.
-   */
-  static async getSessionIpDetail(
+  /** One IP — all its sessions and a cross-session timeline. */
+  static getSessionIpDetail(
     ip: string,
     projectId?: string,
     period = "all",
-  ) {
-    const queryString = new URLSearchParams({ period });
-    if (projectId) queryString.set("projectId", projectId);
-    return ApiService._request(
-      `/session-analytics/ip/${encodeURIComponent(ip)}?${queryString.toString()}`,
+    options?: RequestOptions,
+  ): Promise<SessionsEnvelope<IpDetail>> {
+    return get(
+      `/session-analytics/ip/${pathSegment(ip)}${queryString({ period, projectId })}`,
+      options,
     );
   }
 
-  // ── External APIs (Google Cloud Monitoring) ─────────────────
-
-  /**
-   * Get aggregated usage summary for external APIs with traffic.
-   */
-  static async getExternalApiUsageSummary(period = "30d") {
-    return ApiService._request(`/external-apis?period=${period}`);
+  private static sessionStats<Report extends keyof SessionReportsByName>(
+    report: Report,
+    params: Record<string, string | number | undefined>,
+    options?: RequestOptions,
+  ): SessionReport<Report> {
+    return get(`/session-analytics/${report}${queryString(params)}`, options);
   }
 
-  /**
-   * Get daily time-series for a specific external API service.
-   */
-  static async getExternalApiUsageTimeSeries(
+  // ── External APIs (Google Cloud Monitoring + providers) ───────
+
+  /** Usage summary of every external API with traffic. */
+  static getExternalApiUsageSummary(
+    period = "30d",
+    options?: RequestOptions,
+  ): Promise<ExternalApiUsageData> {
+    return get(`/external-apis${queryString({ period })}`, options);
+  }
+
+  /** Daily time series of one external API service. */
+  static getExternalApiUsageTimeSeries(
     serviceIdentifier: string,
     period = "30d",
-  ) {
-    return ApiService._request(
-      `/external-apis/timeseries?service=${encodeURIComponent(serviceIdentifier)}&period=${period}`,
+    options?: RequestOptions,
+  ): Promise<ExternalApiTimeSeries> {
+    return get(
+      `/external-apis/timeseries${queryString({ service: serviceIdentifier, period })}`,
+      options,
     );
   }
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Cpu,
@@ -13,698 +12,432 @@ import {
   Server,
   Unplug,
 } from "lucide-react";
-import {
-  BadgeComponent,
-  ChartLineComponent,
-} from "@rodrigo-barraza/components-library";
+import { BadgeComponent } from "@rodrigo-barraza/components-library";
 import {
   formatBytes,
   formatDuration,
-  formatPercent,
 } from "@rodrigo-barraza/utilities-library";
 import type {
+  ContainerHistory,
   ContainerRow,
   ContainerStats,
-  ContainerDetailHistory,
-  ContainerMetricsPoint,
-  NetworkInterface,
-  PortMapping,
-  VolumeMount,
 } from "../types/portal";
-import ApiService from "../services/ApiService";
+import { usePortalSettings } from "@/lib/settings";
+import {
+  CpuMetricCard,
+  MemoryMetricCard,
+  MetricCard,
+  MetricDim,
+  MetricRow,
+  TransferStat,
+  TransferStats,
+} from "./monitoring/ContainerMetricCards";
+import {
+  formatNanoseconds,
+  formatUnixTimestamp,
+  parseDockerUptime,
+} from "./monitoring/dockerStatus";
+import type { SeverityThresholds } from "./monitoring/severity";
 import styles from "./ContainerDetailPanelComponent.module.css";
 
-const MAX_SPARKLINE_POINTS = 60;
-
-function severityColor(
-  percent: number,
-  thresholds: [number, number] = [40, 80],
-): string {
-  if (percent > thresholds[1]) return "var(--color-danger)";
-  if (percent > thresholds[0]) return "var(--color-warning)";
-  return "var(--color-success)";
-}
-
-function PercentBar({ percent, color }: { percent: number; color: string }) {
-  const clamped = Math.min(percent, 100);
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={styles['bar-track']}>
-      <div
-        className={styles['bar-fill']}
-        style={{ width: `${clamped}%`, background: color }}
-      />
+    <div className={styles["field"]}>
+      <span className={styles["field-label"]}>{label}</span>
+      {children}
     </div>
   );
 }
 
-/** Format nanoseconds to human-readable duration */
-function formatNanoseconds(ns: number): string {
-  if (!ns || ns === 0) return "0s";
-  const ms = ns / 1_000_000;
-  if (ms < 1000) return `${ms.toFixed(1)}ms`;
-  const totalSeconds = ms / 1000;
-  if (totalSeconds < 60) return `${totalSeconds.toFixed(1)}s`;
-  const totalMinutes = totalSeconds / 60;
-  return `${totalMinutes.toFixed(1)}m`;
+function DetailItem({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "warning" | "danger";
+}) {
+  return (
+    <div className={styles["detail-item"]}>
+      <span className={styles["detail-label"]}>{label}</span>
+      <span
+        className={`${styles["detail-value"]} ${tone ? styles[`detail-value-${tone}`] : ""}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
 }
 
-/** Format a Unix timestamp to a localized string */
-function formatTimestamp(ts: number): string {
-  if (!ts) return "—";
-  const date = new Date(ts * 1000);
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function ContainerMetrics({
+  stats,
+  history,
+  thresholds,
+}: {
+  stats: ContainerStats;
+  history?: ContainerHistory;
+  thresholds: SeverityThresholds;
+}) {
+  const { network, blockIO, memoryDetail, cpuThrottling } = stats;
+  const dropped = (network?.rxDropped ?? 0) + (network?.txDropped ?? 0);
+  const errors = (network?.rxErrors ?? 0) + (network?.txErrors ?? 0);
+  const interfaces = Object.entries(network?.interfaces ?? {});
+  const labels = Object.entries(stats.labels ?? {}).sort(([first], [second]) =>
+    first.localeCompare(second),
+  );
+
+  return (
+    <div className={styles["metrics-grid"]}>
+      <CpuMetricCard
+        cpu={stats.cpu}
+        history={history?.cpu}
+        bounds={thresholds.cpu}
+      />
+
+      {cpuThrottling && cpuThrottling.throttledPeriods > 0 && (
+        <MetricCard icon={Cpu} title="CPU Throttling">
+          <TransferStats>
+            <TransferStat
+              label="Throttled"
+              value={`${cpuThrottling.throttledPeriods} / ${cpuThrottling.periods} periods`}
+            />
+            <TransferStat
+              label="Time"
+              value={formatNanoseconds(cpuThrottling.throttledTimeNs)}
+            />
+          </TransferStats>
+        </MetricCard>
+      )}
+
+      <MemoryMetricCard
+        memory={stats.memory}
+        history={history?.mem}
+        bounds={thresholds.memory}
+      />
+
+      {memoryDetail && (
+        <MetricCard icon={MemoryStick} title="Memory Breakdown">
+          <div className={styles["detail-grid"]}>
+            <DetailItem label="RSS" value={formatBytes(memoryDetail.rss)} />
+            <DetailItem label="Cache" value={formatBytes(memoryDetail.cache)} />
+            {memoryDetail.swap > 0 && (
+              <DetailItem
+                label="Swap"
+                value={formatBytes(memoryDetail.swap)}
+                tone="warning"
+              />
+            )}
+            {memoryDetail.maxUsage > 0 && (
+              <DetailItem
+                label="Peak"
+                value={formatBytes(memoryDetail.maxUsage)}
+              />
+            )}
+            {memoryDetail.pgfault > 0 && (
+              <DetailItem
+                label="Page Faults"
+                value={memoryDetail.pgfault.toLocaleString()}
+              />
+            )}
+            {memoryDetail.pgmajfault > 0 && (
+              <DetailItem
+                label="Major Faults"
+                value={memoryDetail.pgmajfault.toLocaleString()}
+                tone="danger"
+              />
+            )}
+          </div>
+        </MetricCard>
+      )}
+
+      <MetricRow>
+        {network && (network.rx > 0 || network.tx > 0) && (
+          <MetricCard icon={Globe} title="Network">
+            <TransferStats>
+              <TransferStat label="RX" value={formatBytes(network.rx)} />
+              <TransferStat label="TX" value={formatBytes(network.tx)} />
+            </TransferStats>
+            {((network.rxPackets ?? 0) > 0 || (network.txPackets ?? 0) > 0) && (
+              <TransferStats>
+                <TransferStat
+                  label="Packets RX"
+                  value={(network.rxPackets ?? 0).toLocaleString()}
+                />
+                <TransferStat
+                  label="Packets TX"
+                  value={(network.txPackets ?? 0).toLocaleString()}
+                />
+              </TransferStats>
+            )}
+            {(dropped > 0 || errors > 0) && (
+              <TransferStats warning>
+                {dropped > 0 && (
+                  <TransferStat
+                    label="Dropped"
+                    value={dropped.toLocaleString()}
+                  />
+                )}
+                {errors > 0 && (
+                  <TransferStat
+                    label="Errors"
+                    value={errors.toLocaleString()}
+                    danger
+                  />
+                )}
+              </TransferStats>
+            )}
+          </MetricCard>
+        )}
+
+        {blockIO && (blockIO.read > 0 || blockIO.write > 0) && (
+          <MetricCard icon={HardDrive} title="Block I/O">
+            <TransferStats>
+              <TransferStat label="Read" value={formatBytes(blockIO.read)} />
+              <TransferStat label="Write" value={formatBytes(blockIO.write)} />
+            </TransferStats>
+          </MetricCard>
+        )}
+      </MetricRow>
+
+      {interfaces.length > 1 && (
+        <MetricCard icon={Unplug} title="Network Interfaces">
+          <div className={styles["list"]}>
+            {interfaces.map(([name, networkInterface]) => (
+              <div key={name} className={styles["interface-row"]}>
+                <span className={styles["interface-name"]}>{name}</span>
+                <span className={styles["mono-detail"]}>
+                  ↓ {formatBytes(networkInterface.rxBytes)} · ↑{" "}
+                  {formatBytes(networkInterface.txBytes)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </MetricCard>
+      )}
+
+      {stats.ports && stats.ports.length > 0 && (
+        <MetricCard icon={Globe} title="Port Mappings">
+          <div className={styles["list"]}>
+            {stats.ports.map((port, index) => (
+              <div
+                key={`${port.ip}:${port.publicPort}:${port.privatePort}/${port.type}:${index}`}
+                className={styles["port-row"]}
+              >
+                <span className={styles["mono-detail"]}>
+                  {port.publicPort
+                    ? `${port.ip || "0.0.0.0"}:${port.publicPort}`
+                    : "—"}{" "}
+                  → {port.privatePort}/{port.type}
+                </span>
+              </div>
+            ))}
+          </div>
+        </MetricCard>
+      )}
+
+      {stats.mounts && stats.mounts.length > 0 && (
+        <MetricCard
+          icon={Database}
+          title="Mounts"
+          header={<MetricDim>{stats.mounts.length}</MetricDim>}
+        >
+          <div className={styles["list"]}>
+            {stats.mounts.map((mount) => (
+              <div
+                key={`${mount.destination}:${mount.source}`}
+                className={styles["mount-row"]}
+              >
+                <span className={styles["mount-type"]}>{mount.type}</span>
+                <span
+                  className={styles["mount-path"]}
+                  title={`${mount.source} → ${mount.destination}`}
+                >
+                  {mount.name || mount.source?.split("/").pop() || mount.source}{" "}
+                  → {mount.destination}
+                </span>
+                <span className={styles["mount-mode"]}>
+                  {mount.rw ? "rw" : "ro"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </MetricCard>
+      )}
+
+      {labels.length > 0 && (
+        <MetricCard
+          icon={Layers}
+          title="Labels"
+          header={<MetricDim>{labels.length}</MetricDim>}
+        >
+          <div className={styles["label-list"]}>
+            {labels.map(([key, value]) => (
+              <div key={key} className={styles["label-row"]}>
+                <span className={styles["label-key"]} title={key}>
+                  {key}
+                </span>
+                <span className={styles["label-value"]} title={value}>
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </MetricCard>
+      )}
+    </div>
+  );
 }
 
-// ── Main Panel ────────────────────────────────────────────────────
-
+/**
+ * Drawer body for a Containers row: identity, Docker metadata and live
+ * metrics. Sparkline history comes from the page, which already keeps a
+ * per-container series (seeded from persisted metrics, extended by every
+ * poll) — so the drawer's charts stay live instead of freezing at open.
+ */
 export default function ContainerDetailPanel({
   container,
   stats,
+  history,
+  thresholds,
 }: {
   container: ContainerRow;
   stats: ContainerStats | null;
+  history?: ContainerHistory;
+  thresholds: SeverityThresholds;
 }) {
-  const [history, setHistory] = useState<ContainerDetailHistory | null>(null);
-  const didFetch = useRef(false);
-
-  // Fetch sparkline history — prefer persistent metrics, fall back to ring buffer
-  useEffect(() => {
-    if (didFetch.current || !container) return;
-    didFetch.current = true;
-
-    (async () => {
-      try {
-        // Try persistent MongoDB metrics first (1 hour of 30s samples)
-        const metricsRes = await ApiService.getContainerMetrics({
-          container: container.containerName,
-          range: "1h",
-          limit: MAX_SPARKLINE_POINTS,
-        });
-
-        const containerData = metricsRes?.containers?.[container.containerName];
-        if (containerData?.points?.length >= 2) {
-          setHistory({
-            cpu: containerData.points.map(
-              (point: ContainerMetricsPoint) => point.cpu ?? 0,
-            ),
-            mem: containerData.points.map(
-              (point: ContainerMetricsPoint) => point.mem ?? 0,
-            ),
-            netRx: containerData.points.map(
-              (point: ContainerMetricsPoint) => point.netRx ?? 0,
-            ),
-            netTx: containerData.points.map(
-              (point: ContainerMetricsPoint) => point.netTx ?? 0,
-            ),
-          });
-          return;
-        }
-
-        // Fall back to in-memory ring buffer
-        // Fall back to in-memory ring buffer
-        const statsHistoryResponse = await ApiService.getContainerStatsHistory();
-        if (statsHistoryResponse?.history) {
-          const cpuPoints: number[] = [];
-          const memoryPoints: number[] = [];
-          const netRxPoints: number[] = [];
-          const netTxPoints: number[] = [];
-
-          // Ring buffer returns per-device history; flatten all devices
-          for (const deviceHistory of Object.values(statsHistoryResponse.history) as unknown[]) {
-            const historyEntries = Array.isArray(deviceHistory)
-              ? deviceHistory
-              : [];
-            for (const snap of historyEntries) {
-              const snapshotRecord = snap as Record<
-                string,
-                Record<string, Record<string, number>>
-              >;
-              const containerSnapshot =
-                snapshotRecord?.containers?.[container.containerName];
-              if (containerSnapshot) {
-                cpuPoints.push(containerSnapshot.cpu ?? 0);
-                memoryPoints.push(containerSnapshot.memoryUsed ?? 0);
-                netRxPoints.push(containerSnapshot.netRx ?? 0);
-                netTxPoints.push(containerSnapshot.netTx ?? 0);
-              }
-            }
-          }
-
-          if (cpuPoints.length >= 2) {
-            setHistory({
-              cpu: cpuPoints,
-              mem: memoryPoints,
-              netRx: netRxPoints,
-              netTx: netTxPoints,
-            });
-          }
-        }
-      } catch {
-        /* silent */
-      }
-    })();
-  }, [container]);
-
-  // Extract uptime from status string
-  const uptimeMatch = stats?.status?.match(/Up\s+(.*?)(?:\s*\(|$)/);
-  const uptime = uptimeMatch ? uptimeMatch[1].trim() : null;
+  const { showResponseTimes } = usePortalSettings();
+  const uptime = parseDockerUptime(stats?.status);
 
   return (
-    <div className={`container-detail-panel-component ${styles['panel']}`}>
-      {/* ── Identity & Status ── */}
-      <div className={styles['section']}>
-        <h4 className={styles['section-title']}>Status</h4>
-        <div className={styles['field-grid']}>
-          <div className={styles['field']}>
-            <span className={styles['field-label']}>Health</span>
+    <div className={`container-detail-panel-component ${styles["panel"]}`}>
+      <div className={styles["section"]}>
+        <h4 className={styles["section-title"]}>Status</h4>
+        <div className={styles["field-grid"]}>
+          <Field label="Health">
             {container.statusKind === "unknown" ? (
-              <span className={styles['status-unknown-text']} title="Not yet checked">
+              <span
+                className={styles["status-unknown-text"]}
+                title="Not yet checked"
+              >
                 Checking…
               </span>
             ) : (
               <BadgeComponent type="status" healthy={container.healthy} />
             )}
-          </div>
+          </Field>
           {container.visibility && (
-            <div className={styles['field']}>
-              <span className={styles['field-label']}>Visibility</span>
+            <Field label="Visibility">
               <BadgeComponent
                 type="visibility"
                 visibility={container.visibility}
                 icons={{ Globe, Lock }}
               />
-            </div>
+            </Field>
           )}
-          {container.responseTimeMs != null && (
-            <div className={styles['field']}>
-              <span className={styles['field-label']}>Response</span>
+          {showResponseTimes && container.responseTimeMs != null && (
+            <Field label="Response">
               <BadgeComponent
                 type="responseTime"
                 ms={container.responseTimeMs}
                 formatter={formatDuration}
               />
-            </div>
+            </Field>
           )}
           {container.device && (
-            <div className={styles['field']}>
-              <span className={styles['field-label']}>Device</span>
+            <Field label="Device">
               <BadgeComponent
                 type="device"
                 device={container.device}
                 icons={{ Server }}
               />
-            </div>
+            </Field>
           )}
         </div>
       </div>
 
-      {/* ── Container Info ── */}
       {stats && (
-        <div className={styles['section']}>
-          <h4 className={styles['section-title']}>Container</h4>
-          <div className={styles['field-grid']}>
+        <div className={styles["section"]}>
+          <h4 className={styles["section-title"]}>Container</h4>
+          <div className={styles["field-grid"]}>
             {stats.image && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Image</span>
-                <span className={styles['field-value-mono']}>{stats.image}</span>
-              </div>
+              <Field label="Image">
+                <span className={styles["field-value-mono"]}>
+                  {stats.image}
+                </span>
+              </Field>
             )}
             {stats.state && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>State</span>
-                <span className={styles['state-badge']} data-state={stats.state}>
+              <Field label="State">
+                <span
+                  className={styles["state-badge"]}
+                  data-state={stats.state}
+                >
                   {stats.state}
                 </span>
-              </div>
+              </Field>
             )}
             {uptime && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Uptime</span>
-                <span className={styles['field-value-mono']}>{uptime}</span>
-              </div>
+              <Field label="Uptime">
+                <span className={styles["field-value-mono"]}>{uptime}</span>
+              </Field>
             )}
-            {stats.created && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Created</span>
-                <span className={styles['field-value-mono']}>
-                  {formatTimestamp(stats.created)}
+            {stats.created ? (
+              <Field label="Created">
+                <span className={styles["field-value-mono"]}>
+                  {formatUnixTimestamp(stats.created)}
                 </span>
-              </div>
-            )}
+              </Field>
+            ) : null}
             {stats.command && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Command</span>
-                <span className={styles['command-text']} title={stats.command}>
+              <Field label="Command">
+                <span className={styles["command-text"]} title={stats.command}>
                   {stats.command}
                 </span>
-              </div>
+              </Field>
             )}
             {(stats.pids ?? 0) > 0 && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>PIDs</span>
-                <span className={styles['field-value-mono']}>{stats.pids}</span>
-              </div>
+              <Field label="PIDs">
+                <span className={styles["field-value-mono"]}>{stats.pids}</span>
+              </Field>
             )}
           </div>
         </div>
       )}
 
-      {container.port || container.url ? (
-        <div className={styles['section']}>
-          <h4 className={styles['section-title']}>Networking</h4>
-          <div className={styles['field-grid']}>
+      {(container.port || container.url) && (
+        <div className={styles["section"]}>
+          <h4 className={styles["section-title"]}>Networking</h4>
+          <div className={styles["field-grid"]}>
             {container.port && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Port</span>
+              <Field label="Port">
                 <BadgeComponent type="port" port={container.port} />
-              </div>
+              </Field>
             )}
             {container.url && (
-              <div className={styles['field']}>
-                <span className={styles['field-label']}>Address</span>
+              <Field label="Address">
                 <BadgeComponent type="address" address={container.url} link />
-              </div>
+              </Field>
             )}
           </div>
         </div>
-      ) : null}
+      )}
 
-      {/* ── Metrics ── */}
       {stats ? (
-        <div className={styles['metrics-grid']}>
-          {/* CPU */}
-          <div className={styles['metric-card']}>
-            <div className={styles['metric-card-header']}>
-              <Cpu
-                size={13}
-                strokeWidth={2.2}
-                className={styles['metric-card-icon']}
-              />
-              <span className={styles['metric-card-title']}>CPU</span>
-              <span
-                className={styles['metric-card-value']}
-                style={{ color: severityColor(stats.cpu.percent) }}
-              >
-                {formatPercent(stats.cpu.percent, "adaptive")}
-              </span>
-              <span className={styles['metric-card-dim']}>
-                · {stats.cpu.cores} core{stats.cpu.cores !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <PercentBar
-              percent={stats.cpu.percent}
-              color={severityColor(stats.cpu.percent)}
-            />
-            {(history?.cpu?.length ?? 0) >= 2 && (
-              <ChartLineComponent
-                data={history!.cpu}
-                color={severityColor(stats.cpu.percent)}
-                maxValue={100}
-                height={36}
-                historyMax={MAX_SPARKLINE_POINTS}
-                formatValue={(value: number) => `${value.toFixed(1)}%`}
-              />
-            )}
-          </div>
-
-          {/* CPU Throttling */}
-          {stats.cpuThrottling && stats.cpuThrottling.throttledPeriods > 0 && (
-            <div className={styles['metric-card']}>
-              <div className={styles['metric-card-header']}>
-                <Cpu
-                  size={13}
-                  strokeWidth={2.2}
-                  className={styles['metric-card-icon']}
-                />
-                <span className={styles['metric-card-title']}>CPU Throttling</span>
-              </div>
-              <div className={styles['input-output-stats']}>
-                <span className={styles['input-output-stat']}>
-                  <span className={styles['input-output-direction']}>Throttled</span>
-                  <span className={styles['input-output-value']}>
-                    {stats.cpuThrottling.throttledPeriods} /{" "}
-                    {stats.cpuThrottling.periods} periods
-                  </span>
-                </span>
-                <span className={styles['input-output-stat']}>
-                  <span className={styles['input-output-direction']}>Time</span>
-                  <span className={styles['input-output-value']}>
-                    {formatNanoseconds(stats.cpuThrottling.throttledTimeNs)}
-                  </span>
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Memory */}
-          <div className={styles['metric-card']}>
-            <div className={styles['metric-card-header']}>
-              <MemoryStick
-                size={13}
-                strokeWidth={2.2}
-                className={styles['metric-card-icon']}
-              />
-              <span className={styles['metric-card-title']}>RAM</span>
-              <span
-                className={styles['metric-card-value']}
-                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
-              >
-                {formatBytes(stats.memory.used)}
-              </span>
-              <span className={styles['metric-card-dim']}>
-                / {formatBytes(stats.memory.limit)}
-              </span>
-              <span
-                className={styles['metric-card-value']}
-                style={{ color: severityColor(stats.memory.percent, [60, 85]) }}
-              >
-                {formatPercent(stats.memory.percent, "adaptive")}
-              </span>
-            </div>
-            <PercentBar
-              percent={stats.memory.percent}
-              color={severityColor(stats.memory.percent, [60, 85])}
-            />
-            {(history?.mem?.length ?? 0) >= 2 && (
-              <ChartLineComponent
-                data={history!.mem}
-                color={severityColor(stats.memory.percent, [60, 85])}
-                maxValue={stats.memory.limit}
-                height={36}
-                historyMax={MAX_SPARKLINE_POINTS}
-                formatValue={(value: number) => formatBytes(value)}
-              />
-            )}
-          </div>
-
-          {/* Memory Detail */}
-          {stats.memoryDetail && (
-            <div className={styles['metric-card']}>
-              <div className={styles['metric-card-header']}>
-                <MemoryStick
-                  size={13}
-                  strokeWidth={2.2}
-                  className={styles['metric-card-icon']}
-                />
-                <span className={styles['metric-card-title']}>Memory Breakdown</span>
-              </div>
-              <div className={styles['detail-grid']}>
-                <div className={styles['detail-item']}>
-                  <span className={styles['detail-label']}>RSS</span>
-                  <span className={styles['detail-value']}>
-                    {formatBytes(stats.memoryDetail.rss)}
-                  </span>
-                </div>
-                <div className={styles['detail-item']}>
-                  <span className={styles['detail-label']}>Cache</span>
-                  <span className={styles['detail-value']}>
-                    {formatBytes(stats.memoryDetail.cache)}
-                  </span>
-                </div>
-                {stats.memoryDetail.swap > 0 && (
-                  <div className={styles['detail-item']}>
-                    <span className={styles['detail-label']}>Swap</span>
-                    <span
-                      className={styles['detail-value']}
-                      style={{ color: "var(--color-warning)" }}
-                    >
-                      {formatBytes(stats.memoryDetail.swap)}
-                    </span>
-                  </div>
-                )}
-                {stats.memoryDetail.maxUsage > 0 && (
-                  <div className={styles['detail-item']}>
-                    <span className={styles['detail-label']}>Peak</span>
-                    <span className={styles['detail-value']}>
-                      {formatBytes(stats.memoryDetail.maxUsage)}
-                    </span>
-                  </div>
-                )}
-                {stats.memoryDetail.pgfault > 0 && (
-                  <div className={styles['detail-item']}>
-                    <span className={styles['detail-label']}>Page Faults</span>
-                    <span className={styles['detail-value']}>
-                      {stats.memoryDetail.pgfault.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                {stats.memoryDetail.pgmajfault > 0 && (
-                  <div className={styles['detail-item']}>
-                    <span className={styles['detail-label']}>Major Faults</span>
-                    <span
-                      className={styles['detail-value']}
-                      style={{ color: "var(--color-danger)" }}
-                    >
-                      {stats.memoryDetail.pgmajfault.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Network + Block I/O + PIDs */}
-          <div className={styles['metric-row']}>
-            {stats.network &&
-              (stats.network.rx > 0 || stats.network.tx > 0) && (
-                <div className={styles['metric-card']}>
-                  <div className={styles['metric-card-header']}>
-                    <Globe
-                      size={13}
-                      strokeWidth={2.2}
-                      className={styles['metric-card-icon']}
-                    />
-                    <span className={styles['metric-card-title']}>Network</span>
-                  </div>
-                  <div className={styles['input-output-stats']}>
-                    <span className={styles['input-output-stat']}>
-                      <span className={styles['input-output-direction']}>RX</span>
-                      <span className={styles['input-output-value']}>
-                        {formatBytes(stats.network.rx)}
-                      </span>
-                    </span>
-                    <span className={styles['input-output-stat']}>
-                      <span className={styles['input-output-direction']}>TX</span>
-                      <span className={styles['input-output-value']}>
-                        {formatBytes(stats.network.tx)}
-                      </span>
-                    </span>
-                  </div>
-                  {/* Packet counts */}
-                  {((stats.network.rxPackets ?? 0) > 0 ||
-                    (stats.network.txPackets ?? 0) > 0) && (
-                    <div className={styles['input-output-stats']}>
-                      <span className={styles['input-output-stat']}>
-                        <span className={styles['input-output-direction']}>Packets RX</span>
-                        <span className={styles['input-output-value']}>
-                          {stats.network.rxPackets?.toLocaleString()}
-                        </span>
-                      </span>
-                      <span className={styles['input-output-stat']}>
-                        <span className={styles['input-output-direction']}>Packets TX</span>
-                        <span className={styles['input-output-value']}>
-                          {stats.network.txPackets?.toLocaleString()}
-                        </span>
-                      </span>
-                    </div>
-                  )}
-                  {/* Errors / Drops */}
-                  {((stats.network.rxDropped ?? 0) > 0 ||
-                    (stats.network.txDropped ?? 0) > 0 ||
-                    (stats.network.rxErrors ?? 0) > 0 ||
-                    (stats.network.txErrors ?? 0) > 0) && (
-                    <div className={styles['input-output-stats-warning']}>
-                      {((stats.network.rxDropped ?? 0) > 0 ||
-                        (stats.network.txDropped ?? 0) > 0) && (
-                        <span className={styles['input-output-stat']}>
-                          <span className={styles['input-output-direction']}>Dropped</span>
-                          <span className={styles['input-output-value']}>
-                            {(
-                              (stats.network.rxDropped ?? 0) +
-                              (stats.network.txDropped ?? 0)
-                            ).toLocaleString()}
-                          </span>
-                        </span>
-                      )}
-                      {((stats.network.rxErrors ?? 0) > 0 ||
-                        (stats.network.txErrors ?? 0) > 0) && (
-                        <span className={styles['input-output-stat']}>
-                          <span className={styles['input-output-direction']}>Errors</span>
-                          <span className={styles['input-output-value-danger']}>
-                            {(
-                              (stats.network.rxErrors ?? 0) +
-                              (stats.network.txErrors ?? 0)
-                            ).toLocaleString()}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-            {stats.blockIO &&
-              (stats.blockIO.read > 0 || stats.blockIO.write > 0) && (
-                <div className={styles['metric-card']}>
-                  <div className={styles['metric-card-header']}>
-                    <HardDrive
-                      size={13}
-                      strokeWidth={2.2}
-                      className={styles['metric-card-icon']}
-                    />
-                    <span className={styles['metric-card-title']}>Block I/O</span>
-                  </div>
-                  <div className={styles['input-output-stats']}>
-                    <span className={styles['input-output-stat']}>
-                      <span className={styles['input-output-direction']}>Read</span>
-                      <span className={styles['input-output-value']}>
-                        {formatBytes(stats.blockIO.read)}
-                      </span>
-                    </span>
-                    <span className={styles['input-output-stat']}>
-                      <span className={styles['input-output-direction']}>Write</span>
-                      <span className={styles['input-output-value']}>
-                        {formatBytes(stats.blockIO.write)}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              )}
-          </div>
-
-          {/* Per-Interface Network Breakdown */}
-          {stats.network?.interfaces &&
-            Object.keys(stats.network.interfaces).length > 1 && (
-              <div className={styles['metric-card']}>
-                <div className={styles['metric-card-header']}>
-                  <Unplug
-                    size={13}
-                    strokeWidth={2.2}
-                    className={styles['metric-card-icon']}
-                  />
-                  <span className={styles['metric-card-title']}>
-                    Network Interfaces
-                  </span>
-                </div>
-                <div className={styles['interface-list']}>
-                  {Object.entries(stats.network.interfaces).map(
-                    ([name, iface]) => (
-                      <div key={name} className={styles['interface-row']}>
-                        <span className={styles['interface-name']}>{name}</span>
-                        <span className={styles['input-output-compact-detail']}>
-                          ↓ {formatBytes((iface as NetworkInterface).rxBytes)} ·
-                          ↑ {formatBytes((iface as NetworkInterface).txBytes)}
-                        </span>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
-
-          {/* Port Mappings */}
-          {stats.ports && stats.ports.length > 0 && (
-            <div className={styles['metric-card']}>
-              <div className={styles['metric-card-header']}>
-                <Globe
-                  size={13}
-                  strokeWidth={2.2}
-                  className={styles['metric-card-icon']}
-                />
-                <span className={styles['metric-card-title']}>Port Mappings</span>
-              </div>
-              <div className={styles['port-list']}>
-                {stats.ports.map((port: PortMapping, i: number) => (
-                  <div key={i} className={styles['port-row']}>
-                    <span className={styles['port-mapping']}>
-                      {port.publicPort
-                        ? `${port.ip || "0.0.0.0"}:${port.publicPort}`
-                        : "—"}{" "}
-                      → {port.privatePort}/{port.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Volume Mounts */}
-          {stats.mounts && stats.mounts.length > 0 && (
-            <div className={styles['metric-card']}>
-              <div className={styles['metric-card-header']}>
-                <Database
-                  size={13}
-                  strokeWidth={2.2}
-                  className={styles['metric-card-icon']}
-                />
-                <span className={styles['metric-card-title']}>Mounts</span>
-                <span className={styles['metric-card-dim']}>
-                  {stats.mounts.length}
-                </span>
-              </div>
-              <div className={styles['mount-list']}>
-                {stats.mounts.map((mount: VolumeMount, i: number) => (
-                  <div key={i} className={styles['mount-row']}>
-                    <span className={styles['mount-type']}>{mount.type}</span>
-                    <span
-                      className={styles['mount-path']}
-                      title={`${mount.source} → ${mount.destination}`}
-                    >
-                      {mount.name || mount.source?.split("/").pop() || mount.source} →{" "}
-                      {mount.destination}
-                    </span>
-                    <span className={styles['mount-mode']}>
-                      {mount.rw ? "rw" : "ro"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Docker Labels */}
-          {stats.labels && Object.keys(stats.labels).length > 0 && (
-            <div className={styles['metric-card']}>
-              <div className={styles['metric-card-header']}>
-                <Layers
-                  size={13}
-                  strokeWidth={2.2}
-                  className={styles['metric-card-icon']}
-                />
-                <span className={styles['metric-card-title']}>Labels</span>
-                <span className={styles['metric-card-dim']}>
-                  {Object.keys(stats.labels).length}
-                </span>
-              </div>
-              <div className={styles['label-list']}>
-                {Object.entries(stats.labels)
-                  .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
-                  .map(([key, value]) => (
-                    <div key={key} className={styles['label-row']}>
-                      <span className={styles['label-key']} title={key}>
-                        {key}
-                      </span>
-                      <span
-                        className={styles['label-value']}
-                        title={value as string}
-                      >
-                        {value as string}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <ContainerMetrics
+          stats={stats}
+          history={history}
+          thresholds={thresholds}
+        />
       ) : (
-        <div className={styles['metrics-empty']}>
-          <Box size={18} strokeWidth={1.5} className={styles['empty-icon']} />
+        <div className={styles["metrics-empty"]}>
+          <Box size={18} strokeWidth={1.5} className={styles["empty-icon"]} />
           <span>No metrics available</span>
         </div>
       )}

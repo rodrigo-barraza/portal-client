@@ -3,70 +3,68 @@
 // ============================================================
 // Typed accessor layer over process.env. The Vault service is
 // the single source of truth — next.config.ts hydrates
-// process.env from the Vault before any module imports run.
+// process.env from the Vault (falling back to URLs derived from
+// vault-service/projects.json in dev) before any module runs,
+// and fails a production build that could not resolve them.
 //
-// This file contains NO defaults and NO secrets.
+// This file contains NO defaults, NO hosts and NO secrets.
 //
-// Browser requests must NEVER hit localhost or LAN IPs when loaded
-// from a public domain — that triggers Chrome's Private Network
-// Access (PNA) prompt and mixed-content blocks.
-//
-// Strategy:
-//   Production (*.rod.dev):
-//     • PORTAL_SERVICE_URL → PORTAL_SERVICE_PUBLIC_URL from vault
-//
-//   Local dev (localhost):
-//     • PORTAL_SERVICE_URL → vault value (LAN IP — same network)
-//
-//   Server-side (SSR):
-//     • All URLs use full values from vault (LAN IPs for Docker)
+// Browser requests must NEVER hit LAN addresses when the page is
+// served from a public host — that triggers Chrome's Private
+// Network Access prompt and mixed-content blocks. So:
+//   • page on a private host (localhost / LAN IP) → internal URL
+//   • page on a public host (the portal domain)   → public URL
+//   • server-side (SSR, route handlers)           → internal URL
 // ============================================================
 
-// Environment-aware project name — isolates data between dev and prod
+import { isPrivateHost } from "@/utils/adminAccess";
+
+/** projectId this client reports to sessions-service under. */
 export const PROJECT_NAME = "portal";
 
-const IS_BROWSER = typeof window !== "undefined";
-
-// ── Raw values from process.env ────────────────────────────────
-// NEXT_PUBLIC_ vars are guaranteed inlined by both webpack and Turbopack.
-// Non-prefixed vars (from next.config.ts `env` block) are used as fallback
-// for SSR, where process.env is available at runtime.
-const RAW_PORTAL_SERVICE_URL =
+// ── Raw values ─────────────────────────────────────────────────
+// NEXT_PUBLIC_ vars are inlined at build time (next.config `env`); the
+// unprefixed ones are the server's runtime environment (boot.js fills it
+// from the vault inside the container).
+const INTERNAL_PORTAL_SERVICE_URL =
   process.env.NEXT_PUBLIC_PORTAL_SERVICE_URL || process.env.PORTAL_SERVICE_URL;
 
-// ── Public URL from vault (browser production override) ────────
 const PUBLIC_PORTAL_SERVICE_URL =
   process.env.NEXT_PUBLIC_PORTAL_SERVICE_PUBLIC_URL ||
   process.env.PORTAL_SERVICE_PUBLIC_URL;
 
-// ── Portal API URL ─────────────────────────────────────────────
-function resolvePortalServiceUrl() {
-  if (!IS_BROWSER) return RAW_PORTAL_SERVICE_URL;
-
-  const isProduction = window.location.hostname.endsWith(".dev");
-
-  if (isProduction && PUBLIC_PORTAL_SERVICE_URL)
-    return PUBLIC_PORTAL_SERVICE_URL;
-  if (RAW_PORTAL_SERVICE_URL) return RAW_PORTAL_SERVICE_URL;
-
-  // Defensive fallback — infer API URL from current hostname when
-  // env vars were not inlined at build time (vault unreachable during build).
-  if (isProduction) return `https://api.${window.location.hostname}`;
-
-  // Same fallback for LAN/localhost access: without this, an empty base URL
-  // makes every API call fetch the Next.js app itself (HTML instead of JSON)
-  // and every page silently renders its empty state.
-  return `${window.location.protocol}//${window.location.hostname}:4001`;
+/**
+ * Pick the portal-service base URL for where this code runs. Exported for
+ * tests; the app uses {@link PORTAL_SERVICE_URL}.
+ */
+export function resolvePortalServiceUrl({
+  pageHost,
+  internalUrl,
+  publicUrl,
+}: {
+  /** `location.host` of the page, or null on the server. */
+  pageHost: string | null;
+  internalUrl: string | undefined;
+  publicUrl: string | undefined;
+}): string {
+  const preferPublic = pageHost !== null && !isPrivateHost(pageHost);
+  const resolved = preferPublic
+    ? publicUrl || internalUrl
+    : internalUrl || publicUrl;
+  return (resolved ?? "").replace(/\/+$/, "");
 }
 
-export const PORTAL_SERVICE_URL = resolvePortalServiceUrl();
+/** portal-service base URL, without a trailing slash ("" if unresolved). */
+export const PORTAL_SERVICE_URL = resolvePortalServiceUrl({
+  pageHost: typeof window === "undefined" ? null : window.location.host,
+  internalUrl: INTERNAL_PORTAL_SERVICE_URL,
+  publicUrl: PUBLIC_PORTAL_SERVICE_URL,
+});
 
 // ── Accounts service (role lookup at sign-in) ──────────────────
-// Used server-side by the NextAuth callbacks to resolve persisted
-// roles (e.g. "admin"). The URL may be public; the secret is not.
-export const ACCOUNTS_SERVICE_URL =
-  process.env.NEXT_PUBLIC_ACCOUNTS_SERVICE_URL ||
-  process.env.ACCOUNTS_SERVICE_URL;
+// Server-side only (NextAuth callbacks), read from the runtime
+// environment. The URL may be public; the secret is not.
+export const ACCOUNTS_SERVICE_URL = process.env.ACCOUNTS_SERVICE_URL;
 
 // Server-only shared secret for accounts-service internal endpoints.
 // NO NEXT_PUBLIC_ fallback — must never be inlined into a client bundle.
