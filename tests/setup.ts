@@ -43,3 +43,6 @@ class ObserverStub {
 globalThis.ResizeObserver ??= ObserverStub as unknown as typeof ResizeObserver;
 globalThis.IntersectionObserver ??=
   ObserverStub as unknown as typeof IntersectionObserver;
+
+// jsdom has no layout, so no scrolling either.
+Element.prototype.scrollIntoView ??= function scrollIntoView() {};

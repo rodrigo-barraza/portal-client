@@ -1,37 +1,36 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useRef, useState } from "react";
 import {
+  Gauge,
+  LayoutGrid,
   Palette,
   RefreshCw,
-  LayoutGrid,
   Shield,
-  Gauge,
-  Trash2,
   Table2,
-  Check,
+  Trash2,
 } from "lucide-react";
-import * as Icons from "lucide-react";
 import {
-  PageHeaderComponent,
-  useTheme,
-  SwitchComponent,
-  SelectComponent,
-  InputComponent,
-  SegmentedControlComponent,
   ButtonComponent,
   DialogComponent,
-  THEME_CATALOG,
-  getReadableTextColor,
-  type ThemeCatalogEntry,
+  PageHeaderComponent,
+  SegmentedControlComponent,
+  SelectComponent,
+  SwitchComponent,
+  useTheme,
 } from "@rodrigo-barraza/components-library";
 import {
-  usePortalSettings,
-  updateSettings,
-  resetSettings,
   LANDING_PAGES,
+  resetSettings,
+  updateSettings,
+  usePortalSettings,
   type PortalSettings,
 } from "@/lib/settings";
+import { clearPreferenceStorage } from "@/lib/storageKeys";
+import NumberSettingInput from "./settings/NumberSettingInput";
+import ThemeGridComponent from "./settings/ThemeGridComponent";
+import { SettingRow, SettingsSection } from "./settings/SettingsLayoutParts";
+import { useActiveSection } from "./settings/useActiveSection";
 import styles from "./SettingsComponent.module.css";
 
 // ── Section Definitions ──────────────────────────────────────────
@@ -40,591 +39,319 @@ const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutGrid },
   { id: "monitoring", label: "Monitoring", icon: Gauge },
   { id: "data", label: "Data & Privacy", icon: Shield },
-];
+] as const;
 
 const DEFAULT_THEME = "twilight";
 
-// Fallback metadata for themes missing from THEME_CATALOG (e.g. custom themes)
-const FALLBACK_THEME_META: ThemeCatalogEntry = {
-  label: "Theme",
-  icon: "Palette",
-  backgroundBase: "#222",
-  backgroundSurface: "#333",
-  backgroundElevated: "#444",
-  primary: "#888",
-  secondary: "#aaa",
-  tertiary: "#666",
-  textPrimary: "#eee",
-  textSecondary: "#aaa",
-  textMuted: "#666",
-  borderColor: "#888",
-  success: "#10b981",
-  danger: "#ef4444",
-  warning: "#f59e0b",
-  info: "#3b82f6",
+const VIEW_SEGMENTS = [
+  {
+    value: "card",
+    label: "Cards",
+    icon: <LayoutGrid size={12} strokeWidth={2.2} />,
+  },
+  {
+    value: "table",
+    label: "Table",
+    icon: <Table2 size={12} strokeWidth={2.2} />,
+  },
+];
+
+const LANDING_PAGE_OPTIONS = LANDING_PAGES.map((page) => ({ ...page }));
+
+type ConfirmAction = "reset" | "clear";
+
+const CONFIRM_DIALOGS: Record<
+  ConfirmAction,
+  { headline: string; label: string; body: string; icon: typeof Trash2 }
+> = {
+  reset: {
+    headline: "Reset all settings?",
+    label: "Reset",
+    body: "Every setting returns to its default value. Your theme choice is kept.",
+    icon: RefreshCw,
+  },
+  clear: {
+    headline: "Clear local data?",
+    label: "Clear data",
+    body: "This wipes every portal preference stored in this browser — settings, theme, sidebar state, and saved table layouts — and restores the defaults.",
+    icon: Trash2,
+  },
 };
 
-type LucideIconComponent = React.ComponentType<{
-  size?: number;
-  strokeWidth?: number;
-  className?: string;
-}>;
-
-function themeIcon(name: string): LucideIconComponent {
-  return (
-    (Icons as unknown as Record<string, LucideIconComponent>)[name] || Palette
-  );
+function toggle<K extends keyof PortalSettings>(key: K) {
+  return (checked: boolean) =>
+    updateSettings({ [key]: checked } as Partial<PortalSettings>);
 }
 
 export default function SettingsComponent() {
-  const { theme, themes, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const settings = usePortalSettings();
-  const [activeSection, setActiveSection] = useState("appearance");
-  const [confirmAction, setConfirmAction] = useState<"reset" | "clear" | null>(
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
     null,
   );
-
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-
-  const updateSetting = useCallback(
-    <K extends keyof PortalSettings>(key: K, value: PortalSettings[K]) => {
-      updateSettings({ [key]: value });
-    },
-    [],
+  const sectionsRef = useRef<HTMLDivElement>(null);
+  const { activeSection, scrollToSection } = useActiveSection(
+    sectionsRef,
+    SECTIONS[0].id,
   );
 
-  const scrollToSection = useCallback((sectionIdentifier: string) => {
-    setActiveSection(sectionIdentifier);
-    sectionRefs.current[sectionIdentifier]?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, []);
-
-  const handleResetSettings = useCallback(() => {
-    resetSettings();
-    setConfirmAction(null);
-  }, []);
-
-  const handleClearLocalData = useCallback(() => {
-    try {
-      const portalKeys: string[] = [];
-      for (let index = 0; index < window.localStorage.length; index++) {
-        const key = window.localStorage.key(index);
-        if (key && key.startsWith("portal:")) portalKeys.push(key);
-      }
-      portalKeys.forEach((key) => window.localStorage.removeItem(key));
-    } catch {
-      // localStorage unavailable — nothing to clear
+  const handleConfirm = () => {
+    if (confirmAction === "clear") {
+      clearPreferenceStorage();
+      setTheme(DEFAULT_THEME);
     }
     resetSettings();
-    setTheme(DEFAULT_THEME);
     setConfirmAction(null);
-  }, [setTheme]);
+  };
+
+  const dialog = confirmAction ? CONFIRM_DIALOGS[confirmAction] : null;
+  const DialogIcon = dialog?.icon ?? RefreshCw;
 
   return (
-    <div className={`settings-component ${styles['settings']}`}>
+    <div className={`settings-component ${styles["settings"]}`}>
       <PageHeaderComponent
         sticky={false}
         title="Settings"
         subtitle="Customize your portal experience"
       />
 
-      <div className={styles['settings-body']}>
-        {/* ── Sidebar ── */}
-        <nav className={styles['sidebar']}>
-          {SECTIONS.map(({ id: sectionIdentifier, label, icon: Icon }) => (
-            <button
-              key={sectionIdentifier}
-              className={`${styles['sidebar-link']} ${activeSection === sectionIdentifier ? styles['is-active-state'] : ""}`}
-              onClick={() => scrollToSection(sectionIdentifier)}
-            >
-              <Icon size={15} strokeWidth={2} className={styles['sidebar-icon']} />
-              {label}
-            </button>
-          ))}
+      <div className={styles["settings-body"]}>
+        {/* ── Section nav ── */}
+        <nav className={styles["sidebar"]} aria-label="Settings sections">
+          {SECTIONS.map(({ id, label, icon: Icon }) => {
+            const isActive = activeSection === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                className={`${styles["sidebar-link"]}${isActive ? ` ${styles["is-active-state"]}` : ""}`}
+                aria-current={isActive ? "true" : undefined}
+                onClick={() => scrollToSection(id)}
+              >
+                <Icon size={15} strokeWidth={2} className={styles["sidebar-icon"]} />
+                {label}
+              </button>
+            );
+          })}
         </nav>
 
         {/* ── Sections ── */}
-        <div className={styles['sections-container']}>
-          {/* ═══ Appearance ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.appearance = element;
-            }}
-            className={styles['section']}
-            id="settings-appearance"
+        <div ref={sectionsRef} className={styles["sections-container"]}>
+          <SettingsSection
+            id="appearance"
+            icon={Palette}
+            title="Appearance"
+            description="Pick a theme — each theme defines its own colors, accents, and contrast"
           >
-            <div className={styles['section-header']}>
-              <div className={styles['section-icon-wrap']}>
-                <Palette size={17} strokeWidth={2} />
-              </div>
-              <div className={styles['section-title-group']}>
-                <h2 className={styles['section-title']}>Appearance</h2>
-                <p className={styles['section-description']}>
-                  Pick a theme — each theme defines its own colors, accents,
-                  and contrast
-                </p>
-              </div>
-            </div>
-            <div className={styles['section-body']}>
-              <div className={styles['theme-grid']}>
-                {themes.map((themeName) => {
-                  const meta = THEME_CATALOG[themeName] || FALLBACK_THEME_META;
-                  const ThemeIcon = themeIcon(meta.icon);
-                  const isActive = themeName === theme;
+            <ThemeGridComponent />
+          </SettingsSection>
 
-                  return (
-                    <button
-                      key={themeName}
-                      className={`${styles['theme-tile']} ${isActive ? styles['is-active-state'] : ""}`}
-                      onClick={() => setTheme(themeName)}
-                      title={`Switch to ${meta.label} theme`}
-                      type="button"
-                      style={{ "--tile-accent": meta.primary } as React.CSSProperties}
-                    >
-                      <span
-                        className={styles['theme-preview']}
-                        style={{
-                          background: meta.backgroundBase,
-                          borderColor: isActive
-                            ? meta.primary
-                            : meta.borderColor,
-                        }}
-                      >
-                        <span
-                          className={styles['theme-preview-header']}
-                          style={{ background: meta.backgroundSurface }}
-                        >
-                          <span
-                            className={styles['theme-preview-dot']}
-                            style={{ background: meta.primary }}
-                          />
-                          <span
-                            className={styles['theme-preview-line']}
-                            style={{ background: meta.textMuted, width: 22 }}
-                          />
-                        </span>
-                        <span className={styles['theme-preview-body']}>
-                          <span
-                            className={styles['theme-preview-line']}
-                            style={{ background: meta.textPrimary, width: 34 }}
-                          />
-                          <span
-                            className={styles['theme-preview-line']}
-                            style={{ background: meta.textMuted, width: 26 }}
-                          />
-                          <span className={styles['theme-preview-accents']}>
-                            <span style={{ background: meta.primary }} />
-                            <span style={{ background: meta.secondary }} />
-                            <span style={{ background: meta.tertiary }} />
-                          </span>
-                        </span>
-                        {isActive && (
-                          <span
-                            className={styles['theme-active-badge']}
-                            style={{
-                              background: meta.primary,
-                              color: getReadableTextColor(meta.primary),
-                            }}
-                          >
-                            <Check size={9} strokeWidth={3.5} />
-                          </span>
-                        )}
-                      </span>
-                      <span className={styles['theme-tile-meta']}>
-                        <ThemeIcon
-                          size={13}
-                          strokeWidth={1.8}
-                          className={styles['theme-tile-icon']}
-                        />
-                        <span className={styles['theme-tile-label']}>
-                          {meta.label}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* ═══ Dashboard ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.dashboard = element;
-            }}
-            className={styles['section']}
-            id="settings-dashboard"
+          <SettingsSection
+            id="dashboard"
+            icon={LayoutGrid}
+            title="Dashboard"
+            description="Default views, layout, and page preferences"
           >
-            <div className={styles['section-header']}>
-              <div className={styles['section-icon-wrap']}>
-                <LayoutGrid size={17} strokeWidth={2} />
-              </div>
-              <div className={styles['section-title-group']}>
-                <h2 className={styles['section-title']}>Dashboard</h2>
-                <p className={styles['section-description']}>
-                  Default views, layout, and page preferences
-                </p>
-              </div>
-            </div>
-            <div className={styles['section-body']}>
-              {/* Default View Mode */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Default View</span>
-                  <span className={styles['setting-hint']}>
-                    Initial view mode for the projects page
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SegmentedControlComponent
-                    value={settings.defaultView}
-                    onChange={(value: string) =>
-                      updateSetting("defaultView", value as "card" | "table")
-                    }
-                    segments={[
-                      { value: "card", label: "Cards", icon: <LayoutGrid size={12} strokeWidth={2.2} /> },
-                      { value: "table", label: "Table", icon: <Table2 size={12} strokeWidth={2.2} /> },
-                    ]}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="Default View"
+              hint="Initial view mode for the projects page"
+            >
+              <SegmentedControlComponent
+                value={settings.defaultView}
+                onChange={(value) =>
+                  updateSettings({
+                    defaultView: value as PortalSettings["defaultView"],
+                  })
+                }
+                segments={VIEW_SEGMENTS}
+              />
+            </SettingRow>
 
-              {/* Landing Page */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Landing Page</span>
-                  <span className={styles['setting-hint']}>
-                    Page to show when opening the portal
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SelectComponent
-                    value={settings.defaultPage}
-                    onChange={(value: string) => updateSetting("defaultPage", value)}
-                    options={LANDING_PAGES.map((page) => ({ ...page }))}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="Landing Page"
+              hint="Page to show when opening the portal"
+            >
+              <SelectComponent
+                value={settings.defaultPage}
+                onChange={(value) =>
+                  updateSettings({ defaultPage: String(value) })
+                }
+                options={LANDING_PAGE_OPTIONS}
+              />
+            </SettingRow>
 
-              {/* Show System Summary */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>System Summary</span>
-                  <span className={styles['setting-hint']}>
-                    Show CPU, memory, and storage cards at the top of Projects
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.showSystemSummary}
-                    onChange={(checked: boolean) => updateSetting("showSystemSummary", checked)}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="System Summary"
+              hint="Show CPU, memory, and storage cards at the top of Projects"
+            >
+              <SwitchComponent
+                ariaLabel="System Summary"
+                checked={settings.showSystemSummary}
+                onChange={toggle("showSystemSummary")}
+              />
+            </SettingRow>
 
-              {/* Show Infrastructure */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Infrastructure Projects
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Include databases and stores in project lists
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.showInfrastructure}
-                    onChange={(checked: boolean) => updateSetting("showInfrastructure", checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
+            <SettingRow
+              label="Infrastructure Projects"
+              hint="Include databases and stores in project lists"
+            >
+              <SwitchComponent
+                ariaLabel="Infrastructure Projects"
+                checked={settings.showInfrastructure}
+                onChange={toggle("showInfrastructure")}
+              />
+            </SettingRow>
+          </SettingsSection>
 
-          {/* ═══ Monitoring ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.monitoring = element;
-            }}
-            className={styles['section']}
-            id="settings-monitoring"
+          <SettingsSection
+            id="monitoring"
+            icon={Gauge}
+            title="Monitoring"
+            description="Health check intervals, thresholds, and refresh behavior"
           >
-            <div className={styles['section-header']}>
-              <div className={styles['section-icon-wrap']}>
-                <Gauge size={17} strokeWidth={2} />
-              </div>
-              <div className={styles['section-title-group']}>
-                <h2 className={styles['section-title']}>Monitoring</h2>
-                <p className={styles['section-description']}>
-                  Health check intervals, thresholds, and refresh behavior
-                </p>
-              </div>
-            </div>
-            <div className={styles['section-body']}>
-              {/* Auto-Refresh */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Auto-Refresh</span>
-                  <span className={styles['setting-hint']}>
-                    Periodically re-fetch project health status
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.autoRefreshEnabled}
-                    onChange={(checked: boolean) => updateSetting("autoRefreshEnabled", checked)}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="Auto-Refresh"
+              hint="Periodically re-fetch project health status"
+            >
+              <SwitchComponent
+                ariaLabel="Auto-Refresh"
+                checked={settings.autoRefreshEnabled}
+                onChange={toggle("autoRefreshEnabled")}
+              />
+            </SettingRow>
 
-              {/* Health Check Interval */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Health Check Interval
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    How often to poll project health endpoints
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <div className={styles['unit-group']}>
-                    <InputComponent
-                      type="number"
-                      value={settings.healthCheckInterval}
-                      disabled={!settings.autoRefreshEnabled}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        updateSetting(
-                          "healthCheckInterval",
-                          Math.max(5, Number(event.target.value)),
-                        )
-                      }
-                      min={5}
-                      max={300}
-                      size="sm"
-                    />
-                    <span className={styles['unit-label']}>sec</span>
-                  </div>
-                </div>
-              </div>
+            <SettingRow
+              label="Health Check Interval"
+              hint="How often to poll project health endpoints"
+              controlId="setting-health-check-interval"
+            >
+              <NumberSettingInput
+                id="setting-health-check-interval"
+                setting="healthCheckInterval"
+                value={settings.healthCheckInterval}
+                unit="sec"
+                disabled={!settings.autoRefreshEnabled}
+              />
+            </SettingRow>
 
-              {/* Container Polling */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Container Stats Polling
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Frequency of Docker container metrics updates
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <div className={styles['unit-group']}>
-                    <InputComponent
-                      type="number"
-                      value={settings.containerPollingInterval}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        updateSetting(
-                          "containerPollingInterval",
-                          Math.max(1, Number(event.target.value)),
-                        )
-                      }
-                      min={1}
-                      max={60}
-                      size="sm"
-                    />
-                    <span className={styles['unit-label']}>sec</span>
-                  </div>
-                </div>
-              </div>
+            <SettingRow
+              label="Container Stats Polling"
+              hint="Frequency of Docker container metrics updates"
+              controlId="setting-container-polling-interval"
+            >
+              <NumberSettingInput
+                id="setting-container-polling-interval"
+                setting="containerPollingInterval"
+                value={settings.containerPollingInterval}
+                unit="sec"
+              />
+            </SettingRow>
 
-              {/* Show Response Times */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Response Times</span>
-                  <span className={styles['setting-hint']}>
-                    Display latency in project tables and cards
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.showResponseTimes}
-                    onChange={(checked: boolean) => updateSetting("showResponseTimes", checked)}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="Response Times"
+              hint="Display latency in project tables and cards"
+            >
+              <SwitchComponent
+                ariaLabel="Response Times"
+                checked={settings.showResponseTimes}
+                onChange={toggle("showResponseTimes")}
+              />
+            </SettingRow>
 
-              {/* CPU Alert Threshold */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    CPU Alert Threshold
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Highlight containers above this CPU percentage
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <div className={styles['unit-group']}>
-                    <InputComponent
-                      type="number"
-                      value={settings.alertThresholdCpu}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        updateSetting(
-                          "alertThresholdCpu",
-                          Math.max(10, Math.min(100, Number(event.target.value))),
-                        )
-                      }
-                      min={10}
-                      max={100}
-                      size="sm"
-                    />
-                    <span className={styles['unit-label']}>%</span>
-                  </div>
-                </div>
-              </div>
+            <SettingRow
+              label="CPU Alert Threshold"
+              hint="Highlight containers above this CPU percentage"
+              controlId="setting-alert-threshold-cpu"
+            >
+              <NumberSettingInput
+                id="setting-alert-threshold-cpu"
+                setting="alertThresholdCpu"
+                value={settings.alertThresholdCpu}
+                unit="%"
+              />
+            </SettingRow>
 
-              {/* Memory Alert Threshold */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Memory Alert Threshold
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Highlight containers above this memory percentage
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <div className={styles['unit-group']}>
-                    <InputComponent
-                      type="number"
-                      value={settings.alertThresholdMemory}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        updateSetting(
-                          "alertThresholdMemory",
-                          Math.max(10, Math.min(100, Number(event.target.value))),
-                        )
-                      }
-                      min={10}
-                      max={100}
-                      size="sm"
-                    />
-                    <span className={styles['unit-label']}>%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+            <SettingRow
+              label="Memory Alert Threshold"
+              hint="Highlight containers above this memory percentage"
+              controlId="setting-alert-threshold-memory"
+            >
+              <NumberSettingInput
+                id="setting-alert-threshold-memory"
+                setting="alertThresholdMemory"
+                value={settings.alertThresholdMemory}
+                unit="%"
+              />
+            </SettingRow>
+          </SettingsSection>
 
-          {/* ═══ Data & Privacy ═══ */}
-          <section
-            ref={(element) => {
-              sectionRefs.current.data = element;
-            }}
-            className={`${styles['section']} ${styles['danger-section']}`}
-            id="settings-data"
+          <SettingsSection
+            id="data"
+            icon={Shield}
+            title="Data & Privacy"
+            description="Session tracking and local data management"
+            danger
           >
-            <div className={styles['section-header']}>
-              <div className={styles['section-icon-wrap']}>
-                <Shield size={17} strokeWidth={2} />
-              </div>
-              <div className={styles['section-title-group']}>
-                <h2 className={styles['section-title']}>Data & Privacy</h2>
-                <p className={styles['section-description']}>
-                  Session tracking and local data management
-                </p>
-              </div>
-            </div>
-            <div className={styles['section-body']}>
-              {/* Telemetry */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Session Tracking</span>
-                  <span className={styles['setting-hint']}>
-                    Record page navigation for the session explorer
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <SwitchComponent
-                    checked={settings.telemetryEnabled}
-                    onChange={(checked: boolean) => updateSetting("telemetryEnabled", checked)}
-                  />
-                </div>
-              </div>
+            <SettingRow
+              label="Session Tracking"
+              hint="Record page navigation for the session explorer"
+            >
+              <SwitchComponent
+                ariaLabel="Session Tracking"
+                checked={settings.telemetryEnabled}
+                onChange={toggle("telemetryEnabled")}
+              />
+            </SettingRow>
 
-              {/* Reset Settings */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>
-                    Reset All Settings
-                  </span>
-                  <span className={styles['setting-hint']}>
-                    Restore every setting to its default value
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <ButtonComponent
-                    variant="outlined"
-                    size="small"
-                    icon={RefreshCw}
-                    onClick={() => setConfirmAction("reset")}
-                    className={styles['danger-button']}
-                  >
-                    Reset
-                  </ButtonComponent>
-                </div>
-              </div>
+            <SettingRow
+              label="Reset All Settings"
+              hint="Restore every setting to its default value"
+            >
+              <ButtonComponent
+                variant="outlined"
+                size="small"
+                icon={RefreshCw}
+                onClick={() => setConfirmAction("reset")}
+                className={styles["danger-button"]}
+              >
+                Reset
+              </ButtonComponent>
+            </SettingRow>
 
-              {/* Clear Local Data */}
-              <div className={styles['setting-row']}>
-                <div className={styles['setting-info']}>
-                  <span className={styles['setting-label']}>Clear Local Data</span>
-                  <span className={styles['setting-hint']}>
-                    Wipe cached data and preferences from this browser
-                  </span>
-                </div>
-                <div className={styles['setting-control']}>
-                  <ButtonComponent
-                    variant="outlined"
-                    size="small"
-                    icon={Trash2}
-                    onClick={() => setConfirmAction("clear")}
-                    className={styles['danger-button']}
-                  >
-                    Clear
-                  </ButtonComponent>
-                </div>
-              </div>
-            </div>
-          </section>
+            <SettingRow
+              label="Clear Local Data"
+              hint="Wipe cached data and preferences from this browser"
+            >
+              <ButtonComponent
+                variant="outlined"
+                size="small"
+                icon={Trash2}
+                onClick={() => setConfirmAction("clear")}
+                className={styles["danger-button"]}
+              >
+                Clear
+              </ButtonComponent>
+            </SettingRow>
+          </SettingsSection>
 
           {/* ── Footer ── */}
-          <div className={styles['footer']}>
-            <span className={styles['footer-version']}>Portal v0.1.0</span>
+          <div className={styles["footer"]}>
+            <span className={styles["footer-version"]}>Portal v0.1.0</span>
           </div>
         </div>
       </div>
 
       {/* ── Destructive-action confirmation ── */}
       <DialogComponent
-        open={confirmAction !== null}
+        open={dialog !== null}
         onClose={() => setConfirmAction(null)}
-        icon={confirmAction === "clear" ? <Trash2 size={22} /> : <RefreshCw size={22} />}
-        headline={
-          confirmAction === "clear" ? "Clear local data?" : "Reset all settings?"
-        }
-        onConfirm={
-          confirmAction === "clear" ? handleClearLocalData : handleResetSettings
-        }
-        confirmLabel={confirmAction === "clear" ? "Clear data" : "Reset"}
+        icon={<DialogIcon size={22} />}
+        headline={dialog?.headline ?? ""}
+        onConfirm={handleConfirm}
+        confirmLabel={dialog?.label ?? ""}
         confirmVariant="destructive"
       >
-        {confirmAction === "clear"
-          ? "This wipes every portal preference stored in this browser — settings, theme, and cached table layouts — and restores the defaults."
-          : "Every setting returns to its default value. Your theme choice is kept."}
+        {dialog?.body}
       </DialogComponent>
     </div>
   );
