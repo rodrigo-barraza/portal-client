@@ -26,9 +26,12 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 FROM deps AS builder
 WORKDIR /app
 
-# Vault credentials — needed at build time for next.config.ts
-# to resolve PORTAL_SERVICE_URL, etc.
-ARG VAULT_SERVICE_URL=http://192.168.86.2:5599
+# Vault location — needed at build time for next.config.ts to resolve
+# PORTAL_SERVICE_URL, etc. No default: deploy.sh passes it (derived from
+# vault-service/projects.json), and a build without it fails here rather
+# than baking in a stale address.
+ARG VAULT_SERVICE_URL
+RUN test -n "$VAULT_SERVICE_URL" || { echo "VAULT_SERVICE_URL build arg is required (see deploy.sh)" >&2; exit 1; }
 ENV VAULT_SERVICE_URL=$VAULT_SERVICE_URL
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -41,10 +44,15 @@ RUN --mount=type=secret,id=VAULT_SERVICE_TOKEN \
 FROM base AS runner
 WORKDIR /app
 
+# Public origin Auth.js builds OAuth callback URLs from — deploy.sh passes
+# https://<portal-client domain> from vault-service/projects.json.
+ARG AUTH_URL
+RUN test -n "$AUTH_URL" || { echo "AUTH_URL build arg is required (see deploy.sh)" >&2; exit 1; }
+
 ENV NODE_ENV=production
 ENV PORT=4000
 ENV HOSTNAME=0.0.0.0
-ENV AUTH_URL=https://portal.rod.dev
+ENV AUTH_URL=$AUTH_URL
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
