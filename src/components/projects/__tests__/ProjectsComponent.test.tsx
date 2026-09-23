@@ -113,13 +113,13 @@ describe("ProjectsComponent", () => {
 
   it("runs a real health round for the first load and on Check All", async () => {
     render(<ProjectsComponent />);
-    await waitFor(() => expect(api.getServices).toHaveBeenCalledWith(true));
+    await waitFor(() => expect(api.getServices).toHaveBeenCalledWith(true, expect.anything()));
     const callsBefore = api.getServices.mock.calls.length;
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Check All" }));
     });
     expect(api.getServices.mock.calls.length).toBe(callsBefore + 1);
-    expect(api.getServices).toHaveBeenLastCalledWith(true);
+    expect(api.getServices).toHaveBeenLastCalledWith(true, expect.anything());
   });
 
   it("says when projects could not be loaded", async () => {

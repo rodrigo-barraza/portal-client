@@ -18,10 +18,10 @@ export function useContainerStatistics(target: LogStreamTarget | null, pollInter
   const [result, setResult] = useState<{ key: string; stats: DockerContainer | null } | null>(null);
 
   useVisiblePolling(
-    async (isCurrent) => {
+    async (isCurrent, signal) => {
       if (!target || !key) return;
       try {
-        const response = await ApiService.getContainerStats(target.device);
+        const response = await ApiService.getContainerStats(target.device, { signal });
         if (!isCurrent()) return;
         const containers = (response?.containers ?? []) as DockerContainer[];
         const stats = containers.find((container) => container.name === target.container) ?? null;

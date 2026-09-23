@@ -9,8 +9,11 @@ export interface RollbackStatus {
   device: string | null;
 }
 
-async function fetchRollbackStatus(serviceId: string): Promise<RollbackStatus> {
-  const response = await ApiService.getRollbackStatus(serviceId);
+async function fetchRollbackStatus(
+  serviceId: string,
+  signal?: AbortSignal,
+): Promise<RollbackStatus> {
+  const response = await ApiService.getRollbackStatus(serviceId, { signal });
   return {
     available: response?.available === true,
     device: typeof response?.device === "string" ? response.device : null,
@@ -28,20 +31,20 @@ export function useRollbackAvailability(serviceIds: readonly string[]) {
 
   useEffect(() => {
     if (!signature) return;
-    let cancelled = false;
+    const controller = new AbortController();
     const ids = signature.split(",");
     (async () => {
-      const results = await Promise.allSettled(ids.map(fetchRollbackStatus));
-      if (cancelled) return;
+      const results = await Promise.allSettled(
+        ids.map((id) => fetchRollbackStatus(id, controller.signal)),
+      );
+      if (controller.signal.aborted) return;
       const next: Record<string, RollbackStatus> = {};
       results.forEach((result, index) => {
         if (result.status === "fulfilled") next[ids[index]] = result.value;
       });
       setStatuses(next);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [signature]);
 
   /** Re-query one service — after a rollback consumes its `:previous` image. */

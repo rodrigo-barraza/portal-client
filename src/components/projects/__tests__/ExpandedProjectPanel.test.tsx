@@ -56,6 +56,7 @@ describe("ExpandedProjectPanel", () => {
     expect(await screen.findByText("512 MB")).toBeInTheDocument();
     expect(api.getContainerMetrics).toHaveBeenCalledWith(
       expect.objectContaining({ container: "prism-service" }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 

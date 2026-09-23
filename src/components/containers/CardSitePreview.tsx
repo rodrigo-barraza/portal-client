@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Globe } from "lucide-react";
-import { PORTAL_SERVICE_URL } from "@/config";
+import ApiService from "@/services/ApiService";
 import styles from "./CardSitePreview.module.css";
 
 const LIVE_PREVIEW_HOVER_DELAY_MILLISECONDS = 350;
@@ -55,7 +55,7 @@ export default function CardSitePreview({ domain }: { domain: string }) {
         </div>
       ) : (
         <img
-          src={`${PORTAL_SERVICE_URL}/containers/previews/${encodeURIComponent(domain)}`}
+          src={ApiService.buildContainerPreviewUrl(domain)}
           alt={`Preview of ${domain}`}
           className={styles['image']}
           loading="lazy"

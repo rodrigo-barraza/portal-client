@@ -85,7 +85,7 @@ describe("LogsComponent", () => {
     expect(MockEventSource.instances[0].url).toBe(
       "http://portal/logs/prism-service?device=workstation",
     );
-    await waitFor(() => expect(api.getContainerStats).toHaveBeenCalledWith("workstation"));
+    await waitFor(() => expect(api.getContainerStats).toHaveBeenCalledWith("workstation", expect.anything()));
   });
 
   it("shows the log text, not the JSON frame around it", async () => {

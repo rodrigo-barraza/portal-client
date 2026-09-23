@@ -34,10 +34,10 @@ export function useProjectContainer(dockerProject: string | null, pollIntervalSe
   const [history, setHistory] = useState<HistoryMap>({});
 
   useVisiblePolling(
-    async (isCurrent) => {
+    async (isCurrent, signal) => {
       if (!dockerProject) return;
       try {
-        const response = await ApiService.getContainerStats();
+        const response = await ApiService.getContainerStats(undefined, { signal });
         if (!isCurrent()) return;
         const container = pickProjectContainer(
           (response?.containers ?? []) as DockerContainer[],
@@ -67,19 +67,20 @@ export function useProjectContainer(dockerProject: string | null, pollIntervalSe
 
   useEffect(() => {
     if (!dockerProject) return;
-    let cancelled = false;
-    ApiService.getContainerMetrics({ container: dockerProject, range: "1h", limit: HISTORY_MAX })
+    const controller = new AbortController();
+    ApiService.getContainerMetrics(
+      { container: dockerProject, range: "1h", limit: HISTORY_MAX },
+      { signal: controller.signal },
+    )
       .then((metrics) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         const seeded = historyFromMetrics(metrics?.containers);
         setHistory((live) => mergeSeededHistory(live, seeded));
       })
       .catch(() => {
         // No persisted metrics — the sparkline builds from live polls.
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [dockerProject]);
 
   const containerHistory: ContainerHistory | undefined = stats

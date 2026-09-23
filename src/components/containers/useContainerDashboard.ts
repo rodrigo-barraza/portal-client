@@ -18,16 +18,19 @@ import { buildContainerRows, normalizeSystemInfo, type DockerContainer } from ".
 /** portal-service re-checks registry health 3 s after an action. */
 const POST_ACTION_RECHECK_MILLISECONDS = 4_000;
 
-async function loadSeedHistory(): Promise<HistoryMap> {
+async function loadSeedHistory(signal: AbortSignal): Promise<HistoryMap> {
   try {
-    const metrics = await ApiService.getContainerMetrics({ range: "1h", limit: HISTORY_MAX });
+    const metrics = await ApiService.getContainerMetrics(
+      { range: "1h", limit: HISTORY_MAX },
+      { signal },
+    );
     const seeded = historyFromMetrics(metrics?.containers);
     if (Object.keys(seeded).length > 0) return seeded;
   } catch {
     // Persistent metrics unavailable (no MongoDB) — try the ring buffer.
   }
   try {
-    const ringBuffer = await ApiService.getContainerStatsHistory();
+    const ringBuffer = await ApiService.getContainerStatsHistory(undefined, { signal });
     return historyFromRingBuffer(ringBuffer?.history);
   } catch {
     return {};
@@ -51,11 +54,13 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
   const hasSystemInfoRef = useRef(false);
   const systemInfoInFlightRef = useRef(false);
   const recheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const systemInfoControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     aliveRef.current = true;
     return () => {
       aliveRef.current = false;
+      systemInfoControllerRef.current?.abort();
       if (recheckTimerRef.current) clearTimeout(recheckTimerRef.current);
     };
   }, []);
@@ -65,8 +70,13 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
   const loadSystemInfo = useCallback(async () => {
     if (hasSystemInfoRef.current || systemInfoInFlightRef.current) return;
     systemInfoInFlightRef.current = true;
+    // Its own controller: a superseded poll must not cancel this slow call.
+    const controller = new AbortController();
+    systemInfoControllerRef.current = controller;
     try {
-      const info = normalizeSystemInfo(await ApiService.getSystemInfo());
+      const info = normalizeSystemInfo(
+        await ApiService.getSystemInfo(undefined, { signal: controller.signal }),
+      );
       if (info && aliveRef.current) {
         hasSystemInfoRef.current = true;
         setSystemInfo(info);
@@ -79,12 +89,12 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
   }, []);
 
   const poll = useCallback(
-    async (isCurrent: IsCurrent) => {
+    async (isCurrent: IsCurrent, signal: AbortSignal) => {
       void loadSystemInfo();
       try {
         const [containerResponse, servicesResponse] = await Promise.all([
-          ApiService.getContainerStats(),
-          ApiService.getServices(),
+          ApiService.getContainerStats(undefined, { signal }),
+          ApiService.getServices(false, { signal }),
         ]);
         if (!isCurrent()) return;
         const nextRows = buildContainerRows(
@@ -116,15 +126,13 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
   const refresh = useVisiblePolling(poll, Math.max(1, pollIntervalSeconds) * 1000);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     (async () => {
-      const seeded = await loadSeedHistory();
-      if (cancelled || Object.keys(seeded).length === 0) return;
+      const seeded = await loadSeedHistory(controller.signal);
+      if (controller.signal.aborted || Object.keys(seeded).length === 0) return;
       setHistory((live) => mergeSeededHistory(live, seeded));
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, []);
 
   /** After start/stop/restart/rollback: fresh stats now, fresh health shortly. */

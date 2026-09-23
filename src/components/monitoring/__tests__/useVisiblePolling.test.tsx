@@ -84,6 +84,25 @@ describe("useVisiblePolling", () => {
     resolvers.forEach((resolve) => resolve());
   });
 
+  it("aborts the requests of superseded runs and on unmount", async () => {
+    const signals: AbortSignal[] = [];
+    const task = vi.fn(
+      (_isCurrent: IsCurrent, signal: AbortSignal) =>
+        new Promise<void>(() => {
+          signals.push(signal);
+        }),
+    );
+    const { result, unmount } = renderHook(() => useVisiblePolling(task, 60_000));
+    await act(async () => {});
+    await act(async () => {
+      void result.current();
+    });
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    unmount();
+    expect(signals[1].aborted).toBe(true);
+  });
+
   it("reports runs as stale after unmount", async () => {
     let isCurrent: IsCurrent = () => true;
     const task = vi.fn(async (current: IsCurrent) => {

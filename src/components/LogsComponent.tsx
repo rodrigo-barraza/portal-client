@@ -64,17 +64,15 @@ export default function LogsComponent() {
 
   // ── Container list ──────────────────────────────────────────────
   useEffect(() => {
-    let cancelled = false;
-    ApiService.getLoggableContainers()
+    const controller = new AbortController();
+    ApiService.getLoggableContainers({ signal: controller.signal })
       .then((response) => {
-        if (!cancelled) setContainers(response?.containers ?? []);
+        if (!controller.signal.aborted) setContainers(response?.containers ?? []);
       })
       .catch((error: unknown) => {
-        if (!cancelled) setListError(getErrorMessage(error));
+        if (!controller.signal.aborted) setListError(getErrorMessage(error));
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, []);
 
   const containerOptions = useMemo(() => buildContainerOptions(containers), [containers]);

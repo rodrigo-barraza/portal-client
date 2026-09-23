@@ -92,9 +92,9 @@ export default function ProjectsComponent() {
   // `refresh=true` runs a real health round server-side, so it only runs
   // while the tab is visible and never overlaps a round still running.
   const refreshHealth = useVisiblePolling(
-    async (isCurrent) => {
+    async (isCurrent, signal) => {
       try {
-        const response = await ApiService.getServices(true);
+        const response = await ApiService.getServices(true, { signal });
         if (!isCurrent()) return;
         setRegistry(toRegistry(response));
         setLoadError(null);
@@ -109,35 +109,34 @@ export default function ProjectsComponent() {
   // First paint from the cached registry (instant) while the first real
   // health round runs; with auto-refresh off, run that round once here.
   useEffect(() => {
-    let cancelled = false;
-    ApiService.getServices(false)
+    const controller = new AbortController();
+    ApiService.getServices(false, { signal: controller.signal })
       .then((response) => {
-        if (!cancelled) setRegistry((current) => current ?? toRegistry(response));
+        if (!controller.signal.aborted) {
+          setRegistry((current) => current ?? toRegistry(response));
+        }
       })
       // The health round that always follows reports failures.
       .catch(() => undefined);
     if (!getSettings().autoRefreshEnabled) void refreshHealth();
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, [refreshHealth]);
 
   // Repo sizes and languages are supplementary — the page works without.
   useEffect(() => {
-    let cancelled = false;
-    ApiService.getProjectSizes()
+    const controller = new AbortController();
+    const { signal } = controller;
+    ApiService.getProjectSizes({ signal })
       .then((response) => {
-        if (!cancelled) setProjectSizes(response?.sizes ?? {});
+        if (!signal.aborted) setProjectSizes(response?.sizes ?? {});
       })
       .catch(() => undefined);
-    ApiService.getProjectLanguages()
+    ApiService.getProjectLanguages({ signal })
       .then((response) => {
-        if (!cancelled) setProjectLanguages(response?.languages ?? {});
+        if (!signal.aborted) setProjectLanguages(response?.languages ?? {});
       })
       .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
+    return () => controller.abort();
   }, []);
 
   useEffect(

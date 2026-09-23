@@ -19,6 +19,7 @@ vi.mock("@/services/ApiService", () => ({
     stopContainer: vi.fn(),
     restartContainer: vi.fn(),
     rollbackService: vi.fn(),
+    buildContainerPreviewUrl: (domain: string) => `http://portal/containers/previews/${domain}`,
   },
 }));
 
