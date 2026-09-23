@@ -204,4 +204,10 @@ describe("SessionExplorerComponent", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not load IPs: Unauthorized");
     expect(screen.queryByText(/No IPs in this period/)).not.toBeInTheDocument();
   });
+
+  it("never shows a proxied `{ error: true }` body as the text \"true\"", async () => {
+    api.getSessionIpUsers.mockRejectedValue(new Error(String(true)));
+    render(<SessionExplorerComponent projectId="rod-dev-client" period="30d" />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/^Could not load IPs\.$/);
+  });
 });

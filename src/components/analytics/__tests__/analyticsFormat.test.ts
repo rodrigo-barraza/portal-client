@@ -8,6 +8,7 @@ import {
   formatWholePercent,
   joinMeta,
   percentChange,
+  readableErrorMessage,
   shortId,
 } from "../analyticsFormat";
 
@@ -124,5 +125,17 @@ describe("joinMeta", () => {
   it("skips empty parts so no dangling separator is rendered", () => {
     expect(joinMeta("Rod Dev", "", "G-123")).toBe("Rod Dev · G-123");
     expect(joinMeta("Rod Dev", null, false)).toBe("Rod Dev");
+  });
+});
+
+describe("readableErrorMessage", () => {
+  it("passes real messages through", () => {
+    expect(readableErrorMessage(new Error("Unknown property: 123"))).toBe("Unknown property: 123");
+  });
+
+  it("drops the boolean a `{ error: true, message }` body turns into", () => {
+    expect(readableErrorMessage(new Error(String(true)))).toBeNull();
+    expect(readableErrorMessage(new Error("  "))).toBeNull();
+    expect(readableErrorMessage(null)).toBeNull();
   });
 });

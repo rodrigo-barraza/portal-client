@@ -13,7 +13,13 @@ import {
   StateMessage,
 } from "./ExplorerPrimitives";
 import SessionTimelineComponent from "./SessionTimelineComponent";
-import { formatDurationMs, formatLocation, formatTimestamp, shortId } from "./analyticsFormat";
+import {
+  formatDurationMs,
+  formatLocation,
+  formatTimestamp,
+  readableErrorMessage,
+  shortId,
+} from "./analyticsFormat";
 import type { SessionDetail } from "./explorerModel";
 import styles from "../SessionExplorerComponent.module.css";
 
@@ -45,9 +51,10 @@ export default function SessionDetailComponent({
 
   if (detail.loading) return <ExplorerLoading label="Loading session…" />;
   if (detail.error || !session) {
+    const message = readableErrorMessage(detail.error);
     return (
       <StateMessage isError>
-        Could not load this session{detail.error ? `: ${detail.error.message}` : "."}
+        Could not load this session{message ? `: ${message}` : "."}
       </StateMessage>
     );
   }

@@ -8,6 +8,7 @@ import { ChartColumn } from "lucide-react";
 import ApiService from "../services/ApiService";
 import PropertyListingComponent from "./PropertyListingComponent";
 import useAsyncData from "./analytics/useAsyncData";
+import { readableErrorMessage } from "./analytics/analyticsFormat";
 import styles from "./WebAnalytics.module.css";
 import type { GAProperty } from "../types/portal";
 
@@ -45,7 +46,9 @@ export default function WebAnalyticsComponent() {
             <div className={`${styles["empty-state"]} ${styles["empty-state-compact"]}`} role="alert">
               <ChartColumn size={28} strokeWidth={1.5} className={styles["empty-icon"]} />
               <span className={styles["empty-title"]}>Google Analytics unavailable</span>
-              <span className={styles["empty-detail"]}>{registry.error.message}</span>
+              <span className={styles["empty-detail"]}>
+                {readableErrorMessage(registry.error) ?? "Could not load the GA4 property registry."}
+              </span>
             </div>
           )}
           <PropertyListingComponent properties={properties} />

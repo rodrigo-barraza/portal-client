@@ -18,7 +18,7 @@ import { ipColumns, sessionColumns, visitorColumns } from "./analytics/explorerC
 import IpDetailComponent from "./analytics/IpDetailComponent";
 import SessionDetailComponent from "./analytics/SessionDetailComponent";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
-import { shortId } from "./analytics/analyticsFormat";
+import { readableErrorMessage, shortId } from "./analytics/analyticsFormat";
 import {
   filterIpUsers,
   filterSessions,
@@ -349,7 +349,13 @@ function ExplorerList<T>({
 }) {
   if (loading) return <ExplorerLoading label={`Loading ${noun}…`} />;
   if (error) {
-    return <StateMessage isError>Could not load {noun}: {error.message}</StateMessage>;
+    const message = readableErrorMessage(error);
+    return (
+      <StateMessage isError>
+        Could not load {noun}
+        {message ? `: ${message}` : "."}
+      </StateMessage>
+    );
   }
   if (!items || items.length === 0) return <StateMessage>No {noun} in this period.</StateMessage>;
   return (

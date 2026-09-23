@@ -35,7 +35,12 @@ import {
 } from "./AnalyticsPrimitives";
 import HourlyHeatmapComponent from "./analytics/HourlyHeatmapComponent";
 import useAsyncData, { settleReports } from "./analytics/useAsyncData";
-import { formatLocation, formatRatioPercent, joinMeta } from "./analytics/analyticsFormat";
+import {
+  formatLocation,
+  formatRatioPercent,
+  joinMeta,
+  readableErrorMessage,
+} from "./analytics/analyticsFormat";
 import {
   fillDailySeries,
   gaOverviewDelta,
@@ -245,7 +250,7 @@ export default function GAReportComponent({
   }
 
   if (!values || reports.data?.allFailed) {
-    const message = reports.error?.message ?? reports.data?.firstError?.message;
+    const message = readableErrorMessage(reports.error ?? reports.data?.firstError);
     return (
       <>
         {banner}

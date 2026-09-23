@@ -97,6 +97,19 @@ export function percentChange(
   return (value - baseline) / Math.abs(baseline);
 }
 
+/**
+ * An error's message when it is real text, else null. The shared API
+ * client throws `new Error(body.error || body.message)`, and a proxied
+ * sessions-service failure body is `{ error: true, message }` — so the
+ * thrown message can be the literal "true". Callers show generic wording
+ * instead of that.
+ */
+export function readableErrorMessage(error: Error | null | undefined): string | null {
+  const message = error?.message?.trim();
+  if (!message || message === "true" || message === "false") return null;
+  return message;
+}
+
 /** Join the non-empty parts with a middle dot: "Rod Dev · G-XXXX". */
 export function joinMeta(...parts: (string | null | undefined | false)[]): string {
   return parts.filter(Boolean).join(" · ");

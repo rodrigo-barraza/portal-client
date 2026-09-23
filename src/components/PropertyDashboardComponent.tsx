@@ -16,7 +16,7 @@ import GAReportComponent from "./GAReportComponent";
 import SessionReportComponent from "./SessionReportComponent";
 import { DeltaBadge, Panel, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
-import { joinMeta, percentChange } from "./analytics/analyticsFormat";
+import { joinMeta, percentChange, readableErrorMessage } from "./analytics/analyticsFormat";
 import {
   PRESET_PERIODS,
   isCustomPeriod,
@@ -169,8 +169,9 @@ export default function PropertyDashboardComponent({
             {error ? "Analytics Error" : "Unknown property"}
           </span>
           <span className={styles["empty-detail"]}>
-            {error?.message ||
-              `No GA4 property or tracked sessions project matches “${propertyId || projectId}”.`}
+            {error
+              ? (readableErrorMessage(error) ?? "Could not load the GA4 property registry.")
+              : `No GA4 property or tracked sessions project matches “${propertyId || projectId}”.`}
           </span>
           <ButtonComponent variant="text" size="small" icon={ArrowLeft} onClick={backToProperties}>
             All Properties

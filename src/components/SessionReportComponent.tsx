@@ -38,6 +38,7 @@ import {
   formatLocation,
   formatWholePercent,
   joinMeta,
+  readableErrorMessage,
 } from "./analytics/analyticsFormat";
 import {
   fillDailySeries,
@@ -189,7 +190,7 @@ export default function SessionReportComponent({
   }
 
   if (!values || reports.data?.allFailed) {
-    const message = reports.error?.message ?? reports.data?.firstError?.message;
+    const message = readableErrorMessage(reports.error ?? reports.data?.firstError);
     return (
       <>
         {banner}

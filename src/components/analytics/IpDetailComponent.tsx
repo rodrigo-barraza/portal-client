@@ -18,6 +18,7 @@ import {
   formatDurationMs,
   formatLocation,
   formatTimestamp,
+  readableErrorMessage,
   shortId,
 } from "./analyticsFormat";
 import { ipFingerprint, ipLastSeen, ipTimeline, type IpDetail } from "./explorerModel";
@@ -49,9 +50,10 @@ export default function IpDetailComponent({
 
   if (detail.loading) return <ExplorerLoading label="Loading IP profile…" />;
   if (detail.error || !profile) {
+    const message = readableErrorMessage(detail.error);
     return (
       <StateMessage isError>
-        Could not load this IP profile{detail.error ? `: ${detail.error.message}` : "."}
+        Could not load this IP profile{message ? `: ${message}` : "."}
       </StateMessage>
     );
   }
