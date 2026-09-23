@@ -22,19 +22,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .realtime-banner,
-  .stat-card,
-  .chart-panel,
-  .panel,
-  .property-card,
-  .donut-segment,
-  .realtime-pulse-ring,
-  .property-card-realtime-dot {
-    animation: none;
-  }
-}
-
 /* ── Header Controls ─────────────────────────────────────────── */
 
 .header-controls {
@@ -617,7 +604,6 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  container-type: inline-size;
   transition:
     border-color var(--transition-fast),
     transform 120ms ease,
@@ -1003,5 +989,19 @@
 @media (max-width: 768px) {
   .property-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Last, so it outranks the animation declarations above. */
+@media (prefers-reduced-motion: reduce) {
+  .realtime-banner,
+  .stat-card,
+  .chart-panel,
+  .panel,
+  .property-card,
+  .donut-segment,
+  .realtime-pulse-ring,
+  .property-card-realtime-dot {
+    animation: none;
   }
 }
