@@ -9,7 +9,7 @@ import {
   TableComponent,
 } from "@rodrigo-barraza/components-library";
 import { ArrowLeft, Clock, LayoutGrid, Network, Table2, Users } from "lucide-react";
-import { formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { ExplorerLoading, StateMessage } from "./analytics/ExplorerPrimitives";
@@ -200,19 +200,19 @@ export default function SessionExplorerComponent({
               key: "ips",
               label: "IPs",
               icon: <Network size={13} strokeWidth={2.2} />,
-              badge: ips.data?.total ? formatNumber(ips.data.total) : undefined,
+              badge: ips.data?.total ? formatCompact(ips.data.total) : undefined,
             },
             {
               key: "visitors",
               label: "Visitors",
               icon: <Users size={13} strokeWidth={2.2} />,
-              badge: visitors.data?.total ? formatNumber(visitors.data.total) : undefined,
+              badge: visitors.data?.total ? formatCompact(visitors.data.total) : undefined,
             },
             {
               key: "sessions",
               label: "Sessions",
               icon: <Clock size={13} strokeWidth={2.2} />,
-              badge: sessions.data?.total ? formatNumber(sessions.data.total) : undefined,
+              badge: sessions.data?.total ? formatCompact(sessions.data.total) : undefined,
             },
           ]}
           activeTab={tab}

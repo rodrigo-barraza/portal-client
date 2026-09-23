@@ -23,7 +23,7 @@ import {
   parseCustomPeriod,
   toCustomPeriod,
 } from "./analytics/analyticsSeries";
-import { formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import styles from "./WebAnalytics.module.css";
 import type { GAProperty, GAOverview, SessionOverview, SessionProject } from "../types/portal";
 
@@ -301,8 +301,8 @@ function SourceComparisonPanel({
         {rows.map((row) => (
           <Fragment key={row.metric}>
             <span className={styles["compare-metric"]}>{row.metric}</span>
-            <span className={styles["compare-value"]}>{formatNumber(row.ga)}</span>
-            <span className={styles["compare-value"]}>{formatNumber(row.sessions)}</span>
+            <span className={styles["compare-value"]}>{formatCompact(row.ga)}</span>
+            <span className={styles["compare-value"]}>{formatCompact(row.sessions)}</span>
             <span className={styles["compare-delta"]}>
               {/* null for a zero GA baseline — no Infinity% badge */}
               <DeltaBadge value={percentChange(row.sessions, row.ga)} />

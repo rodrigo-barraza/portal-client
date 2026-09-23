@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { LoadingIndicatorComponent } from "@rodrigo-barraza/components-library";
-import { formatElapsedTime, formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatElapsedTime, formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "@/services/ApiService";
 import type { GAOverview, GAPageRow } from "@/types/portal";
 import panelStyles from "../ExpandedProjectPanelComponent.module.css";
@@ -70,9 +70,9 @@ export default function ProjectAnalyticsTab({ propertyId }: { propertyId: string
 
   const cards = overview
     ? [
-        { label: "Users", value: formatNumber(overview.totalUsers) },
-        { label: "Pageviews", value: formatNumber(overview.pageviews) },
-        { label: "Sessions", value: formatNumber(overview.sessions) },
+        { label: "Users", value: formatCompact(overview.totalUsers) },
+        { label: "Pageviews", value: formatCompact(overview.pageviews) },
+        { label: "Sessions", value: formatCompact(overview.sessions) },
         { label: "Avg Duration", value: formatSessionDuration(overview.avgSessionDuration) },
         { label: "Engagement", value: formatRatio(overview.engagementRate) },
       ]
@@ -83,7 +83,7 @@ export default function ProjectAnalyticsTab({ propertyId }: { propertyId: string
       {activeUsers !== null && (
         <div className={styles['realtime-pill']}>
           <div className={styles['realtime-dot']} />
-          <span className={styles['realtime-value']}>{formatNumber(activeUsers)}</span>
+          <span className={styles['realtime-value']}>{formatCompact(activeUsers)}</span>
           <span className={styles['realtime-label']}>active now</span>
         </div>
       )}
@@ -109,7 +109,7 @@ export default function ProjectAnalyticsTab({ propertyId }: { propertyId: string
                   {page.pagePath}
                 </span>
                 <span className={styles['analytics-page-views']}>
-                  {formatNumber(page.pageviews)}
+                  {formatCompact(page.pageviews)}
                 </span>
               </div>
             ))}

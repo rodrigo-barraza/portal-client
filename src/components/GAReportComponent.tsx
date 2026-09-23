@@ -24,7 +24,7 @@ import {
   Zap,
 } from "lucide-react";
 import ApiService from "../services/ApiService";
-import { formatElapsedTime, formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatElapsedTime, formatCompact } from "@rodrigo-barraza/utilities-library";
 import {
   SPARKLINE_COLORS,
   StatCard,
@@ -120,13 +120,13 @@ const pageColumns = [
     key: "pageviews",
     label: "Views",
     align: "right" as const,
-    render: (row: GAPageRow) => formatNumber(row.pageviews),
+    render: (row: GAPageRow) => formatCompact(row.pageviews),
   },
   {
     key: "users",
     label: "Users",
     align: "right" as const,
-    render: (row: GAPageRow) => formatNumber(row.users),
+    render: (row: GAPageRow) => formatCompact(row.users),
   },
   {
     key: "avgDuration",
@@ -154,13 +154,13 @@ const landingColumns = [
     key: "sessions",
     label: "Sessions",
     align: "right" as const,
-    render: (row: GALandingPageRow) => formatNumber(row.sessions),
+    render: (row: GALandingPageRow) => formatCompact(row.sessions),
   },
   {
     key: "users",
     label: "Users",
     align: "right" as const,
-    render: (row: GALandingPageRow) => formatNumber(row.users),
+    render: (row: GALandingPageRow) => formatCompact(row.users),
   },
   {
     key: "avgDuration",
@@ -284,8 +284,8 @@ export default function GAReportComponent({
           <StatCard
             icon={Users}
             label="Total Users"
-            value={formatNumber(overview.totalUsers)}
-            sub={`${formatNumber(overview.newUsers)} new`}
+            value={formatCompact(overview.totalUsers)}
+            sub={`${formatCompact(overview.newUsers)} new`}
             color="#6366f1"
             delay={0}
             delta={gaOverviewDelta(overview, "totalUsers")}
@@ -293,7 +293,7 @@ export default function GAReportComponent({
           <StatCard
             icon={Eye}
             label="Pageviews"
-            value={formatNumber(overview.pageviews)}
+            value={formatCompact(overview.pageviews)}
             color="#8b5cf6"
             delay={50}
             delta={gaOverviewDelta(overview, "pageviews")}
@@ -301,8 +301,8 @@ export default function GAReportComponent({
           <StatCard
             icon={Activity}
             label="Sessions"
-            value={formatNumber(overview.sessions)}
-            sub={`${formatNumber(overview.engagedSessions)} engaged`}
+            value={formatCompact(overview.sessions)}
+            sub={`${formatCompact(overview.engagedSessions)} engaged`}
             color="#10b981"
             delay={100}
             delta={gaOverviewDelta(overview, "sessions")}

@@ -52,9 +52,9 @@ export function formatTimestamp(value: string | Date | null | undefined): string
 }
 
 /**
- * An exact, grouped integer: "1,204". The shared formatNumber rounds to
- * whole thousands ("1K" for 1,499) — fine for a stat card, wrong for a
- * count a user reads as exact.
+ * An exact, grouped integer: "1,204". The shared formatCompact abbreviates
+ * ("1.5K" for 1,499) — fine for a stat card, wrong for a count a user
+ * reads as exact.
  */
 export function formatExact(value: number | null | undefined): string {
   return (value ?? 0).toLocaleString("en-US");

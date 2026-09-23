@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ChartLineComponent } from "@rodrigo-barraza/components-library";
-import { formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { CHART_COLORS, SOURCE_COLORS, SPARKLINE_COLORS, chartColor } from "./analytics/palette";
 import { describeSeries } from "./analytics/analyticsSeries";
@@ -89,7 +89,7 @@ export function HorizontalBar({
   max,
   color,
   suffix = "",
-  formatValue = formatNumber,
+  formatValue = formatCompact,
 }: {
   label: string;
   value: number;
@@ -128,7 +128,7 @@ export function DonutChart({
   size = 120,
   strokeWidth = 14,
   centerLabel = "Total",
-  formatValue = formatNumber,
+  formatValue = formatCompact,
 }: {
   segments: DonutSegment[];
   size?: number;
@@ -151,7 +151,7 @@ export function DonutChart({
   }
 
   // Exact numbers for screen readers; a custom formatter (bytes) as given
-  const describeValue = formatValue === formatNumber ? formatExact : formatValue;
+  const describeValue = formatValue === formatCompact ? formatExact : formatValue;
   const description = `${centerLabel}: ${describeValue(total)}. ${segments
     .map((segment) => `${segment.label} ${describeValue(segment.value)}`)
     .join(", ")}.`;
@@ -254,7 +254,7 @@ export function DonutPanel({
   segments,
   centerLabel = "Sessions",
   suffix = " sessions",
-  formatValue = formatNumber,
+  formatValue = formatCompact,
 }: {
   icon: PanelIcon;
   title: string;
@@ -375,7 +375,7 @@ export function TrendsPanel({
                 height={140}
                 historyMax={values.length}
                 showGrid
-                formatValue={(value: number) => formatNumber(Math.round(value))}
+                formatValue={(value: number) => formatCompact(Math.round(value))}
               />
             );
           })}
@@ -413,7 +413,7 @@ export function RealtimeBanner({
       <div className={styles["realtime-info"]}>
         <span className={styles["realtime-label"]}>{label}</span>
         <span className={styles["realtime-count"]}>
-          {count !== null ? formatNumber(count) : "—"}
+          {count !== null ? formatCompact(count) : "—"}
         </span>
       </div>
       <span className={styles["realtime-meta"]}>{meta}</span>

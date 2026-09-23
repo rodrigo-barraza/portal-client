@@ -23,7 +23,7 @@ import {
 import ApiService from "../services/ApiService";
 import SessionExplorerComponent from "./SessionExplorerComponent";
 import HeatmapPanelComponent from "./HeatmapPanelComponent";
-import { formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import {
   SPARKLINE_COLORS,
   StatCard,
@@ -100,13 +100,13 @@ const pageColumns = [
     key: "views",
     label: "Views",
     align: "right" as const,
-    render: (row: SessionPageRow) => formatNumber(row.views),
+    render: (row: SessionPageRow) => formatCompact(row.views),
   },
   {
     key: "uniqueVisitors",
     label: "Visitors",
     align: "right" as const,
-    render: (row: SessionPageRow) => formatNumber(row.uniqueVisitors),
+    render: (row: SessionPageRow) => formatCompact(row.uniqueVisitors),
   },
 ];
 
@@ -215,22 +215,22 @@ export default function SessionReportComponent({
           <StatCard
             icon={Activity}
             label="Total Sessions"
-            value={formatNumber(overview.totalSessions)}
-            sub={`${formatNumber(overview.engagedSessions)} engaged`}
+            value={formatCompact(overview.totalSessions)}
+            sub={`${formatCompact(overview.engagedSessions)} engaged`}
             color="#6366f1"
             delay={0}
           />
           <StatCard
             icon={Users}
             label="Unique Visitors"
-            value={formatNumber(overview.uniqueVisitors)}
+            value={formatCompact(overview.uniqueVisitors)}
             color="#10b981"
             delay={50}
           />
           <StatCard
             icon={Eye}
             label="Page Views"
-            value={formatNumber(overview.totalPageViews)}
+            value={formatCompact(overview.totalPageViews)}
             color="#8b5cf6"
             delay={100}
           />

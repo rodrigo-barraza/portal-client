@@ -8,9 +8,8 @@ import {
   LoadingIndicatorComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatNumber } from "@rodrigo-barraza/utilities-library";
+import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
-import { PORTAL_SERVICE_URL } from "@/config";
 import { SOURCE_COLORS, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { joinMeta } from "./analytics/analyticsFormat";
@@ -143,7 +142,7 @@ export default function PropertyListingComponent({ properties }: { properties: G
     const gaSummary = (row: UnifiedProperty) => (row.ga ? summaries[row.ga.id] : undefined);
     const valueCell = (value: number | null | undefined) => (
       <span className={styles["property-list-value"]}>
-        {value == null ? "—" : formatNumber(value)}
+        {value == null ? "—" : formatCompact(value)}
       </span>
     );
 
@@ -226,7 +225,7 @@ export default function PropertyListingComponent({ properties }: { properties: G
               {realtime ? (
                 <>
                   <div className={styles["property-list-realtime-dot"]} aria-hidden />
-                  {formatNumber(realtime.activeUsers)}
+                  {formatCompact(realtime.activeUsers)}
                 </>
               ) : (
                 "—"
@@ -313,7 +312,7 @@ function SitePreview({ domain }: { domain: string }) {
 
   return (
     <img
-      src={`${PORTAL_SERVICE_URL}/containers/previews/${encodeURIComponent(domain)}`}
+      src={ApiService.buildContainerPreviewUrl(domain)}
       alt=""
       className={styles["property-card-preview-image"]}
       loading="lazy"
@@ -415,7 +414,7 @@ function PropertyCard({
         <div className={styles["property-card-realtime"]}>
           <div className={styles["property-card-realtime-dot"]} aria-hidden />
           <span className={styles["property-card-realtime-value"]}>
-            {formatNumber(summary.realtime.activeUsers)}
+            {formatCompact(summary.realtime.activeUsers)}
           </span>
           <span>active now</span>
         </div>
@@ -427,7 +426,7 @@ function PropertyCard({
 function CardStat({ value, label }: { value: number; label: string }) {
   return (
     <div className={styles["property-card-stat"]}>
-      <span className={styles["property-card-stat-value"]}>{formatNumber(value)}</span>
+      <span className={styles["property-card-stat-value"]}>{formatCompact(value)}</span>
       <span className={styles["property-card-stat-label"]}>{label}</span>
     </div>
   );
