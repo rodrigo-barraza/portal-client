@@ -67,16 +67,17 @@ describe("historyFromMetrics", () => {
     });
   });
 
-  it("falls back to the key as the container name", () => {
+  it("skips series without samples", () => {
     const history = historyFromMetrics({
-      "prism-service": {
+      "synology/prism-service": {
+        container: "prism-service",
         device: "synology",
         points: [
           { cpu: 1, mem: 100 },
-          { cpu: null, mem: 200 },
+          { cpu: 0, mem: 200 },
         ],
       },
-      empty: { device: "synology", points: [] },
+      "synology/empty": { container: "empty", device: "synology", points: [] },
     });
     expect(history).toEqual({
       "synology::prism-service": { cpu: [1, 0], mem: [100, 200] },

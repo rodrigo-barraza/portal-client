@@ -139,7 +139,7 @@ export function staggerDelay(index: number, stepMs: number, maxSteps = 20): stri
   return `${Math.min(index, maxSteps) * stepMs}ms`;
 }
 
-export function formatDate(value: string | undefined, withTime = false): string {
+export function formatDate(value: string | null | undefined, withTime = false): string {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";

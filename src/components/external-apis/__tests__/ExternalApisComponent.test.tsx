@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import ExternalApisComponent from "../../ExternalApisComponent";
 import ApiService from "../../../services/ApiService";
+import type { ExternalApiUsageData } from "../../../types/portal";
+import { externalApiUsage, externalApiUsageData } from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 vi.mock("../../../services/ApiService", () => ({
@@ -13,10 +15,13 @@ vi.mock("../../../services/ApiService", () => ({
 
 const api = vi.mocked(ApiService);
 
-function summary(period: string, overrides: Record<string, unknown> = {}) {
-  return {
+function summary(
+  period: string,
+  overrides: Partial<ExternalApiUsageData> = {},
+): ExternalApiUsageData {
+  return externalApiUsageData({
     services: [
-      {
+      externalApiUsage({
         serviceIdentifier: `gemini-${period}`,
         displayName: `Gemini ${period}`,
         category: "AI / LLM",
@@ -26,28 +31,22 @@ function summary(period: string, overrides: Record<string, unknown> = {}) {
         successRequests: 1400,
         errorRequests: 100,
         errorRate: 100 / 1500,
-        dailySeries: [],
-      },
-      {
+      }),
+      externalApiUsage({
         serviceIdentifier: "llm:mystery",
         displayName: "Mystery LLM",
         category: "AI / LLM",
         consumer: "prism-service",
-        documentationUrl: "",
         totalRequests: 10,
         successRequests: 10,
-        errorRequests: 0,
-        errorRate: 0,
-        dailySeries: [],
-      },
+      }),
     ],
     totalRequests: 1510,
     totalErrors: 100,
     period,
-    unreachableSources: [],
     fetchedAt: "2026-09-22T12:00:00Z",
     ...overrides,
-  };
+  });
 }
 
 beforeEach(() => {
@@ -56,7 +55,7 @@ beforeEach(() => {
 
 describe("ExternalApisComponent", () => {
   it("never shows an older period's answer after a newer period was picked", async () => {
-    let resolveThirty: (value: unknown) => void = () => {};
+    let resolveThirty: (value: ExternalApiUsageData) => void = () => {};
     api.getExternalApiUsageSummary.mockImplementation((period?: string) =>
       period === "30d"
         ? new Promise((resolve) => (resolveThirty = resolve))

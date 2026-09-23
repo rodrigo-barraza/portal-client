@@ -3,7 +3,13 @@
  * disk-usage donuts, and normalizing the /stats/system response.
  */
 
-import type { DiskUsage, DonutSegment, StorageBucket, SystemInfo } from "../../types/portal";
+import type {
+  DiskUsage,
+  DonutSegment,
+  StorageBucket,
+  SystemInfo,
+  SystemInfoResponse,
+} from "../../types/portal";
 
 export const DISK_COLORS = {
   images: "#6366f1",
@@ -25,18 +31,16 @@ const BUCKET_COLORS = [
   "#f97316",
 ];
 
-/** One Docker host's system info as /stats/system reports it. */
+/** One Docker host's system info; the all-hosts listing names each host. */
 export type DockerHostInfo = SystemInfo & { deviceName?: string };
 
 /**
- * /stats/system without a device returns one entry per Docker host (an
- * array); with a device, a single object. Keep only hosts that reported
- * disk usage.
+ * /stats/system without a device returns one entry per Docker host that
+ * answered (an array); with a device, a single object. null = it failed.
  */
-export function normalizeDockerHosts(response: unknown): DockerHostInfo[] {
-  if (!response || typeof response !== "object") return [];
-  const hosts = (Array.isArray(response) ? response : [response]) as DockerHostInfo[];
-  return hosts.filter((host) => host && typeof host === "object" && host.disk);
+export function normalizeDockerHosts(response: SystemInfoResponse | null): DockerHostInfo[] {
+  if (!response) return [];
+  return Array.isArray(response) ? response : [response];
 }
 
 export function diskSegments(disk: DiskUsage): DonutSegment[] {

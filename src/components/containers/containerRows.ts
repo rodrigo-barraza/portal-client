@@ -1,19 +1,19 @@
 import type {
   ContainerRow,
-  ContainerStats,
   ContainerStatusKind,
+  DockerContainerStats,
   MemoryStats,
   PortalService,
   SystemInfo,
+  SystemInfoResponse,
 } from "@/types/portal";
 import { containerKey } from "../monitoring/containerHistory";
 
-/** A container as `GET /stats/containers` returns it. */
-export interface DockerContainer extends Partial<ContainerStats> {
-  name: string;
-  /** Device id of the Docker host (e.g. "synology"). */
-  device?: string;
-}
+/**
+ * What the table reads from a `GET /stats/containers` entry: the name it
+ * joins on, plus whichever stats fields are there to copy onto the row.
+ */
+export type DockerContainer = Pick<DockerContainerStats, "name"> & Partial<DockerContainerStats>;
 
 export type ContainerType = ContainerRow["projectType"];
 export const CONTAINER_TYPES: readonly ContainerType[] = ["client", "service", "bot"];
@@ -73,7 +73,6 @@ export function buildContainerRows(
       // A registered container is by construction a containerized service,
       // so the /services/:id actions (rollback) apply to it.
       restartable: service !== null,
-      controllable: true,
       dockerProject: container.name,
       projectType: classifyContainer(container.name, service?.projectType),
       _stats: {
@@ -128,14 +127,16 @@ export function filterContainerRows(rows: ContainerRow[], filters: ContainerFilt
 }
 
 /** `/stats/system` answers an object (one device) or an array (all). */
-export function normalizeSystemInfo(response: unknown): SystemInfo[] | null {
-  if (!response || typeof response !== "object") return null;
-  const devices = Array.isArray(response) ? (response as SystemInfo[]) : [response as SystemInfo];
+export function normalizeSystemInfo(response: SystemInfoResponse): SystemInfo[] | null {
+  const devices = Array.isArray(response) ? response : [response];
   // Empty = every Docker host failed; null lets the next poll retry.
   return devices.length > 0 ? devices : null;
 }
 
-export function hostRamByDevice(systemInfo: SystemInfo[] | null): Record<string, number> {
+/** The host RAM figures the container table needs from `/stats/system`. */
+export type HostMemory = Pick<SystemInfo, "deviceId" | "totalMemory">;
+
+export function hostRamByDevice(systemInfo: HostMemory[] | null): Record<string, number> {
   const ram: Record<string, number> = {};
   for (const device of systemInfo ?? []) ram[device.deviceId] = device.totalMemory || 0;
   return ram;
@@ -174,7 +175,7 @@ export interface ContainerSummary {
 
 export function summarizeContainers(
   rows: ContainerRow[],
-  systemInfo: SystemInfo[] | null,
+  systemInfo: HostMemory[] | null,
   activeDevices: string[],
 ): ContainerSummary {
   let healthy = 0;

@@ -122,9 +122,9 @@ describe("sortProjects", () => {
   const context = {
     sizes: { a: { sizeBytes: 10, sizeKB: 0 }, b: { sizeBytes: 300, sizeKB: 0 } },
     languages: {
-      a: { primary: "TypeScript", breakdown: [] },
-      b: { primary: "Go", breakdown: [] },
-      c: { primary: "Rust", breakdown: [] },
+      a: { primary: "TypeScript", breakdown: [], totalBytes: 0 },
+      b: { primary: "Go", breakdown: [], totalBytes: 0 },
+      c: { primary: "Rust", breakdown: [], totalBytes: 0 },
     },
   };
   const names = (key: string, direction: "asc" | "desc") =>
@@ -177,7 +177,7 @@ describe("describeServiceMetadata", () => {
     const fields = describeServiceMetadata(
       project({
         id: "a",
-        metadata: { version: { major: 1 } as unknown as string, nodeVersion: "v24.1.0" },
+        metadata: { version: { major: 1 }, nodeVersion: "v24.1.0" },
       }),
     );
     expect(fields).toEqual([{ label: "Node", value: "v24.1.0", mono: true }]);

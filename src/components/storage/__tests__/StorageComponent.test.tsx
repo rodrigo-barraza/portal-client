@@ -2,7 +2,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act, within, waitFor } from "@testing-library/react";
 import StorageComponent from "../../StorageComponent";
 import ApiService from "../../../services/ApiService";
-import type { BucketStreamEvent } from "../../../types/portal";
+import type {
+  BucketStreamEvent,
+  StorageObject,
+  StorageObjectListing,
+  StorageObjectStat,
+} from "../../../types/portal";
+import {
+  deviceSystemInfo,
+  diskUsage,
+  storageBucket,
+  storageObject,
+  storageObjectStat,
+} from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 vi.mock("../../../services/ApiService", () => ({
@@ -20,13 +32,17 @@ vi.mock("../../../services/ApiService", () => ({
 
 const api = vi.mocked(ApiService);
 
-const DISK = {
-  images: { totalSize: 2048, count: 1, items: [{ id: "abc", tags: ["portal-client:latest"], size: 2048 }] },
-  volumes: { totalSize: 0, count: 0, items: [] },
-  buildCache: { totalSize: 0, count: 0 },
-  containers: { totalWritableSize: 0, count: 0 },
+const DISK = diskUsage({
+  images: {
+    totalSize: 2048,
+    count: 1,
+    sharedSize: 0,
+    items: [
+      { id: "abc", tags: ["portal-client:latest"], size: 2048, sharedSize: 0, created: 0, containers: 1 },
+    ],
+  },
   totalReclaimable: 2048,
-};
+});
 
 let emit: (event: BucketStreamEvent) => void;
 let closeStream: ReturnType<typeof vi.fn<() => void>>;
@@ -39,22 +55,32 @@ beforeEach(() => {
     return { close: closeStream };
   });
   api.getSystemInfo.mockResolvedValue([
-    { deviceId: "nas", deviceName: "NAS", serverVersion: "27.1", disk: DISK },
-    { deviceId: "desktop", deviceName: "Desktop", serverVersion: "28.0", disk: DISK },
+    deviceSystemInfo({ deviceId: "nas", deviceName: "NAS", serverVersion: "27.1", disk: DISK }),
+    deviceSystemInfo({ deviceId: "desktop", deviceName: "Desktop", serverVersion: "28.0", disk: DISK }),
   ]);
-  api.getStorageSummary.mockResolvedValue({ buckets: [], totalObjects: 0, totalSize: 0 });
+  api.getStorageSummary.mockResolvedValue({
+    buckets: [],
+    totalObjects: 0,
+    totalSize: 0,
+    fetchedAt: "2026-09-22T00:00:00.000Z",
+  });
 });
 
 function streamBuckets(names: string[]) {
   emit({
     type: "init",
     totalBuckets: names.length,
-    buckets: names.map((name) => ({ name, objectCount: null, totalSize: null })),
+    buckets: names.map((name) => storageBucket({ name, objectCount: null, totalSize: null })),
   });
   for (const name of names) {
-    emit({ type: "bucket", bucket: { name, objectCount: 3, totalSize: 1024 } });
+    emit({ type: "bucket", bucket: storageBucket({ name, objectCount: 3, totalSize: 1024 }) });
   }
   emit({ type: "done" });
+}
+
+/** GET /object-store/buckets/media at `prefix`. */
+function listing(objects: StorageObject[], prefixes: string[] = [], prefix = ""): StorageObjectListing {
+  return { bucket: "media", prefix, objects, prefixes };
 }
 
 describe("StorageComponent", () => {
@@ -83,18 +109,24 @@ describe("StorageComponent", () => {
 
   it("stops shimmering stats the stream never delivered", async () => {
     render(<StorageComponent />);
-    emit({ type: "init", totalBuckets: 1, buckets: [{ name: "media", objectCount: null, totalSize: null }] });
+    emit({
+      type: "init",
+      totalBuckets: 1,
+      buckets: [storageBucket({ name: "media", objectCount: null, totalSize: null })],
+    });
     emit({ type: "done" });
     const card = await screen.findByRole("button", { name: /media/ });
     expect(within(card).getAllByText("—")).toHaveLength(2);
   });
 
   it("never lets a slow folder listing land under a newer breadcrumb", async () => {
-    let resolveSlow: (value: unknown) => void = () => {};
+    let resolveSlow: (value: StorageObjectListing) => void = () => {};
     api.getStorageObjects.mockImplementation((_bucket: string, { prefix }: { prefix?: string } = {}) => {
       if (prefix === "slow/") return new Promise((resolve) => (resolveSlow = resolve));
-      if (prefix === "fast/") return Promise.resolve({ objects: [{ name: "fast/new.txt", size: 1 }], prefixes: [] });
-      return Promise.resolve({ objects: [], prefixes: ["slow/", "fast/"] });
+      if (prefix === "fast/") {
+        return Promise.resolve(listing([storageObject({ name: "fast/new.txt", size: 1 })], [], prefix));
+      }
+      return Promise.resolve(listing([], ["slow/", "fast/"]));
     });
 
     render(<StorageComponent />);
@@ -106,13 +138,15 @@ describe("StorageComponent", () => {
     fireEvent.click(await screen.findByRole("button", { name: /fast/ }));
     expect(await screen.findByText("new.txt")).toBeInTheDocument();
 
-    await act(async () => resolveSlow({ objects: [{ name: "slow/stale.txt", size: 1 }], prefixes: [] }));
+    await act(async () =>
+      resolveSlow(listing([storageObject({ name: "slow/stale.txt", size: 1 })], [], "slow/")),
+    );
     expect(screen.queryByText("stale.txt")).not.toBeInTheDocument();
     expect(screen.getByText("new.txt")).toBeInTheDocument();
   });
 
   it("confirms deletes in a dialog and surfaces failures", async () => {
-    api.getStorageObjects.mockResolvedValue({ objects: [{ name: "doc.txt", size: 10 }], prefixes: [] });
+    api.getStorageObjects.mockResolvedValue(listing([storageObject({ name: "doc.txt", size: 10 })]));
     api.deleteStorageObject.mockRejectedValueOnce(new Error("Access denied"));
 
     render(<StorageComponent />);
@@ -125,7 +159,7 @@ describe("StorageComponent", () => {
     expect(await within(dialog).findByText("Access denied")).toBeInTheDocument();
     expect(api.deleteStorageObject).toHaveBeenCalledWith("media", "doc.txt");
 
-    api.deleteStorageObject.mockResolvedValueOnce({ success: true });
+    api.deleteStorageObject.mockResolvedValueOnce({ success: true, bucket: "media", object: "doc.txt" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(api.getStorageObjects).toHaveBeenCalledTimes(2); // reloaded after the delete
@@ -155,16 +189,17 @@ describe("StorageComponent", () => {
   });
 
   it("clears the previous object's metadata when previewing another", async () => {
-    let resolveSecond: (value: unknown) => void = () => {};
-    api.getStorageObjects.mockResolvedValue({
-      objects: [
-        { name: "one.png", size: 1 },
-        { name: "two.png", size: 2 },
-      ],
-      prefixes: [],
-    });
+    let resolveSecond: (value: StorageObjectStat) => void = () => {};
+    api.getStorageObjects.mockResolvedValue(
+      listing([
+        storageObject({ name: "one.png", size: 1 }),
+        storageObject({ name: "two.png", size: 2 }),
+      ]),
+    );
     api.statStorageObject
-      .mockResolvedValueOnce({ name: "one.png", size: 1, contentType: "image/one" })
+      .mockResolvedValueOnce(
+        storageObjectStat({ bucket: "media", object: "one.png", size: 1, contentType: "image/one" }),
+      )
       .mockImplementationOnce(() => new Promise((resolve) => (resolveSecond = resolve)));
 
     render(<StorageComponent />);
@@ -177,7 +212,11 @@ describe("StorageComponent", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Preview two.png" }));
     expect(screen.queryByText("image/one")).not.toBeInTheDocument();
-    await act(async () => resolveSecond({ name: "two.png", size: 2, contentType: "image/two" }));
+    await act(async () =>
+      resolveSecond(
+        storageObjectStat({ bucket: "media", object: "two.png", size: 2, contentType: "image/two" }),
+      ),
+    );
     expect(screen.getByText("image/two")).toBeInTheDocument();
   });
 });

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getErrorMessage } from "@rodrigo-barraza/utilities-library";
 import ApiService from "@/services/ApiService";
-import type { ContainerRow, PortalService, SystemInfo } from "@/types/portal";
+import type { ContainerRow, SystemInfo } from "@/types/portal";
 import {
   HISTORY_MAX,
   appendHistory,
@@ -13,7 +13,7 @@ import {
   type HistoryMap,
 } from "../monitoring/containerHistory";
 import { useVisiblePolling, type IsCurrent } from "../monitoring/useVisiblePolling";
-import { buildContainerRows, normalizeSystemInfo, type DockerContainer } from "./containerRows";
+import { buildContainerRows, normalizeSystemInfo } from "./containerRows";
 
 /** portal-service re-checks registry health 3 s after an action. */
 const POST_ACTION_RECHECK_MILLISECONDS = 4_000;
@@ -24,14 +24,14 @@ async function loadSeedHistory(signal: AbortSignal): Promise<HistoryMap> {
       { range: "1h", limit: HISTORY_MAX },
       { signal },
     );
-    const seeded = historyFromMetrics(metrics?.containers);
+    const seeded = historyFromMetrics(metrics.containers);
     if (Object.keys(seeded).length > 0) return seeded;
   } catch {
     // Persistent metrics unavailable (no MongoDB) — try the ring buffer.
   }
   try {
     const ringBuffer = await ApiService.getContainerStatsHistory(undefined, { signal });
-    return historyFromRingBuffer(ringBuffer?.history);
+    return historyFromRingBuffer(ringBuffer.history);
   } catch {
     return {};
   }
@@ -98,8 +98,8 @@ export function useContainerDashboard(pollIntervalSeconds: number) {
         ]);
         if (!isCurrent()) return;
         const nextRows = buildContainerRows(
-          (containerResponse?.containers ?? []) as DockerContainer[],
-          (servicesResponse?.services ?? []) as PortalService[],
+          containerResponse.containers,
+          servicesResponse.services,
         );
         setRows(nextRows);
         setHistory((previous) =>

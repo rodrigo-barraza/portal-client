@@ -21,12 +21,6 @@ import { unwrapData } from "./analytics/useAsyncData";
 import { formatCount } from "./analytics/analyticsFormat";
 import styles from "./SessionReplayComponent.module.css";
 
-interface ReplayPayload {
-  sessionId: string;
-  eventCount: number;
-  events: unknown[];
-}
-
 /** The slice of rrweb-player's Svelte component this component drives. */
 interface ReplayPlayer {
   $destroy: () => void;
@@ -75,10 +69,9 @@ export default function SessionReplayComponent({ sessionId }: { sessionId: strin
 
     (async () => {
       try {
-        const payload = unwrapData<ReplayPayload | null>(
+        const { events } = unwrapData(
           await ApiService.getSessionReplay(sessionId, { signal: controller.signal }),
         );
-        const events = Array.isArray(payload?.events) ? payload.events : [];
         if (cancelled) return;
 
         // rrweb needs at least a full snapshot plus one incremental event.

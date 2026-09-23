@@ -36,9 +36,9 @@ export default function ProjectAnalyticsTab({ propertyId }: { propertyId: string
       ApiService.getGARealtime(propertyId, { signal }).catch(() => null),
     ]);
     return {
-      overview: overview ?? null,
-      pages: Array.isArray(pages?.pages) ? pages.pages : [],
-      activeUsers: typeof realtime?.activeUsers === "number" ? realtime.activeUsers : null,
+      overview,
+      pages: pages?.pages ?? [],
+      activeUsers: realtime?.activeUsers ?? null,
     };
   });
 

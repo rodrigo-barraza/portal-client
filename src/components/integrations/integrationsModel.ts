@@ -1,32 +1,11 @@
 /**
- * /integrations response shape and the pure filtering behind the page.
- *
- * The service never sends key material: a configured key is reported as
- * `configured: true` plus `fingerprint` — the first 8 hex chars of its
- * SHA-256, enough to tell keys apart or confirm a rotation landed.
+ * The pure filtering behind the Integrations page, over the /integrations
+ * response (shapes in `@/types/portal`).
  */
 
-export interface IntegrationItem {
-  provider: string;
-  envKey: string;
-  category: string;
-  configured: boolean;
-  docs?: string;
-  fingerprint?: string | null;
-}
+import type { IntegrationCategory } from "@/types/portal";
 
-export interface IntegrationCategory {
-  category: string;
-  integrations: IntegrationItem[];
-  configuredCount: number;
-  totalCount: number;
-}
-
-export interface IntegrationsData {
-  categories: IntegrationCategory[];
-  totalCount: number;
-  configuredCount: number;
-}
+export type { IntegrationCategory, IntegrationItem, IntegrationsData } from "@/types/portal";
 
 export type CategoryStatus = "complete" | "partial" | "none";
 

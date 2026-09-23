@@ -4,7 +4,7 @@ import { Download, File, Trash } from "lucide-react";
 import { ButtonComponent, DialogComponent, ModalComponent } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../../services/ApiService";
-import type { StorageObject } from "../../types/portal";
+import type { StorageObject, StorageObjectStat } from "../../types/portal";
 import { formatDate, getMediaType, splitObjectKey } from "./storageFiles";
 import styles from "../StorageComponent.module.css";
 
@@ -17,7 +17,7 @@ export function PreviewModal({
   bucket: string;
   object: StorageObject;
   /** Full metadata from a stat call; null until it arrives. */
-  stat: StorageObject | null;
+  stat: StorageObjectStat | null;
   onClose: () => void;
 }) {
   const mediaType = getMediaType(object.name);

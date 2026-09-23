@@ -20,7 +20,6 @@ import {
   readableErrorMessage,
   shortId,
 } from "./analyticsFormat";
-import type { SessionDetail } from "./explorerModel";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**
@@ -45,7 +44,7 @@ export default function SessionDetailComponent({
   onOpenIp: (ip: string) => void;
 }) {
   const detail = useAsyncData(sessionId, (signal) =>
-    ApiService.getSessionDetail(sessionId, { signal }).then(unwrapData<SessionDetail>),
+    ApiService.getSessionDetail(sessionId, { signal }).then(unwrapData),
   );
   const session = detail.data;
 

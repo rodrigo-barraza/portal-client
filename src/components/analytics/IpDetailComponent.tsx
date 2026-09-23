@@ -21,7 +21,7 @@ import {
   readableErrorMessage,
   shortId,
 } from "./analyticsFormat";
-import { ipFingerprint, ipLastSeen, ipTimeline, type IpDetail } from "./explorerModel";
+import { ipFingerprint, ipLastSeen, ipTimeline } from "./explorerModel";
 import styles from "../SessionExplorerComponent.module.css";
 
 /** Session pills listed on an IP profile before "+N more". */
@@ -43,7 +43,7 @@ export default function IpDetailComponent({
   onOpenSession: (sessionId: string) => void;
 }) {
   const detail = useAsyncData(`${ip}|${projectId}|${period}`, (signal) =>
-    ApiService.getSessionIpDetail(ip, projectId, period, { signal }).then(unwrapData<IpDetail>),
+    ApiService.getSessionIpDetail(ip, projectId, period, { signal }).then(unwrapData),
   );
   const profile = detail.data;
   const timeline = useMemo(() => (profile ? ipTimeline(profile) : []), [profile]);

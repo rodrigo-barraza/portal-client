@@ -253,9 +253,8 @@ describe("settleReports", () => {
 });
 
 describe("unwrapData", () => {
-  it("unwraps sessions-service envelopes and passes GA payloads through", () => {
+  it("unwraps sessions-service envelopes", () => {
     expect(unwrapData({ success: true, data: [1] })).toEqual([1]);
-    expect(unwrapData({ properties: [] })).toEqual({ properties: [] });
-    expect(unwrapData(null)).toBeNull();
+    expect(unwrapData({ success: true, data: null })).toBeNull();
   });
 });

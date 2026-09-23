@@ -7,6 +7,7 @@ import type {
   BucketStreamEvent,
   StorageBucket,
   StorageObject,
+  StorageObjectStat,
   StorageSearchResponse,
   StorageSearchResult,
   StorageSummary,
@@ -179,16 +180,10 @@ export function useGlobalSearch() {
     if (trimmed.length < MIN_SEARCH_LENGTH) return;
     let active = true;
     const timer = setTimeout(() => {
-      (ApiService.searchStorageObjects(trimmed) as Promise<StorageSearchResponse>)
+      ApiService.searchStorageObjects(trimmed)
         .then((response) => {
           if (!active) return;
-          setOutcome({
-            query: trimmed,
-            results: response.results || [],
-            totalScanned: response.totalScanned || 0,
-            truncated: response.truncated || false,
-            error: null,
-          });
+          setOutcome({ query: trimmed, ...response, error: null });
         })
         .catch((error: unknown) => {
           if (!active) return;
@@ -225,8 +220,9 @@ export function useGlobalSearch() {
 
 /** Full metadata for one object; null until it arrives (or if it fails). */
 export function useObjectStat(bucket: string | null, objectName: string | null) {
-  const stat = useAsyncData(bucket && objectName ? `${bucket}\u0000${objectName}` : null, (signal) =>
-    ApiService.statStorageObject(bucket ?? "", objectName ?? "", { signal }),
+  const stat = useAsyncData<StorageObjectStat>(
+    bucket && objectName ? `${bucket}\u0000${objectName}` : null,
+    (signal) => ApiService.statStorageObject(bucket ?? "", objectName ?? "", { signal }),
   );
   // Keyed, so the previously previewed object's metadata never shows
   return stat.error ? null : stat.data;

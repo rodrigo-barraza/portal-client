@@ -1,4 +1,9 @@
-import type { ContainerHistory } from "@/types/portal";
+import type {
+  ContainerHistory,
+  ContainerMetricsPoint,
+  ContainerMetricsSeries,
+  ContainerSnapshotSample,
+} from "@/types/portal";
 
 /**
  * Sparkline history for containers, keyed by device + container name.
@@ -62,52 +67,50 @@ export function mergeSeededHistory(
   return next;
 }
 
+/** What history reads from one `/stats/containers/metrics` series. */
+export type MetricsSeriesSamples = Pick<ContainerMetricsSeries, "container" | "device"> & {
+  points: Pick<ContainerMetricsPoint, "cpu" | "mem">[];
+};
+
 /**
  * `/stats/containers/metrics` → history (persisted MongoDB samples). The
- * response is keyed "<device>/<container>" and each entry names its
- * container and device; the key is only a fallback for the name.
+ * response is keyed "<device>/<container>"; each entry names its
+ * container and device.
  */
 export function historyFromMetrics(
-  containers: Record<
-    string,
-    {
-      container?: string;
-      device?: string;
-      points?: { cpu?: number | null; mem?: number | null }[];
-    }
-  > | null | undefined,
+  containers: Record<string, MetricsSeriesSamples>,
   max = HISTORY_MAX,
 ): HistoryMap {
   const history: HistoryMap = {};
-  for (const [key, data] of Object.entries(containers ?? {})) {
-    const points = tail(data.points ?? [], max);
+  for (const data of Object.values(containers)) {
+    const points = tail(data.points, max);
     if (points.length === 0) continue;
-    history[containerKey(data.device, data.container ?? key)] = {
-      cpu: points.map((point) => point.cpu ?? 0),
-      mem: points.map((point) => point.mem ?? 0),
+    history[containerKey(data.device, data.container)] = {
+      cpu: points.map((point) => point.cpu),
+      mem: points.map((point) => point.mem),
     };
   }
   return history;
 }
 
-interface RingBufferSnapshot {
-  containers?: Record<string, { cpu?: number; memoryUsed?: number }>;
+/** What history reads from one ring-buffer tick. */
+export interface RingBufferSnapshot {
+  containers: Record<string, Pick<ContainerSnapshotSample, "cpu" | "memoryUsed">>;
 }
 
 /** `/stats/containers/history` (in-memory ring buffer, per device) → history. */
 export function historyFromRingBuffer(
-  history: Record<string, RingBufferSnapshot[] | unknown> | null | undefined,
+  history: Record<string, RingBufferSnapshot[]>,
   max = HISTORY_MAX,
 ): HistoryMap {
   const result: HistoryMap = {};
-  for (const [device, snapshots] of Object.entries(history ?? {})) {
-    if (!Array.isArray(snapshots)) continue;
-    for (const snapshot of snapshots as RingBufferSnapshot[]) {
-      for (const [name, sample] of Object.entries(snapshot?.containers ?? {})) {
+  for (const [device, snapshots] of Object.entries(history)) {
+    for (const snapshot of snapshots) {
+      for (const [name, sample] of Object.entries(snapshot.containers)) {
         const key = containerKey(device, name);
         const series = (result[key] ??= { cpu: [], mem: [] });
-        series.cpu.push(sample.cpu ?? 0);
-        series.mem.push(sample.memoryUsed ?? 0);
+        series.cpu.push(sample.cpu);
+        series.mem.push(sample.memoryUsed);
       }
     }
   }

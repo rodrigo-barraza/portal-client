@@ -4,6 +4,11 @@ import { useSearchParams } from "next/navigation";
 import { resetSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import LogsComponent from "../../LogsComponent";
+import {
+  containerActionResponse,
+  dockerContainer,
+  loggableContainer,
+} from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
@@ -50,23 +55,23 @@ beforeEach(() => {
   vi.stubGlobal("EventSource", MockEventSource);
   api.getLoggableContainers.mockResolvedValue({
     containers: [
-      { name: "prism-service", device: "synology", deviceName: "Synology", state: "running" },
-      { name: "prism-service", device: "workstation", deviceName: "Workstation", state: "running" },
+      loggableContainer({ name: "prism-service", device: "synology", deviceName: "Synology" }),
+      loggableContainer({ name: "prism-service", device: "workstation", deviceName: "Workstation" }),
     ],
   });
   api.getContainerStats.mockResolvedValue({
     containers: [
-      {
+      dockerContainer({
         name: "prism-service",
         device: "workstation",
-        state: "running",
         status: "Up 1 hour",
         cpu: { percent: 3, cores: 2 },
         memory: { used: 1024, limit: 2048, percent: 50 },
-      },
+      }),
     ],
+    fetchedAt: "2026-09-22T00:00:00.000Z",
   });
-  api.restartContainer.mockResolvedValue({ success: true });
+  api.restartContainer.mockResolvedValue(containerActionResponse("prism-service", "workstation"));
 });
 
 afterEach(() => {

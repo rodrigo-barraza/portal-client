@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import type { SessionsEnvelope } from "@/types/portal";
 import { useVisiblePolling } from "../monitoring/useVisiblePolling";
 
 /**
@@ -145,10 +146,7 @@ export async function settleReports<T extends object>(requests: {
   };
 }
 
-/** sessions-service wraps payloads as `{ success, data }`; GA routes do not. */
-export function unwrapData<T>(response: unknown): T {
-  if (response && typeof response === "object" && "data" in response) {
-    return (response as { data: T }).data;
-  }
-  return response as T;
+/** The payload of a sessions-service `{ success, data }` envelope. */
+export function unwrapData<T>(response: SessionsEnvelope<T>): T {
+  return response.data;
 }

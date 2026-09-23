@@ -54,7 +54,7 @@ import type {
   SessionDeviceBreakdown,
   SessionTimeSeriesPoint,
   SessionTopEvent,
-  SessionLiveResponse,
+  SessionsEnvelope,
 } from "../types/portal";
 
 const LIVE_REFRESH_MS = 15_000;
@@ -72,7 +72,7 @@ interface SessionReports {
 }
 
 function loadSessionReports(projectId: string, period: string, signal: AbortSignal) {
-  const unwrap = <T,>(request: Promise<unknown>) => request.then((response) => unwrapData<T>(response));
+  const unwrap = <T,>(request: Promise<SessionsEnvelope<T>>) => request.then(unwrapData);
   const options = { signal };
   return settleReports<SessionReports>({
     overview: unwrap(ApiService.getSessionOverview(projectId, period, options)),
@@ -130,9 +130,7 @@ export default function SessionReportComponent({
   const live = useAsyncData(
     projectId,
     (signal) =>
-      ApiService.getSessionLive(projectId, undefined, { signal }).then(
-        unwrapData<SessionLiveResponse>,
-      ),
+      ApiService.getSessionLive(projectId, undefined, { signal }).then(unwrapData),
     { refreshIntervalMs: LIVE_REFRESH_MS },
   );
 

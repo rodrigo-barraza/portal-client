@@ -25,7 +25,7 @@ import {
 } from "./analytics/analyticsSeries";
 import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import styles from "./WebAnalytics.module.css";
-import type { GAProperty, GAOverview, SessionOverview, SessionProject } from "../types/portal";
+import type { GAProperty, SessionProject } from "../types/portal";
 
 type AnalyticsSource = "ga" | "sessions";
 
@@ -53,14 +53,10 @@ async function loadRegistry(signal: AbortSignal): Promise<PropertyRegistry> {
     ApiService.getGAProperties({ signal }),
     ApiService.getSessionProjects("all", { signal }),
   ]);
-  const projects =
-    projectsResult.status === "fulfilled"
-      ? unwrapData<SessionProject[] | null>(projectsResult.value)
-      : null;
   return {
-    properties:
-      propertiesResult.status === "fulfilled" ? (propertiesResult.value?.properties ?? []) : [],
-    sessionProjects: Array.isArray(projects) ? projects : [],
+    properties: propertiesResult.status === "fulfilled" ? propertiesResult.value.properties : [],
+    sessionProjects:
+      projectsResult.status === "fulfilled" ? unwrapData(projectsResult.value) : [],
     gaError:
       propertiesResult.status === "rejected"
         ? propertiesResult.reason instanceof Error
@@ -263,8 +259,8 @@ function SourceComparisonPanel({
 }) {
   const comparison = useAsyncData(`${propertyId}|${projectId}|${period}`, async (signal) => {
     const [gaOverview, sessionOverview] = await Promise.all([
-      ApiService.getGAOverview(propertyId, period, { signal }) as Promise<GAOverview>,
-      ApiService.getSessionOverview(projectId, period, { signal }).then(unwrapData<SessionOverview>),
+      ApiService.getGAOverview(propertyId, period, { signal }),
+      ApiService.getSessionOverview(projectId, period, { signal }).then(unwrapData),
     ]);
     return { gaOverview, sessionOverview };
   });

@@ -1,13 +1,7 @@
+import type { LoggableContainer } from "@/types/portal";
 import { containerKey } from "../monitoring/containerHistory";
 
-/** A container as `GET /logs` lists it. */
-export interface LoggableContainer {
-  name: string;
-  /** Device id of the Docker host. */
-  device: string;
-  deviceName?: string;
-  state?: string;
-}
+export type { LoggableContainer };
 
 export interface LoggableContainerOption {
   value: string;

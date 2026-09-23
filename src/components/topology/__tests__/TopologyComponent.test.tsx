@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import TopologyComponent from "../../TopologyComponent";
 import ApiService from "../../../services/ApiService";
+import type { ServicesResponse } from "../../../types/portal";
+import { projectAnalysis } from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 vi.mock("../../../services/ApiService", () => ({
@@ -14,7 +16,7 @@ vi.mock("../../../services/ApiService", () => ({
 const getServices = vi.mocked(ApiService.getServices);
 const getProjectAnalysis = vi.mocked(ApiService.getProjectAnalysis);
 
-const SERVICES = {
+const SERVICES: ServicesResponse = {
   services: [
     { id: "api", name: "API", healthy: true, projectType: "Service", deployTier: 1, dependsOn: ["lib"] },
     { id: "web", name: "Web", healthy: false, projectType: "Client", deployTier: 1, dependsOn: ["api"] },
@@ -30,7 +32,7 @@ beforeEach(() => {
 describe("TopologyComponent", () => {
   it("serves the code analysis from cache on load and forces it on refresh", async () => {
     getServices.mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValue({ dependencies: {} });
+    getProjectAnalysis.mockResolvedValue(projectAnalysis());
 
     render(<TopologyComponent />);
 
@@ -46,7 +48,7 @@ describe("TopologyComponent", () => {
 
   it("shows an error state with retry instead of an empty graph", async () => {
     getServices.mockRejectedValueOnce(new Error("portal-service unreachable"));
-    getProjectAnalysis.mockResolvedValue(null);
+    getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
     render(<TopologyComponent />);
 
@@ -60,10 +62,15 @@ describe("TopologyComponent", () => {
 
   it("keeps the last analysis when a refresh's analysis request fails", async () => {
     getServices.mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValueOnce({
-      dependencies: {},
-      github: { tokenConfigured: false, status: "unavailable" },
-    });
+    getProjectAnalysis.mockResolvedValueOnce(
+      projectAnalysis({
+        github: {
+          tokenConfigured: false,
+          status: "unavailable",
+          stats: { requests: 4, failures: 4, unauthorized: 4, rateLimited: 0, notFound: 0 },
+        },
+      }),
+    );
 
     render(<TopologyComponent />);
     expect(await screen.findByText(/code analysis offline/)).toBeInTheDocument();
@@ -76,7 +83,7 @@ describe("TopologyComponent", () => {
 
   it("selects nodes from the keyboard", async () => {
     getServices.mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValue(null);
+    getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
     render(<TopologyComponent />);
     const node = await screen.findByRole("button", { name: "Web, down" });
@@ -91,7 +98,7 @@ describe("TopologyComponent", () => {
 
   it("pans, zooms and clears the selection from the keyboard on the focusable canvas", async () => {
     getServices.mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValue(null);
+    getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
     const { container } = render(<TopologyComponent />);
     const node = await screen.findByRole("button", { name: "Web, down" });
@@ -117,7 +124,7 @@ describe("TopologyComponent", () => {
 
   it("labels the libraries cluster correctly in the by-type view", async () => {
     getServices.mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValue(null);
+    getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
     render(<TopologyComponent />);
     await screen.findByText("API");
@@ -130,11 +137,11 @@ describe("TopologyComponent", () => {
   });
 
   it("ignores a response that lands after a newer one", async () => {
-    let resolveFirst: (value: unknown) => void = () => {};
+    let resolveFirst: (value: ServicesResponse) => void = () => {};
     getServices
       .mockImplementationOnce(() => new Promise((resolve) => (resolveFirst = resolve)))
       .mockResolvedValue(SERVICES);
-    getProjectAnalysis.mockResolvedValue(null);
+    getProjectAnalysis.mockRejectedValue(new Error("analysis unavailable"));
 
     render(<TopologyComponent />);
     // StrictMode-style re-run / refresh: a second request supersedes the first

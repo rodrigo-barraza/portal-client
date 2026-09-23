@@ -1,7 +1,7 @@
 import { Check, Cpu, Globe, MemoryStick, X } from "lucide-react";
 import { StatsCardComponent } from "@rodrigo-barraza/components-library";
 import { formatBytes, formatPercent } from "@rodrigo-barraza/utilities-library";
-import type { DockerContainer } from "../containers/containerRows";
+import type { DockerContainerStats } from "@/types/portal";
 import { severityOf, type SeverityThresholds } from "../monitoring/severity";
 import styles from "./LogStatisticsPanel.module.css";
 
@@ -10,15 +10,15 @@ export default function LogStatisticsPanel({
   stats,
   thresholds,
 }: {
-  stats: DockerContainer;
+  stats: DockerContainerStats;
   thresholds: SeverityThresholds;
 }) {
   const isRunning = stats.state === "running";
-  const cpuPercent = stats.cpu?.percent ?? 0;
-  const cores = stats.cpu?.cores ?? 0;
+  const cpuPercent = stats.cpu.percent;
+  const cores = stats.cpu.cores;
   const memory = stats.memory;
-  const received = stats.network?.rx ?? 0;
-  const sent = stats.network?.tx ?? 0;
+  const received = stats.network.rx;
+  const sent = stats.network.tx;
 
   return (
     <div className={styles['panel']}>
@@ -38,10 +38,10 @@ export default function LogStatisticsPanel({
       />
       <StatsCardComponent
         label="Memory Used"
-        value={formatBytes(memory?.used ?? 0)}
-        subtitle={memory?.limit ? `Limit: ${formatBytes(memory.limit)}` : "No limit"}
+        value={formatBytes(memory.used)}
+        subtitle={memory.limit ? `Limit: ${formatBytes(memory.limit)}` : "No limit"}
         icon={MemoryStick}
-        variant={severityOf(memory?.percent ?? 0, thresholds.memory)}
+        variant={severityOf(memory.percent, thresholds.memory)}
       />
       <StatsCardComponent
         label="Network I/O"

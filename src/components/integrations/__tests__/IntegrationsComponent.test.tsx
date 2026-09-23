@@ -25,14 +25,14 @@ const CATEGORIES: IntegrationCategory[] = [
         fingerprint: "1a2b3c4d",
         docs: "https://platform.openai.com/api-keys",
       },
-      { provider: "Anthropic", envKey: "ANTHROPIC_API_KEY", category: "AI / LLM", configured: false, fingerprint: null },
+      { provider: "Anthropic", envKey: "ANTHROPIC_API_KEY", category: "AI / LLM", configured: false, fingerprint: null, docs: "" },
     ],
   },
   {
     category: "Finance",
     configuredCount: 0,
     totalCount: 1,
-    integrations: [{ provider: "FRED", envKey: "FRED_API_KEY", category: "Finance", configured: false, docs: "" }],
+    integrations: [{ provider: "FRED", envKey: "FRED_API_KEY", category: "Finance", configured: false, fingerprint: null, docs: "" }],
   },
 ];
 

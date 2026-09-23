@@ -25,10 +25,7 @@ import {
   filterVisitors,
   type ExplorerSession,
   type IpUser,
-  type IpUsersPage,
-  type SessionsPage,
   type Visitor,
-  type VisitorsPage,
 } from "./analytics/explorerModel";
 import styles from "./SessionExplorerComponent.module.css";
 
@@ -85,7 +82,7 @@ export default function SessionExplorerComponent({
     `ips|${projectId}|${period}|${offsets.ips}`,
     (signal) =>
       ApiService.getSessionIpUsers(projectId, period, PAGE_SIZE, offsets.ips, { signal }).then(
-        unwrapData<IpUsersPage>,
+        unwrapData,
       ),
     listOptions,
   );
@@ -93,7 +90,7 @@ export default function SessionExplorerComponent({
     `visitors|${projectId}|${period}|${offsets.visitors}`,
     (signal) =>
       ApiService.getSessionVisitors(projectId, period, PAGE_SIZE, offsets.visitors, { signal }).then(
-        unwrapData<VisitorsPage>,
+        unwrapData,
       ),
     listOptions,
   );
@@ -108,9 +105,7 @@ export default function SessionExplorerComponent({
         undefined,
         undefined,
         { signal },
-      ).then(
-        unwrapData<SessionsPage>,
-      ),
+      ).then(unwrapData),
     listOptions,
   );
 

@@ -67,10 +67,10 @@ function MinioPanel({ summary }: { summary: StorageSummary }) {
 }
 
 function DockerDiskPanel({ host }: { host: DockerHostInfo }) {
-  const disk = host.disk!;
+  const disk = host.disk;
   const segments = useMemo(() => diskSegments(disk), [disk]);
-  const images = (disk.images.items ?? []).slice(0, LIST_LIMIT);
-  const volumes = (disk.volumes.items ?? []).slice(0, LIST_LIMIT);
+  const images = disk.images.items.slice(0, LIST_LIMIT);
+  const volumes = disk.volumes.items.slice(0, LIST_LIMIT);
   const meta = [host.deviceName ?? host.deviceId, host.serverVersion && `v${host.serverVersion}`]
     .filter(Boolean)
     .join(" · ");
@@ -169,7 +169,7 @@ export function StorageOverview({
     <div className={styles["storage-grid"]}>
       {summary && <MinioPanel summary={summary} />}
       {dockerHosts.map((host) => (
-        <DockerDiskPanel key={host.deviceId ?? host.deviceName} host={host} />
+        <DockerDiskPanel key={host.deviceId} host={host} />
       ))}
     </div>
   );

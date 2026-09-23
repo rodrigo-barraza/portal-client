@@ -1,58 +1,21 @@
 /**
- * External API usage — response shapes (portal-service /external-apis)
- * and the pure series math behind the dashboard.
+ * External API usage — the pure series math behind the dashboard, over
+ * portal-service's /external-apis responses (shapes in `@/types/portal`).
  */
 
-import type { DonutSegment } from "../../types/portal";
+import type {
+  DonutSegment,
+  ExternalApiDailyCount,
+  ExternalApiTimeSeries,
+  ExternalApiTimeSeriesPoint,
+  ExternalApiUsage,
+} from "../../types/portal";
 
-export interface DailySeries {
-  date: string;
-  requests: number;
-}
-
-export interface ApiUsageSummary {
-  serviceIdentifier: string;
-  displayName: string;
-  category: string;
-  consumer: string;
-  /** Empty for providers without a known docs page. */
-  documentationUrl: string;
-  totalRequests: number;
-  successRequests: number;
-  errorRequests: number;
-  /** 0–1 */
-  errorRate: number;
-  /** Only sources that track spend (prism LLM requests). */
-  estimatedCost?: number;
-  dailySeries: DailySeries[];
-}
-
-export interface ExternalApiUsageData {
-  services: ApiUsageSummary[];
-  totalRequests: number;
-  totalErrors: number;
-  period: string;
-  /** Usage sources that failed — the numbers shown exclude them. */
-  unreachableSources?: string[];
-  /** GCP projects whose Monitoring query failed. */
-  unreachableProjectIds?: string[];
-  fetchedAt: string;
-}
-
-export interface TimeSeriesPoint {
-  date: string;
-  requests: number;
-  successRequests: number;
-  errorRequests: number;
-}
-
-export interface TimeSeriesData {
-  serviceIdentifier: string;
-  displayName: string;
-  series: TimeSeriesPoint[];
-  period: string;
-  fetchedAt: string;
-}
+export type { ExternalApiUsageData } from "../../types/portal";
+export type DailySeries = ExternalApiDailyCount;
+export type ApiUsageSummary = ExternalApiUsage;
+export type TimeSeriesPoint = ExternalApiTimeSeriesPoint;
+export type TimeSeriesData = ExternalApiTimeSeries;
 
 export const PERIOD_OPTIONS = [
   { value: "7d", label: "7d" },

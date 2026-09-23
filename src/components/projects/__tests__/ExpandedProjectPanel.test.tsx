@@ -4,6 +4,7 @@ import { resetSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import type { PortalService } from "@/types/portal";
 import ExpandedProjectPanel from "../../ExpandedProjectPanelComponent";
+import { EMPTY_METRICS, dockerContainer } from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
@@ -32,16 +33,16 @@ beforeEach(() => {
   resetSettings();
   api.getContainerStats.mockResolvedValue({
     containers: [
-      {
+      dockerContainer({
         name: "prism-service",
         device: "synology",
-        state: "running",
         cpu: { percent: 12.5, cores: 4 },
         memory: { used: 512 * 1024 ** 2, limit: 2 * 1024 ** 3, percent: 25 },
-      },
+      }),
     ],
+    fetchedAt: "2026-09-22T00:00:00.000Z",
   });
-  api.getContainerMetrics.mockResolvedValue({ containers: {} });
+  api.getContainerMetrics.mockResolvedValue(EMPTY_METRICS);
 });
 
 afterEach(() => {

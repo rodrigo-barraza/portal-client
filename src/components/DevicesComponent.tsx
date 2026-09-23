@@ -53,7 +53,7 @@ export default function DevicesComponent() {
   // A failed refresh keeps the devices already on screen (and reports the error)
   const devicesQuery = useAsyncData<Device[]>(
     "devices",
-    async (signal) => (await ApiService.getDevices({ signal })).devices ?? [],
+    async (signal) => (await ApiService.getDevices({ signal })).devices,
   );
   const [containers, setContainers] = useState<DeviceContainer[]>(NO_CONTAINERS);
 
@@ -61,10 +61,8 @@ export default function DevicesComponent() {
   // interval, only while the tab is visible, never overlapping.
   const pollContainers = useCallback(async (isCurrent: () => boolean, signal: AbortSignal) => {
     try {
-      const response = (await ApiService.getContainerStats(undefined, { signal })) as {
-        containers?: DeviceContainer[];
-      };
-      if (isCurrent()) setContainers(response?.containers || NO_CONTAINERS);
+      const response = await ApiService.getContainerStats(undefined, { signal });
+      if (isCurrent()) setContainers(response.containers);
     } catch {
       // Keep the last snapshot; the next poll retries
     }

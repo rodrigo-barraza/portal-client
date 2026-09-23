@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ApiService from "@/services/ApiService";
-import type { DockerContainer } from "../containers/containerRows";
+import type { DockerContainerStats } from "@/types/portal";
 import { containerKey } from "../monitoring/containerHistory";
 import { useVisiblePolling } from "../monitoring/useVisiblePolling";
 import type { LogStreamTarget } from "./useLogStream";
@@ -15,7 +15,9 @@ import type { LogStreamTarget } from "./useLogStream";
  */
 export function useContainerStatistics(target: LogStreamTarget | null, pollIntervalSeconds: number) {
   const key = target ? containerKey(target.device, target.container) : null;
-  const [result, setResult] = useState<{ key: string; stats: DockerContainer | null } | null>(null);
+  const [result, setResult] = useState<{ key: string; stats: DockerContainerStats | null } | null>(
+    null,
+  );
 
   useVisiblePolling(
     async (isCurrent, signal) => {
@@ -23,8 +25,8 @@ export function useContainerStatistics(target: LogStreamTarget | null, pollInter
       try {
         const response = await ApiService.getContainerStats(target.device, { signal });
         if (!isCurrent()) return;
-        const containers = (response?.containers ?? []) as DockerContainer[];
-        const stats = containers.find((container) => container.name === target.container) ?? null;
+        const stats =
+          response.containers.find((container) => container.name === target.container) ?? null;
         setResult({ key, stats });
       } catch {
         // Keep the last reading; the stream itself reports connection trouble.

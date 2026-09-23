@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PortalService, SystemInfo } from "@/types/portal";
+import type { PortalService } from "@/types/portal";
+import { deviceSystemInfo } from "../../__tests__/apiFixtures";
 import {
   buildContainerRows,
   classifyContainer,
@@ -9,6 +10,7 @@ import {
   normalizeSystemInfo,
   summarizeContainers,
   type DockerContainer,
+  type HostMemory,
 } from "../containerRows";
 
 const GIB = 1024 ** 3;
@@ -153,10 +155,10 @@ describe("filterContainerRows", () => {
 
 describe("normalizeSystemInfo", () => {
   it("normalizes to an array and treats empty as missing", () => {
-    expect(normalizeSystemInfo({ deviceId: "a" })).toEqual([{ deviceId: "a" }]);
-    expect(normalizeSystemInfo([{ deviceId: "a" }])).toEqual([{ deviceId: "a" }]);
+    const host = deviceSystemInfo({ deviceId: "a" });
+    expect(normalizeSystemInfo(host)).toEqual([host]);
+    expect(normalizeSystemInfo([host])).toEqual([host]);
     expect(normalizeSystemInfo([])).toBeNull();
-    expect(normalizeSystemInfo(null)).toBeNull();
   });
 });
 
@@ -191,7 +193,7 @@ describe("summarizeContainers", () => {
     ],
     [service({ id: "a", dockerProject: "a", responseTimeMs: 100 })],
   );
-  const systemInfo: SystemInfo[] = [
+  const systemInfo: HostMemory[] = [
     { deviceId: "synology", totalMemory: 16 * GIB },
     { deviceId: "workstation", totalMemory: 32 * GIB },
   ];

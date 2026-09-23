@@ -3,7 +3,7 @@
 import { useCallback, useRef } from "react";
 import { getErrorMessage } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../../services/ApiService";
-import type { PortalService, ProjectAnalysis, ServicesResponse } from "../../types/portal";
+import type { PortalService, ProjectAnalysis } from "../../types/portal";
 import useAsyncData from "../analytics/useAsyncData";
 import { buildTopologyServices } from "./topologyLayout";
 
@@ -29,10 +29,8 @@ export function useTopologyData() {
     const refreshAnalysis = refreshAnalysisRef.current;
     refreshAnalysisRef.current = false;
     const [servicesResponse, analysisResponse] = await Promise.all([
-      ApiService.getServices(true, { signal }) as Promise<ServicesResponse>,
-      (ApiService.getProjectAnalysis(refreshAnalysis, { signal }) as Promise<ProjectAnalysis>).catch(
-        () => null,
-      ),
+      ApiService.getServices(true, { signal }),
+      ApiService.getProjectAnalysis(refreshAnalysis, { signal }).catch(() => null),
     ]);
     const analysis = analysisResponse ?? lastAnalysisRef.current;
     lastAnalysisRef.current = analysis;

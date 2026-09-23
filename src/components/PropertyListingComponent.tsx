@@ -15,7 +15,7 @@ import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
 import { joinMeta } from "./analytics/analyticsFormat";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
-import type { GAOverview, GAProperty, SessionProject } from "../types/portal";
+import type { GAOverview, GAProperty, GARealtimeReport, SessionProject } from "../types/portal";
 import styles from "./WebAnalytics.module.css";
 
 /**
@@ -31,7 +31,7 @@ const LISTING_PERIOD = "30d";
 
 interface GASummary {
   overview: GAOverview | null;
-  realtime: { activeUsers: number } | null;
+  realtime: GARealtimeReport | null;
 }
 
 /** One site in the unified listing — GA property, sessions project, or both. */
@@ -54,11 +54,11 @@ type ViewMode = "card" | "list";
  */
 async function loadSessionProjects(signal: AbortSignal): Promise<SessionProject[]> {
   const [allTime, recent] = await Promise.all([
-    ApiService.getSessionProjects("all", { signal }).then(unwrapData<SessionProject[]>),
-    ApiService.getSessionProjects(LISTING_PERIOD, { signal }).then(unwrapData<SessionProject[]>),
+    ApiService.getSessionProjects("all", { signal }).then(unwrapData),
+    ApiService.getSessionProjects(LISTING_PERIOD, { signal }).then(unwrapData),
   ]);
-  const recentById = new Map((Array.isArray(recent) ? recent : []).map((row) => [row.projectId, row]));
-  return (Array.isArray(allTime) ? allTime : []).map((project) => ({
+  const recentById = new Map(recent.map((row) => [row.projectId, row]));
+  return allTime.map((project) => ({
     ...project,
     sessionCount: recentById.get(project.projectId)?.sessionCount ?? 0,
     uniqueVisitors: recentById.get(project.projectId)?.uniqueVisitors ?? 0,

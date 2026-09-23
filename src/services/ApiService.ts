@@ -7,10 +7,46 @@
  * `status` is the HTTP status — 0 when portal-service was unreachable —
  * and whose `message` is the service's own error text. Aborts reject with
  * the platform's AbortError unchanged.
+ *
+ * Every method resolves to the body portal-service sends for that route
+ * (types in `@/types/portal`, matching the service's handlers); session
+ * analytics come back in sessions-service's `{ success, data }` envelope.
  */
 
 import { PORTAL_SERVICE_URL } from "@/config";
-import type { BucketStreamEvent } from "@/types/portal";
+import type {
+  BucketStreamEvent,
+  ContainerActionResponse,
+  ContainerMetricsResponse,
+  ContainerStatsHistoryResponse,
+  ContainerStatsResponse,
+  DevicesResponse,
+  ExternalApiTimeSeries,
+  ExternalApiUsageData,
+  GAPropertiesResponse,
+  GARealtimeReport,
+  GAReportsByName,
+  IntegrationsData,
+  IpDetail,
+  LanguagesResponse,
+  LoggableContainersResponse,
+  ProjectAnalysis,
+  RepoSizesResponse,
+  ServiceActionResponse,
+  ServiceRollbackStatus,
+  ServicesResponse,
+  SessionDetail,
+  SessionReplay,
+  SessionReportsByName,
+  SessionsEnvelope,
+  StorageBucket,
+  StorageDeleteResponse,
+  StorageObjectListing,
+  StorageObjectStat,
+  StorageSearchResponse,
+  StorageSummary,
+  SystemInfoResponse,
+} from "@/types/portal";
 import {
   createJsonRequester,
   objectPath,
@@ -23,34 +59,36 @@ import {
 export { ApiError, NETWORK_ERROR_STATUS } from "./apiRequest";
 export type { RequestOptions } from "./apiRequest";
 
-/**
- * Response payloads are not typed per endpoint yet — callers narrow the
- * shape they consume. (Typing them changes every method's signature, which
- * the consuming components have to adopt together.)
- */
-type ApiResponse = any;
-
 const request = createJsonRequester(PORTAL_SERVICE_URL);
 
-function get(path: string, options?: RequestOptions): Promise<ApiResponse> {
-  return request<ApiResponse>("GET", path, options);
+/** GET `path`; `Body` is what portal-service sends for that route. */
+function get<Body>(path: string, options?: RequestOptions): Promise<Body> {
+  return request<Body>("GET", path, options);
 }
 
-function send(
+function send<Body>(
   method: Exclude<HttpMethod, "GET">,
   path: string,
   options?: RequestOptions,
-): Promise<ApiResponse> {
-  return request<ApiResponse>(method, path, options);
+): Promise<Body> {
+  return request<Body>(method, path, options);
 }
 
 type SessionSort = "createdAt" | "updatedAt" | "duration" | (string & {});
+
+/** A GA4 period report's body, by report name. */
+type GAReport<Report extends keyof GAReportsByName> = Promise<GAReportsByName[Report]>;
+
+/** A sessions-service stats report, still in its `{ success, data }` envelope. */
+type SessionReport<Report extends keyof SessionReportsByName> = Promise<
+  SessionsEnvelope<SessionReportsByName[Report]>
+>;
 
 export default class ApiService {
   // ── Projects ──────────────────────────────────────────────────
 
   /** Health status of every registered service and infrastructure entry. */
-  static getServices(refresh = false, options?: RequestOptions) {
+  static getServices(refresh = false, options?: RequestOptions): Promise<ServicesResponse> {
     return get(`/services${queryString({ refresh: refresh || undefined })}`, options);
   }
 
@@ -58,15 +96,18 @@ export default class ApiService {
   // id — the Projects page's card actions (they have no device id to use
   // the container-direct routes below).
 
-  static startService(serviceId: string, options?: RequestOptions) {
+  static startService(serviceId: string, options?: RequestOptions): Promise<ServiceActionResponse> {
     return ApiService.serviceAction("start", serviceId, options);
   }
 
-  static stopService(serviceId: string, options?: RequestOptions) {
+  static stopService(serviceId: string, options?: RequestOptions): Promise<ServiceActionResponse> {
     return ApiService.serviceAction("stop", serviceId, options);
   }
 
-  static restartService(serviceId: string, options?: RequestOptions) {
+  static restartService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
     return ApiService.serviceAction("restart", serviceId, options);
   }
 
@@ -74,32 +115,40 @@ export default class ApiService {
     action: "restart" | "stop" | "start",
     serviceId: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<ServiceActionResponse> {
     return send("POST", `/services/${pathSegment(serviceId)}/${action}`, options);
   }
 
   /** Roll a containerized service back to its previous image. */
-  static rollbackService(serviceId: string, options?: RequestOptions) {
+  static rollbackService(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceActionResponse> {
     return send("POST", `/services/${pathSegment(serviceId)}/rollback`, options);
   }
 
   /** Whether a previous image exists to roll a service back to. */
-  static getRollbackStatus(serviceId: string, options?: RequestOptions) {
+  static getRollbackStatus(
+    serviceId: string,
+    options?: RequestOptions,
+  ): Promise<ServiceRollbackStatus> {
     return get(`/services/${pathSegment(serviceId)}/rollback-status`, options);
   }
 
   /** Rollback status of every containerized service, keyed by project id. */
-  static getRollbackStatuses(options?: RequestOptions) {
+  static getRollbackStatuses(
+    options?: RequestOptions,
+  ): Promise<Record<string, ServiceRollbackStatus>> {
     return get("/services/rollback-status", options);
   }
 
   /** GitHub repository sizes of every project. */
-  static getProjectSizes(options?: RequestOptions) {
+  static getProjectSizes(options?: RequestOptions): Promise<RepoSizesResponse> {
     return get("/services/sizes", options);
   }
 
   /** Auto-detected ecosystem dependencies (imports, API calls, repo sizes). */
-  static getProjectAnalysis(refresh = false, options?: RequestOptions) {
+  static getProjectAnalysis(refresh = false, options?: RequestOptions): Promise<ProjectAnalysis> {
     return get(
       `/services/analysis${queryString({ refresh: refresh || undefined })}`,
       options,
@@ -107,7 +156,7 @@ export default class ApiService {
   }
 
   /** GitHub Linguist language breakdown of every project. */
-  static getProjectLanguages(options?: RequestOptions) {
+  static getProjectLanguages(options?: RequestOptions): Promise<LanguagesResponse> {
     return get("/services/languages", options);
   }
 
@@ -119,7 +168,7 @@ export default class ApiService {
     containerName: string,
     device: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<ContainerActionResponse> {
     return ApiService.containerAction("restart", containerName, device, options);
   }
 
@@ -127,7 +176,7 @@ export default class ApiService {
     containerName: string,
     device: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<ContainerActionResponse> {
     return ApiService.containerAction("stop", containerName, device, options);
   }
 
@@ -135,7 +184,7 @@ export default class ApiService {
     containerName: string,
     device: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<ContainerActionResponse> {
     return ApiService.containerAction("start", containerName, device, options);
   }
 
@@ -144,7 +193,7 @@ export default class ApiService {
     containerName: string,
     device: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<ContainerActionResponse> {
     return send(
       "POST",
       `/containers/${pathSegment(containerName)}/${action}${queryString({ device })}`,
@@ -160,12 +209,18 @@ export default class ApiService {
   // ── Stats ─────────────────────────────────────────────────────
 
   /** Docker container resource usage (CPU, memory, network). */
-  static getContainerStats(deviceId?: string, options?: RequestOptions) {
+  static getContainerStats(
+    deviceId?: string,
+    options?: RequestOptions,
+  ): Promise<ContainerStatsResponse> {
     return get(`/stats/containers${queryString({ device: deviceId })}`, options);
   }
 
   /** In-memory time series of container stats, keyed by device ID. */
-  static getContainerStatsHistory(deviceId?: string, options?: RequestOptions) {
+  static getContainerStatsHistory(
+    deviceId?: string,
+    options?: RequestOptions,
+  ): Promise<ContainerStatsHistoryResponse> {
     return get(
       `/stats/containers/history${queryString({ device: deviceId })}`,
       options,
@@ -186,7 +241,7 @@ export default class ApiService {
       limit?: number;
     } = {},
     options?: RequestOptions,
-  ) {
+  ): Promise<ContainerMetricsResponse> {
     return get(
       `/stats/containers/metrics${queryString({ range, container, device, limit })}`,
       options,
@@ -195,9 +250,10 @@ export default class ApiService {
 
   /**
    * Docker system info — disk usage breakdown (images, volumes, build
-   * cache). Without a device, an array with one entry per device.
+   * cache). One host's object with a device; without, an array with one
+   * entry per device that answered.
    */
-  static getSystemInfo(deviceId?: string, options?: RequestOptions) {
+  static getSystemInfo(deviceId?: string, options?: RequestOptions): Promise<SystemInfoResponse> {
     return get(`/stats/system${queryString({ device: deviceId })}`, options);
   }
 
@@ -205,26 +261,26 @@ export default class ApiService {
    * Drop portal-service's cached container stats so the next read reflects
    * a start/stop/restart immediately instead of up to 10 s later.
    */
-  static invalidateStats(options?: RequestOptions) {
+  static invalidateStats(options?: RequestOptions): Promise<{ ok: true }> {
     return send("POST", "/stats/invalidate", options);
   }
 
   /** MinIO storage summary — bucket counts and total sizes. */
-  static getStorageSummary(options?: RequestOptions) {
+  static getStorageSummary(options?: RequestOptions): Promise<StorageSummary> {
     return get("/stats/storage", options);
   }
 
   // ── Integrations ─────────────────────────────────────────────
 
   /** External API integrations and whether each is configured. */
-  static getIntegrations(options?: RequestOptions) {
+  static getIntegrations(options?: RequestOptions): Promise<IntegrationsData> {
     return get("/integrations", options);
   }
 
   // ── Logs ─────────────────────────────────────────────────────
 
   /** Every Docker container available for log streaming. */
-  static getLoggableContainers(options?: RequestOptions) {
+  static getLoggableContainers(options?: RequestOptions): Promise<LoggableContainersResponse> {
     return get("/logs", options);
   }
 
@@ -245,7 +301,7 @@ export default class ApiService {
   // ── Devices ──────────────────────────────────────────────────
 
   /** Physical devices with their hosted services and live specs. */
-  static getDevices(options?: RequestOptions) {
+  static getDevices(options?: RequestOptions): Promise<DevicesResponse> {
     return get("/devices", options);
   }
 
@@ -279,11 +335,11 @@ export default class ApiService {
     };
 
     eventSource.addEventListener("init", (event) => {
-      const data = parse<Omit<BucketStreamEvent, "type">>(event);
+      const data = parse<{ totalBuckets: number; buckets: StorageBucket[] }>(event);
       if (data) onEvent({ ...data, type: "init" });
     });
     eventSource.addEventListener("bucket", (event) => {
-      const bucket = parse<BucketStreamEvent["bucket"]>(event);
+      const bucket = parse<StorageBucket>(event);
       if (bucket) onEvent({ type: "bucket", bucket });
     });
     eventSource.addEventListener("done", () => finish({ type: "done" }));
@@ -295,7 +351,7 @@ export default class ApiService {
       const data = (event as MessageEvent<string>).data;
       if (data) {
         try {
-          message = JSON.parse(data).message || message;
+          message = (JSON.parse(data) as { message?: string }).message || message;
         } catch {
           // keep the generic message
         }
@@ -314,7 +370,7 @@ export default class ApiService {
       recursive = false,
     }: { prefix?: string; recursive?: boolean } = {},
     options?: RequestOptions,
-  ) {
+  ): Promise<StorageObjectListing> {
     return get(
       `/object-store/buckets/${pathSegment(bucketName)}${queryString({
         prefix,
@@ -329,7 +385,7 @@ export default class ApiService {
     bucketName: string,
     objectName: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<StorageObjectStat> {
     return get(
       `/object-store/buckets/${pathSegment(bucketName)}/stat/${objectPath(objectName)}`,
       options,
@@ -351,7 +407,7 @@ export default class ApiService {
     bucketName: string,
     objectName: string,
     options?: RequestOptions,
-  ) {
+  ): Promise<StorageDeleteResponse> {
     return send(
       "DELETE",
       `/object-store/buckets/${pathSegment(bucketName)}/${objectPath(objectName)}`,
@@ -364,7 +420,7 @@ export default class ApiService {
     query: string,
     { bucket, limit }: { bucket?: string; limit?: number } = {},
     options?: RequestOptions,
-  ) {
+  ): Promise<StorageSearchResponse> {
     return get(
       `/object-store/search${queryString({ query, bucket, limit })}`,
       options,
@@ -375,53 +431,89 @@ export default class ApiService {
   // `period`: "7d" | "30d" | "90d" | "YYYY-MM-DD_YYYY-MM-DD".
 
   /** Configured GA4 properties. */
-  static getGAProperties(options?: RequestOptions) {
+  static getGAProperties(options?: RequestOptions): Promise<GAPropertiesResponse> {
     return get("/google-analytics/properties", options);
   }
 
   /** Realtime active users of a GA4 property. */
-  static getGARealtime(propertyId: string, options?: RequestOptions) {
+  static getGARealtime(propertyId: string, options?: RequestOptions): Promise<GARealtimeReport> {
     return get(`/google-analytics/${pathSegment(propertyId)}/realtime`, options);
   }
 
-  static getGAOverview(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAOverview(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"overview"> {
     return ApiService.gaReport(propertyId, "overview", period, options);
   }
 
-  static getGAPages(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAPages(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"pages"> {
     return ApiService.gaReport(propertyId, "pages", period, options);
   }
 
-  static getGASources(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGASources(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"sources"> {
     return ApiService.gaReport(propertyId, "sources", period, options);
   }
 
-  static getGAGeography(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAGeography(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"geography"> {
     return ApiService.gaReport(propertyId, "geography", period, options);
   }
 
   /** Device category, browser, OS and screen breakdown. */
-  static getGADevices(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGADevices(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"devices"> {
     return ApiService.gaReport(propertyId, "devices", period, options);
   }
 
   /** Daily pageviews, users and sessions. */
-  static getGATimeSeries(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGATimeSeries(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"timeseries"> {
     return ApiService.gaReport(propertyId, "timeseries", period, options);
   }
 
   /** Channel grouping breakdown (Organic Search, Direct, Referral, …). */
-  static getGAChannels(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAChannels(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"channels"> {
     return ApiService.gaReport(propertyId, "channels", period, options);
   }
 
   /** Landing page performance (entry points). */
-  static getGALandingPages(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGALandingPages(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"landing-pages"> {
     return ApiService.gaReport(propertyId, "landing-pages", period, options);
   }
 
   /** Day × hour traffic matrix. */
-  static getGAHeatmap(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAHeatmap(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"heatmap"> {
     return ApiService.gaReport(propertyId, "heatmap", period, options);
   }
 
@@ -429,20 +521,24 @@ export default class ApiService {
     propertyId: string,
     period = "30d",
     options?: RequestOptions,
-  ) {
+  ): GAReport<"new-vs-returning"> {
     return ApiService.gaReport(propertyId, "new-vs-returning", period, options);
   }
 
-  static getGAEvents(propertyId: string, period = "30d", options?: RequestOptions) {
+  static getGAEvents(
+    propertyId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): GAReport<"events"> {
     return ApiService.gaReport(propertyId, "events", period, options);
   }
 
-  private static gaReport(
+  private static gaReport<Report extends keyof GAReportsByName>(
     propertyId: string,
-    report: string,
+    report: Report,
     period: string,
     options?: RequestOptions,
-  ) {
+  ): GAReport<Report> {
     return get(
       `/google-analytics/${pathSegment(propertyId)}/${report}${queryString({ period })}`,
       options,
@@ -454,11 +550,15 @@ export default class ApiService {
   // envelope.
 
   /** Distinct projects tracked by sessions-service. */
-  static getSessionProjects(period = "30d", options?: RequestOptions) {
+  static getSessionProjects(period = "30d", options?: RequestOptions): SessionReport<"projects"> {
     return ApiService.sessionStats("projects", { period }, options);
   }
 
-  static getSessionOverview(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionOverview(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"overview"> {
     return ApiService.sessionStats("overview", { projectId, period }, options);
   }
 
@@ -471,7 +571,7 @@ export default class ApiService {
     sort: SessionSort = "createdAt",
     order: "asc" | "desc" = "desc",
     options?: RequestOptions,
-  ) {
+  ): SessionReport<"sessions"> {
     return ApiService.sessionStats(
       "sessions",
       { projectId, period, limit, offset, sort, order },
@@ -480,44 +580,78 @@ export default class ApiService {
   }
 
   /** Top pages by view count. */
-  static getSessionPages(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionPages(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"pages"> {
     return ApiService.sessionStats("pages", { projectId, period }, options);
   }
 
-  static getSessionReferrers(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionReferrers(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"referrers"> {
     return ApiService.sessionStats("referrers", { projectId, period }, options);
   }
 
-  static getSessionGeo(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionGeo(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"geo"> {
     return ApiService.sessionStats("geo", { projectId, period }, options);
   }
 
   /** Device/browser/OS breakdown. */
-  static getSessionDevices(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionDevices(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"devices"> {
     return ApiService.sessionStats("devices", { projectId, period }, options);
   }
 
-  static getSessionTimeSeries(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionTimeSeries(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"timeseries"> {
     return ApiService.sessionStats("timeseries", { projectId, period }, options);
   }
 
   /** Sessions active within the last `minutes`. */
-  static getSessionLive(projectId: string, minutes = 5, options?: RequestOptions) {
+  static getSessionLive(
+    projectId: string,
+    minutes = 5,
+    options?: RequestOptions,
+  ): SessionReport<"live"> {
     return ApiService.sessionStats("live", { projectId, minutes }, options);
   }
 
   /** Top events by category/action. */
-  static getSessionEvents(projectId: string, period = "30d", options?: RequestOptions) {
+  static getSessionEvents(
+    projectId: string,
+    period = "30d",
+    options?: RequestOptions,
+  ): SessionReport<"events"> {
     return ApiService.sessionStats("events", { projectId, period }, options);
   }
 
   /** One session with its page views, events and timeline. */
-  static getSessionDetail(sessionId: string, options?: RequestOptions) {
+  static getSessionDetail(
+    sessionId: string,
+    options?: RequestOptions,
+  ): Promise<SessionsEnvelope<SessionDetail>> {
     return get(`/session-analytics/session/${pathSegment(sessionId)}`, options);
   }
 
   /** The ordered rrweb event stream of a session's replay. */
-  static getSessionReplay(sessionId: string, options?: RequestOptions) {
+  static getSessionReplay(
+    sessionId: string,
+    options?: RequestOptions,
+  ): Promise<SessionsEnvelope<SessionReplay>> {
     return get(
       `/session-analytics/session/${pathSegment(sessionId)}/replay`,
       options,
@@ -537,7 +671,7 @@ export default class ApiService {
     band?: "mobile" | "tablet" | "desktop",
     grid = 50,
     options?: RequestOptions,
-  ) {
+  ): SessionReport<"heatmap"> {
     return ApiService.sessionStats(
       "heatmap",
       { projectId, path, period, type, band, grid },
@@ -552,7 +686,7 @@ export default class ApiService {
     limit = 50,
     offset = 0,
     options?: RequestOptions,
-  ) {
+  ): SessionReport<"visitors"> {
     return ApiService.sessionStats(
       "visitors",
       { projectId, period, limit, offset },
@@ -567,7 +701,7 @@ export default class ApiService {
     limit = 50,
     offset = 0,
     options?: RequestOptions,
-  ) {
+  ): SessionReport<"ips"> {
     return ApiService.sessionStats("ips", { projectId, period, limit, offset }, options);
   }
 
@@ -577,25 +711,28 @@ export default class ApiService {
     projectId?: string,
     period = "all",
     options?: RequestOptions,
-  ) {
+  ): Promise<SessionsEnvelope<IpDetail>> {
     return get(
       `/session-analytics/ip/${pathSegment(ip)}${queryString({ period, projectId })}`,
       options,
     );
   }
 
-  private static sessionStats(
-    report: string,
+  private static sessionStats<Report extends keyof SessionReportsByName>(
+    report: Report,
     params: Record<string, string | number | undefined>,
     options?: RequestOptions,
-  ) {
+  ): SessionReport<Report> {
     return get(`/session-analytics/${report}${queryString(params)}`, options);
   }
 
   // ── External APIs (Google Cloud Monitoring + providers) ───────
 
   /** Usage summary of every external API with traffic. */
-  static getExternalApiUsageSummary(period = "30d", options?: RequestOptions) {
+  static getExternalApiUsageSummary(
+    period = "30d",
+    options?: RequestOptions,
+  ): Promise<ExternalApiUsageData> {
     return get(`/external-apis${queryString({ period })}`, options);
   }
 
@@ -604,7 +741,7 @@ export default class ApiService {
     serviceIdentifier: string,
     period = "30d",
     options?: RequestOptions,
-  ) {
+  ): Promise<ExternalApiTimeSeries> {
     return get(
       `/external-apis/timeseries${queryString({ service: serviceIdentifier, period })}`,
       options,

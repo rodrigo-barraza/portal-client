@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { PortalService, ProjectAnalysis } from "../../../types/portal";
+import type { PortalService } from "../../../types/portal";
+import { projectAnalysis } from "../../__tests__/apiFixtures";
 import {
   NODE_H,
   NODE_W,
@@ -159,15 +160,21 @@ describe("edges", () => {
 });
 
 describe("analysis merge", () => {
-  const analysis = {
+  const analysis = projectAnalysis({
     dependencies: {
       api: {
-        imports: [{ target: "lib" }, { target: "mongodb" }],
-        apiCalls: [{ target: "auth" }, { target: "lib" }],
+        imports: [
+          { target: "lib", package: "@acme/lib" },
+          { target: "mongodb", package: "mongodb" },
+        ],
+        apiCalls: [
+          { target: "auth", envVar: "AUTH_SERVICE_URL" },
+          { target: "lib", envVar: "LIB_SERVICE_URL" },
+        ],
       },
       idle: { imports: [], apiCalls: [] },
     },
-  } as ProjectAnalysis;
+  });
 
   it("appends only newly detected dependencies, deduped", () => {
     const [merged] = mergeAnalysisDeps([service("api", { dependsOn: ["mongodb"] })], analysis);

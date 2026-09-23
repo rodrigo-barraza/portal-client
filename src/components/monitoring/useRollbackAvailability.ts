@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ApiService from "@/services/ApiService";
+import type { ServiceRollbackStatus } from "@/types/portal";
 
 export interface RollbackStatus {
   available: boolean;
@@ -9,11 +10,8 @@ export interface RollbackStatus {
   device: string | null;
 }
 
-function toRollbackStatus(response: { available?: unknown; device?: unknown } | null | undefined): RollbackStatus {
-  return {
-    available: response?.available === true,
-    device: typeof response?.device === "string" ? response.device : null,
-  };
+function toRollbackStatus(response: ServiceRollbackStatus): RollbackStatus {
+  return { available: response.available, device: response.device ?? null };
 }
 
 /**
@@ -31,7 +29,7 @@ export function useRollbackAvailability(serviceIds: readonly string[]) {
     const controller = new AbortController();
     const ids = signature.split(",");
     ApiService.getRollbackStatuses({ signal: controller.signal })
-      .then((byId: Record<string, { available?: unknown; device?: unknown }>) => {
+      .then((byId) => {
         const next: Record<string, RollbackStatus> = {};
         for (const id of ids) {
           if (Object.hasOwn(byId, id)) next[id] = toRollbackStatus(byId[id]);

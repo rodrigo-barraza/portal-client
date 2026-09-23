@@ -27,7 +27,7 @@ import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
 import { getSettings, usePortalSettings } from "@/lib/settings";
-import type { PortalService } from "../types/portal";
+import type { PortalService, ServicesResponse } from "../types/portal";
 import { useActionRunner, type ContainerAction } from "./monitoring/useActionRunner";
 import { useRollbackAvailability } from "./monitoring/useRollbackAvailability";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
@@ -58,24 +58,11 @@ const VIEW_SEGMENTS = [
   { value: "table", icon: <Table2 size={12} strokeWidth={2.2} /> },
 ];
 
-interface Registry {
-  services: PortalService[];
-  infrastructure: PortalService[];
-}
-
-function toRegistry(response: unknown): Registry {
-  const body = (response ?? {}) as Partial<Registry>;
-  return {
-    services: Array.isArray(body.services) ? body.services : [],
-    infrastructure: Array.isArray(body.infrastructure) ? body.infrastructure : [],
-  };
-}
-
 export default function ProjectsComponent() {
   const { showInfrastructure, showSystemSummary, autoRefreshEnabled, healthCheckInterval } =
     usePortalSettings();
 
-  const [registry, setRegistry] = useState<Registry | null>(null);
+  const [registry, setRegistry] = useState<ServicesResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [projectSizes, setProjectSizes] = useState<Record<string, ProjectSize>>({});
@@ -96,7 +83,7 @@ export default function ProjectsComponent() {
       try {
         const response = await ApiService.getServices(true, { signal });
         if (!isCurrent()) return;
-        setRegistry(toRegistry(response));
+        setRegistry(response);
         setLoadError(null);
       } catch (error) {
         if (isCurrent()) setLoadError(getErrorMessage(error));
@@ -113,7 +100,7 @@ export default function ProjectsComponent() {
     ApiService.getServices(false, { signal: controller.signal })
       .then((response) => {
         if (!controller.signal.aborted) {
-          setRegistry((current) => current ?? toRegistry(response));
+          setRegistry((current) => current ?? response);
         }
       })
       // The health round that always follows reports failures.
@@ -128,12 +115,12 @@ export default function ProjectsComponent() {
     const { signal } = controller;
     ApiService.getProjectSizes({ signal })
       .then((response) => {
-        if (!signal.aborted) setProjectSizes(response?.sizes ?? {});
+        if (!signal.aborted) setProjectSizes(response.sizes);
       })
       .catch(() => undefined);
     ApiService.getProjectLanguages({ signal })
       .then((response) => {
-        if (!signal.aborted) setProjectLanguages(response?.languages ?? {});
+        if (!signal.aborted) setProjectLanguages(response.languages);
       })
       .catch(() => undefined);
     return () => controller.abort();

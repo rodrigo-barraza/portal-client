@@ -3,6 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetSettings, updateSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import ContainerStatsComponent from "../../ContainerStatsComponent";
+import {
+  EMPTY_METRICS,
+  EMPTY_STATS_HISTORY,
+  containerActionResponse,
+  deviceSystemInfo,
+  dockerContainer,
+} from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
@@ -26,22 +33,14 @@ vi.mock("@/services/ApiService", () => ({
 
 const api = vi.mocked(ApiService);
 
-function dockerContainer(name: string, device: string) {
-  return {
-    name,
-    device,
-    state: "running",
-    status: "Up 3 hours",
-    cpu: { percent: 12, cores: 4 },
-    memory: { used: 256 * 1024 ** 2, limit: 16 * 1024 ** 3, percent: 1.5 },
-    network: { rx: 10, tx: 20 },
-  };
-}
-
 beforeEach(() => {
   resetSettings();
   api.getContainerStats.mockResolvedValue({
-    containers: [dockerContainer("prism-service", "synology"), dockerContainer("prism-service", "workstation")],
+    containers: [
+      dockerContainer({ name: "prism-service", device: "synology" }),
+      dockerContainer({ name: "prism-service", device: "workstation" }),
+    ],
+    fetchedAt: "2026-09-22T00:00:00.000Z",
   });
   api.getServices.mockResolvedValue({
     services: [
@@ -53,14 +52,17 @@ beforeEach(() => {
         dockerProject: "prism-service",
       },
     ],
+    infrastructure: [],
   });
-  api.getSystemInfo.mockResolvedValue([{ deviceId: "synology", totalMemory: 16 * 1024 ** 3 }]);
-  api.getContainerMetrics.mockResolvedValue({ containers: {} });
-  api.getContainerStatsHistory.mockResolvedValue({ history: {} });
+  api.getSystemInfo.mockResolvedValue([
+    deviceSystemInfo({ deviceId: "synology", totalMemory: 16 * 1024 ** 3 }),
+  ]);
+  api.getContainerMetrics.mockResolvedValue(EMPTY_METRICS);
+  api.getContainerStatsHistory.mockResolvedValue(EMPTY_STATS_HISTORY);
   api.getRollbackStatus.mockResolvedValue({ available: false });
   api.getRollbackStatuses.mockResolvedValue({});
   api.invalidateStats.mockResolvedValue({ ok: true });
-  api.stopContainer.mockResolvedValue({ success: true });
+  api.stopContainer.mockResolvedValue(containerActionResponse("prism-service"));
 });
 
 afterEach(() => {

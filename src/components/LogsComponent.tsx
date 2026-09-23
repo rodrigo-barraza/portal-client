@@ -43,7 +43,7 @@ export default function LogsComponent() {
 
   const containerList = useAsyncData<LoggableContainer[]>(
     "loggable-containers",
-    async (signal) => (await ApiService.getLoggableContainers({ signal }))?.containers ?? [],
+    async (signal) => (await ApiService.getLoggableContainers({ signal })).containers,
   );
   const containers = containerList.data ?? NO_CONTAINERS;
   const listError = containerList.error ? getErrorMessage(containerList.error) : null;

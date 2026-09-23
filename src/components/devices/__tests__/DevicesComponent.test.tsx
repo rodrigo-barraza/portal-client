@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import DevicesComponent from "../../DevicesComponent";
 import ApiService from "../../../services/ApiService";
 import { resetSettings, updateSettings } from "@/lib/settings";
+import { device, dockerContainer } from "../../__tests__/apiFixtures";
 import {
   deviceStatus,
   groupContainersByDevice,
@@ -18,9 +19,9 @@ vi.mock("../../../services/ApiService", () => ({
 const api = vi.mocked(ApiService);
 
 const CONTAINERS: DeviceContainer[] = [
-  { name: "web", device: "nas", state: "running", status: "Up 2 hours", cpu: { percent: 95, cores: 2 }, memory: { used: 1024, limit: 2048, percent: 50 } },
-  { name: "api", device: "nas", state: "exited", status: "Exited (0)", cpu: { percent: 0, cores: 0 }, memory: { used: 0, limit: 0, percent: 0 } },
-  { name: "lights", device: "pi", state: "running" },
+  dockerContainer({ name: "web", device: "nas", status: "Up 2 hours", cpu: { percent: 95, cores: 2 }, memory: { used: 1024, limit: 2048, percent: 50 } }),
+  dockerContainer({ name: "api", device: "nas", state: "exited", status: "Exited (0)", cpu: { percent: 0, cores: 0 }, memory: { used: 0, limit: 0, percent: 0 } }),
+  dockerContainer({ name: "lights", device: "pi", status: "" }),
 ];
 
 describe("deviceModel", () => {
@@ -56,11 +57,14 @@ describe("DevicesComponent", () => {
     resetSettings();
     api.getDevices.mockResolvedValue({
       devices: [
-        { id: "nas", name: "NAS", type: "NAS", os: "DSM", hostname: "192.168.1.2" },
-        { id: "desktop", name: "Desktop", type: "Desktop" },
+        device({ id: "nas", name: "NAS", type: "NAS", os: "DSM", hostname: "192.168.1.2" }),
+        device({ id: "desktop", name: "Desktop", type: "Desktop" }),
       ],
     });
-    api.getContainerStats.mockResolvedValue({ containers: CONTAINERS });
+    api.getContainerStats.mockResolvedValue({
+      containers: CONTAINERS,
+      fetchedAt: "2026-09-22T00:00:00.000Z",
+    });
   });
 
   afterEach(() => {

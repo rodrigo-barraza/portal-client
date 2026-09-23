@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { loggableContainer } from "../../__tests__/apiFixtures";
 import { buildContainerOptions, findLinkedContainer } from "../logContainers";
 
 const containers = [
-  { name: "prism-service", device: "workstation", deviceName: "Workstation", state: "running" },
-  { name: "b-exited", device: "synology", state: "exited" },
-  { name: "prism-service", device: "synology", deviceName: "Synology NAS", state: "exited" },
-  { name: "a-running", device: "synology", state: "running" },
+  loggableContainer({ name: "prism-service", device: "workstation", deviceName: "Workstation" }),
+  loggableContainer({ name: "b-exited", device: "synology", state: "exited" }),
+  loggableContainer({
+    name: "prism-service",
+    device: "synology",
+    deviceName: "Synology NAS",
+    state: "exited",
+  }),
+  loggableContainer({ name: "a-running", device: "synology" }),
 ];
 
 describe("buildContainerOptions", () => {

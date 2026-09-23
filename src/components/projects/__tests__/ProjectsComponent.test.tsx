@@ -4,6 +4,7 @@ import { resetSettings, updateSettings } from "@/lib/settings";
 import ApiService from "@/services/ApiService";
 import type { PortalService } from "@/types/portal";
 import ProjectsComponent from "../../ProjectsComponent";
+import { serviceActionResponse } from "../../__tests__/apiFixtures";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 
@@ -54,11 +55,11 @@ beforeEach(() => {
   resetSettings();
   updateSettings({ defaultView: "card" });
   api.getServices.mockResolvedValue({ services, infrastructure });
-  api.getProjectSizes.mockResolvedValue({ sizes: {} });
-  api.getProjectLanguages.mockResolvedValue({ languages: {} });
+  api.getProjectSizes.mockResolvedValue({ sizes: {}, fetchedAt: CHECKED });
+  api.getProjectLanguages.mockResolvedValue({ languages: {}, fetchedAt: CHECKED });
   api.getRollbackStatus.mockResolvedValue({ available: false });
   api.getRollbackStatuses.mockResolvedValue({});
-  api.stopService.mockResolvedValue({ success: true });
+  api.stopService.mockResolvedValue(serviceActionResponse("Prism Service"));
 });
 
 afterEach(() => {

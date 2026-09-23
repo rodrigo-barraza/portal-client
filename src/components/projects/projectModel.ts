@@ -1,5 +1,5 @@
 import { formatElapsedTime } from "@rodrigo-barraza/utilities-library";
-import type { PortalService } from "@/types/portal";
+import type { LanguageBreakdown, PortalService, RepoSize } from "@/types/portal";
 
 /**
  * Pure model behind the Projects page: health classification, filtering,
@@ -91,7 +91,7 @@ const STATIC_FILTER_OPTIONS = {
   },
 };
 
-function distinctSorted(values: (string | undefined)[]): string[] {
+function distinctSorted(values: (string | null | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
 }
 
@@ -128,8 +128,8 @@ export function filterProjects(
   query: string,
 ): PortalService[] {
   const needle = query.trim().toLowerCase();
-  const matches = (selected: string[], value: string | undefined) =>
-    selected.length === 0 || (value !== undefined && selected.includes(value));
+  const matches = (selected: string[], value: string | null | undefined) =>
+    selected.length === 0 || (value != null && selected.includes(value));
 
   return items.filter((service) => {
     if (needle) {
@@ -159,15 +159,11 @@ export function filterProjects(
 
 // ── Sorting ─────────────────────────────────────────────────────────
 
-export interface ProjectSize {
-  sizeBytes: number;
-  sizeKB: number;
-}
+/** A project's repository size (GET /services/sizes). */
+export type ProjectSize = RepoSize;
 
-export interface ProjectLanguages {
-  primary: string;
-  breakdown: { language: string; percent: number }[];
-}
+/** A project's Linguist breakdown (GET /services/languages). */
+export type ProjectLanguages = LanguageBreakdown;
 
 export interface ProjectSortContext {
   sizes: Record<string, ProjectSize>;
@@ -273,7 +269,7 @@ function scalar(value: unknown): string | null {
 
 /** Metadata a health check reported, as label/value rows. */
 export function describeServiceMetadata(service: PortalService): MetadataField[] {
-  const metadata = (service.metadata ?? {}) as Record<string, unknown>;
+  const metadata = service.metadata ?? {};
   const fields: MetadataField[] = [];
   const add = (label: string, value: string | null, mono = false) => {
     if (value !== null) fields.push({ label, value, mono });

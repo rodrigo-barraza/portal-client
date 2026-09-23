@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ApiService from "@/services/ApiService";
-import type { ContainerHistory } from "@/types/portal";
-import type { DockerContainer } from "../containers/containerRows";
+import type { ContainerHistory, DockerContainerStats } from "@/types/portal";
 import {
   HISTORY_MAX,
   appendHistory,
@@ -16,9 +15,9 @@ import { useVisiblePolling } from "../monitoring/useVisiblePolling";
 
 /** Of the containers with this name (one per host at most), prefer a running one. */
 export function pickProjectContainer(
-  containers: DockerContainer[],
+  containers: DockerContainerStats[],
   dockerProject: string,
-): DockerContainer | null {
+): DockerContainerStats | null {
   const named = containers.filter((container) => container.name === dockerProject);
   return named.find((container) => container.state === "running") ?? named[0] ?? null;
 }
@@ -30,7 +29,7 @@ export function pickProjectContainer(
  */
 export function useProjectContainer(dockerProject: string | null, pollIntervalSeconds: number) {
   const [loaded, setLoaded] = useState(false);
-  const [stats, setStats] = useState<DockerContainer | null>(null);
+  const [stats, setStats] = useState<DockerContainerStats | null>(null);
   const [history, setHistory] = useState<HistoryMap>({});
 
   useVisiblePolling(
@@ -39,18 +38,15 @@ export function useProjectContainer(dockerProject: string | null, pollIntervalSe
       try {
         const response = await ApiService.getContainerStats(undefined, { signal });
         if (!isCurrent()) return;
-        const container = pickProjectContainer(
-          (response?.containers ?? []) as DockerContainer[],
-          dockerProject,
-        );
+        const container = pickProjectContainer(response.containers, dockerProject);
         setStats(container);
         if (container) {
           setHistory((previous) =>
             appendHistory(previous, [
               {
                 key: containerKey(container.device, container.name),
-                cpu: container.cpu?.percent || 0,
-                mem: container.memory?.used || 0,
+                cpu: container.cpu.percent,
+                mem: container.memory.used,
               },
             ]),
           );
@@ -74,7 +70,7 @@ export function useProjectContainer(dockerProject: string | null, pollIntervalSe
     )
       .then((metrics) => {
         if (controller.signal.aborted) return;
-        const seeded = historyFromMetrics(metrics?.containers);
+        const seeded = historyFromMetrics(metrics.containers);
         setHistory((live) => mergeSeededHistory(live, seeded));
       })
       .catch(() => {

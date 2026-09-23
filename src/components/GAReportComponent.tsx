@@ -47,41 +47,30 @@ import {
   gaSeriesWindow,
   newVsReturningSegments,
   toDonutSegments,
-  type GAOverviewWithPrevious,
 } from "./analytics/analyticsSeries";
 import styles from "./WebAnalytics.module.css";
 import type {
   GAProperty,
-  GAOverview,
   GAPageRow,
   GALandingPageRow,
-  GASource,
-  GALocation,
-  GADevices,
-  GAChannel,
-  GAHeatmapCell,
-  GANewVsReturningSegment,
-  GAEvent,
+  GAReportsByName,
   GATimeSeriesPoint,
 } from "../types/portal";
 
 const REALTIME_REFRESH_MS = 15_000;
 
-/** portal-service groups top pages by path AND title, so a path can repeat. */
-type GATopPageRow = GAPageRow & { pageTitle?: string };
-
 interface GAReports {
-  overview: GAOverview & GAOverviewWithPrevious;
-  pages: { pages: GATopPageRow[] };
-  sources: { sources: GASource[] };
-  geography: { locations: GALocation[] };
-  devices: GADevices;
-  timeSeries: { series: GATimeSeriesPoint[] };
-  channels: { channels: GAChannel[] };
-  landingPages: { pages: GALandingPageRow[] };
-  heatmap: { cells: GAHeatmapCell[] };
-  newVsReturning: { segments: GANewVsReturningSegment[] };
-  events: { events: GAEvent[] };
+  overview: GAReportsByName["overview"];
+  pages: GAReportsByName["pages"];
+  sources: GAReportsByName["sources"];
+  geography: GAReportsByName["geography"];
+  devices: GAReportsByName["devices"];
+  timeSeries: GAReportsByName["timeseries"];
+  channels: GAReportsByName["channels"];
+  landingPages: GAReportsByName["landing-pages"];
+  heatmap: GAReportsByName["heatmap"];
+  newVsReturning: GAReportsByName["new-vs-returning"];
+  events: GAReportsByName["events"];
 }
 
 function loadGAReports(propertyId: string, period: string, signal: AbortSignal) {
@@ -111,7 +100,7 @@ const pageColumns = [
   {
     key: "pagePath",
     label: "Page",
-    render: (row: GATopPageRow) => (
+    render: (row: GAPageRow) => (
       <span className={styles["mono-cell"]} title={row.pageTitle || undefined}>
         {row.pagePath}
       </span>
@@ -193,7 +182,7 @@ export default function GAReportComponent({
   const reports = useAsyncData(`${property.id}|${period}`, (signal) =>
     loadGAReports(property.id, period, signal),
   );
-  const realtime = useAsyncData<{ activeUsers: number }>(
+  const realtime = useAsyncData(
     property.id,
     (signal) => ApiService.getGARealtime(property.id, { signal }),
     { refreshIntervalMs: REALTIME_REFRESH_MS },
@@ -343,8 +332,8 @@ export default function GAReportComponent({
           columns={pageColumns}
           data={pages!.pages}
           // GA groups by path AND title, so one path can appear twice
-          getRowKey={(row: GATopPageRow, index: number) =>
-            `${row.pagePath}\u0000${row.pageTitle ?? ""}\u0000${index}`
+          getRowKey={(row: GAPageRow, index: number) =>
+            `${row.pagePath}\u0000${row.pageTitle}\u0000${index}`
           }
           emptyText="No page data available"
           mini

@@ -53,25 +53,30 @@ export interface DependencyRef {
 
 export type DependsOnEntry = string | DependencyRef;
 
-/** A service/project entry from the portal-service registry API. */
+/**
+ * A service or infrastructure entry from portal-service `GET /services`
+ * (registry fields + the latest probe + watchdog state). One shape for
+ * both lists: fields only one kind carries are optional, and nullable
+ * wherever the service sends null for "not set".
+ */
 export interface PortalService {
   id: string;
   name: string;
-  description?: string;
+  description?: string | null;
   healthy: boolean;
-  projectType?: ProjectType | string;
-  deployTier?: DeployTier | number;
+  projectType?: ProjectType | string | null;
+  deployTier?: DeployTier | number | null;
   device?: string;
   url?: string;
-  domain?: string;
-  port?: number;
-  visibility?: "external" | "internal";
+  domain?: string | null;
+  port?: number | null;
+  visibility?: "external" | "internal" | (string & {});
   environment?: string;
-  responseTimeMs?: number;
+  responseTimeMs?: number | null;
   /** Why the last health check failed (null when healthy). */
   error?: string | null;
-  repo?: string;
-  dockerProject?: string;
+  repo?: string | null;
+  dockerProject?: string | null;
   restartable?: boolean;
   /** null until the first health check completes, and for infrastructure
    *  that has no health probe. */
@@ -84,23 +89,19 @@ export interface PortalService {
   downSince?: string | null;
   isInfrastructure?: boolean;
   essential?: boolean;
-  db?: string;
-  npmPackage?: string;
+  db?: string | null;
+  /** MinIO bucket(s) the project owns (services only). */
+  minioBucket?: string | string[] | null;
+  npmPackage?: string | null;
+  /** Registry infrastructure type, e.g. "mongodb" (infrastructure only). */
+  type?: string;
   dependsOn?: DependsOnEntry[];
-  metadata?: ServiceMetadata;
-  analyticsPropertyId?: string;
-}
-
-/** Service metadata from health check responses. */
-export interface ServiceMetadata {
-  version?: string;
-  uptime?: number;
-  connections?: number;
-  databases?: number;
-  buckets?: number;
-  bucketNames?: string[];
-  nodeVersion?: string;
-  pythonVersion?: string;
+  /** Inverse of `dependsOn`: who depends on this entry. */
+  dependedOnBy?: DependencyRef[];
+  /** The health endpoint's own JSON body — arbitrary per service. */
+  metadata?: Record<string, unknown> | null;
+  /** GA4 property id when the project is tracked in Google Analytics (services only). */
+  analyticsPropertyId?: string | null;
 }
 
 // ─── Container Stats ────────────────────────────────────────
@@ -187,6 +188,65 @@ export interface ContainerStats {
   labels?: Record<string, string>;
 }
 
+/**
+ * One container as `GET /stats/containers` reports it from the Docker
+ * Engine. A stopped container carries zeroed stats.
+ */
+export interface DockerContainerStats {
+  /** Short (12-char) container id. */
+  id: string;
+  name: string;
+  image: string;
+  state: string;
+  status: string;
+  /** Unix seconds. */
+  created: number;
+  command: string;
+  ports: PortMapping[];
+  mounts: VolumeMount[];
+  labels: Record<string, string>;
+  /** Device id of the Docker host. */
+  device: string;
+  cpu: CpuStats;
+  cpuThrottling: CpuThrottling;
+  memory: MemoryStats;
+  memoryDetail: MemoryDetail;
+  network: NetworkStats;
+  blockIO: BlockIOStats;
+  pids: number;
+}
+
+/** GET /stats/containers */
+export interface ContainerStatsResponse {
+  containers: DockerContainerStats[];
+  fetchedAt: string;
+}
+
+/** One container's sample in the in-memory ring buffer. */
+export interface ContainerSnapshotSample {
+  cpu: number;
+  memoryUsed: number;
+  memoryLimit: number;
+  memoryPercent: number;
+  blockRead: number;
+  blockWrite: number;
+  netRx: number;
+  netTx: number;
+  pids: number;
+}
+
+/** One ring-buffer tick (every 5 s): every container on the device. */
+export interface ContainerSnapshot {
+  timestamp: string;
+  containers: Record<string, ContainerSnapshotSample>;
+}
+
+/** GET /stats/containers/history — ring buffer keyed by device id. */
+export interface ContainerStatsHistoryResponse {
+  history: Record<string, ContainerSnapshot[]>;
+  samples: number;
+}
+
 /** Health status shown for a container row. `unknown` means the service is
  * registered but its first health check hasn't completed yet. */
 export type ContainerStatusKind = "healthy" | "down" | "unknown";
@@ -208,7 +268,6 @@ export interface ContainerRow {
   responseTimeMs: number | null;
   device: string | null;
   restartable: boolean;
-  controllable: boolean;
   dockerProject: string;
   projectType: "client" | "service" | "bot";
   _stats: ContainerStats | null;
@@ -225,7 +284,24 @@ export interface ContainerHistory {
 export interface DiskCategory {
   totalSize: number;
   count: number;
-  items?: DiskItem[];
+}
+
+export interface DiskImage {
+  /** Short (12-char) image id. */
+  id: string;
+  tags: string[];
+  size: number;
+  sharedSize: number;
+  /** Unix seconds. */
+  created: number;
+  containers: number;
+}
+
+export interface DiskVolume {
+  name: string;
+  driver: string;
+  size: number;
+  refCount: number;
 }
 
 export interface DiskContainersCategory {
@@ -233,67 +309,119 @@ export interface DiskContainersCategory {
   count: number;
 }
 
-export interface DiskItem {
-  id?: string;
-  name?: string;
-  tags?: string[];
-  size: number;
-}
-
 export interface DiskUsage {
-  images: DiskCategory;
-  volumes: DiskCategory;
+  /** The 20 largest images. */
+  images: DiskCategory & { sharedSize: number; items: DiskImage[] };
+  volumes: DiskCategory & { items: DiskVolume[] };
   buildCache: DiskCategory;
   containers: DiskContainersCategory;
   totalReclaimable: number;
 }
 
+/** `df` of the host root — only for a local (unix-socket) Docker host. */
+export interface HostDiskStats {
+  total: number;
+  used: number;
+  available: number;
+  percent: number;
+}
+
+/** One Docker host's `/info` + `/system/df`, as `GET /stats/system?device=` returns it. */
 export interface SystemInfo {
   deviceId: string;
-  serverVersion?: string;
-  containersRunning?: number;
-  containersStopped?: number;
-  totalMemory?: number;
-  disk?: DiskUsage;
+  serverVersion: string;
+  os: string;
+  architecture: string;
+  totalMemory: number;
+  cpus: number;
+  containersRunning: number;
+  containersStopped: number;
+  containersPaused: number;
+  containersTotal: number;
+  hostDisk: HostDiskStats | null;
+  disk: DiskUsage;
+  fetchedAt: string;
 }
+
+/** One entry of `GET /stats/system` without a device (every host that answered). */
+export interface DeviceSystemInfo extends SystemInfo {
+  deviceName: string;
+}
+
+/** `GET /stats/system`: one host's object with `?device=`, else every host's. */
+export type SystemInfoResponse = SystemInfo | DeviceSystemInfo[];
 
 // ─── Storage / Object Store ─────────────────────────────────
 
 export interface StorageBucket {
   name: string;
-  creationDate?: string;
+  creationDate: string | null;
   /** null while stats are still being collected for this bucket */
   objectCount: number | null;
   totalSize: number | null;
 }
 
+/** One object in a bucket listing. */
 export interface StorageObject {
   name: string;
   size: number;
-  lastModified?: string;
-  etag?: string;
-  contentType?: string;
+  lastModified: string | null;
+  etag: string | null;
 }
 
+/** GET /object-store/buckets/:name — objects and sub-folders at a prefix. */
+export interface StorageObjectListing {
+  bucket: string;
+  prefix: string;
+  objects: StorageObject[];
+  /** Virtual folders ("a/b/"), sorted. */
+  prefixes: string[];
+}
+
+/** GET /object-store/buckets/:name/stat/* — one object's full metadata. */
+export interface StorageObjectStat {
+  bucket: string;
+  /** The object key. */
+  object: string;
+  size: number;
+  contentType: string;
+  etag: string;
+  lastModified: string | null;
+  /** MinIO user/system metadata headers. */
+  metadata: Record<string, string>;
+}
+
+/** DELETE /object-store/buckets/:name/* */
+export interface StorageDeleteResponse {
+  success: true;
+  bucket: string;
+  object: string;
+}
+
+/** GET /stats/storage — every bucket's usage (its counts are never null here). */
 export interface StorageSummary {
   buckets: StorageBucket[];
   totalObjects: number;
   totalSize: number;
+  fetchedAt: string;
 }
 
-export interface BucketStreamEvent {
-  type: "init" | "bucket" | "done" | "error";
-  totalBuckets?: number;
-  /** init now carries every bucket's name/date up front (stats null) */
-  buckets?: StorageBucket[];
-  bucket?: StorageBucket;
-  message?: string;
-}
+/**
+ * GET /object-store/buckets/stream, one SSE frame at a time: `init` names
+ * every bucket up front (stats null), each `bucket` fills one in, and the
+ * stream ends with `done` — or `error` (a server frame or a lost connection).
+ */
+export type BucketStreamEvent =
+  | { type: "init"; totalBuckets: number; buckets: StorageBucket[] }
+  | { type: "bucket"; bucket: StorageBucket }
+  | { type: "done" }
+  | { type: "error"; message: string };
 
 export interface StorageSearchResult extends StorageObject {
   bucket: string;
 }
 
+/** GET /object-store/search */
 export interface StorageSearchResponse {
   results: StorageSearchResult[];
   totalScanned: number;
@@ -306,14 +434,14 @@ export interface StorageSearchResponse {
 export interface DetectedImport {
   target: string;
   /** The npm package name the import resolved through. */
-  package?: string;
+  package: string;
 }
 
 /** An HTTP call to another service found by code analysis. */
 export interface DetectedApiCall {
   target: string;
   /** The env var holding the target's base URL. */
-  envVar?: string;
+  envVar: string;
 }
 
 export interface ProjectDependencies {
@@ -324,7 +452,7 @@ export interface ProjectDependencies {
 export interface GitHubAnalysisHealth {
   tokenConfigured: boolean;
   status: "ok" | "degraded" | "unavailable";
-  stats?: {
+  stats: {
     requests: number;
     failures: number;
     unauthorized: number;
@@ -333,14 +461,16 @@ export interface GitHubAnalysisHealth {
   };
 }
 
+/** GET /services/analysis */
 export interface ProjectAnalysis {
   dependencies: Record<string, ProjectDependencies>;
-  repoSizes?: Record<string, RepoSize>;
-  owners?: Record<string, string>;
-  analyzedAt?: string;
+  repoSizes: Record<string, RepoSize>;
+  /** Project id → GitHub owner. */
+  owners: Record<string, string>;
+  analyzedAt: string;
   /** Health of the GitHub-backed code analysis — lets the UI distinguish
    *  "no detected edges" from "detection was unavailable". */
-  github?: GitHubAnalysisHealth;
+  github: GitHubAnalysisHealth;
 }
 
 export interface RepoSize {
@@ -348,10 +478,70 @@ export interface RepoSize {
   sizeBytes: number;
 }
 
+/** GET /services/sizes — projects whose repository size GitHub answered. */
+export interface RepoSizesResponse {
+  sizes: Record<string, RepoSize>;
+  fetchedAt: string;
+}
+
+/** A repository's GitHub Linguist breakdown, largest language first. */
+export interface LanguageBreakdown {
+  /** null for a repository with no detected code. */
+  primary: string | null;
+  breakdown: { language: string; bytes: number; percent: number }[];
+  totalBytes: number;
+}
+
+/** GET /services/languages */
+export interface LanguagesResponse {
+  languages: Record<string, LanguageBreakdown>;
+  fetchedAt: string;
+}
+
 /** Response shape from the /services API endpoint. */
 export interface ServicesResponse {
   services: PortalService[];
   infrastructure: PortalService[];
+}
+
+/** POST /services/:id/{start,stop,restart,rollback} */
+export interface ServiceActionResponse {
+  success: true;
+  /** The project's display name. */
+  service: string;
+  device: string;
+  message: string;
+}
+
+/** POST /containers/:name/{start,stop,restart}?device= */
+export interface ContainerActionResponse {
+  success: true;
+  container: string;
+  device: string;
+  message: string;
+}
+
+/** The `:previous` image a rollback would restore. */
+export interface PreviousImageInfo {
+  tag: string;
+  created: string | null;
+  size: number;
+  gitSha: string | null;
+  gitBranch: string | null;
+  buildTime: string | null;
+}
+
+/**
+ * GET /services/:id/rollback-status (and each value of the keyed batch at
+ * /services/rollback-status). `reason` says why when `available` is false;
+ * service/device/previousImage come with `available: true`.
+ */
+export interface ServiceRollbackStatus {
+  available: boolean;
+  reason?: string;
+  service?: string;
+  device?: string;
+  previousImage?: PreviousImageInfo;
 }
 
 // ─── Topology ───────────────────────────────────────────────
@@ -377,30 +567,58 @@ export interface GAProperty {
   label: string;
   measurementId: string;
   /** Registry project id (e.g. "rod-dev-client") — joins a GA property to its sessions-service projectId. */
-  serviceId?: string;
-  domain?: string | null;
+  serviceId: string;
+  domain: string | null;
 }
 
-export interface GAOverview {
+/** GET /google-analytics/properties */
+export interface GAPropertiesResponse {
+  properties: GAProperty[];
+}
+
+/** GET /google-analytics/:id/realtime — active users now, top 10 screens. */
+export interface GARealtimeReport {
+  activeUsers: number;
+  topPages: { pagePath: string; activeUsers: number }[];
+  fetchedAt: string;
+}
+
+/** Every period report carries the period it covers and when GA answered. */
+export interface GAReportMeta {
+  period: string;
+  fetchedAt: string;
+}
+
+/** One date range's overview totals. Rates and durations are fractional (0–1, seconds). */
+export interface GAOverviewTotals {
+  sessions: number;
+  pageviews: number;
+  activeUsers: number;
   totalUsers: number;
   newUsers: number;
-  pageviews: number;
-  sessions: number;
-  engagedSessions: number;
-  avgSessionDuration: number;
-  engagementRate: number;
   bounceRate: number;
-  deltas?: {
-    totalUsers?: number;
-    pageviews?: number;
-    sessions?: number;
-    avgSessionDuration?: number;
-    engagementRate?: number;
+  avgSessionDuration: number;
+  engagedSessions: number;
+  engagementRate: number;
+}
+
+/** GET /google-analytics/:id/overview — the period, the one before it, and the change. */
+export interface GAOverview extends GAOverviewTotals, GAReportMeta {
+  previous: GAOverviewTotals;
+  /** Relative change vs `previous` (a zero previous period reads as 1). */
+  deltas: {
+    sessions: number;
+    pageviews: number;
+    totalUsers: number;
+    avgSessionDuration: number;
+    engagementRate: number;
   };
 }
 
 export interface GAPageRow {
   pagePath: string;
+  /** Top pages group by path AND title, so a path can repeat. */
+  pageTitle: string;
   pageviews: number;
   users: number;
   avgDuration: number;
@@ -413,32 +631,40 @@ export interface GALandingPageRow {
   users: number;
   avgDuration: number;
   bounceRate: number;
+  engagedSessions: number;
 }
 
 export interface GASource {
   source: string;
   medium: string;
   sessions: number;
+  users: number;
+  engagementRate: number;
 }
 
 export interface GALocation {
   country: string;
-  city?: string;
+  /** "" when GA has no city for the row. */
+  city: string;
   users: number;
+  sessions: number;
 }
 
 export interface GADeviceCategory {
   category: string;
+  users: number;
   sessions: number;
 }
 
 export interface GABrowser {
   browser: string;
+  users: number;
   sessions: number;
 }
 
 export interface GAOperatingSystem {
   os: string;
+  users: number;
   sessions: number;
 }
 
@@ -447,7 +673,8 @@ export interface GAScreenResolution {
   sessions: number;
 }
 
-export interface GADevices {
+/** GET /google-analytics/:id/devices */
+export interface GADevices extends GAReportMeta {
   categories: GADeviceCategory[];
   browsers: GABrowser[];
   operatingSystems: GAOperatingSystem[];
@@ -457,6 +684,9 @@ export interface GADevices {
 export interface GAChannel {
   channel: string;
   sessions: number;
+  totalUsers: number;
+  newUsers: number;
+  engagementRate: number;
 }
 
 export interface GAHeatmapCell {
@@ -466,20 +696,39 @@ export interface GAHeatmapCell {
 }
 
 export interface GANewVsReturningSegment {
-  segment: "new" | "returning" | string;
+  segment: "new" | "returning" | (string & {});
   users: number;
+  sessions: number;
+  engagementRate: number;
 }
 
 export interface GAEvent {
   eventName: string;
   eventCount: number;
+  users: number;
 }
 
 export interface GATimeSeriesPoint {
-  date?: string;
+  /** YYYY-MM-DD */
+  date: string;
   pageviews: number;
   users: number;
   sessions: number;
+}
+
+/** The body of each GET /google-analytics/:id/<report>?period=, by report. */
+export interface GAReportsByName {
+  overview: GAOverview;
+  pages: GAReportMeta & { pages: GAPageRow[] };
+  sources: GAReportMeta & { sources: GASource[] };
+  geography: GAReportMeta & { locations: GALocation[] };
+  devices: GADevices;
+  timeseries: GAReportMeta & { series: GATimeSeriesPoint[] };
+  channels: GAReportMeta & { channels: GAChannel[] };
+  "landing-pages": GAReportMeta & { pages: GALandingPageRow[] };
+  heatmap: GAReportMeta & { cells: GAHeatmapCell[] };
+  "new-vs-returning": GAReportMeta & { segments: GANewVsReturningSegment[] };
+  events: GAReportMeta & { events: GAEvent[] };
 }
 
 // ─── Chart / Visualization ──────────────────────────────────
@@ -493,15 +742,62 @@ export interface DonutSegment {
 
 // ─── Device ─────────────────────────────────────────────────
 
+/** A registered service hosted on a device (GET /devices). */
+export interface DeviceHostedService {
+  id: string;
+  name: string;
+  url: string;
+  port: number | null;
+  environment: string;
+  visibility: string;
+  dockerProject: string | null;
+  deployTier: number | null;
+  healthy: boolean;
+  responseTimeMs: number | null;
+  error: string | null;
+  checkedAt: string | null;
+}
+
+/** An infrastructure entry hosted on a device (GET /devices). */
+export interface DeviceHostedInfrastructure {
+  id: string;
+  name: string;
+  type: string;
+  projectType: string | null;
+  url: string;
+  port: number | null;
+  environment: string;
+  visibility: string;
+  healthy: boolean;
+  responseTimeMs: number | null;
+  metadata: Record<string, unknown> | null;
+  error: string | null;
+  checkedAt: string | null;
+  isInfrastructure: true;
+}
+
+/**
+ * A physical device from GET /devices. The registry fields are "" when
+ * unset; `specs` is null for a device without a reachable Docker API.
+ */
 export interface Device {
   id: string;
   name: string;
-  hostname?: string;
-  os?: string;
-  type?: string;
-  notes?: string;
-  specs?: DeviceSpecs | null;
-  services?: PortalService[];
+  hostname: string;
+  os: string;
+  type: string;
+  notes: string;
+  specs: DeviceSpecs | null;
+  services: DeviceHostedService[];
+  infrastructure: DeviceHostedInfrastructure[];
+  /** Hosted services + infrastructure. */
+  serviceCount: number;
+  healthyCount: number;
+}
+
+/** GET /devices */
+export interface DevicesResponse {
+  devices: Device[];
 }
 
 /** Live hardware specs collected server-side from the device's Docker Engine. */
@@ -574,41 +870,179 @@ export interface SessionOverview {
   bounceRate: number;
 }
 
-/** Geo location from IP geolocation. */
-export interface SessionGeo {
-  country: string | null;
-  countryCode: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  timezone: string | null;
+// Session explorer (/stats/ips, /visitors, /sessions, /ip/:ip, /session/:id).
+// Nullable where the service can send null: a visitorId, a geo lookup, a
+// parsed browser/OS/device can each be missing on real sessions.
+
+export interface NamedVersion {
+  name: string | null;
+  version: string | null;
 }
 
-/** A full session record from sessions-service. */
-export interface SessionRecord {
+export interface DeviceInfo {
+  type: string | null;
+  vendor: string | null;
+}
+
+export interface GeoInfo {
+  country: string | null;
+  city: string | null;
+  countryCode: string | null;
+}
+
+export interface Viewport {
+  width: number;
+  height: number;
+}
+
+/** GET /stats/ips row — sessions grouped by IP (a "pseudo-user"). */
+export interface IpUser {
+  ip: string;
+  visitorIds: string[];
+  /** Newest 30 only; `sessionCount` is the real total. */
+  sessionIds: string[];
+  sessionCount: number;
+  /** Milliseconds. */
+  totalDuration: number;
+  firstSeen: string;
+  lastSeen: string;
+  projects: string[];
+  lastBrowser: NamedVersion | null;
+  lastOs: NamedVersion | null;
+  lastDevice: DeviceInfo | null;
+  lastGeo: GeoInfo | null;
+  lastFingerprintId: string | null;
+  lastReferrer: string | null;
+  lastViewport: Viewport | null;
+}
+
+/** GET /stats/visitors row — sessions grouped by client visitorId. */
+export interface Visitor {
+  visitorId: string;
+  sessionCount: number;
+  /** Milliseconds. */
+  totalDuration: number;
+  firstSeen: string;
+  lastSeen: string;
+  lastIp: string | null;
+  lastBrowser: NamedVersion | null;
+  lastOs: NamedVersion | null;
+  lastDevice: DeviceInfo | null;
+  lastGeo: GeoInfo | null;
+  lastReferrer: string | null;
+  lastViewport: Viewport | null;
+  /** Newest 20 only; `sessionCount` is the real total. */
+  sessionIds: string[];
+}
+
+/** GET /stats/sessions row (also the `sessions` of an IP detail). */
+export interface ExplorerSession {
   sessionId: string;
   visitorId: string | null;
   projectId: string | null;
+  /** Logged-in identity linked by the tracker (portal/prism/reels/music). */
+  userId?: string | null;
+  /** Crawler traffic — kept in explorer lists so it can be inspected. */
+  isBot?: boolean;
   ip: string;
   fingerprintId: string | null;
-  userAgent: string;
-  locale: string | null;
-  browser: {
-    name: string | null;
-    version: string | null;
-    major: string | null;
-  };
-  os: { name: string | null; version: string | null };
-  device: { type: string; vendor: string | null; model: string | null };
-  engine: { name: string | null; version: string | null };
-  geo: SessionGeo;
-  viewport: { width: number; height: number } | null;
+  browser: NamedVersion | null;
+  os: NamedVersion | null;
+  device: DeviceInfo | null;
+  geo: GeoInfo | null;
+  viewport: Viewport | null;
   referrer: string | null;
-  utm: Record<string, string> | null;
+  /** Milliseconds. */
   duration: number;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A session updated within the live window — no IP or fingerprint, bots excluded. */
+export type LiveSession = Omit<ExplorerSession, "ip" | "fingerprintId" | "isBot">;
+
+export interface PageViewRecord {
+  sessionId?: string;
+  url: string;
+  path: string;
+  title: string | null;
+  timestamp: string;
+}
+
+export interface EventRecord {
+  sessionId?: string;
+  category: string;
+  action: string;
+  label: string | null;
+  value?: unknown;
+  timestamp: string;
+}
+
+export interface TimelineEntry {
+  type: "pageview" | "event";
+  timestamp: string;
+  sessionId?: string;
+  path?: string;
+  title?: string | null;
+  url?: string;
+  category?: string;
+  action?: string;
+  label?: string | null;
+}
+
+/** GET /stats/session/:id */
+export interface SessionDetail extends ExplorerSession {
+  userAgent: string | null;
+  locale: string | null;
+  utm: Record<string, string> | null;
+  pageViews: PageViewRecord[];
+  events: EventRecord[];
+  timeline: TimelineEntry[];
+  /** True when an rrweb recording exists (play-button gate). */
+  hasReplay?: boolean;
+}
+
+/**
+ * GET /stats/ip/:ip — at most the newest 100 sessions. Unlike the /ips
+ * listing it sends no lastFingerprintId/lastReferrer/lastViewport, and its
+ * merged `timeline` drops each entry's sessionId.
+ */
+export interface IpDetail {
+  ip: string;
+  visitorIds: string[];
+  projects: string[];
+  sessionCount: number;
+  totalDuration: number;
+  firstSeen: string | null;
+  lastSeen: string | null;
+  lastBrowser: NamedVersion | null;
+  lastOs: NamedVersion | null;
+  lastDevice: DeviceInfo | null;
+  lastGeo: GeoInfo | null;
+  lastLocale?: string | null;
+  sessions: ExplorerSession[];
+  pageViews: PageViewRecord[];
+  events: EventRecord[];
+  timeline: TimelineEntry[];
+}
+
+/** A page of a paginated explorer list. */
+export interface ExplorerPage {
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface IpUsersPage extends ExplorerPage {
+  ips: IpUser[];
+}
+
+export interface VisitorsPage extends ExplorerPage {
+  visitors: Visitor[];
+}
+
+export interface SessionsPage extends ExplorerPage {
+  sessions: ExplorerSession[];
 }
 
 /** Top page entry from sessions-service. */
@@ -651,7 +1085,7 @@ export interface SessionTimeSeriesPoint {
 /** Live sessions response. */
 export interface SessionLiveResponse {
   activeSessions: number;
-  sessions: SessionRecord[];
+  sessions: LiveSession[];
 }
 
 /** Top event entry. */
@@ -659,4 +1093,168 @@ export interface SessionTopEvent {
   category: string;
   action: string;
   count: number;
+}
+
+/** GET /stats/heatmap — a grid×grid density matrix for one page path. */
+export interface SessionHeatmap {
+  path: string;
+  band: string | null;
+  type: string;
+  grid: number;
+  /** The densest cell's count. */
+  max: number;
+  total: number;
+  /** Non-empty cells only. */
+  cells: { gx: number; gy: number; count: number }[];
+}
+
+/** One recorded rrweb event, stored verbatim by sessions-service. */
+export interface RrwebEvent {
+  timestamp?: number;
+  [key: string]: unknown;
+}
+
+/** GET /stats/session/:id/replay — every chunk's events, ordered by timestamp. */
+export interface SessionReplay {
+  sessionId: string;
+  eventCount: number;
+  events: RrwebEvent[];
+}
+
+/**
+ * sessions-service wraps every successful /stats body (proxied verbatim by
+ * portal-service's /session-analytics) as `{ success: true, data }`.
+ */
+export interface SessionsEnvelope<T> {
+  success: true;
+  data: T;
+}
+
+/** The `data` of each GET /session-analytics/<report>, by report. */
+export interface SessionReportsByName {
+  projects: SessionProject[];
+  overview: SessionOverview;
+  sessions: SessionsPage;
+  pages: SessionPageRow[];
+  referrers: SessionReferrerRow[];
+  geo: SessionGeoRow[];
+  devices: SessionDeviceBreakdown;
+  timeseries: SessionTimeSeriesPoint[];
+  live: SessionLiveResponse;
+  events: SessionTopEvent[];
+  heatmap: SessionHeatmap;
+  visitors: VisitorsPage;
+  ips: IpUsersPage;
+}
+
+// ─── Integrations ───────────────────────────────────────────
+
+/**
+ * One external API key the portal knows about. The service never sends key
+ * material: a configured key is `configured: true` plus `fingerprint` — the
+ * first 8 hex chars of its SHA-256, enough to tell keys apart or confirm a
+ * rotation landed.
+ */
+export interface IntegrationItem {
+  provider: string;
+  envKey: string;
+  category: string;
+  configured: boolean;
+  /** Provider dashboard / docs link. */
+  docs: string;
+  /** null when the key is not configured. */
+  fingerprint: string | null;
+}
+
+export interface IntegrationCategory {
+  category: string;
+  integrations: IntegrationItem[];
+  configuredCount: number;
+  totalCount: number;
+}
+
+/** GET /integrations */
+export interface IntegrationsData {
+  categories: IntegrationCategory[];
+  totalCount: number;
+  configuredCount: number;
+}
+
+// ─── Logs ───────────────────────────────────────────────────
+
+/** A container as `GET /logs` lists it. */
+export interface LoggableContainer {
+  /** The container name (names are the ids Docker log routes take). */
+  id: string;
+  name: string;
+  image: string;
+  state: string;
+  status: string;
+  /** Device id of the Docker host. */
+  device: string;
+  /** The device's display name (its id when unregistered). */
+  deviceName: string;
+}
+
+/** GET /logs */
+export interface LoggableContainersResponse {
+  containers: LoggableContainer[];
+}
+
+// ─── External APIs ──────────────────────────────────────────
+
+export interface ExternalApiDailyCount {
+  date: string;
+  requests: number;
+}
+
+/** One external API's usage over the period, from whichever source tracks it. */
+export interface ExternalApiUsage {
+  /** `*.googleapis.com`, `llm:<provider>`, or a tools-service hostname. */
+  serviceIdentifier: string;
+  displayName: string;
+  category: string;
+  consumer: string;
+  /** Empty for providers without a known docs page. */
+  documentationUrl: string;
+  totalRequests: number;
+  successRequests: number;
+  errorRequests: number;
+  /** 0–1 */
+  errorRate: number;
+  /** Only sources that track spend (prism LLM requests). */
+  estimatedCost?: number;
+  dailySeries: ExternalApiDailyCount[];
+}
+
+/** GET /external-apis?period= */
+export interface ExternalApiUsageData {
+  services: ExternalApiUsage[];
+  totalRequests: number;
+  totalErrors: number;
+  period: string;
+  /** Primary GCP project ("" when Cloud Monitoring was unreachable). */
+  projectId: string;
+  projectIds: string[];
+  /** GCP projects whose Monitoring query failed. */
+  unreachableProjectIds: string[];
+  /** Usage sources that failed — the numbers shown exclude them. */
+  unreachableSources: string[];
+  fetchedAt: string;
+}
+
+export interface ExternalApiTimeSeriesPoint {
+  date: string;
+  requests: number;
+  successRequests: number;
+  errorRequests: number;
+}
+
+/** GET /external-apis/timeseries?service=&period= */
+export interface ExternalApiTimeSeries {
+  serviceIdentifier: string;
+  displayName: string;
+  series: ExternalApiTimeSeriesPoint[];
+  period: string;
+  fetchedAt: string;
 }

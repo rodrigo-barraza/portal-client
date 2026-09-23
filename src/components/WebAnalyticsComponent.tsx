@@ -21,7 +21,7 @@ const NO_PROPERTIES: GAProperty[] = [];
  */
 export default function WebAnalyticsComponent() {
   const registry = useAsyncData("ga-properties", (signal) =>
-    ApiService.getGAProperties({ signal }) as Promise<{ properties?: GAProperty[] } | null>,
+    ApiService.getGAProperties({ signal }),
   );
   // GA registry failing shouldn't hide first-party projects
   const properties = registry.data?.properties ?? NO_PROPERTIES;

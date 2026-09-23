@@ -21,7 +21,13 @@ import {
   summarizeBuckets,
   truncateMiddle,
 } from "../storageOverview";
-import type { DiskUsage, StorageBucket } from "../../../types/portal";
+import type { StorageBucket } from "../../../types/portal";
+import {
+  deviceSystemInfo,
+  diskUsage,
+  storageBucket,
+  storageObject,
+} from "../../__tests__/apiFixtures";
 
 describe("file types", () => {
   it("reads the extension of the leaf only", () => {
@@ -69,8 +75,8 @@ describe("keys and prefixes", () => {
 
   it("filters a listing by the names shown, case-insensitively", () => {
     const objects = [
-      { name: "a/Report.pdf", size: 1 },
-      { name: "a/photo.png", size: 2 },
+      storageObject({ name: "a/Report.pdf", size: 1 }),
+      storageObject({ name: "a/photo.png", size: 2 }),
     ];
     const filtered = filterListing(objects, ["a/reports/", "a/misc/"], " REPORT ", "a/");
     expect(filtered.objects.map((object) => object.name)).toEqual(["a/Report.pdf"]);
@@ -82,9 +88,9 @@ describe("keys and prefixes", () => {
 
   it("groups search hits by bucket in first-seen order", () => {
     const groups = groupResultsByBucket([
-      { bucket: "b", name: "1", size: 1 },
-      { bucket: "a", name: "2", size: 1 },
-      { bucket: "b", name: "3", size: 1 },
+      { bucket: "b", ...storageObject({ name: "1", size: 1 }) },
+      { bucket: "a", ...storageObject({ name: "2", size: 1 }) },
+      { bucket: "b", ...storageObject({ name: "3", size: 1 }) },
     ]);
     expect(groups.map((group) => [group.bucket, group.results.map((result) => result.name)])).toEqual([
       ["b", ["1", "3"]],
@@ -105,20 +111,19 @@ describe("keys and prefixes", () => {
 });
 
 describe("overview shaping", () => {
-  const disk: DiskUsage = {
-    images: { totalSize: 100, count: 2 },
-    volumes: { totalSize: 0, count: 0 },
+  const disk = diskUsage({
+    images: { totalSize: 100, count: 2, sharedSize: 0, items: [] },
     buildCache: { totalSize: 50, count: 3 },
     containers: { totalWritableSize: 10, count: 1 },
     totalReclaimable: 160,
-  };
+  });
 
-  it("normalizes /stats/system — one entry per Docker host, disk required", () => {
+  it("normalizes /stats/system — one entry per Docker host that answered", () => {
+    const nas = deviceSystemInfo({ deviceId: "nas", disk });
+    const desktop = deviceSystemInfo({ deviceId: "desktop", disk });
     expect(normalizeDockerHosts(null)).toEqual([]);
-    expect(normalizeDockerHosts([{ deviceId: "nas", disk }, { deviceId: "down" }])).toEqual([
-      { deviceId: "nas", disk },
-    ]);
-    expect(normalizeDockerHosts({ deviceId: "nas", disk })).toEqual([{ deviceId: "nas", disk }]);
+    expect(normalizeDockerHosts([nas, desktop])).toEqual([nas, desktop]);
+    expect(normalizeDockerHosts(nas)).toEqual([nas]);
   });
 
   it("drops empty disk categories", () => {
@@ -131,10 +136,10 @@ describe("overview shaping", () => {
 
   it("orders non-empty buckets largest first", () => {
     const buckets: StorageBucket[] = [
-      { name: "small", objectCount: 1, totalSize: 10 },
-      { name: "empty", objectCount: 0, totalSize: 0 },
-      { name: "big", objectCount: 5, totalSize: 99 },
-      { name: "pending", objectCount: null, totalSize: null },
+      storageBucket({ name: "small", objectCount: 1, totalSize: 10 }),
+      storageBucket({ name: "empty", objectCount: 0, totalSize: 0 }),
+      storageBucket({ name: "big", objectCount: 5, totalSize: 99 }),
+      storageBucket({ name: "pending", objectCount: null, totalSize: null }),
     ];
     expect(bucketSegments(buckets).map((segment) => segment.label)).toEqual(["big", "small"]);
     expect(summarizeBuckets(buckets)).toEqual({ objects: 6, bytes: 109 });

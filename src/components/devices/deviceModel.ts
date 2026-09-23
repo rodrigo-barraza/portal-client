@@ -3,10 +3,10 @@
  * device's overall container status.
  */
 
-import type { ContainerStats, Device } from "../../types/portal";
+import type { Device, DockerContainerStats } from "../../types/portal";
 
-/** A container row from /stats/containers (stopped ones carry zeroed stats). */
-export type DeviceContainer = Partial<ContainerStats> & { name: string; device?: string };
+/** A container from /stats/containers (stopped ones carry zeroed stats). */
+export type DeviceContainer = DockerContainerStats;
 
 export function isRunning(container: Pick<DeviceContainer, "state">): boolean {
   return container.state === "running";
@@ -23,10 +23,10 @@ export function groupContainersByDevice(containers: DeviceContainer[]): Record<s
 }
 
 /** Busiest devices first; ties keep the registry order. */
-export function sortDevicesByContainerCount(
-  devices: Device[],
+export function sortDevicesByContainerCount<D extends Pick<Device, "id">>(
+  devices: D[],
   containersByDevice: Record<string, DeviceContainer[]>,
-): Device[] {
+): D[] {
   return [...devices].sort(
     (first, second) =>
       (containersByDevice[second.id]?.length ?? 0) - (containersByDevice[first.id]?.length ?? 0),

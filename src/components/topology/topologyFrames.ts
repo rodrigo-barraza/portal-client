@@ -22,7 +22,7 @@ export interface ClusterFrame {
   isSearchFaded: boolean;
 }
 
-export function serviceTypeColor(projectType: string | undefined) {
+export function serviceTypeColor(projectType: string | null | undefined) {
   return SERVICE_TYPE_COLORS[projectType || ""] || SERVICE_TYPE_COLORS.Service;
 }
 

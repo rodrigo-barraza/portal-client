@@ -17,24 +17,10 @@ import { useEffect, useRef, useState } from "react";
 import { Flame } from "lucide-react";
 import { SegmentedControlComponent } from "@rodrigo-barraza/components-library";
 import ApiService from "../services/ApiService";
+import type { SessionHeatmap } from "../types/portal";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import { formatExact } from "./analytics/analyticsFormat";
 import styles from "./HeatmapPanelComponent.module.css";
-
-interface HeatmapCell {
-  gx: number;
-  gy: number;
-  count: number;
-}
-interface HeatmapData {
-  path: string;
-  band: string | null;
-  type: string;
-  grid: number;
-  max: number;
-  total: number;
-  cells: HeatmapCell[];
-}
 
 type InteractionType = "move" | "click" | "scroll";
 type Band = "mobile" | "tablet" | "desktop";
@@ -65,7 +51,7 @@ const TYPE_NOUNS: Record<InteractionType, string> = {
  * Cells are clamped into the grid so a malformed coordinate can't paint
  * outside the canvas.
  */
-function paintHeatmap(context: CanvasRenderingContext2D, data: HeatmapData | null) {
+function paintHeatmap(context: CanvasRenderingContext2D, data: SessionHeatmap | null) {
   const size = CANVAS_RESOLUTION;
   context.filter = "none";
   context.clearRect(0, 0, size, size);
@@ -111,7 +97,7 @@ export default function HeatmapPanelComponent({
     JSON.stringify([projectId, path, period, type, band]),
     (signal) =>
       ApiService.getSessionHeatmap(projectId, path, period, type, band, undefined, { signal }).then(
-        unwrapData<HeatmapData | null>,
+        unwrapData,
       ),
   );
   const data = heatmap.data;
