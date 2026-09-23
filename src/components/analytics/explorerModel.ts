@@ -292,6 +292,24 @@ export function ipFingerprint(detail: IpDetail): string | null {
   return detail.sessions?.find((session) => session.fingerprintId)?.fingerprintId ?? null;
 }
 
+/**
+ * The IP's latest activity. sessions-service reports the newest-CREATED
+ * session's updatedAt, which misses an older session (a long-lived tab)
+ * that was active more recently; take the max over the sessions instead.
+ */
+export function ipLastSeen(detail: IpDetail): string | null {
+  let latest: string | null = detail.lastSeen ?? null;
+  let latestTime = latest ? timestampOf(latest) : 0;
+  for (const session of detail.sessions ?? []) {
+    const time = timestampOf(session.updatedAt);
+    if (time > latestTime) {
+      latest = session.updatedAt;
+      latestTime = time;
+    }
+  }
+  return latest;
+}
+
 /** Stable React key for a timeline row. */
 export function timelineKey(entry: TimelineEntry, index: number): string {
   return `${entry.timestamp}|${entry.type}|${entry.sessionId ?? ""}|${index}`;

@@ -5,6 +5,7 @@ import {
   filterSessions,
   filterVisitors,
   ipFingerprint,
+  ipLastSeen,
   ipTimeline,
   type ExplorerSession,
   type IpDetail,
@@ -142,5 +143,17 @@ describe("IP detail helpers", () => {
     });
     expect(ipFingerprint(detail)).toBe("fp-older");
     expect(ipFingerprint(ipDetail({}))).toBeNull();
+  });
+
+  it("takes the latest activity across sessions, not the newest session's", () => {
+    const detail = ipDetail({
+      lastSeen: "2026-09-01T10:05:00.000Z",
+      sessions: [
+        session({ sessionId: "newest", updatedAt: "2026-09-01T10:05:00.000Z" }),
+        session({ sessionId: "long-lived", updatedAt: "2026-09-01T18:00:00.000Z" }),
+      ],
+    });
+    expect(ipLastSeen(detail)).toBe("2026-09-01T18:00:00.000Z");
+    expect(ipLastSeen(ipDetail({}))).toBeNull();
   });
 });

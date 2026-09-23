@@ -20,7 +20,7 @@ import {
   formatTimestamp,
   shortId,
 } from "./analyticsFormat";
-import { ipFingerprint, ipTimeline, type IpDetail } from "./explorerModel";
+import { ipFingerprint, ipLastSeen, ipTimeline, type IpDetail } from "./explorerModel";
 import styles from "../SessionExplorerComponent.module.css";
 
 /** Session pills listed on an IP profile before "+N more". */
@@ -110,7 +110,7 @@ export default function IpDetailComponent({
           <MetaValue>{formatTimestamp(profile.firstSeen)}</MetaValue>
         </MetaCard>
         <MetaCard label="Last Seen">
-          <MetaValue>{formatTimestamp(profile.lastSeen)}</MetaValue>
+          <MetaValue>{formatTimestamp(ipLastSeen(profile))}</MetaValue>
         </MetaCard>
         {fingerprint && (
           <MetaCard label="Fingerprint">
