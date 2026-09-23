@@ -3,3 +3,7 @@ out
 build
 next-env.d.ts
 node_modules
+# agent worktrees (nested checkouts) — never reformat them from here
+.claude
+# generated at prebuild
+src/generated
