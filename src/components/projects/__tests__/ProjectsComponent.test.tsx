@@ -100,6 +100,26 @@ describe("ProjectsComponent", () => {
     expect(screen.queryByText("No URL configured")).not.toBeInTheDocument();
   });
 
+  it("shows unprobed infrastructure as unchecked, not down", async () => {
+    updateSettings({ showInfrastructure: true });
+    api.getServices.mockResolvedValue({
+      services,
+      infrastructure: [
+        {
+          id: "llama",
+          name: "llama.cpp",
+          healthy: false,
+          checkedAt: undefined,
+          projectType: "Inference",
+          error: 'Unchecked — no health probe for infrastructure type "gpu"',
+        },
+      ],
+    });
+    render(<ProjectsComponent />);
+    expect(await screen.findByText("Unchecked")).toBeInTheDocument();
+    expect(screen.queryByText(/no health probe/)).not.toBeInTheDocument();
+  });
+
   it("includes databases and stores only when the setting asks for them", async () => {
     const { unmount } = render(<ProjectsComponent />);
     await screen.findByText("Prism Service");

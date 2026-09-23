@@ -49,11 +49,17 @@ export function ContainerStatusIcon({ statusKind }: { statusKind: ContainerStatu
   );
 }
 
-/** Stand-in for the status badge before the first health check lands. */
-export function CheckingPill({ className }: { className?: string }) {
+/** Gray stand-in for the status badge while health is unknown. */
+export function CheckingPill({
+  label = "Checking…",
+  title = STATUS_LABEL.unknown,
+}: {
+  label?: string;
+  title?: string;
+}) {
   return (
-    <span className={`${styles['checking-pill']} ${className ?? ""}`} title={STATUS_LABEL.unknown}>
-      Checking…
+    <span className={styles['checking-pill']} title={title}>
+      {label}
     </span>
   );
 }

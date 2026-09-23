@@ -62,19 +62,27 @@ export function mergeSeededHistory(
   return next;
 }
 
-/** `/stats/containers/metrics` → history (persisted MongoDB samples). */
+/**
+ * `/stats/containers/metrics` → history (persisted MongoDB samples). The
+ * response is keyed "<device>/<container>" and each entry names its
+ * container and device; the key is only a fallback for the name.
+ */
 export function historyFromMetrics(
   containers: Record<
     string,
-    { device?: string; points?: { cpu?: number | null; mem?: number | null }[] }
+    {
+      container?: string;
+      device?: string;
+      points?: { cpu?: number | null; mem?: number | null }[];
+    }
   > | null | undefined,
   max = HISTORY_MAX,
 ): HistoryMap {
   const history: HistoryMap = {};
-  for (const [name, data] of Object.entries(containers ?? {})) {
+  for (const [key, data] of Object.entries(containers ?? {})) {
     const points = tail(data.points ?? [], max);
     if (points.length === 0) continue;
-    history[containerKey(data.device, name)] = {
+    history[containerKey(data.device, data.container ?? key)] = {
       cpu: points.map((point) => point.cpu ?? 0),
       mem: points.map((point) => point.mem ?? 0),
     };

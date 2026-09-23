@@ -48,7 +48,26 @@ describe("mergeSeededHistory", () => {
 });
 
 describe("historyFromMetrics", () => {
-  it("keys persisted series by device + name", () => {
+  it("keeps same-named containers on two hosts apart (device/container keys)", () => {
+    const history = historyFromMetrics({
+      "synology/prism-service": {
+        container: "prism-service",
+        device: "synology",
+        points: [{ cpu: 1, mem: 10 }],
+      },
+      "workstation/prism-service": {
+        container: "prism-service",
+        device: "workstation",
+        points: [{ cpu: 9, mem: 90 }],
+      },
+    });
+    expect(history).toEqual({
+      "synology::prism-service": { cpu: [1], mem: [10] },
+      "workstation::prism-service": { cpu: [9], mem: [90] },
+    });
+  });
+
+  it("falls back to the key as the container name", () => {
     const history = historyFromMetrics({
       "prism-service": {
         device: "synology",
