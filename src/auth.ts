@@ -1,12 +1,14 @@
 // ============================================================
 // Portal — Auth.js (next-auth v5) Configuration
 // ============================================================
-// Google SSO with email whitelist. Only emails listed in
-// AUTH_ALLOWED_EMAILS can access the portal.
+// Google SSO with an email allowlist: only emails listed in
+// AUTH_ALLOWED_EMAILS can sign in. Signing in is what unlocks the
+// admin-gated pages; the rest of the portal is viewable signed out
+// (see the `authorized` callback).
 //
 // Auth is CONDITIONALLY ENABLED — if AUTH_GOOGLE_ID and
 // AUTH_GOOGLE_SECRET are both set, OAuth is active. Otherwise,
-// the portal runs fully open (no login required).
+// the portal runs fully open (no login at all).
 //
 // Admin-gated pages (e.g. Web Analytics) additionally require the
 // "admin" role, resolved from accounts-service at sign-in and
@@ -17,7 +19,6 @@
 //   AUTH_GOOGLE_ID             — Google OAuth2 Client ID
 //   AUTH_GOOGLE_SECRET         — Google OAuth2 Client Secret
 //   AUTH_ALLOWED_EMAILS        — comma-separated list of allowed emails
-//   AUTH_TRUST_HOST            — set to "true" when behind a reverse proxy
 //   ACCOUNTS_SERVICE_URL       — accounts-service base URL (role lookup)
 //   ACCOUNTS_SERVICE_API_SECRET — shared secret for the role lookup
 // ============================================================
@@ -94,9 +95,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     /**
-     * Middleware authorization check. Returning false triggers
-     * a redirect to the sign-in page for page requests, or a
-     * 401 for API requests. When auth is disabled, always pass.
+     * Proxy (src/proxy.ts) authorization check for public hosts.
+     * Returning false would redirect every signed-out request to the
+     * sign-in page. It passes every request: the portal pages are
+     * viewable signed out, and admin-only areas gate themselves
+     * (e.g. the web-analytics layout via canAccessAdminSide).
      */
     authorized() {
       return true;
