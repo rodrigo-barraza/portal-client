@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import {
   LoadingIndicatorComponent,
   PageHeaderComponent,
 } from "@rodrigo-barraza/components-library";
-import { BarChart3 } from "lucide-react";
+import { ChartColumn } from "lucide-react";
 import ApiService from "../services/ApiService";
 import PropertyListingComponent from "./PropertyListingComponent";
+import useAsyncData from "./analytics/useAsyncData";
 import styles from "./WebAnalytics.module.css";
 import type { GAProperty } from "../types/portal";
+
+const NO_PROPERTIES: GAProperty[] = [];
 
 /**
  * WebAnalyticsComponent — the /web-analytics landing page.
@@ -17,34 +19,21 @@ import type { GAProperty } from "../types/portal";
  * PropertyListingComponent (which merges in sessions-service projects).
  */
 export default function WebAnalyticsComponent() {
-  const [properties, setProperties] = useState<GAProperty[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const didFetch = useRef(false);
-
-  useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
-
-    ApiService.getGAProperties()
-      .then((propertiesResponse) => {
-        setProperties(propertiesResponse.properties || []);
-      })
-      .catch((error: unknown) => {
-        // GA registry failing shouldn't hide first-party projects
-        setError(error instanceof Error ? error.message : String(error));
-        setProperties([]);
-      });
-  }, []);
+  const registry = useAsyncData("ga-properties", () =>
+    ApiService.getGAProperties() as Promise<{ properties?: GAProperty[] } | null>,
+  );
+  // GA registry failing shouldn't hide first-party projects
+  const properties = registry.data?.properties ?? NO_PROPERTIES;
 
   return (
-    <div className={`web-analytics-component ${styles['dashboard']}`}>
+    <div className={`web-analytics-component ${styles["dashboard"]}`}>
       <PageHeaderComponent
         sticky={false}
         title="Web Analytics"
         subtitle="Unified Google Analytics (GA4) and first-party session tracking per property"
       />
 
-      {properties === null ? (
+      {registry.loading ? (
         <LoadingIndicatorComponent
           size="small"
           label="Loading properties…"
@@ -52,11 +41,11 @@ export default function WebAnalyticsComponent() {
         />
       ) : (
         <>
-          {error && (
-            <div className={styles['empty-state']} style={{ minHeight: "auto" }}>
-              <BarChart3 size={28} strokeWidth={1.5} className={styles['empty-icon']} />
-              <span className={styles['empty-title']}>Google Analytics unavailable</span>
-              <span className={styles['empty-detail']}>{error}</span>
+          {registry.error && (
+            <div className={`${styles["empty-state"]} ${styles["empty-state-compact"]}`} role="alert">
+              <ChartColumn size={28} strokeWidth={1.5} className={styles["empty-icon"]} />
+              <span className={styles["empty-title"]}>Google Analytics unavailable</span>
+              <span className={styles["empty-detail"]}>{registry.error.message}</span>
             </div>
           )}
           <PropertyListingComponent properties={properties} />
