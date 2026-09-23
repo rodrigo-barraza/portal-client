@@ -180,9 +180,29 @@ describe("StorageComponent", () => {
         await vi.advanceTimersByTimeAsync(400);
       });
       expect(api.searchStorageObjects).toHaveBeenCalledTimes(1);
-      expect(api.searchStorageObjects).toHaveBeenCalledWith("cat");
+      expect(api.searchStorageObjects).toHaveBeenCalledWith("cat", {}, { signal: expect.any(AbortSignal) });
       expect(screen.getByText("Search failed")).toBeInTheDocument();
       expect(screen.getByText("search timed out")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("aborts a search still in flight when the query changes", async () => {
+    vi.useFakeTimers();
+    try {
+      api.searchStorageObjects.mockReturnValue(new Promise(() => {}));
+      render(<StorageComponent />);
+      const searchbox = screen.getByRole("searchbox", { name: "Search files across all stores…" });
+      fireEvent.change(searchbox, { target: { value: "cat" } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+      const firstSignal = api.searchStorageObjects.mock.calls[0][2]?.signal;
+      expect(firstSignal?.aborted).toBe(false);
+
+      fireEvent.change(searchbox, { target: { value: "cats" } });
+      expect(firstSignal?.aborted).toBe(true);
     } finally {
       vi.useRealTimers();
     }

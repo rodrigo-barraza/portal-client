@@ -178,15 +178,17 @@ export function useGlobalSearch() {
 
   useEffect(() => {
     if (trimmed.length < MIN_SEARCH_LENGTH) return;
-    let active = true;
+    // Every keystroke past the debounce supersedes the search in flight —
+    // abort it rather than let a slow bucket scan hold a connection open.
+    const controller = new AbortController();
     const timer = setTimeout(() => {
-      ApiService.searchStorageObjects(trimmed)
+      ApiService.searchStorageObjects(trimmed, {}, { signal: controller.signal })
         .then((response) => {
-          if (!active) return;
+          if (controller.signal.aborted) return;
           setOutcome({ query: trimmed, ...response, error: null });
         })
         .catch((error: unknown) => {
-          if (!active) return;
+          if (controller.signal.aborted) return;
           setOutcome({
             query: trimmed,
             results: [],
@@ -197,7 +199,7 @@ export function useGlobalSearch() {
         });
     }, SEARCH_DEBOUNCE_MS);
     return () => {
-      active = false;
+      controller.abort();
       clearTimeout(timer);
     };
   }, [trimmed]);
