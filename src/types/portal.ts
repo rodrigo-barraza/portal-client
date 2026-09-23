@@ -17,7 +17,8 @@ export type ProjectType =
   | "Store"
   | "Library"
   | "Kit"
-  | "Tool";
+  | "Tool"
+  | "Inference";
 
 /** Deploy tier from the vault-service registry (0=Foundation, 1=Services, 2=Bots). */
 export type DeployTier = 0 | 1 | 2;
@@ -67,11 +68,14 @@ export interface PortalService {
   visibility?: "external" | "internal";
   environment?: string;
   responseTimeMs?: number;
-  error?: string;
+  /** Why the last health check failed (null when healthy). */
+  error?: string | null;
   repo?: string;
   dockerProject?: string;
   restartable?: boolean;
-  checkedAt?: string;
+  /** null until the first health check completes, and for infrastructure
+   *  that has no health probe. */
+  checkedAt?: string | null;
   /** Watchdog state (portal-service /watchdog): pending | up | down. */
   watchdogStatus?: "pending" | "up" | "down";
   /** Last push heartbeat received (dead-man's-switch services only). */
@@ -508,6 +512,35 @@ export interface DeviceSpecs {
   architecture: string;
   dockerVersion: string;
   collectedAt: string;
+}
+
+// ─── Container Metrics (persistent MongoDB time series) ─────
+
+/** One persisted sample; `t` is an ISO timestamp. */
+export interface ContainerMetricsPoint {
+  t: string;
+  cpu: number;
+  mem: number;
+  memLimit: number;
+  netRx: number;
+  netTx: number;
+  pids: number;
+}
+
+/** One container's series on one device. */
+export interface ContainerMetricsSeries {
+  container: string;
+  device: string;
+  points: ContainerMetricsPoint[];
+}
+
+/** GET /stats/containers/metrics — series keyed `<device>/<container>`
+ *  (container names repeat across devices). */
+export interface ContainerMetricsResponse {
+  containers: Record<string, ContainerMetricsSeries>;
+  range: string;
+  since?: string;
+  samples: number;
 }
 
 // ─── Breadcrumb ─────────────────────────────────────────────
