@@ -17,6 +17,7 @@
     "catalog:generate": "node scripts/generate-component-catalog.mjs",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
+    "pretypecheck": "node scripts/generate-component-catalog.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
