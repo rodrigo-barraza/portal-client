@@ -267,3 +267,13 @@
   letter-spacing: -0.01em;
 }
 
+/* ── Refresh failure notice ── */
+
+.refresh-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+}
