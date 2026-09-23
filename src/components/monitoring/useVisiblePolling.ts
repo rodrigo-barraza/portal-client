@@ -1,0 +1,88 @@
+"use client";
+
+import { useCallback, useEffect, useRef } from "react";
+
+/** True while the run that received it is still the newest and the host is mounted. */
+export type IsCurrent = () => boolean;
+
+/**
+ * Run `task` immediately and then every `intervalMs` — but only while the
+ * tab is visible, so a background tab stops hammering portal-service.
+ *
+ * - Hiding the tab stops the timer; showing it again runs the task at once.
+ * - A tick that lands while the previous run is still in flight is skipped,
+ *   so a slow backend never gets overlapping polls stacked on it.
+ * - The returned `refresh()` forces a run right away. A run it supersedes
+ *   sees `isCurrent()` turn false, so an older response can never overwrite
+ *   a newer one; `isCurrent()` is also false once the host unmounts. Tasks
+ *   check it after every `await`, before touching state.
+ */
+export function useVisiblePolling(
+  task: (isCurrent: IsCurrent) => Promise<void>,
+  intervalMs: number,
+  enabled = true,
+): () => Promise<void> {
+  const taskRef = useRef(task);
+  const latestRunRef = useRef(0);
+  const inFlightRef = useRef(false);
+  const aliveRef = useRef(false);
+
+  useEffect(() => {
+    taskRef.current = task;
+  });
+
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  const run = useCallback(async (force: boolean) => {
+    if (inFlightRef.current && !force) return;
+    const runId = ++latestRunRef.current;
+    inFlightRef.current = true;
+    try {
+      await taskRef.current(
+        () => aliveRef.current && runId === latestRunRef.current,
+      );
+    } catch {
+      // Tasks own their error state; a throw must not wedge the poller.
+    } finally {
+      if (runId === latestRunRef.current) inFlightRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const start = () => {
+      if (timer === undefined) timer = setInterval(() => void run(false), intervalMs);
+    };
+    const stop = () => {
+      if (timer !== undefined) clearInterval(timer);
+      timer = undefined;
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        stop();
+      } else {
+        void run(false);
+        start();
+      }
+    };
+
+    if (document.visibilityState !== "hidden") {
+      void run(false);
+      start();
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enabled, intervalMs, run]);
+
+  return useCallback(() => run(true), [run]);
+}

@@ -1,0 +1,23 @@
+.action-row {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.action-button {
+  min-height: 26px !important;
+  min-width: 26px !important;
+  width: 26px;
+  height: 26px;
+  padding: 0 !important;
+  border-radius: var(--border-radius-sm) !important;
+  font-size: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .action-button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+}

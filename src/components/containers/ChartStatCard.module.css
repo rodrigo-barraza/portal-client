@@ -1,0 +1,63 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 12px;
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  border-radius: var(--border-radius-md, var(--border-radius-sm));
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--chart-stat-accent, var(--accent-primary)) 30%,
+      var(--calculated-border-color)
+    );
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chart-stat-accent, var(--accent-primary));
+  background: color-mix(in srgb, var(--chart-stat-accent, var(--accent-primary)) 10%, transparent);
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}

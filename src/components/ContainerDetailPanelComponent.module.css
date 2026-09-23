@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
    ContainerDetailPanel — Drawer content for container rows
-   High-contrast, polished information display
+   (metric card chrome lives in monitoring/ContainerMetricCards)
    ══════════════════════════════════════════════════════════════════ */
 
 .panel {
@@ -75,6 +75,12 @@
   text-align: right;
 }
 
+.status-unknown-text {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* ── State Badge ─────────────────────────────────────────────── */
 
 .state-badge {
@@ -86,31 +92,27 @@
   padding: 3px 10px;
   border-radius: 4px;
   white-space: nowrap;
+  color: var(--text-secondary);
+  background: var(--background-elevated);
+  border: 1px solid var(--calculated-border-color);
 
   &[data-state="running"] {
     color: var(--color-success);
-    background: oklch(69.6% 0.1491 162.5 / 0.1);
-    border: 1px solid oklch(69.6% 0.1491 162.5 / 0.25);
+    background: color-mix(in srgb, var(--color-success) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-success) 25%, transparent);
   }
 
   &[data-state="exited"],
   &[data-state="dead"] {
     color: var(--color-danger);
-    background: oklch(63.7% 0.2078 25.3 / 0.1);
-    border: 1px solid oklch(63.7% 0.2078 25.3 / 0.25);
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
   }
 
   &[data-state="paused"] {
     color: var(--color-warning);
-    background: oklch(76.9% 0.1646 70.1 / 0.1);
-    border: 1px solid oklch(76.9% 0.1646 70.1 / 0.25);
-  }
-
-  &[data-state="restarting"],
-  &[data-state="created"] {
-    color: var(--text-secondary);
-    background: var(--background-elevated);
-    border: 1px solid var(--calculated-border-color);
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-warning) 25%, transparent);
   }
 }
 
@@ -131,7 +133,7 @@
   border: 1px solid var(--calculated-border-color);
 }
 
-/* ── Metrics Grid ─────────────────────────────────────────────── */
+/* ── Metrics ─────────────────────────────────────────────────── */
 
 .metrics-grid {
   display: flex;
@@ -155,126 +157,6 @@
 
 .empty-icon {
   opacity: 0.5;
-}
-
-/* ── Metric Card ──────────────────────────────────────────────── */
-
-.metric-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  background: var(--background-surface);
-  border: 1px solid var(--calculated-border-color);
-  border-radius: var(--border-radius-sm);
-  transition: border-color 180ms ease;
-
-  &:hover {
-    border-color: var(--accent-primary);
-  }
-}
-
-.metric-card-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.metric-card-icon {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.metric-card-title {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-secondary);
-}
-
-.metric-card-value {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.metric-card-dim {
-  font-size: var(--font-size-xs);
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.metric-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
-}
-
-/* ── Percent Bar ──────────────────────────────────────────────── */
-
-.bar-track {
-  width: 100%;
-  height: 3px;
-  background: var(--background-elevated);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transform-origin: left;
-  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ── I/O Stats ────────────────────────────────────────────────── */
-
-.input-output-stats {
-  display: flex;
-  gap: 20px;
-  padding-top: 4px;
-}
-
-.input-output-stats-warning {
-  display: flex;
-  gap: 20px;
-  padding-top: 6px;
-  border-top: 1px solid oklch(63.7% 0.2078 25.3 / 0.15);
-  margin-top: 4px;
-}
-
-.input-output-stat {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.input-output-direction {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-}
-
-.input-output-value {
-  font-size: var(--font-size-xs);
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.input-output-value-danger {
-  font-size: var(--font-size-xs);
-  font-family: var(--font-mono);
-  color: var(--color-danger);
-  font-weight: 700;
 }
 
 /* ── Detail Grid (Memory Breakdown) ───────────────────────────── */
@@ -308,13 +190,28 @@
   font-weight: 600;
 }
 
-/* ── Network Interfaces ───────────────────────────────────────── */
+.detail-value-warning {
+  color: var(--color-warning);
+}
 
-.interface-list {
+.detail-value-danger {
+  color: var(--color-danger);
+}
+
+/* ── Interfaces / Ports / Mounts ──────────────────────────────── */
+
+.list {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-top: 4px;
+}
+
+.mono-detail {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .interface-row {
@@ -335,40 +232,8 @@
   border-radius: 4px;
 }
 
-.input-output-compact-detail {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-/* ── Port Mappings ────────────────────────────────────────────── */
-
-.port-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding-top: 4px;
-}
-
 .port-row {
   padding: 3px 0;
-}
-
-.port-mapping {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-/* ── Volume Mounts ────────────────────────────────────────────── */
-
-.mount-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 4px;
 }
 
 .mount-row {
@@ -451,38 +316,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   Mobile Responsive
-   ═══════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-  .panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: auto;
-    width: 100%;
-    max-height: 70vh;
-    border-radius: 12px 12px 0 0;
-    z-index: 500;
-    animation: slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  @keyframes slide-up {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-}
-
-.status-unknown-text {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-muted);
 }

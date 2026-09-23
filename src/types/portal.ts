@@ -189,7 +189,10 @@ export type ContainerStatusKind = "healthy" | "down" | "unknown";
 
 /** A merged container row — project registry data + Docker stats. */
 export interface ContainerRow {
+  /** Unique per Docker host + container name (names repeat across devices). */
   id: string;
+  /** Registry project id when the container belongs to a registered service. */
+  serviceId: string | null;
   containerName: string;
   healthy: boolean;
   statusKind: ContainerStatusKind;
@@ -564,6 +567,8 @@ export interface ContainerMetricsPoint {
 }
 
 export interface ContainerMetricsData {
+  /** Device id the series was recorded on. */
+  device?: string;
   points: ContainerMetricsPoint[];
 }
 

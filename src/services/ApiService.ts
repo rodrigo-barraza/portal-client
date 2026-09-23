@@ -257,6 +257,14 @@ export default class ApiService {
   }
 
   /**
+   * Drop portal-service's cached container stats so the next read reflects
+   * a start/stop/restart immediately instead of up to 10 s later.
+   */
+  static async invalidateStats() {
+    return ApiService._request("/stats/invalidate", { method: "POST" });
+  }
+
+  /**
    * Get MinIO storage summary — bucket counts and total sizes.
    */
   static async getStorageSummary() {

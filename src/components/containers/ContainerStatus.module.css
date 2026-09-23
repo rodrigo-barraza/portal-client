@@ -1,0 +1,70 @@
+/* ── Status-tinted container glyph ── */
+
+.type-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition:
+    color var(--transition-fast),
+    filter var(--transition-fast);
+}
+
+.icon-healthy {
+  color: var(--color-success);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-success) 40%, transparent));
+}
+
+.icon-unhealthy {
+  color: var(--color-danger);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-danger) 40%, transparent));
+}
+
+.icon-unknown {
+  color: var(--text-muted);
+}
+
+/* ── Circular status indicator ── */
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+  transition:
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.status-indicator svg {
+  display: block;
+}
+
+.status-healthy {
+  background: var(--color-success);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-success) 45%, transparent);
+}
+
+.status-down {
+  background: var(--color-danger);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-danger) 45%, transparent);
+}
+
+.status-unknown {
+  background: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ── "Checking…" pill (first health check still pending) ── */
+
+.checking-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--background-surface);
+  border: 1px solid var(--calculated-border-color);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
