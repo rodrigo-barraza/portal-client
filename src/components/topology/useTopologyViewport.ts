@@ -194,6 +194,15 @@ export function useTopologyViewport() {
     [commitViewport],
   );
 
+  /** Shift the view by screen pixels (keyboard panning). */
+  const panBy = useCallback(
+    (deltaX: number, deltaY: number) => {
+      const { pan, zoom } = viewportRef.current;
+      commitViewport({ pan: { x: pan.x + deltaX, y: pan.y + deltaY }, zoom });
+    },
+    [commitViewport],
+  );
+
   /** Fit `bounds` (graph coords) into the canvas. Returns false if the canvas has no size yet. */
   const fitTo = useCallback(
     (bounds: Rect | null) => {
@@ -219,6 +228,7 @@ export function useTopologyViewport() {
     beginPan,
     beginNodeDrag,
     beginClusterDrag,
+    panBy,
     zoomBy,
     fitTo,
     resetOverrides,

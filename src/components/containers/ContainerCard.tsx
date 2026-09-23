@@ -46,7 +46,11 @@ function ContainerCard({
   const uptime = parseDockerUptime(stats?.status);
 
   return (
+    // The card-wide click only widens the pointer target of the name
+    // button below — that button is the control keyboard and screen-reader
+    // users reach — so the card itself carries no role of its own.
     <div
+      role="presentation"
       className={`${styles['card']} ${STATUS_CLASS[row.statusKind]} ${active ? styles['card-active'] : ""}`}
       onClick={() => onSelect(row)}
     >

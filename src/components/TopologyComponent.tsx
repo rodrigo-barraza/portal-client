@@ -38,6 +38,9 @@ import styles from "./TopologyComponent.module.css";
 
 const NO_REPO_SIZES: Record<string, RepoSize> = {};
 
+/** Screen pixels an arrow key pans the canvas (four times that with Shift). */
+const KEYBOARD_PAN_STEP = 60;
+
 const VIEW_SEGMENTS = [
   { value: "tier", label: "By Tier", icon: <Layers size={14} strokeWidth={1.8} /> },
   { value: "type", label: "By Type", icon: <Grid3x3 size={14} strokeWidth={1.8} /> },
@@ -56,6 +59,7 @@ export default function TopologyComponent() {
     beginPan,
     beginNodeDrag,
     beginClusterDrag,
+    panBy,
     zoomBy,
     fitTo,
     resetOverrides,
@@ -172,6 +176,47 @@ export default function TopologyComponent() {
       beginPan(event);
     },
     [beginPan],
+  );
+
+  // The keyboard twin of dragging the canvas and clicking its background.
+  // Keys a focused node handled itself (Enter/Space) are left alone.
+  const handleCanvasKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      const step = event.shiftKey ? KEYBOARD_PAN_STEP * 4 : KEYBOARD_PAN_STEP;
+      switch (event.key) {
+        case "ArrowLeft":
+          panBy(step, 0);
+          break;
+        case "ArrowRight":
+          panBy(-step, 0);
+          break;
+        case "ArrowUp":
+          panBy(0, step);
+          break;
+        case "ArrowDown":
+          panBy(0, -step);
+          break;
+        case "+":
+        case "=":
+          zoomBy(1);
+          break;
+        case "-":
+        case "_":
+          zoomBy(-1);
+          break;
+        case "0":
+          fitTo(contentBounds);
+          break;
+        case "Escape":
+          setSelectedNode(null);
+          break;
+        default:
+          return;
+      }
+      event.preventDefault();
+    },
+    [panBy, zoomBy, fitTo, contentBounds],
   );
 
   const handleNodePress = useCallback(
@@ -304,7 +349,11 @@ export default function TopologyComponent() {
           <div
             ref={canvasRef}
             className={`${styles["canvas-wrapper"]}${isPanning ? ` ${styles["panning"]}` : ""}`}
+            role="region"
+            aria-label="Service topology. Arrow keys pan, plus and minus zoom, 0 fits the graph, Escape clears the selection."
+            tabIndex={0}
             onMouseDown={handleCanvasMouseDown}
+            onKeyDown={handleCanvasKeyDown}
           >
             <svg className={styles["svg"]}>
               <EdgeMarkers />

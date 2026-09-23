@@ -238,9 +238,11 @@ export function ObjectGridView({
           const canPreview = isPreviewable(object.name);
           return (
             // The whole card previews on click; the thumbnail is the real
-            // button (keyboard / screen readers) and its click bubbles here.
+            // button (keyboard / screen readers) and its click bubbles here,
+            // so the card only widens its pointer target and has no role.
             <div
               key={object.name}
+              role="presentation"
               className={`${styles["grid-card"]}${canPreview ? ` ${styles["grid-card-previewable"]}` : ""}`}
               style={{ animationDelay: staggerDelay(index, 30) }}
               onClick={canPreview ? () => onPreview(object) : undefined}

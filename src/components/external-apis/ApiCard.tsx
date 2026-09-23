@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef } from "react";
 import { ChevronDown, ExternalLink, Server } from "lucide-react";
 import {
   BadgeComponent,
@@ -103,6 +103,7 @@ function DetailPanel({
  * One API's usage card. The whole card toggles the daily breakdown on
  * click; the header is the real button (keyboard, screen readers) and its
  * click bubbles to the card, so the Docs link stays a separate control.
+ * Clicks inside the open breakdown (chart hovers, selections) never toggle.
  */
 export const ApiCard = memo(function ApiCard({
   apiService,
@@ -128,11 +129,19 @@ export const ApiCard = memo(function ApiCard({
     [apiService.dailySeries, dates],
   );
   const hasCost = (apiService.estimatedCost ?? 0) > 0;
+  const detailPanelRef = useRef<HTMLDivElement>(null);
 
   return (
+    // The card-wide click only widens the pointer target of the header
+    // button, which keyboard and screen-reader users reach, so the card
+    // itself carries no role of its own.
     <div
+      role="presentation"
       className={`${styles["api-card"]}${isExpanded ? ` ${styles["is-expanded-state"]}` : ""}`}
-      onClick={() => onToggle(apiService.serviceIdentifier)}
+      onClick={(event) => {
+        if (detailPanelRef.current?.contains(event.target as Node)) return;
+        onToggle(apiService.serviceIdentifier);
+      }}
     >
       <button
         type="button"
@@ -222,7 +231,7 @@ export const ApiCard = memo(function ApiCard({
       </div>
 
       {isExpanded && (
-        <div className={styles["expanded-detail-panel"]} onClick={(event) => event.stopPropagation()}>
+        <div ref={detailPanelRef} className={styles["expanded-detail-panel"]}>
           <DetailPanel
             dates={dates}
             timeSeries={timeSeries}

@@ -89,6 +89,32 @@ describe("TopologyComponent", () => {
     expect(node).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("pans, zooms and clears the selection from the keyboard on the focusable canvas", async () => {
+    getServices.mockResolvedValue(SERVICES);
+    getProjectAnalysis.mockResolvedValue(null);
+
+    const { container } = render(<TopologyComponent />);
+    const node = await screen.findByRole("button", { name: "Web, down" });
+    const canvas = screen.getByRole("region", { name: /service topology/i });
+    expect(canvas).toHaveAttribute("tabindex", "0");
+    const graph = () => container.querySelector("svg > g")!.getAttribute("transform");
+
+    const before = graph();
+    fireEvent.keyDown(canvas, { key: "ArrowRight" });
+    const panned = graph();
+    expect(panned).not.toBe(before);
+    fireEvent.keyDown(canvas, { key: "ArrowLeft" });
+    expect(graph()).toBe(before);
+
+    fireEvent.keyDown(canvas, { key: "+" });
+    expect(graph()).toMatch(/scale\(1\.25\)/);
+
+    fireEvent.keyDown(node, { key: "Enter" });
+    expect(node).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(canvas, { key: "Escape" });
+    expect(node).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("labels the libraries cluster correctly in the by-type view", async () => {
     getServices.mockResolvedValue(SERVICES);
     getProjectAnalysis.mockResolvedValue(null);
