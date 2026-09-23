@@ -13,6 +13,7 @@ vi.mock("@/services/ApiService", () => ({
     getProjectSizes: vi.fn(),
     getProjectLanguages: vi.fn(),
     getRollbackStatus: vi.fn(),
+    getRollbackStatuses: vi.fn(),
     startService: vi.fn(),
     stopService: vi.fn(),
     restartService: vi.fn(),
@@ -56,6 +57,7 @@ beforeEach(() => {
   api.getProjectSizes.mockResolvedValue({ sizes: {} });
   api.getProjectLanguages.mockResolvedValue({ languages: {} });
   api.getRollbackStatus.mockResolvedValue({ available: false });
+  api.getRollbackStatuses.mockResolvedValue({});
   api.stopService.mockResolvedValue({ success: true });
 });
 

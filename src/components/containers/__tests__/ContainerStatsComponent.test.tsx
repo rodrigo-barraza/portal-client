@@ -14,6 +14,7 @@ vi.mock("@/services/ApiService", () => ({
     getContainerMetrics: vi.fn(),
     getContainerStatsHistory: vi.fn(),
     getRollbackStatus: vi.fn(),
+    getRollbackStatuses: vi.fn(),
     invalidateStats: vi.fn(),
     startContainer: vi.fn(),
     stopContainer: vi.fn(),
@@ -57,6 +58,7 @@ beforeEach(() => {
   api.getContainerMetrics.mockResolvedValue({ containers: {} });
   api.getContainerStatsHistory.mockResolvedValue({ history: {} });
   api.getRollbackStatus.mockResolvedValue({ available: false });
+  api.getRollbackStatuses.mockResolvedValue({});
   api.invalidateStats.mockResolvedValue({ ok: true });
   api.stopContainer.mockResolvedValue({ success: true });
 });

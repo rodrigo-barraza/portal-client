@@ -9,11 +9,7 @@ export interface RollbackStatus {
   device: string | null;
 }
 
-async function fetchRollbackStatus(
-  serviceId: string,
-  signal?: AbortSignal,
-): Promise<RollbackStatus> {
-  const response = await ApiService.getRollbackStatus(serviceId, { signal });
+function toRollbackStatus(response: { available?: unknown; device?: unknown } | null | undefined): RollbackStatus {
   return {
     available: response?.available === true,
     device: typeof response?.device === "string" ? response.device : null,
@@ -22,8 +18,9 @@ async function fetchRollbackStatus(
 
 /**
  * Whether each registered service has a `:previous` image to roll back to.
- * Re-queried only when the set of ids changes — polling hands us a fresh
- * array every few seconds, so the effect keys on a sorted signature.
+ * One batch request answers every containerized service; it is re-issued
+ * only when the set of ids changes — polling hands us a fresh array every
+ * few seconds, so the effect keys on a sorted signature.
  */
 export function useRollbackAvailability(serviceIds: readonly string[]) {
   const [statuses, setStatuses] = useState<Record<string, RollbackStatus>>({});
@@ -33,24 +30,25 @@ export function useRollbackAvailability(serviceIds: readonly string[]) {
     if (!signature) return;
     const controller = new AbortController();
     const ids = signature.split(",");
-    (async () => {
-      const results = await Promise.allSettled(
-        ids.map((id) => fetchRollbackStatus(id, controller.signal)),
-      );
-      if (controller.signal.aborted) return;
-      const next: Record<string, RollbackStatus> = {};
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled") next[ids[index]] = result.value;
+    ApiService.getRollbackStatuses({ signal: controller.signal })
+      .then((byId: Record<string, { available?: unknown; device?: unknown }>) => {
+        const next: Record<string, RollbackStatus> = {};
+        for (const id of ids) {
+          if (Object.hasOwn(byId, id)) next[id] = toRollbackStatus(byId[id]);
+        }
+        setStatuses(next);
+      })
+      .catch(() => {
+        // Aborted, or the service is unreachable: no rollback buttons until
+        // the next id-set change re-queries.
       });
-      setStatuses(next);
-    })();
     return () => controller.abort();
   }, [signature]);
 
   /** Re-query one service — after a rollback consumes its `:previous` image. */
   const recheck = useCallback(async (serviceId: string) => {
     try {
-      const status = await fetchRollbackStatus(serviceId);
+      const status = toRollbackStatus(await ApiService.getRollbackStatus(serviceId));
       setStatuses((previous) => ({ ...previous, [serviceId]: status }));
     } catch {
       // Keep the last known status; the next id-set change re-queries.

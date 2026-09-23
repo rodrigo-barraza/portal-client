@@ -88,6 +88,11 @@ export default class ApiService {
     return get(`/services/${pathSegment(serviceId)}/rollback-status`, options);
   }
 
+  /** Rollback status of every containerized service, keyed by project id. */
+  static getRollbackStatuses(options?: RequestOptions) {
+    return get("/services/rollback-status", options);
+  }
+
   /** GitHub repository sizes of every project. */
   static getProjectSizes(options?: RequestOptions) {
     return get("/services/sizes", options);
