@@ -59,6 +59,10 @@ export default function nextConfig(phase: string): NextConfig {
   return {
     output: "standalone",
     poweredByHeader: false,
+    // Next 16.3 writes AGENTS.md + CLAUDE.md into the repo whenever an AI
+    // agent runs `next dev`; the workspace keeps agent instructions in its
+    // own CLAUDE.md, and a generated per-repo one would override them.
+    agentRules: false,
 
     async redirects() {
       return [
