@@ -20,8 +20,8 @@ const NO_PROPERTIES: GAProperty[] = [];
  * PropertyListingComponent (which merges in sessions-service projects).
  */
 export default function WebAnalyticsComponent() {
-  const registry = useAsyncData("ga-properties", () =>
-    ApiService.getGAProperties() as Promise<{ properties?: GAProperty[] } | null>,
+  const registry = useAsyncData("ga-properties", (signal) =>
+    ApiService.getGAProperties({ signal }) as Promise<{ properties?: GAProperty[] } | null>,
   );
   // GA registry failing shouldn't hide first-party projects
   const properties = registry.data?.properties ?? NO_PROPERTIES;

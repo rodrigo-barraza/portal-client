@@ -71,16 +71,17 @@ interface SessionReports {
   events: SessionTopEvent[];
 }
 
-function loadSessionReports(projectId: string, period: string) {
+function loadSessionReports(projectId: string, period: string, signal: AbortSignal) {
   const unwrap = <T,>(request: Promise<unknown>) => request.then((response) => unwrapData<T>(response));
+  const options = { signal };
   return settleReports<SessionReports>({
-    overview: unwrap(ApiService.getSessionOverview(projectId, period)),
-    pages: unwrap(ApiService.getSessionPages(projectId, period)),
-    referrers: unwrap(ApiService.getSessionReferrers(projectId, period)),
-    geo: unwrap(ApiService.getSessionGeo(projectId, period)),
-    devices: unwrap(ApiService.getSessionDevices(projectId, period)),
-    timeSeries: unwrap(ApiService.getSessionTimeSeries(projectId, period)),
-    events: unwrap(ApiService.getSessionEvents(projectId, period)),
+    overview: unwrap(ApiService.getSessionOverview(projectId, period, options)),
+    pages: unwrap(ApiService.getSessionPages(projectId, period, options)),
+    referrers: unwrap(ApiService.getSessionReferrers(projectId, period, options)),
+    geo: unwrap(ApiService.getSessionGeo(projectId, period, options)),
+    devices: unwrap(ApiService.getSessionDevices(projectId, period, options)),
+    timeSeries: unwrap(ApiService.getSessionTimeSeries(projectId, period, options)),
+    events: unwrap(ApiService.getSessionEvents(projectId, period, options)),
   });
 }
 
@@ -123,12 +124,15 @@ export default function SessionReportComponent({
   projectId: string;
   period: string;
 }) {
-  const reports = useAsyncData(`${projectId}|${period}`, () =>
-    loadSessionReports(projectId, period),
+  const reports = useAsyncData(`${projectId}|${period}`, (signal) =>
+    loadSessionReports(projectId, period, signal),
   );
   const live = useAsyncData(
     projectId,
-    () => ApiService.getSessionLive(projectId).then(unwrapData<SessionLiveResponse>),
+    (signal) =>
+      ApiService.getSessionLive(projectId, undefined, { signal }).then(
+        unwrapData<SessionLiveResponse>,
+      ),
     { refreshIntervalMs: LIVE_REFRESH_MS },
   );
 

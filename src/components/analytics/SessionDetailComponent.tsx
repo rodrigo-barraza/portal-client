@@ -44,8 +44,8 @@ export default function SessionDetailComponent({
   sessionId: string;
   onOpenIp: (ip: string) => void;
 }) {
-  const detail = useAsyncData(sessionId, () =>
-    ApiService.getSessionDetail(sessionId).then(unwrapData<SessionDetail>),
+  const detail = useAsyncData(sessionId, (signal) =>
+    ApiService.getSessionDetail(sessionId, { signal }).then(unwrapData<SessionDetail>),
   );
   const session = detail.data;
 

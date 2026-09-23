@@ -84,19 +84,20 @@ interface GAReports {
   events: { events: GAEvent[] };
 }
 
-function loadGAReports(propertyId: string, period: string) {
+function loadGAReports(propertyId: string, period: string, signal: AbortSignal) {
+  const options = { signal };
   return settleReports<GAReports>({
-    overview: ApiService.getGAOverview(propertyId, period),
-    pages: ApiService.getGAPages(propertyId, period),
-    sources: ApiService.getGASources(propertyId, period),
-    geography: ApiService.getGAGeography(propertyId, period),
-    devices: ApiService.getGADevices(propertyId, period),
-    timeSeries: ApiService.getGATimeSeries(propertyId, period),
-    channels: ApiService.getGAChannels(propertyId, period),
-    landingPages: ApiService.getGALandingPages(propertyId, period),
-    heatmap: ApiService.getGAHeatmap(propertyId, period),
-    newVsReturning: ApiService.getGANewVsReturning(propertyId, period),
-    events: ApiService.getGAEvents(propertyId, period),
+    overview: ApiService.getGAOverview(propertyId, period, options),
+    pages: ApiService.getGAPages(propertyId, period, options),
+    sources: ApiService.getGASources(propertyId, period, options),
+    geography: ApiService.getGAGeography(propertyId, period, options),
+    devices: ApiService.getGADevices(propertyId, period, options),
+    timeSeries: ApiService.getGATimeSeries(propertyId, period, options),
+    channels: ApiService.getGAChannels(propertyId, period, options),
+    landingPages: ApiService.getGALandingPages(propertyId, period, options),
+    heatmap: ApiService.getGAHeatmap(propertyId, period, options),
+    newVsReturning: ApiService.getGANewVsReturning(propertyId, period, options),
+    events: ApiService.getGAEvents(propertyId, period, options),
   });
 }
 
@@ -189,12 +190,12 @@ export default function GAReportComponent({
   property: GAProperty;
   period: string;
 }) {
-  const reports = useAsyncData(`${property.id}|${period}`, () =>
-    loadGAReports(property.id, period),
+  const reports = useAsyncData(`${property.id}|${period}`, (signal) =>
+    loadGAReports(property.id, period, signal),
   );
   const realtime = useAsyncData<{ activeUsers: number }>(
     property.id,
-    () => ApiService.getGARealtime(property.id),
+    (signal) => ApiService.getGARealtime(property.id, { signal }),
     { refreshIntervalMs: REALTIME_REFRESH_MS },
   );
 

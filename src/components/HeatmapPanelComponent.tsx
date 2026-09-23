@@ -109,8 +109,8 @@ export default function HeatmapPanelComponent({
 
   const heatmap = useAsyncData(
     JSON.stringify([projectId, path, period, type, band]),
-    () =>
-      ApiService.getSessionHeatmap(projectId, path, period, type, band).then(
+    (signal) =>
+      ApiService.getSessionHeatmap(projectId, path, period, type, band, undefined, { signal }).then(
         unwrapData<HeatmapData | null>,
       ),
   );

@@ -42,8 +42,8 @@ export default function IpDetailComponent({
   period: string;
   onOpenSession: (sessionId: string) => void;
 }) {
-  const detail = useAsyncData(`${ip}|${projectId}|${period}`, () =>
-    ApiService.getSessionIpDetail(ip, projectId, period).then(unwrapData<IpDetail>),
+  const detail = useAsyncData(`${ip}|${projectId}|${period}`, (signal) =>
+    ApiService.getSessionIpDetail(ip, projectId, period, { signal }).then(unwrapData<IpDetail>),
   );
   const profile = detail.data;
   const timeline = useMemo(() => (profile ? ipTimeline(profile) : []), [profile]);

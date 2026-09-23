@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Activity, ArrowRight, Globe, LayoutGrid, Table2, TrendingUp } from "lucide-react";
@@ -12,6 +12,7 @@ import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import { SOURCE_COLORS, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
+import { useVisiblePolling } from "./monitoring/useVisiblePolling";
 import { joinMeta } from "./analytics/analyticsFormat";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
 import type { GAOverview, GAProperty, SessionProject } from "../types/portal";
@@ -51,10 +52,10 @@ type ViewMode = "card" | "list";
  * numbers. Listing only the period's projects made a site vanish — and a
  * GA site lose its first-party badge — after 30 quiet days.
  */
-async function loadSessionProjects(): Promise<SessionProject[]> {
+async function loadSessionProjects(signal: AbortSignal): Promise<SessionProject[]> {
   const [allTime, recent] = await Promise.all([
-    ApiService.getSessionProjects("all").then(unwrapData<SessionProject[]>),
-    ApiService.getSessionProjects(LISTING_PERIOD).then(unwrapData<SessionProject[]>),
+    ApiService.getSessionProjects("all", { signal }).then(unwrapData<SessionProject[]>),
+    ApiService.getSessionProjects(LISTING_PERIOD, { signal }).then(unwrapData<SessionProject[]>),
   ]);
   const recentById = new Map((Array.isArray(recent) ? recent : []).map((row) => [row.projectId, row]));
   return (Array.isArray(allTime) ? allTime : []).map((project) => ({
@@ -67,25 +68,28 @@ async function loadSessionProjects(): Promise<SessionProject[]> {
 /**
  * Overview + realtime per GA property, filled in progressively as each
  * property's pair of requests lands (a slow property doesn't hold the rest).
+ * A new property list — or leaving the page — aborts the old requests.
  */
 function useGASummaries(properties: GAProperty[]): Record<string, GASummary> {
   const [summaries, setSummaries] = useState<Record<string, GASummary>>({});
+  const propertyIds = properties.map((property) => property.id).join("\u0000");
 
-  useEffect(() => {
-    let cancelled = false;
-    for (const property of properties) {
-      Promise.all([
-        ApiService.getGAOverview(property.id, LISTING_PERIOD).catch(() => null),
-        ApiService.getGARealtime(property.id).catch(() => null),
-      ]).then(([overview, realtime]) => {
-        if (cancelled) return;
-        setSummaries((previous) => ({ ...previous, [property.id]: { overview, realtime } }));
-      });
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [properties]);
+  useVisiblePolling(
+    async (isCurrent, signal) => {
+      await Promise.all(
+        properties.map(async (property) => {
+          const [overview, realtime] = await Promise.all([
+            ApiService.getGAOverview(property.id, LISTING_PERIOD, { signal }).catch(() => null),
+            ApiService.getGARealtime(property.id, { signal }).catch(() => null),
+          ]);
+          if (!isCurrent()) return;
+          setSummaries((previous) => ({ ...previous, [property.id]: { overview, realtime } }));
+        }),
+      );
+    },
+    null,
+    { restartKey: propertyIds },
+  );
 
   return summaries;
 }

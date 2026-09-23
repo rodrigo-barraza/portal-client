@@ -48,10 +48,10 @@ interface PropertyRegistry {
   gaError: Error | null;
 }
 
-async function loadRegistry(): Promise<PropertyRegistry> {
+async function loadRegistry(signal: AbortSignal): Promise<PropertyRegistry> {
   const [propertiesResult, projectsResult] = await Promise.allSettled([
-    ApiService.getGAProperties(),
-    ApiService.getSessionProjects("all"),
+    ApiService.getGAProperties({ signal }),
+    ApiService.getSessionProjects("all", { signal }),
   ]);
   const projects =
     projectsResult.status === "fulfilled"
@@ -261,10 +261,10 @@ function SourceComparisonPanel({
   projectId: string;
   period: string;
 }) {
-  const comparison = useAsyncData(`${propertyId}|${projectId}|${period}`, async () => {
+  const comparison = useAsyncData(`${propertyId}|${projectId}|${period}`, async (signal) => {
     const [gaOverview, sessionOverview] = await Promise.all([
-      ApiService.getGAOverview(propertyId, period) as Promise<GAOverview>,
-      ApiService.getSessionOverview(projectId, period).then(unwrapData<SessionOverview>),
+      ApiService.getGAOverview(propertyId, period, { signal }) as Promise<GAOverview>,
+      ApiService.getSessionOverview(projectId, period, { signal }).then(unwrapData<SessionOverview>),
     ]);
     return { gaOverview, sessionOverview };
   });

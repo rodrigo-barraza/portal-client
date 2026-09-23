@@ -83,24 +83,32 @@ export default function SessionExplorerComponent({
   const listOptions = { keepPreviousData: true };
   const ips = useAsyncData(
     `ips|${projectId}|${period}|${offsets.ips}`,
-    () =>
-      ApiService.getSessionIpUsers(projectId, period, PAGE_SIZE, offsets.ips).then(
+    (signal) =>
+      ApiService.getSessionIpUsers(projectId, period, PAGE_SIZE, offsets.ips, { signal }).then(
         unwrapData<IpUsersPage>,
       ),
     listOptions,
   );
   const visitors = useAsyncData(
     `visitors|${projectId}|${period}|${offsets.visitors}`,
-    () =>
-      ApiService.getSessionVisitors(projectId, period, PAGE_SIZE, offsets.visitors).then(
+    (signal) =>
+      ApiService.getSessionVisitors(projectId, period, PAGE_SIZE, offsets.visitors, { signal }).then(
         unwrapData<VisitorsPage>,
       ),
     listOptions,
   );
   const sessions = useAsyncData(
     `sessions|${projectId}|${period}|${offsets.sessions}`,
-    () =>
-      ApiService.getSessionsList(projectId, period, PAGE_SIZE, offsets.sessions).then(
+    (signal) =>
+      ApiService.getSessionsList(
+        projectId,
+        period,
+        PAGE_SIZE,
+        offsets.sessions,
+        undefined,
+        undefined,
+        { signal },
+      ).then(
         unwrapData<SessionsPage>,
       ),
     listOptions,

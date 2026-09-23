@@ -166,7 +166,9 @@ describe("SessionExplorerComponent", () => {
     // The IP link in a session used to do nothing (the session view won)
     fireEvent.click(screen.getByRole("button", { name: `Open IP ${IP}` }));
     expect(await screen.findByText("Cross-Session Timeline")).toBeInTheDocument();
-    expect(api.getSessionIpDetail).toHaveBeenCalledWith(IP, "rod-dev-client", "30d");
+    expect(api.getSessionIpDetail).toHaveBeenCalledWith(IP, "rod-dev-client", "30d", {
+      signal: expect.any(AbortSignal),
+    });
 
     // Back pops one level at a time
     fireEvent.click(screen.getByRole("button", { name: /Back to session/ }));
