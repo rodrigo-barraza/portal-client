@@ -15,17 +15,11 @@ import { formatBytes, formatPercent, getErrorMessage } from "@rodrigo-barraza/ut
 
 import ApiService from "../services/ApiService";
 import { usePortalSettings } from "@/lib/settings";
-import type { Device } from "../types/portal";
+import type { Device, DockerContainerStats } from "../types/portal";
 import useAsyncData from "./analytics/useAsyncData";
 import { severityColor, thresholdsFromSettings, type SeverityThresholds } from "./monitoring/severity";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
-import {
-  deviceStatus,
-  groupContainersByDevice,
-  isRunning,
-  sortDevicesByContainerCount,
-  type DeviceContainer,
-} from "./devices/deviceModel";
+import { deviceStatus, groupContainersByDevice, isRunning, sortDevicesByContainerCount } from "./devices/deviceModel";
 import styles from "./DevicesComponent.module.css";
 
 const DEVICE_ICONS: Record<string, typeof Monitor> = {
@@ -41,7 +35,7 @@ const DEVICE_COLORS: Record<string, string> = {
   NAS: "var(--color-info)",
 };
 
-const NO_CONTAINERS: DeviceContainer[] = [];
+const NO_CONTAINERS: DockerContainerStats[] = [];
 
 export default function DevicesComponent() {
   const settings = usePortalSettings();
@@ -55,7 +49,7 @@ export default function DevicesComponent() {
     "devices",
     async (signal) => (await ApiService.getDevices({ signal })).devices,
   );
-  const [containers, setContainers] = useState<DeviceContainer[]>(NO_CONTAINERS);
+  const [containers, setContainers] = useState<DockerContainerStats[]>(NO_CONTAINERS);
 
   // Container stats are supplementary: polled on the Settings → Monitoring
   // interval, only while the tab is visible, never overlapping.
@@ -151,7 +145,7 @@ function DeviceCard({
 }: {
   device: Device;
   delay: number;
-  containers: DeviceContainer[];
+  containers: DockerContainerStats[];
   thresholds: SeverityThresholds;
 }) {
   const DeviceIcon = DEVICE_ICONS[device.type ?? ""] ?? Monitor;
@@ -236,7 +230,7 @@ function ContainerRow({
   container,
   thresholds,
 }: {
-  container: DeviceContainer;
+  container: DockerContainerStats;
   thresholds: SeverityThresholds;
 }) {
   const running = isRunning(container);

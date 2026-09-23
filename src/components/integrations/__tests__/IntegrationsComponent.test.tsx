@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import IntegrationsComponent from "../../IntegrationsComponent";
 import ApiService from "../../../services/ApiService";
-import { categoryStatus, filterCategories, type IntegrationCategory } from "../integrationsModel";
+import { categoryStatus, filterCategories } from "../integrationsModel";
+import type { IntegrationCategory } from "@/types/portal";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 vi.mock("../../../services/ApiService", () => ({

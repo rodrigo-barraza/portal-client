@@ -1,17 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  buildTimeline,
-  filterIpUsers,
-  filterSessions,
-  filterVisitors,
-  ipFingerprint,
-  ipLastSeen,
-  ipTimeline,
-  type ExplorerSession,
-  type IpDetail,
-  type IpUser,
-  type Visitor,
-} from "../explorerModel";
+import { buildTimeline, filterIpUsers, filterSessions, filterVisitors, ipFingerprint, ipLastSeen, ipTimeline } from "../explorerModel";
+import type { ExplorerSession, IpDetail, IpUser, Visitor } from "@/types/portal";
 
 function session(overrides: Partial<ExplorerSession>): ExplorerSession {
   return {

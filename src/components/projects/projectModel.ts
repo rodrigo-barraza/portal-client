@@ -159,15 +159,11 @@ export function filterProjects(
 
 // ── Sorting ─────────────────────────────────────────────────────────
 
-/** A project's repository size (GET /services/sizes). */
-export type ProjectSize = RepoSize;
-
-/** A project's Linguist breakdown (GET /services/languages). */
-export type ProjectLanguages = LanguageBreakdown;
-
 export interface ProjectSortContext {
-  sizes: Record<string, ProjectSize>;
-  languages: Record<string, ProjectLanguages>;
+  /** Repository sizes (GET /services/sizes), by project id. */
+  sizes: Record<string, RepoSize>;
+  /** Linguist breakdowns (GET /services/languages), by project id. */
+  languages: Record<string, LanguageBreakdown>;
 }
 
 export type SortDirection = "asc" | "desc";

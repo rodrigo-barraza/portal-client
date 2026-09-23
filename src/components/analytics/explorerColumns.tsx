@@ -4,7 +4,7 @@ import { Network, Users } from "lucide-react";
 import { timeAgo } from "@rodrigo-barraza/utilities-library";
 import { BotTag, DeviceIcon } from "./ExplorerPrimitives";
 import { formatCount, formatDurationMs, formatLocation, shortId } from "./analyticsFormat";
-import type { DeviceInfo, ExplorerSession, IpUser, NamedVersion, Visitor } from "./explorerModel";
+import type { DeviceInfo, ExplorerSession, IpUser, NamedVersion, Visitor } from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**

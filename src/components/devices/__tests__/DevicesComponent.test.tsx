@@ -4,12 +4,8 @@ import DevicesComponent from "../../DevicesComponent";
 import ApiService from "../../../services/ApiService";
 import { resetSettings, updateSettings } from "@/lib/settings";
 import { device, dockerContainer } from "../../__tests__/apiFixtures";
-import {
-  deviceStatus,
-  groupContainersByDevice,
-  sortDevicesByContainerCount,
-  type DeviceContainer,
-} from "../deviceModel";
+import { deviceStatus, groupContainersByDevice, sortDevicesByContainerCount } from "../deviceModel";
+import type { DockerContainerStats } from "@/types/portal";
 
 vi.mock("@rodrigo-barraza/components-library", () => import("../../__tests__/componentsLibraryStub"));
 vi.mock("../../../services/ApiService", () => ({
@@ -18,7 +14,7 @@ vi.mock("../../../services/ApiService", () => ({
 
 const api = vi.mocked(ApiService);
 
-const CONTAINERS: DeviceContainer[] = [
+const CONTAINERS: DockerContainerStats[] = [
   dockerContainer({ name: "web", device: "nas", status: "Up 2 hours", cpu: { percent: 95, cores: 2 }, memory: { used: 1024, limit: 2048, percent: 50 } }),
   dockerContainer({ name: "api", device: "nas", state: "exited", status: "Exited (0)", cpu: { percent: 0, cores: 0 }, memory: { used: 0, limit: 0, percent: 0 } }),
   dockerContainer({ name: "lights", device: "pi", status: "" }),

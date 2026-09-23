@@ -27,25 +27,16 @@ import ServiceCardComponent from "./ServiceCardComponent";
 import ProjectTableComponent from "./ProjectTableComponent";
 import ApiService from "../services/ApiService";
 import { getSettings, usePortalSettings } from "@/lib/settings";
-import type { PortalService, ServicesResponse } from "../types/portal";
+import type {
+  LanguageBreakdown,
+  PortalService,
+  RepoSize,
+  ServicesResponse,
+} from "../types/portal";
 import { useActionRunner, type ContainerAction } from "./monitoring/useActionRunner";
 import { useRollbackAvailability } from "./monitoring/useRollbackAvailability";
 import { useVisiblePolling } from "./monitoring/useVisiblePolling";
-import {
-  EMPTY_FILTERS,
-  buildFilterOptions,
-  filterProjects,
-  hasActiveFilters,
-  isDeployedProject,
-  projectsFromResponse,
-  sortProjects,
-  summarizeProjects,
-  type FilterDimension,
-  type ProjectFilters,
-  type ProjectLanguages,
-  type ProjectSize,
-  type SortDirection,
-} from "./projects/projectModel";
+import { EMPTY_FILTERS, buildFilterOptions, filterProjects, hasActiveFilters, isDeployedProject, projectsFromResponse, sortProjects, summarizeProjects, type FilterDimension, type ProjectFilters, type SortDirection } from "./projects/projectModel";
 import styles from "./ProjectsComponent.module.css";
 
 /** portal-service re-checks health 3 s after an action; look just after. */
@@ -65,8 +56,8 @@ export default function ProjectsComponent() {
   const [registry, setRegistry] = useState<ServicesResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [projectSizes, setProjectSizes] = useState<Record<string, ProjectSize>>({});
-  const [projectLanguages, setProjectLanguages] = useState<Record<string, ProjectLanguages>>({});
+  const [projectSizes, setProjectSizes] = useState<Record<string, RepoSize>>({});
+  const [projectLanguages, setProjectLanguages] = useState<Record<string, LanguageBreakdown>>({});
   const [filters, setFilters] = useState<ProjectFilters>(EMPTY_FILTERS);
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState<SortDirection>("asc");

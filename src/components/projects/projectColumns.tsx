@@ -2,10 +2,10 @@ import { Container, Database, ExternalLink, GitBranch, Globe, HardDrive, Link2, 
 import { BadgeComponent } from "@rodrigo-barraza/components-library";
 import { formatBytes } from "@rodrigo-barraza/utilities-library";
 import { DEFAULT_SERVICE_TYPE_ICON, SERVICE_TYPE_ICONS } from "@/constants";
-import type { PortalService } from "@/types/portal";
+import type { LanguageBreakdown, PortalService, RepoSize } from "@/types/portal";
 import { DEFAULT_LANGUAGE_COLOR, LANGUAGE_COLORS } from "./languageColors";
 import { DeployTierBadge, ProjectTypeBadge } from "./ProjectBadges";
-import { projectHealth, type ProjectHealth, type ProjectLanguages, type ProjectSize } from "./projectModel";
+import { projectHealth, type ProjectHealth } from "./projectModel";
 import styles from "../ProjectTableComponent.module.css";
 
 const ICON_CLASS: Record<ProjectHealth, string> = {
@@ -37,8 +37,8 @@ export function repoName(repo: string): string {
  * share one sort), so `sortable` only drives the header affordance.
  */
 export function buildProjectColumns(
-  projectSizes: Record<string, ProjectSize>,
-  projectLanguages: Record<string, ProjectLanguages>,
+  projectSizes: Record<string, RepoSize>,
+  projectLanguages: Record<string, LanguageBreakdown>,
   excludeColumns: ReadonlySet<string>,
 ) {
   return [

@@ -5,7 +5,6 @@
 
 import type { IntegrationCategory } from "@/types/portal";
 
-export type { IntegrationCategory, IntegrationItem, IntegrationsData } from "@/types/portal";
 
 export type CategoryStatus = "complete" | "partial" | "none";
 

@@ -5,16 +5,14 @@
 
 import type { Device, DockerContainerStats } from "../../types/portal";
 
-/** A container from /stats/containers (stopped ones carry zeroed stats). */
-export type DeviceContainer = DockerContainerStats;
-
-export function isRunning(container: Pick<DeviceContainer, "state">): boolean {
+/** Whether a /stats/containers entry is running (stopped ones carry zeroed stats). */
+export function isRunning(container: Pick<DockerContainerStats, "state">): boolean {
   return container.state === "running";
 }
 
 /** Containers keyed by device id, each list sorted by name. */
-export function groupContainersByDevice(containers: DeviceContainer[]): Record<string, DeviceContainer[]> {
-  const groups: Record<string, DeviceContainer[]> = {};
+export function groupContainersByDevice(containers: DockerContainerStats[]): Record<string, DockerContainerStats[]> {
+  const groups: Record<string, DockerContainerStats[]> = {};
   for (const container of containers) {
     (groups[container.device || "unknown"] ??= []).push(container);
   }
@@ -25,7 +23,7 @@ export function groupContainersByDevice(containers: DeviceContainer[]): Record<s
 /** Busiest devices first; ties keep the registry order. */
 export function sortDevicesByContainerCount<D extends Pick<Device, "id">>(
   devices: D[],
-  containersByDevice: Record<string, DeviceContainer[]>,
+  containersByDevice: Record<string, DockerContainerStats[]>,
 ): D[] {
   return [...devices].sort(
     (first, second) =>
@@ -40,7 +38,7 @@ export type DeviceStatusVariant = "healthy" | "unhealthy" | "inactive";
  * no containers reported (no Docker API, or none deployed) → inactive,
  * rather than being painted as down.
  */
-export function deviceStatus(containers: DeviceContainer[]): {
+export function deviceStatus(containers: DockerContainerStats[]): {
   variant: DeviceStatusVariant;
   running: number;
   total: number;

@@ -28,13 +28,8 @@ import { getErrorMessage, isUrl } from "@rodrigo-barraza/utilities-library";
 
 import ApiService from "../services/ApiService";
 import useAsyncData from "./analytics/useAsyncData";
-import {
-  categoryStatus,
-  filterCategories,
-  type CategoryStatus,
-  type IntegrationItem,
-  type IntegrationsData,
-} from "./integrations/integrationsModel";
+import { categoryStatus, filterCategories, type CategoryStatus } from "./integrations/integrationsModel";
+import type { IntegrationItem, IntegrationsData } from "@/types/portal";
 import styles from "./IntegrationsComponent.module.css";
 
 type ViewMode = "card" | "table";

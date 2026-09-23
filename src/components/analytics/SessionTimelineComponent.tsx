@@ -2,7 +2,8 @@
 
 import { ChevronRight, Clock, Eye, Zap } from "lucide-react";
 import { formatCount, formatTimestamp, shortId } from "./analyticsFormat";
-import { timelineKey, type TimelineEntry } from "./explorerModel";
+import { timelineKey } from "./explorerModel";
+import type { TimelineEntry } from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**

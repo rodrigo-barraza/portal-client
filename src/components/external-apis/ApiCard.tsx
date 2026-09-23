@@ -9,15 +9,9 @@ import {
 } from "@rodrigo-barraza/components-library";
 import { formatCompact, isUrl } from "@rodrigo-barraza/utilities-library";
 import { getCategoryMeta } from "./categoryMeta";
-import {
-  fillDailyValues,
-  formatCostValue,
-  formatPercentValue,
-  successPercent,
-  type ApiUsageSummary,
-  type TimeSeriesData,
-} from "./externalApiUsage";
+import { fillDailyValues, formatCostValue, formatPercentValue, successPercent } from "./externalApiUsage";
 import webStyles from "../WebAnalytics.module.css";
+import type { ExternalApiTimeSeries, ExternalApiUsage } from "@/types/portal";
 import styles from "../ExternalApisComponent.module.css";
 
 export const SUCCESS_COLOR = "#10b981";
@@ -32,7 +26,7 @@ function DetailPanel({
   failed,
 }: {
   dates: string[];
-  timeSeries: TimeSeriesData | null;
+  timeSeries: ExternalApiTimeSeries | null;
   isLoading: boolean;
   failed: boolean;
 }) {
@@ -114,10 +108,10 @@ export const ApiCard = memo(function ApiCard({
   timeSeriesFailed,
   onToggle,
 }: {
-  apiService: ApiUsageSummary;
+  apiService: ExternalApiUsage;
   dates: string[];
   isExpanded: boolean;
-  timeSeries: TimeSeriesData | null;
+  timeSeries: ExternalApiTimeSeries | null;
   isTimeSeriesLoading: boolean;
   timeSeriesFailed: boolean;
   onToggle: (serviceIdentifier: string) => void;

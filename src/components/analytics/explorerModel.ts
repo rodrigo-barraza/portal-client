@@ -18,23 +18,6 @@ import type {
   Visitor,
 } from "@/types/portal";
 
-export type {
-  DeviceInfo,
-  EventRecord,
-  ExplorerSession,
-  GeoInfo,
-  IpDetail,
-  IpUser,
-  IpUsersPage,
-  NamedVersion,
-  PageViewRecord,
-  SessionDetail,
-  SessionsPage,
-  TimelineEntry,
-  Viewport,
-  Visitor,
-  VisitorsPage,
-} from "@/types/portal";
 
 // ── Search ────────────────────────────────────────────────────
 

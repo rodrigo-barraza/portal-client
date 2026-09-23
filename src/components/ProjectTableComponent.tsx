@@ -2,18 +2,18 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { DrawerComponent, TableComponent } from "@rodrigo-barraza/components-library";
-import type { PortalService } from "../types/portal";
+import type { LanguageBreakdown, PortalService, RepoSize } from "../types/portal";
 import ExpandedProjectPanel from "./ExpandedProjectPanelComponent";
 import { buildProjectColumns, getProjectRowClassName } from "./projects/projectColumns";
-import type { ProjectLanguages, ProjectSize, SortDirection } from "./projects/projectModel";
+import type { SortDirection } from "./projects/projectModel";
 
 interface ProjectTableProps {
   /** Rows, already filtered and sorted by the page. */
   services: PortalService[];
   /** Every listed project — the drawer's topology tab graphs against it. */
   allServices: PortalService[];
-  projectSizes: Record<string, ProjectSize>;
-  projectLanguages: Record<string, ProjectLanguages>;
+  projectSizes: Record<string, RepoSize>;
+  projectLanguages: Record<string, LanguageBreakdown>;
   excludeColumns?: readonly string[];
   sortKey: string;
   sortDir: SortDirection;

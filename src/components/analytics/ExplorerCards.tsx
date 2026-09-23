@@ -10,7 +10,7 @@ import {
   formatTimestamp,
   shortId,
 } from "./analyticsFormat";
-import type { DeviceInfo, ExplorerSession, GeoInfo, IpUser, NamedVersion, Visitor } from "./explorerModel";
+import type { DeviceInfo, ExplorerSession, GeoInfo, IpUser, NamedVersion, Visitor } from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**

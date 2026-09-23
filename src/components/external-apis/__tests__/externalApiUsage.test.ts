@@ -1,17 +1,8 @@
 import { describe, it, expect } from "vitest";
-import {
-  buildDateRange,
-  categoryTotals,
-  combineDailySeries,
-  fillDailyValues,
-  formatCostValue,
-  formatPercentValue,
-  periodToDays,
-  successPercent,
-  type ApiUsageSummary,
-} from "../externalApiUsage";
+import { buildDateRange, categoryTotals, combineDailySeries, fillDailyValues, formatCostValue, formatPercentValue, periodToDays, successPercent } from "../externalApiUsage";
+import type { ExternalApiUsage } from "@/types/portal";
 
-function api(overrides: Partial<ApiUsageSummary>): ApiUsageSummary {
+function api(overrides: Partial<ExternalApiUsage>): ExternalApiUsage {
   return {
     serviceIdentifier: "x.googleapis.com",
     displayName: "X",

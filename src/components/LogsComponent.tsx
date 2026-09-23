@@ -18,14 +18,11 @@ import { thresholdsFromSettings } from "./monitoring/severity";
 import { useActionRunner } from "./monitoring/useActionRunner";
 import LogLineRow from "./logs/LogLineRow";
 import LogStatisticsPanel from "./logs/LogStatisticsPanel";
-import {
-  buildContainerOptions,
-  findLinkedContainer,
-  type LoggableContainer,
-} from "./logs/logContainers";
+import { buildContainerOptions, findLinkedContainer } from "./logs/logContainers";
 import { filterLogLines } from "./logs/logLines";
 import { useContainerStatistics } from "./logs/useContainerStatistics";
 import { useLogStream } from "./logs/useLogStream";
+import type { LoggableContainer } from "@/types/portal";
 import styles from "./LogsComponent.module.css";
 
 /** Within this many pixels of the bottom counts as "following" the log. */

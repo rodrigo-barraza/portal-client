@@ -1,7 +1,6 @@
 import type { LoggableContainer } from "@/types/portal";
 import { containerKey } from "../monitoring/containerHistory";
 
-export type { LoggableContainer };
 
 export interface LoggableContainerOption {
   value: string;

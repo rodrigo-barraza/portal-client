@@ -19,14 +19,8 @@ import IpDetailComponent from "./analytics/IpDetailComponent";
 import SessionDetailComponent from "./analytics/SessionDetailComponent";
 import IconSegmentedControlComponent from "./analytics/IconSegmentedControlComponent";
 import { readableErrorMessage, shortId } from "./analytics/analyticsFormat";
-import {
-  filterIpUsers,
-  filterSessions,
-  filterVisitors,
-  type ExplorerSession,
-  type IpUser,
-  type Visitor,
-} from "./analytics/explorerModel";
+import { filterIpUsers, filterSessions, filterVisitors } from "./analytics/explorerModel";
+import type { ExplorerSession, IpUser, Visitor } from "@/types/portal";
 import styles from "./SessionExplorerComponent.module.css";
 
 /**
