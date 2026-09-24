@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@rodrigo-barraza/components-library':
         specifier: github:rodrigo-barraza/components-library
-        version: https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/0361e5c497d03d14fe9926245ad5a6277d2c23d9(@types/react@19.3.0)(lucide-react@1.47.0(react@19.3.0))(luxon@3.7.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/e79531106cc067b0eb179b008ae296f61a57bf56(@types/react@19.3.0)(lucide-react@1.47.0(react@19.3.0))(luxon@3.7.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@rodrigo-barraza/utilities-library':
         specifier: github:rodrigo-barraza/utilities-library
-        version: https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/a4bd47ac364876139339378da12df286826be93f
+        version: https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/d658530d068120eb22997e7db8e1ff771f55e340
       lucide-react:
         specifier: ^1.47.0
         version: 1.47.0(react@19.3.0)
@@ -71,7 +71,7 @@ importers:
         version: 3.9.8
       typescript:
         specifier: next
-        version: 7.1.0-dev.20260922.1
+        version: 7.1.0-dev.20260923.1
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.2)
@@ -542,8 +542,8 @@ packages:
       react-redux:
         optional: true
 
-  '@rodrigo-barraza/components-library@https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/0361e5c497d03d14fe9926245ad5a6277d2c23d9':
-    resolution: {gitHosted: true, integrity: sha512-YBVBV9IXnDVoLP9GURKzhWGXXWBEkWfKBO7VKT/62LkWM7NOqW0gVPLlVdAgtS11vWH2MTxVyTfcSqmv14PYcQ==, tarball: https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/0361e5c497d03d14fe9926245ad5a6277d2c23d9}
+  '@rodrigo-barraza/components-library@https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/e79531106cc067b0eb179b008ae296f61a57bf56':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/e79531106cc067b0eb179b008ae296f61a57bf56}
     version: 0.2.0
     peerDependencies:
       lucide-react: '>=0.300.0'
@@ -551,8 +551,8 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@rodrigo-barraza/utilities-library@https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/a4bd47ac364876139339378da12df286826be93f':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/a4bd47ac364876139339378da12df286826be93f}
+  '@rodrigo-barraza/utilities-library@https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/d658530d068120eb22997e7db8e1ff771f55e340':
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/d658530d068120eb22997e7db8e1ff771f55e340}
     version: 0.7.0
     peerDependencies:
       express: '>=5.0.0'
@@ -662,20 +662,11 @@ packages:
   '@rrweb/packer@2.1.6':
     resolution: {integrity: sha512-tYBM04shOh2tAsaRJgysjBtEjABzmKPlO1miwRhN6pLedLMsAvTtNzdGShDuPgNGUnQBMFYz97t7/1wZDJ6NvQ==}
 
-  '@rrweb/record@2.1.0':
-    resolution: {integrity: sha512-jnbpYQED6QdKn1MuEoqJyILkYhuWDhb3kzA/l1i+Di5sfP7apf3HvrlVIMoyZgATMlk2if65BUUrc5R+vabCjQ==}
-
   '@rrweb/replay@2.1.6':
     resolution: {integrity: sha512-Ti7zPk3Lbp33N9rKtIPCCIbUm4ctJMRRIMG5/5uI70M0efpSC1cpo/Eq8ELVW/5zWrkiElgmnPR0+h+oS79ASA==}
 
-  '@rrweb/types@2.1.0':
-    resolution: {integrity: sha512-svOHkcuukP6rIjz2umwVsS7uYct+2h0N97+bg+8IJYKIUj5+YjwIvqx5y9NILFKPIu3yk+Mb+KDFfJ8RV+4JlA==}
-
   '@rrweb/types@2.1.6':
     resolution: {integrity: sha512-DacFzGpPbQ91q3rRyh/AeZrtFYYonmLT+qgGlmh2iGcW2HPnrABJNgJWhpyzYwp/xed6Fbpi8yMxhRBlrOY0ZA==}
-
-  '@rrweb/utils@2.1.0':
-    resolution: {integrity: sha512-hU7MT3TSdD+Do7FmMoHrBfPevFCheN5vo2mn97Y4vbXuwemopAmo8dqo5KJeMaA6oQQt7FinHJ0Xqb7k68Ci6Q==}
 
   '@rrweb/utils@2.1.6':
     resolution: {integrity: sha512-BIRXcxiytJs5Guxw0tzsnVS7ukcMqtnxixjIGvV49VdJeOEG6NJeMU7o8efbHW1D52a12Y8QsgDjgDgblg3org==}
@@ -813,44 +804,44 @@ packages:
   '@types/whatwg-url@13.0.0':
     resolution: {integrity: sha512-N8WXpbE6Wgri7KUSvrmQcqrMllKZ9uxkYWMt+mCSGwNc0Hsw9VQTW7ApqI4XNrx6/SaM2QQJCzMPDEXE058s+Q==}
 
-  '@typescript/typescript-darwin-arm64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-Yp+LWe9FJBnOmTo4ImaWwwRQqfyTMyq1jDu5EH4IWRAVxdm982LRB4j30bCBycre4ReFzA+Is5Uc+i6jvem0Dg==}
+  '@typescript/typescript-darwin-arm64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-p2xNy8oyMRD9B3z3MqNAnjQEXiD9yaXihxFsgj+JgZXxH9+ET7nl2UHlKEyZMfig2ycV5trgpGe9dGKePE2mXQ==}
     engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [darwin]
 
-  '@typescript/typescript-darwin-x64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-G8iU8StWDoUOu+n1INfCI46iS/0Tu/rUw0bWCJxCv5TjDzlzR9v2riA+BeDcKSwGgzYnFSCc9HRu4rnrCwFtag==}
+  '@typescript/typescript-darwin-x64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-OaTrrBL51/g/xYniaY/e4hIjDTXuINd9PVA8KS3vGz8PdZGqOIWu1lNqsOAz54eaUL97XQIUKh8BV9KM7Jd3Aw==}
     engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [darwin]
 
-  '@typescript/typescript-linux-arm64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-6+dj4AsWeserJ5/5f3DgI+ibzJBr3l7pXEGxMUuv+lwoQ6QDVZ1tOGaJdsZy4Hg5atMZi/m7iuDFJPvWbYYMxQ==}
+  '@typescript/typescript-linux-arm64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-my2MwrZ2byBrGgSKhaBHw6YzwwAjtYyYF7aWLukbOR3Q/j1XL6wHmwb9xW7mstTdvgcuHE7fzmIX/1jun/rs5w==}
     engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [linux]
 
-  '@typescript/typescript-linux-arm@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-4w+Ztlff1U5INtBEeYnNBvBkDkAjH+lwQspxBEmVKxcvDDigYYIH6JpRx7zt3znxsR9Z3Fk5JQAgW5U8ve1tZg==}
+  '@typescript/typescript-linux-arm@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-9h3LN+8GxSlynEq/Cth6zlVpyimP30bR9MN2HntMJ2AAcNtb/Z/2uEo2nzcSJSKiR+Cr/g3JIxKi9vLZ/xvRbQ==}
     engines: {node: '>=16.20.0'}
     cpu: [arm]
     os: [linux]
 
-  '@typescript/typescript-linux-x64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-E4/JVTP1bJFk99cdsIG+AjLAuQEPpRDlwyhUExb6n6tqCPBeI4QlQa9bHZwv3xAMwRpYx5yHyYde2G5Isou7Dg==}
+  '@typescript/typescript-linux-x64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-mmljVmgWH0uIWyzxhKmX4EFm1oTk8H88oAksKC3XqWbHUQxy8y1rYirAE6qXFCYsH2zfVca4pUy0DP7sNKb0RA==}
     engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [linux]
 
-  '@typescript/typescript-win32-arm64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-0LE0ikOpuZN2RGqGfOJHjtHFGVsQ0QWUcLxqaA02kpHhs95wuPjbgSJTp1bTCw86CMsTR3RLj/N1NGtw0IC6tw==}
+  '@typescript/typescript-win32-arm64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-cKdMtBWCx8ppL1pEO80QTwc0Yq9K0eyYSabmS0m7fj3MQ7sxW231De0iXdDvz0r39KJuA+nV6QrOJqeP8piUQg==}
     engines: {node: '>=16.20.0'}
     cpu: [arm64]
     os: [win32]
 
-  '@typescript/typescript-win32-x64@7.1.0-dev.20260922.1':
-    resolution: {integrity: sha512-EysfoTSY19NBoG9RAdTz6/YT0HisIFzBak359KEvjeGMEggawBgWrjCfxjsWFuMd3fTt13USQ7W5aPH6+VrZpA==}
+  '@typescript/typescript-win32-x64@7.1.0-dev.20260923.1':
+    resolution: {integrity: sha512-KqrAWznlwZOT2dx7fLCV4QIy0+XaJZhKh5xau/tp/+CGHLQLnMrcTI67W/Rk/GuTRHrID3RlfvG/EsYnTl3NEg==}
     engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [win32]
@@ -1723,23 +1714,14 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  rrdom@2.1.0:
-    resolution: {integrity: sha512-d7oaIHzwffxI74UJMZDGq/f97/Yfm3QX4CcTIlQelt2HsLavItLjp8x8nQ0g9Pet5+5wG1RGr9yvsxb1gJlo8A==}
-
   rrdom@2.1.6:
     resolution: {integrity: sha512-EMRrTs1GRsmb8bNyAs107wG7eRwVEOvDUBsnCyvQnVV6elrmrua/AeS0tdcA0gLW4eptr4l6bRsS/2QRICvdqQ==}
 
   rrweb-player@2.1.6:
     resolution: {integrity: sha512-b/RAp32d93btucB5bX5VFxYS+Zm34B0n2ARFcLMAgrtqsECUqpIaHpQLHHf8rJwhMCEeNvW0BHV9BpF5aE6jtg==}
 
-  rrweb-snapshot@2.1.0:
-    resolution: {integrity: sha512-CFjUKWlO+Dl72gk8qwcDcNE/Pj9yr6IvGRAiRAx12pmJaSWaOKFoFgpQQ1j/mW0WKwEZXbHnMJL8M92gIsdwUQ==}
-
   rrweb-snapshot@2.1.6:
     resolution: {integrity: sha512-X03+x3AdWTbpD4Swb54CCJoEauYTv/O2ah0d3ZVv5rgr6bv0Ty5mxNjEyEEfNC1dQ8VdyjKKJgDG3A00FV0lNg==}
-
-  rrweb@2.1.0:
-    resolution: {integrity: sha512-gGGvd1eXWnOuJpQumH7+gPmBwTXzNrjmQyedWVePcEx0S5fe3VkQW4vw5f5ItY+vuigaaktte9cZKOg0OEvv+w==}
 
   rrweb@2.1.6:
     resolution: {integrity: sha512-OMdw4lWyfCx2fNhKCv1eZe54oVmD8r4QZsCXKY9fdt+cD/eiiupFgMHoFuwbwvltr4JH3IwWKXoadVjiMNhOZQ==}
@@ -1853,8 +1835,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  typescript@7.1.0-dev.20260922.1:
-    resolution: {integrity: sha512-m8MHrUEVO3XMp+5fsI15IiSCFVKLIVQxltwRYiI3VVpLIgjKZYy6Ec5JnzoQ6i9vC9B7FfCU3cmOj0uZP4HU/g==}
+  typescript@7.1.0-dev.20260923.1:
+    resolution: {integrity: sha512-x9N7D/ak6y+8Oxh/48n5z0TAMqN5SadG7xvor1h8ms7eGGZvZQvANQh3i2d3vlrnpMvhDmv4QQPdCTU5O70t7g==}
     engines: {node: '>=16.20.0'}
     hasBin: true
 
@@ -2332,10 +2314,9 @@ snapshots:
       react: 19.3.0
       react-redux: 9.3.0(@types/react@19.3.0)(react@19.3.0)(redux@5.0.1)
 
-  '@rodrigo-barraza/components-library@https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/0361e5c497d03d14fe9926245ad5a6277d2c23d9(@types/react@19.3.0)(lucide-react@1.47.0(react@19.3.0))(luxon@3.7.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@rodrigo-barraza/components-library@https://codeload.github.com/rodrigo-barraza/components-library/tar.gz/e79531106cc067b0eb179b008ae296f61a57bf56(@types/react@19.3.0)(lucide-react@1.47.0(react@19.3.0))(luxon@3.7.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@rodrigo-barraza/utilities-library': https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/a4bd47ac364876139339378da12df286826be93f
-      '@rrweb/record': 2.1.0
+      '@rodrigo-barraza/utilities-library': https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/d658530d068120eb22997e7db8e1ff771f55e340
       katex: 0.17.0
       lucide-react: 1.47.0(react@19.3.0)
       luxon: 3.7.2
@@ -2358,7 +2339,7 @@ snapshots:
       - socks
       - supports-color
 
-  '@rodrigo-barraza/utilities-library@https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/a4bd47ac364876139339378da12df286826be93f':
+  '@rodrigo-barraza/utilities-library@https://codeload.github.com/rodrigo-barraza/utilities-library/tar.gz/d658530d068120eb22997e7db8e1ff771f55e340':
     dependencies:
       mongodb: 7.3.0
       nanoid: 5.1.16
@@ -2424,22 +2405,12 @@ snapshots:
       '@rrweb/types': 2.1.6
       fflate: 0.4.8
 
-  '@rrweb/record@2.1.0':
-    dependencies:
-      '@rrweb/types': 2.1.0
-      '@rrweb/utils': 2.1.0
-      rrweb: 2.1.0
-
   '@rrweb/replay@2.1.6':
     dependencies:
       '@rrweb/types': 2.1.6
       rrweb: 2.1.6
 
-  '@rrweb/types@2.1.0': {}
-
   '@rrweb/types@2.1.6': {}
-
-  '@rrweb/utils@2.1.0': {}
 
   '@rrweb/utils@2.1.6': {}
 
@@ -2571,25 +2542,25 @@ snapshots:
     dependencies:
       '@types/webidl-conversions': 7.0.3
 
-  '@typescript/typescript-darwin-arm64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-darwin-arm64@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-darwin-x64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-darwin-x64@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-linux-arm64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-linux-arm64@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-linux-arm@7.1.0-dev.20260922.1':
+  '@typescript/typescript-linux-arm@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-linux-x64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-linux-x64@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-win32-arm64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-win32-arm64@7.1.0-dev.20260923.1':
     optional: true
 
-  '@typescript/typescript-win32-x64@7.1.0-dev.20260922.1':
+  '@typescript/typescript-win32-x64@7.1.0-dev.20260923.1':
     optional: true
 
   '@ungap/structured-clone@1.3.3': {}
@@ -3669,10 +3640,6 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.9
       '@rolldown/binding-win32-x64-msvc': 1.2.9
 
-  rrdom@2.1.0:
-    dependencies:
-      rrweb-snapshot: 2.1.0
-
   rrdom@2.1.6:
     dependencies:
       rrweb-snapshot: 2.1.6
@@ -3683,24 +3650,9 @@ snapshots:
       '@rrweb/replay': 2.1.6
       '@tsconfig/svelte': 1.0.13
 
-  rrweb-snapshot@2.1.0:
-    dependencies:
-      postcss: 8.5.23
-
   rrweb-snapshot@2.1.6:
     dependencies:
       postcss: 8.5.23
-
-  rrweb@2.1.0:
-    dependencies:
-      '@rrweb/types': 2.1.0
-      '@rrweb/utils': 2.1.0
-      '@types/css-font-loading-module': 0.0.7
-      '@xstate/fsm': 1.6.5
-      base64-arraybuffer: 1.0.2
-      mitt: 3.0.1
-      rrdom: 2.1.0
-      rrweb-snapshot: 2.1.0
 
   rrweb@2.1.6:
     dependencies:
@@ -3827,15 +3779,15 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  typescript@7.1.0-dev.20260922.1:
+  typescript@7.1.0-dev.20260923.1:
     optionalDependencies:
-      '@typescript/typescript-darwin-arm64': 7.1.0-dev.20260922.1
-      '@typescript/typescript-darwin-x64': 7.1.0-dev.20260922.1
-      '@typescript/typescript-linux-arm': 7.1.0-dev.20260922.1
-      '@typescript/typescript-linux-arm64': 7.1.0-dev.20260922.1
-      '@typescript/typescript-linux-x64': 7.1.0-dev.20260922.1
-      '@typescript/typescript-win32-arm64': 7.1.0-dev.20260922.1
-      '@typescript/typescript-win32-x64': 7.1.0-dev.20260922.1
+      '@typescript/typescript-darwin-arm64': 7.1.0-dev.20260923.1
+      '@typescript/typescript-darwin-x64': 7.1.0-dev.20260923.1
+      '@typescript/typescript-linux-arm': 7.1.0-dev.20260923.1
+      '@typescript/typescript-linux-arm64': 7.1.0-dev.20260923.1
+      '@typescript/typescript-linux-x64': 7.1.0-dev.20260923.1
+      '@typescript/typescript-win32-arm64': 7.1.0-dev.20260923.1
+      '@typescript/typescript-win32-x64': 7.1.0-dev.20260923.1
 
   undici-types@8.9.0: {}
 
