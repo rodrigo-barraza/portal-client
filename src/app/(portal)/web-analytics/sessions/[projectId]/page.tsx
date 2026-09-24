@@ -5,7 +5,7 @@ import { decodeRouteParam } from "@/lib/routeParams";
 export const metadata: Metadata = {
   title: "Session Analytics — Portal",
   description:
-    "First-party visitor analytics: sessions, IPs, geolocation, device fingerprints, and interaction events.",
+    "First-party analytics: sessions, pages, acquisition, geography, devices, heatmaps and replays.",
 };
 
 export default async function SessionAnalyticsPage({
