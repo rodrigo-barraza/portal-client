@@ -123,6 +123,81 @@
   font-family: var(--font-mono);
 }
 
+/* Read by screen readers, not shown. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Where a drill-down scrolls to: the session explorer, clear of the edge. */
+.explorer-anchor {
+  scroll-margin-top: 16px;
+}
+
+/* Pages being viewed right now (first-party live banner). */
+.realtime-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0 0 0 12px;
+  padding: 0;
+  list-style: none;
+  position: relative;
+}
+
+.realtime-pages-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.realtime-page {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  padding: 3px 8px;
+  font-size: var(--font-size-xs);
+  background: var(--background-elevated);
+  border-radius: 999px;
+}
+
+.realtime-page-path {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.realtime-page-count {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .realtime-banner {
+    flex-wrap: wrap;
+  }
+
+  .realtime-pages {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 26px;
+  }
+}
+
 /* ── Summary Cards ───────────────────────────────────────────── */
 
 .summary-grid {
@@ -189,6 +264,8 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
   font-family: var(--font-mono);
+  /* "1m 11s" stays one value; the delta badge wraps below instead */
+  white-space: nowrap;
 }
 
 .stat-card-label {
@@ -332,6 +409,28 @@
   font-size: 12px;
 }
 
+/* A table cell that drills into the session explorer. */
+.cell-link {
+  padding: 0;
+  color: var(--text-primary);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  word-break: break-all;
+
+  &:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
 /* ── Horizontal Bar Chart (for traffic sources, geo, etc.) ──── */
 
 .bar-list {
@@ -368,6 +467,37 @@
   font-size: var(--font-size-xs);
   font-family: var(--font-mono);
   color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* A drill-down bar: its label is a button (filters the session explorer). */
+.bar-label-button {
+  padding: 0;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-align: left;
+  color: var(--text-secondary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.bar-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -481,8 +611,9 @@
 
 .stat-card-value-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 .delta-badge {
@@ -862,6 +993,7 @@
 
 .back-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }

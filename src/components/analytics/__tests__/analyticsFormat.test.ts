@@ -1,11 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
+  countryFlag,
+  countryName,
   formatCount,
+  formatDecimal,
   formatDurationMs,
   formatLocation,
   formatRatioPercent,
+  formatScrollDepth,
+  formatSessionLocation,
   formatTimestamp,
-  formatWholePercent,
   joinMeta,
   percentChange,
   readableErrorMessage,
@@ -19,7 +23,7 @@ describe("formatLocation", () => {
     );
   });
 
-  it("drops the (not set) city GA and sessions-service use for unknowns", () => {
+  it("drops the (not set) city GA uses for unknowns", () => {
     expect(formatLocation({ city: "(not set)", country: "Canada" })).toBe(
       "Canada",
     );
@@ -34,6 +38,34 @@ describe("formatLocation", () => {
     expect(formatLocation({ city: null, country: null }, "Unknown")).toBe(
       "Unknown",
     );
+  });
+});
+
+describe("countries", () => {
+  it("turns an ISO code into its flag", () => {
+    expect(countryFlag("CA")).toBe("🇨🇦");
+    expect(countryFlag("gb")).toBe("🇬🇧");
+  });
+
+  it("has no flag for anything but a two-letter code", () => {
+    expect(countryFlag(null)).toBe("");
+    expect(countryFlag("CAN")).toBe("");
+    expect(countryFlag("1A")).toBe("");
+  });
+
+  it("names a country, or keeps the code when it is unknown", () => {
+    expect(countryName("CA")).toBe("Canada");
+    expect(countryName("de")).toBe("Germany");
+    expect(countryName("ZZ")).toBe("ZZ");
+    expect(countryName(null)).toBe("");
+  });
+
+  it("formats a session's place from its country code", () => {
+    expect(formatSessionLocation({ city: "Vancouver", country: "CA" })).toBe(
+      "Vancouver, Canada",
+    );
+    expect(formatSessionLocation({ city: null, country: "CA" })).toBe("Canada");
+    expect(formatSessionLocation(null, "Unknown")).toBe("Unknown");
   });
 });
 
@@ -101,11 +133,17 @@ describe("percent formatting", () => {
   it("shows a dash rather than a fake 0% for missing values", () => {
     expect(formatRatioPercent(null)).toBe("—");
     expect(formatRatioPercent(Number.NaN)).toBe("—");
-    expect(formatWholePercent(undefined)).toBe("—");
+    expect(formatScrollDepth(undefined)).toBe("—");
   });
 
-  it("leaves sessions-service percentages as-is", () => {
-    expect(formatWholePercent(42)).toBe("42%");
+  it("rounds scroll depth, already a percentage, into 0–100", () => {
+    expect(formatScrollDepth(42.6)).toBe("43%");
+    expect(formatScrollDepth(140)).toBe("100%");
+  });
+
+  it("formats one decimal place", () => {
+    expect(formatDecimal(2.456)).toBe("2.5");
+    expect(formatDecimal(Number.POSITIVE_INFINITY)).toBe("—");
   });
 });
 

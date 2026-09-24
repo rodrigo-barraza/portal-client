@@ -1,107 +1,169 @@
 /**
- * Session explorer model — the pure search and timeline logic the explorer
- * runs on sessions-service's explorer responses (/stats/ips, /visitors,
- * /sessions, /ip/:ip, /session/:id; proxied by portal-service). The
- * response shapes themselves live in `@/types/portal`.
+ * Session explorer model — the pure state, filter, sort and journey logic
+ * behind the first-party session explorer (sessions-service /stats/sessions
+ * and /stats/sessions/:id, proxied by portal-service). Filtering, sorting
+ * and paging all happen server-side; this only shapes what is sent and
+ * shown. The response shapes live in `@/types/portal`.
  */
 
+import { countryFlag, countryName } from "./analyticsFormat";
 import type {
-  DeviceInfo,
-  EventRecord,
-  ExplorerSession,
-  GeoInfo,
-  IpDetail,
-  IpUser,
-  NamedVersion,
-  PageViewRecord,
-  TimelineEntry,
-  Visitor,
+  SessionEvent,
+  SessionFilters,
+  SessionSort,
+  SessionView,
 } from "@/types/portal";
 
-// ── Search ────────────────────────────────────────────────────
+// ── Explorer state ────────────────────────────────────────────
 
-type SearchField = string | null | undefined;
+/** What the explorer shows — owned by the report, so its panels can drill in. */
+export interface ExplorerState {
+  filters: SessionFilters;
+  /** Search every session (period=all) instead of the dashboard's range. */
+  allTime: boolean;
+  /** The session open in the detail view; null shows the list. */
+  sessionId: string | null;
+}
 
-function matchesQuery(fields: SearchField[], normalizedQuery: string): boolean {
-  return fields.some(
-    (field) => !!field && field.toLowerCase().includes(normalizedQuery),
+export const INITIAL_EXPLORER_STATE: ExplorerState = {
+  filters: {},
+  allTime: false,
+  sessionId: null,
+};
+
+// ── Filters ───────────────────────────────────────────────────
+
+/** The filters that take a typed value (the rest are on/off toggles). */
+export type TextFilterKey =
+  "country" | "channel" | "path" | "visitorId" | "userId" | "ip";
+
+export const TEXT_FILTERS: {
+  key: TextFilterKey;
+  label: string;
+  placeholder: string;
+}[] = [
+  { key: "path", label: "Page", placeholder: "/pricing" },
+  { key: "channel", label: "Channel", placeholder: "Organic Search" },
+  { key: "country", label: "Country", placeholder: "ISO code, e.g. CA" },
+  { key: "visitorId", label: "Visitor", placeholder: "Visitor id" },
+  { key: "userId", label: "User", placeholder: "User id" },
+  { key: "ip", label: "IP", placeholder: "203.0.113.5" },
+];
+
+const TEXT_FILTER_LABELS = Object.fromEntries(
+  TEXT_FILTERS.map((filter) => [filter.key, filter.label]),
+) as Record<TextFilterKey, string>;
+
+/**
+ * `filters` with `key` set to `value`, trimmed — an empty value removes
+ * the filter. Country codes are ISO alpha-2, matched exactly, so they are
+ * upper-cased.
+ */
+export function setTextFilter(
+  filters: SessionFilters,
+  key: TextFilterKey,
+  value: string,
+): SessionFilters {
+  const trimmed = value.trim();
+  const next = { ...filters };
+  if (!trimmed) delete next[key];
+  else next[key] = key === "country" ? trimmed.toUpperCase() : trimmed;
+  return next;
+}
+
+/** `filters` without `key`. */
+export function removeFilter(
+  filters: SessionFilters,
+  key: keyof SessionFilters,
+): SessionFilters {
+  const next = { ...filters };
+  delete next[key];
+  return next;
+}
+
+/** One active typed filter, as a removable chip. */
+export interface FilterChip {
+  key: TextFilterKey;
+  label: string;
+  /** The value for people ("🇨🇦 Canada" for a country code). */
+  display: string;
+  value: string;
+}
+
+/** The active typed filters, in the order the filter picker lists them. */
+export function filterChips(filters: SessionFilters): FilterChip[] {
+  return TEXT_FILTERS.flatMap(({ key }) => {
+    const value = filters[key];
+    if (!value) return [];
+    const display =
+      key === "country"
+        ? [countryFlag(value), `${countryName(value)} (${value})`]
+            .filter(Boolean)
+            .join(" ")
+        : value;
+    return [{ key, label: TEXT_FILTER_LABELS[key], display, value }];
+  });
+}
+
+/** True when any filter narrows the list. */
+export function hasFilters(filters: SessionFilters): boolean {
+  return (
+    filterChips(filters).length > 0 || !!filters.replay || !!filters.engaged
   );
 }
 
-function filterByQuery<T>(
-  items: readonly T[],
-  query: string,
-  fields: (item: T) => SearchField[],
-): T[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return [...items];
-  return items.filter((item) => matchesQuery(fields(item), normalizedQuery));
+/** A stable key for the filters (insertion order must not matter). */
+export function filtersKey(filters: SessionFilters): string {
+  return JSON.stringify(
+    Object.entries(filters)
+      .filter(([, value]) => value !== undefined && value !== false)
+      .sort(([first], [second]) => first.localeCompare(second)),
+  );
 }
 
-function clientFields(
-  browser: NamedVersion | null | undefined,
-  os: NamedVersion | null | undefined,
-  device: DeviceInfo | null | undefined,
-  geo: GeoInfo | null | undefined,
-): SearchField[] {
-  return [
-    browser?.name,
-    browser?.version,
-    os?.name,
-    os?.version,
-    device?.type,
-    device?.vendor,
-    geo?.country,
-    geo?.city,
-  ];
+// ── Sort ──────────────────────────────────────────────────────
+
+export const DEFAULT_SORT: SessionSort = { sort: "startedAt", order: "desc" };
+
+/** Every server-side sort, as the sort picker lists it. */
+export const SORT_OPTIONS: { sort: SessionSort; label: string }[] = [
+  { sort: { sort: "startedAt", order: "desc" }, label: "Newest first" },
+  { sort: { sort: "startedAt", order: "asc" }, label: "Oldest first" },
+  { sort: { sort: "lastSeenAt", order: "desc" }, label: "Recently active" },
+  {
+    sort: { sort: "lastSeenAt", order: "asc" },
+    label: "Least recently active",
+  },
+  { sort: { sort: "engagedMs", order: "desc" }, label: "Most engaged time" },
+  { sort: { sort: "engagedMs", order: "asc" }, label: "Least engaged time" },
+  { sort: { sort: "pageviews", order: "desc" }, label: "Most pages" },
+  { sort: { sort: "pageviews", order: "asc" }, label: "Fewest pages" },
+];
+
+/** A sort as one `<select>` value, "engagedMs:desc". */
+export function sortValue(sort: SessionSort): string {
+  return `${sort.sort}:${sort.order}`;
 }
 
-export function filterIpUsers(
-  items: readonly IpUser[],
-  query: string,
-): IpUser[] {
-  return filterByQuery(items, query, (item) => [
-    item.ip,
-    ...(item.visitorIds ?? []),
-    ...clientFields(
-      item.lastBrowser,
-      item.lastOs,
-      item.lastDevice,
-      item.lastGeo,
-    ),
-  ]);
+/** The sort a `<select>` value names; the default for anything unknown. */
+export function parseSortValue(value: string): SessionSort {
+  return (
+    SORT_OPTIONS.find((option) => sortValue(option.sort) === value)?.sort ??
+    DEFAULT_SORT
+  );
 }
 
-export function filterVisitors(
-  items: readonly Visitor[],
-  query: string,
-): Visitor[] {
-  return filterByQuery(items, query, (item) => [
-    item.visitorId,
-    item.lastIp,
-    ...clientFields(
-      item.lastBrowser,
-      item.lastOs,
-      item.lastDevice,
-      item.lastGeo,
-    ),
-  ]);
-}
+// ── Journey ───────────────────────────────────────────────────
 
-export function filterSessions(
-  items: readonly ExplorerSession[],
-  query: string,
-): ExplorerSession[] {
-  return filterByQuery(items, query, (item) => [
-    item.sessionId,
-    item.visitorId,
-    item.userId,
-    item.ip,
-    ...clientFields(item.browser, item.os, item.device, item.geo),
-  ]);
-}
-
-// ── Timeline ──────────────────────────────────────────────────
+export type JourneyEntry =
+  | {
+      kind: "view";
+      at: string;
+      view: SessionView;
+      /** 1-based position among the session's pageviews. */
+      step: number;
+    }
+  | { kind: "event"; at: string; event: SessionEvent };
 
 function timestampOf(value: string): number {
   const time = new Date(value).getTime();
@@ -109,80 +171,61 @@ function timestampOf(value: string): number {
 }
 
 /**
- * Merge page views and events into one chronological timeline, keeping
- * each entry's sessionId. sessions-service's own merged `timeline` drops
- * sessionId, so on an IP's cross-session timeline every row would lose
- * its session tag. Stable: equal timestamps keep page views first.
+ * A session's pageviews in order with its events interleaved by time.
+ * Stable: an event stamped the same instant as a pageview comes after it
+ * (the event happened on that page), and equal events keep their order.
  */
-export function buildTimeline(
-  pageViews: readonly PageViewRecord[],
-  events: readonly EventRecord[],
-): TimelineEntry[] {
-  const entries: TimelineEntry[] = [
-    ...pageViews.map((pageView): TimelineEntry => ({
-      type: "pageview",
-      timestamp: pageView.timestamp,
-      sessionId: pageView.sessionId,
-      path: pageView.path,
-      title: pageView.title,
-      url: pageView.url,
-    })),
-    ...events.map((event): TimelineEntry => ({
-      type: "event",
-      timestamp: event.timestamp,
-      sessionId: event.sessionId,
-      category: event.category,
-      action: event.action,
-      label: event.label,
-    })),
-  ];
-  return entries
-    .map((entry, index) => ({
-      entry,
-      index,
-      time: timestampOf(entry.timestamp),
-    }))
+export function buildJourney(
+  views: readonly SessionView[],
+  events: readonly SessionEvent[],
+): JourneyEntry[] {
+  const orderedViews = views
+    .map((view, index) => ({ view, index, time: timestampOf(view.at) }))
     .sort(
       (first, second) => first.time - second.time || first.index - second.index,
+    );
+
+  const entries: { entry: JourneyEntry; time: number; rank: number }[] = [
+    ...orderedViews.map(({ view, time }, index) => ({
+      entry: { kind: "view" as const, at: view.at, view, step: index + 1 },
+      time,
+      rank: 0,
+    })),
+    ...events.map((event) => ({
+      entry: { kind: "event" as const, at: event.at, event },
+      time: timestampOf(event.at),
+      rank: 1,
+    })),
+  ];
+
+  return entries
+    .map((item, index) => ({ ...item, index }))
+    .sort(
+      (first, second) =>
+        first.time - second.time ||
+        first.rank - second.rank ||
+        first.index - second.index,
     )
     .map(({ entry }) => entry);
 }
 
-/** The IP's cross-session timeline — rebuilt so entries keep their sessionId. */
-export function ipTimeline(detail: IpDetail): TimelineEntry[] {
-  if (detail.pageViews?.length || detail.events?.length) {
-    return buildTimeline(detail.pageViews ?? [], detail.events ?? []);
-  }
-  return detail.timeline ?? [];
+/** Stable React key for a journey row. */
+export function journeyKey(entry: JourneyEntry, index: number): string {
+  return entry.kind === "view"
+    ? `view|${entry.view.id}`
+    : `event|${entry.at}|${entry.event.name}|${index}`;
 }
 
-/** The most recent fingerprint seen on this IP (the detail endpoint omits it). */
-export function ipFingerprint(detail: IpDetail): string | null {
-  return (
-    detail.sessions?.find((session) => session.fingerprintId)?.fingerprintId ??
-    null
+/** An event's props as "key: value" pairs, nulls and empties dropped. */
+export function eventProps(event: SessionEvent): [string, string][] {
+  return Object.entries(event.props ?? {}).flatMap(([key, value]) =>
+    value === null || value === undefined || value === ""
+      ? []
+      : [
+          [
+            key,
+            typeof value === "object" ? JSON.stringify(value) : String(value),
+          ],
+        ],
   );
-}
-
-/**
- * The IP's latest activity. sessions-service reports the newest-CREATED
- * session's updatedAt, which misses an older session (a long-lived tab)
- * that was active more recently; take the max over the sessions instead.
- */
-export function ipLastSeen(detail: IpDetail): string | null {
-  let latest: string | null = detail.lastSeen ?? null;
-  let latestTime = latest ? timestampOf(latest) : 0;
-  for (const session of detail.sessions ?? []) {
-    const time = timestampOf(session.updatedAt);
-    if (time > latestTime) {
-      latest = session.updatedAt;
-      latestTime = time;
-    }
-  }
-  return latest;
-}
-
-/** Stable React key for a timeline row. */
-export function timelineKey(entry: TimelineEntry, index: number): string {
-  return `${entry.timestamp}|${entry.type}|${entry.sessionId ?? ""}|${index}`;
 }

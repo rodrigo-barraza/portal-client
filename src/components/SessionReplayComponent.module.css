@@ -28,6 +28,16 @@
   border-radius: 999px;
 }
 
+.replay-note {
+  margin: -4px 0 12px;
+  padding: 8px 12px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
+  border-radius: var(--border-radius-sm);
+}
+
 .replay-message {
   padding: 24px 16px;
   text-align: center;

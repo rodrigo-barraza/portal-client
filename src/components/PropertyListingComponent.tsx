@@ -15,7 +15,7 @@ import {
   LoadingIndicatorComponent,
   TableComponent,
 } from "@rodrigo-barraza/components-library";
-import { formatCompact } from "@rodrigo-barraza/utilities-library";
+import { formatCompact, formatDate } from "@rodrigo-barraza/utilities-library";
 import ApiService from "../services/ApiService";
 import { SOURCE_COLORS, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
@@ -26,7 +26,7 @@ import type {
   GAOverview,
   GAProperty,
   GARealtimeReport,
-  SessionProject,
+  SessionProjectSummary,
 } from "../types/portal";
 import styles from "./WebAnalytics.module.css";
 
@@ -53,30 +53,25 @@ interface UnifiedProperty {
   meta: string;
   domain?: string | null;
   ga?: GAProperty;
-  sessions?: SessionProject;
+  sessions?: SessionProjectSummary;
   linkHref: string;
 }
 
 type ViewMode = "card" | "list";
 
 /**
- * Every tracked project (all-time membership) with its LISTING_PERIOD
- * numbers. Listing only the period's projects made a site vanish — and a
- * GA site lose its first-party badge — after 30 quiet days.
+ * Every project sessions-service has ever seen, with its LISTING_PERIOD
+ * numbers and live count — one call: /projects lists quiet projects too,
+ * so a site never vanishes (or loses its first-party badge) after a quiet
+ * month.
  */
-async function loadSessionProjects(
+function loadSessionProjects(
   signal: AbortSignal,
-): Promise<SessionProject[]> {
-  const [allTime, recent] = await Promise.all([
-    ApiService.getSessionProjects("all", { signal }).then(unwrapData),
-    ApiService.getSessionProjects(LISTING_PERIOD, { signal }).then(unwrapData),
-  ]);
-  const recentById = new Map(recent.map((row) => [row.projectId, row]));
-  return allTime.map((project) => ({
-    ...project,
-    sessionCount: recentById.get(project.projectId)?.sessionCount ?? 0,
-    uniqueVisitors: recentById.get(project.projectId)?.uniqueVisitors ?? 0,
-  }));
+): Promise<SessionProjectSummary[]> {
+  return ApiService.getSessionProjects(
+    { period: LISTING_PERIOD },
+    { signal },
+  ).then(unwrapData);
 }
 
 /**
@@ -155,7 +150,10 @@ export default function PropertyListingComponent({
       merged.push({
         key: `fp-${project.projectId}`,
         label: project.projectId,
-        meta: "sessions-service",
+        meta: joinMeta(
+          "first-party",
+          `since ${formatDate(project.firstSeenAt)}`,
+        ),
         sessions: project,
         linkHref: `/web-analytics/sessions/${encodeURIComponent(project.projectId)}`,
       });
@@ -177,6 +175,25 @@ export default function PropertyListingComponent({
       <span className={styles["property-list-value"]}>
         {value == null ? "—" : formatCompact(value)}
       </span>
+    );
+    const liveCell = (active: number | null | undefined) => (
+      <div
+        className={`${styles["property-list-value"]} ${styles["property-list-realtime"]}`}
+      >
+        {active == null ? (
+          "—"
+        ) : (
+          <>
+            {active > 0 && (
+              <div
+                className={styles["property-list-realtime-dot"]}
+                aria-hidden
+              />
+            )}
+            {formatCompact(active)}
+          </>
+        )}
+      </div>
     );
 
     return [
@@ -238,45 +255,34 @@ export default function PropertyListingComponent({
         label: "1P Visitors",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => row.sessions?.uniqueVisitors ?? -1,
-        render: (row: UnifiedProperty) =>
-          valueCell(row.sessions?.uniqueVisitors),
+        sortValue: (row: UnifiedProperty) => row.sessions?.visitors ?? -1,
+        render: (row: UnifiedProperty) => valueCell(row.sessions?.visitors),
       },
       {
         key: "fpSessions",
         label: "1P Sessions",
         sortable: true,
         align: "left" as const,
-        sortValue: (row: UnifiedProperty) => row.sessions?.sessionCount ?? -1,
-        render: (row: UnifiedProperty) => valueCell(row.sessions?.sessionCount),
+        sortValue: (row: UnifiedProperty) => row.sessions?.sessions ?? -1,
+        render: (row: UnifiedProperty) => valueCell(row.sessions?.sessions),
       },
       {
         key: "activeNow",
-        label: "Active Now",
+        label: "GA4 Active",
         sortable: true,
         align: "left" as const,
         sortValue: (row: UnifiedProperty) =>
           gaSummary(row)?.realtime?.activeUsers ?? -1,
-        render: (row: UnifiedProperty) => {
-          const realtime = gaSummary(row)?.realtime;
-          return (
-            <div
-              className={`${styles["property-list-value"]} ${styles["property-list-realtime"]}`}
-            >
-              {realtime ? (
-                <>
-                  <div
-                    className={styles["property-list-realtime-dot"]}
-                    aria-hidden
-                  />
-                  {formatCompact(realtime.activeUsers)}
-                </>
-              ) : (
-                "—"
-              )}
-            </div>
-          );
-        },
+        render: (row: UnifiedProperty) =>
+          liveCell(gaSummary(row)?.realtime?.activeUsers),
+      },
+      {
+        key: "fpActive",
+        label: "1P Active",
+        sortable: true,
+        align: "left" as const,
+        sortValue: (row: UnifiedProperty) => row.sessions?.live ?? -1,
+        render: (row: UnifiedProperty) => liveCell(row.sessions?.live),
       },
     ];
   }, [summaries]);
@@ -460,11 +466,9 @@ function PropertyCard({
             </span>
           )}
           <div className={styles["property-card-stats"]}>
-            <CardStat
-              value={property.sessions.uniqueVisitors}
-              label="Visitors"
-            />
-            <CardStat value={property.sessions.sessionCount} label="Sessions" />
+            <CardStat value={property.sessions.visitors} label="Visitors" />
+            <CardStat value={property.sessions.sessions} label="Sessions" />
+            <CardStat value={property.sessions.live} label="Active now" />
           </div>
         </div>
       )}
@@ -475,7 +479,8 @@ function PropertyCard({
           <span className={styles["property-card-realtime-value"]}>
             {formatCompact(summary.realtime.activeUsers)}
           </span>
-          <span>active now</span>
+          {/* Both sources count "active now" — say which this is */}
+          <span>{property.sessions ? "active now in GA4" : "active now"}</span>
         </div>
       )}
     </Link>

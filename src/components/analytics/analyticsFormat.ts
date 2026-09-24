@@ -1,9 +1,9 @@
 /**
  * Formatting helpers for the web-analytics pages. Pure — no React, no I/O.
  *
- * Unit conventions the two sources disagree on:
- *   - durations: sessions-service sends MILLISECONDS, GA4 sends SECONDS
- *   - rates: sessions-service sends 0–100 percentages, GA4 sends 0–1 ratios
+ * Units: both sources send rates as 0–1 ratios, but durations differ —
+ * sessions-service sends MILLISECONDS, GA4 sends SECONDS. Scroll depth
+ * (sessions-service) is already a 0–100 percentage.
  */
 
 import {
@@ -13,7 +13,7 @@ import {
   pluralize,
 } from "@rodrigo-barraza/utilities-library";
 
-/** GA and sessions-service both report unknown cities as "(not set)". */
+/** GA reports an unknown city as "(not set)". */
 export const NOT_SET = "(not set)";
 
 export interface LocationLike {
@@ -31,6 +31,53 @@ export function formatLocation(
     location?.city && location.city !== NOT_SET ? location.city : null;
   if (city && country) return `${city}, ${country}`;
   return country || city || fallback;
+}
+
+/**
+ * The flag emoji of an ISO 3166-1 alpha-2 code ("CA" → 🇨🇦): two regional
+ * indicator symbols. "" for anything that is not a two-letter code.
+ */
+export function countryFlag(code: string | null | undefined): string {
+  if (!code || !/^[A-Za-z]{2}$/.test(code)) return "";
+  return String.fromCodePoint(
+    ...[...code.toUpperCase()].map(
+      (letter) => 0x1f1e6 + letter.charCodeAt(0) - 65,
+    ),
+  );
+}
+
+const REGION_NAMES = (() => {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" });
+  } catch {
+    return null;
+  }
+})();
+
+/** English name of an ISO country code ("CA" → "Canada"); the code when unknown. */
+export function countryName(code: string | null | undefined): string {
+  if (!code) return "";
+  const upper = code.toUpperCase();
+  try {
+    const name = REGION_NAMES?.of(upper);
+    return name && name !== "Unknown Region" ? name : upper;
+  } catch {
+    return upper;
+  }
+}
+
+/** A session's place, "Vancouver, Canada", from its ISO country code. */
+export function formatSessionLocation(
+  location: { city?: string | null; country?: string | null } | null,
+  fallback = "—",
+): string {
+  return formatLocation(
+    location && {
+      city: location.city,
+      country: location.country ? countryName(location.country) : null,
+    },
+    fallback,
+  );
 }
 
 /** A sessions-service duration (milliseconds) as "4m 12s". */
@@ -80,18 +127,24 @@ export function shortId(id: string | null | undefined, length: number): string {
   return id.length > length ? `${id.slice(0, length)}…` : id;
 }
 
-/** A GA4 ratio (0–1) as a percentage; "—" when missing. */
+/** A 0–1 ratio (GA4 or sessions-service) as a percentage; "—" when missing. */
 export function formatRatioPercent(ratio: number | null | undefined): string {
   if (ratio == null || !Number.isFinite(ratio)) return "—";
   return formatPercent(ratio * 100);
 }
 
-/** A sessions-service percentage (already 0–100); "—" when missing. */
-export function formatWholePercent(
+/** A scroll depth (already 0–100) as a whole percentage; "—" when missing. */
+export function formatScrollDepth(
   percentage: number | null | undefined,
 ): string {
   if (percentage == null || !Number.isFinite(percentage)) return "—";
-  return `${percentage}%`;
+  return `${Math.round(Math.min(Math.max(percentage, 0), 100))}%`;
+}
+
+/** One decimal place ("2.4"); "—" when missing. */
+export function formatDecimal(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return value.toFixed(1);
 }
 
 /**
@@ -110,11 +163,9 @@ export function percentChange(
 }
 
 /**
- * An error's message when it is real text, else null. The shared API
- * client throws `new Error(body.error || body.message)`, and a proxied
- * sessions-service failure body is `{ error: true, message }` — so the
- * thrown message can be the literal "true". Callers show generic wording
- * instead of that.
+ * An error's message when it is real text, else null. A failure body
+ * that carried no text (a bare `{ error: true }`) must never surface as
+ * the literal "true" — callers show generic wording instead.
  */
 export function readableErrorMessage(
   error: Error | null | undefined,

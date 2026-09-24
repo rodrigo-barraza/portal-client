@@ -17,19 +17,25 @@ import SessionReportComponent from "./SessionReportComponent";
 import { DeltaBadge, Panel, SourceBadges } from "./AnalyticsPrimitives";
 import useAsyncData, { unwrapData } from "./analytics/useAsyncData";
 import {
+  formatRatioPercent,
   joinMeta,
   percentChange,
   readableErrorMessage,
 } from "./analytics/analyticsFormat";
 import {
   PRESET_PERIODS,
-  isCustomPeriod,
+  describePeriod,
   parseCustomPeriod,
   toCustomPeriod,
+  toSessionRange,
 } from "./analytics/analyticsSeries";
 import { formatCompact } from "@rodrigo-barraza/utilities-library";
 import styles from "./WebAnalytics.module.css";
-import type { GAProperty, SessionProject } from "../types/portal";
+import type {
+  GAProperty,
+  SessionProjectSummary,
+  SessionReportSummary,
+} from "../types/portal";
 
 type AnalyticsSource = "ga" | "sessions";
 
@@ -39,9 +45,10 @@ const PERIOD_SEGMENTS = PRESET_PERIODS.map((presetPeriod) => ({
   label: presetPeriod,
 }));
 /**
- * GA takes whole-day ranges only: no sub-day ("Last 5 minutes") presets,
- * and no "All Time" — GA has no unbounded range, and the picker's clear
- * button already returns to the default period.
+ * Both sources take whole-day ranges (sessions-service reads them in the
+ * browser's zone): no sub-day ("Last 5 minutes") presets, and no "All
+ * Time" — GA has no unbounded range, and the picker's clear button
+ * already returns to the default period.
  */
 const CUSTOM_RANGE_PRESETS = DATE_PRESETS_DATE_ONLY.filter(
   (preset) => preset.label !== "All Time",
@@ -49,7 +56,8 @@ const CUSTOM_RANGE_PRESETS = DATE_PRESETS_DATE_ONLY.filter(
 
 interface PropertyRegistry {
   properties: GAProperty[];
-  sessionProjects: SessionProject[];
+  /** Every project sessions-service has seen (membership only). */
+  sessionProjects: SessionProjectSummary[];
   /** GA registry failure — only fatal on a GA route. */
   gaError: Error | null;
 }
@@ -57,7 +65,8 @@ interface PropertyRegistry {
 async function loadRegistry(signal: AbortSignal): Promise<PropertyRegistry> {
   const [propertiesResult, projectsResult] = await Promise.allSettled([
     ApiService.getGAProperties({ signal }),
-    ApiService.getSessionProjects("all", { signal }),
+    // Lists every project ever seen whatever the range; the numbers go unused
+    ApiService.getSessionProjects({ period: DEFAULT_PERIOD }, { signal }),
   ]);
   return {
     properties:
@@ -135,12 +144,16 @@ export default function PropertyDashboardComponent({
       : source === "sessions" && !hasSessions
         ? "ga"
         : source;
-  // sessions-service only understands "Nd" periods — it would silently
-  // treat a custom range as all-time, so never hand it one
-  const activePeriod =
-    activeSource === "sessions" && isCustomPeriod(period)
-      ? DEFAULT_PERIOD
-      : period;
+
+  // One /report per project + period, shared by the first-party report and
+  // the GA4 comparison — so switching sources never refetches it
+  const sessionReport = useAsyncData(
+    sessionsProjectId ? `${sessionsProjectId}|${period}` : null,
+    (signal) =>
+      ApiService.getSessionReport(sessionsProjectId!, toSessionRange(period), {
+        signal,
+      }).then(unwrapData),
+  );
 
   const title = gaProperty?.label || sessionsProjectId || "Web Analytics";
   const subtitle = joinMeta(
@@ -148,14 +161,7 @@ export default function PropertyDashboardComponent({
     sessionsProjectId && `sessions-service ${sessionsProjectId}`,
   );
 
-  const customRange = parseCustomPeriod(activePeriod);
-
-  const switchSource = (value: string) => {
-    const nextSource = value as AnalyticsSource;
-    if (nextSource === "sessions" && isCustomPeriod(period))
-      setPeriod(DEFAULT_PERIOD);
-    setSource(nextSource);
-  };
+  const customRange = parseCustomPeriod(period);
 
   const applyCustomRange = (value: { from: string; to: string }) => {
     const nextPeriod = toCustomPeriod(value?.from ?? "", value?.to ?? "");
@@ -231,21 +237,19 @@ export default function PropertyDashboardComponent({
       <PageHeaderComponent sticky={false} title={title} subtitle={subtitle}>
         <div className={styles["header-controls"]}>
           <SegmentedControlComponent
-            value={activePeriod}
+            value={period}
             onChange={setPeriod}
             segments={PERIOD_SEGMENTS}
             compact
           />
-          {activeSource === "ga" && (
-            <DatePickerComponent
-              from={customRange?.from ?? ""}
-              to={customRange?.to ?? ""}
-              onChange={applyCustomRange}
-              presets={CUSTOM_RANGE_PRESETS}
-              showTime={false}
-              placeholder="Custom range"
-            />
-          )}
+          <DatePickerComponent
+            from={customRange?.from ?? ""}
+            to={customRange?.to ?? ""}
+            onChange={applyCustomRange}
+            presets={CUSTOM_RANGE_PRESETS}
+            showTime={false}
+            placeholder="Custom range"
+          />
         </div>
       </PageHeaderComponent>
 
@@ -264,7 +268,7 @@ export default function PropertyDashboardComponent({
         {isUnified && (
           <SegmentedControlComponent
             value={activeSource}
-            onChange={switchSource}
+            onChange={(value: string) => setSource(value as AnalyticsSource)}
             segments={[
               { value: "ga", label: "Google Analytics" },
               { value: "sessions", label: "First-Party" },
@@ -275,21 +279,23 @@ export default function PropertyDashboardComponent({
       </div>
 
       {/* ── Source comparison (only when both sources track) ──── */}
-      {isUnified && gaProperty && sessionsProjectId && !customRange && (
+      {isUnified && gaProperty && (
         <SourceComparisonPanel
           propertyId={gaProperty.id}
-          projectId={sessionsProjectId}
-          period={activePeriod}
+          period={period}
+          sessionSummary={sessionReport.data?.summary ?? null}
         />
       )}
 
       {/* ── Active source report ──────────────────────────────── */}
       {activeSource === "ga" && gaProperty ? (
-        <GAReportComponent property={gaProperty} period={activePeriod} />
+        <GAReportComponent property={gaProperty} period={period} />
       ) : sessionsProjectId ? (
         <SessionReportComponent
+          key={sessionsProjectId}
           projectId={sessionsProjectId}
-          period={activePeriod}
+          period={period}
+          report={sessionReport}
         />
       ) : null}
     </div>
@@ -300,55 +306,61 @@ export default function PropertyDashboardComponent({
 
 /**
  * Side-by-side GA4 vs first-party numbers for the same site and period.
- * GA undercounts (ad blockers, consent); sessions-service sees every
- * request — the delta column shows how far apart the two sources are.
+ * GA undercounts (ad blockers, consent); the first-party tracker loads
+ * from the site's own origin — the delta column shows how far apart the
+ * two sources are. Both use GA4's engaged-session definition.
  */
 function SourceComparisonPanel({
   propertyId,
-  projectId,
   period,
+  sessionSummary,
 }: {
   propertyId: string;
-  projectId: string;
   period: string;
+  /** The first-party report's summary for the same period (null while loading). */
+  sessionSummary: SessionReportSummary | null;
 }) {
-  const comparison = useAsyncData(
-    `${propertyId}|${projectId}|${period}`,
-    async (signal) => {
-      const [gaOverview, sessionOverview] = await Promise.all([
-        ApiService.getGAOverview(propertyId, period, { signal }),
-        ApiService.getSessionOverview(projectId, period, { signal }).then(
-          unwrapData,
-        ),
-      ]);
-      return { gaOverview, sessionOverview };
-    },
+  const gaOverview = useAsyncData(`${propertyId}|${period}`, (signal) =>
+    ApiService.getGAOverview(propertyId, period, { signal }),
   );
 
   // Supplementary panel: hidden while loading or when either side fails
-  if (!comparison.data) return null;
-  const { gaOverview, sessionOverview } = comparison.data;
+  if (!gaOverview.data || !sessionSummary) return null;
+  const ga = gaOverview.data;
 
   const rows = [
     {
       metric: "Users / Visitors",
-      ga: gaOverview.totalUsers,
-      sessions: sessionOverview.uniqueVisitors,
+      ga: ga.totalUsers,
+      sessions: sessionSummary.visitors,
+      format: formatCompact,
     },
     {
       metric: "Sessions",
-      ga: gaOverview.sessions,
-      sessions: sessionOverview.totalSessions,
+      ga: ga.sessions,
+      sessions: sessionSummary.sessions,
+      format: formatCompact,
     },
     {
       metric: "Pageviews",
-      ga: gaOverview.pageviews,
-      sessions: sessionOverview.totalPageViews,
+      ga: ga.pageviews,
+      sessions: sessionSummary.pageviews,
+      format: formatCompact,
+    },
+    {
+      metric: "Engagement rate",
+      ga: ga.engagementRate,
+      sessions: sessionSummary.engagementRate,
+      format: formatRatioPercent,
     },
   ];
 
   return (
-    <Panel icon={Scale} title="GA4 vs First-Party" meta={period}>
+    <Panel
+      icon={Scale}
+      title="GA4 vs First-Party"
+      meta={describePeriod(period)}
+    >
       <div className={styles["compare-grid"]}>
         <span className={styles["compare-head"]}>Metric</span>
         <span className={styles["compare-head"]}>GA4</span>
@@ -358,10 +370,10 @@ function SourceComparisonPanel({
           <Fragment key={row.metric}>
             <span className={styles["compare-metric"]}>{row.metric}</span>
             <span className={styles["compare-value"]}>
-              {formatCompact(row.ga)}
+              {row.format(row.ga)}
             </span>
             <span className={styles["compare-value"]}>
-              {formatCompact(row.sessions)}
+              {row.format(row.sessions)}
             </span>
             <span className={styles["compare-delta"]}>
               {/* null for a zero GA baseline — no Infinity% badge */}
@@ -371,9 +383,10 @@ function SourceComparisonPanel({
         ))}
       </div>
       <div className={styles["compare-note"]}>
-        First-party counts are server-observed (unaffected by ad blockers or
-        consent banners, bots excluded); GA4 counts only consenting, unblocked
-        browsers.
+        First-party numbers come from our own tracker, served from each
+        site&rsquo;s own origin — ad blockers rarely stop it, and bots and
+        automated browsers are dropped at ingest. GA4 counts only consenting,
+        unblocked browsers.
       </div>
     </Panel>
   );

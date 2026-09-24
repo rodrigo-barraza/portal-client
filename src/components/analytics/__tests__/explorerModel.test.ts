@@ -1,216 +1,165 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildTimeline,
-  filterIpUsers,
-  filterSessions,
-  filterVisitors,
-  ipFingerprint,
-  ipLastSeen,
-  ipTimeline,
+  DEFAULT_SORT,
+  SORT_OPTIONS,
+  buildJourney,
+  eventProps,
+  filterChips,
+  filtersKey,
+  hasFilters,
+  journeyKey,
+  parseSortValue,
+  removeFilter,
+  setTextFilter,
+  sortValue,
 } from "../explorerModel";
-import type {
-  ExplorerSession,
-  IpDetail,
-  IpUser,
-  Visitor,
-} from "@/types/portal";
+import type { SessionEvent, SessionView } from "@/types/portal";
 
-function session(overrides: Partial<ExplorerSession>): ExplorerSession {
+function view(id: string, at: string, overrides: Partial<SessionView> = {}) {
   return {
-    sessionId: "s-1",
-    visitorId: "v-1",
-    projectId: "rod-dev-client",
-    ip: "203.0.113.5",
-    fingerprintId: null,
-    browser: { name: "Chrome", version: "140" },
-    os: { name: "macOS", version: "15" },
-    device: { type: "desktop", vendor: null },
-    geo: { country: "Canada", city: "Vancouver", countryCode: "CA" },
-    viewport: null,
-    referrer: null,
-    duration: 1000,
-    createdAt: "2026-09-01T10:00:00.000Z",
-    updatedAt: "2026-09-01T10:05:00.000Z",
+    id,
+    path: `/${id}`,
+    title: null,
+    at,
+    engagedMs: 1000,
+    scroll: 50,
     ...overrides,
   };
 }
 
-function ipDetail(overrides: Partial<IpDetail>): IpDetail {
-  return {
-    ip: "203.0.113.5",
-    visitorIds: [],
-    projects: [],
-    sessionCount: 0,
-    totalDuration: 0,
-    firstSeen: null,
-    lastSeen: null,
-    lastBrowser: null,
-    lastOs: null,
-    lastDevice: null,
-    lastGeo: null,
-    sessions: [],
-    pageViews: [],
-    events: [],
-    timeline: [],
-    ...overrides,
-  };
+function event(
+  name: string,
+  at: string,
+  overrides: Partial<SessionEvent> = {},
+) {
+  return { name, props: null, path: null, at, ...overrides };
 }
 
-describe("search filters", () => {
-  const sessions = [
-    session({ sessionId: "aaa", browser: { name: "Firefox", version: "130" } }),
-    session({
-      sessionId: "bbb",
-      userId: "hello@rod.dev",
-      geo: null,
-      browser: null,
-    }),
-  ];
-
-  it("returns everything for a blank query", () => {
-    expect(filterSessions(sessions, "   ")).toHaveLength(2);
+describe("text filters", () => {
+  it("sets a trimmed value, and removes the filter when it is empty", () => {
+    const withPath = setTextFilter({}, "path", "  /pricing ");
+    expect(withPath).toEqual({ path: "/pricing" });
+    expect(setTextFilter(withPath, "path", "   ")).toEqual({});
   });
 
-  it("matches case-insensitively across fields", () => {
+  it("upper-cases country codes, which match exactly", () => {
+    expect(setTextFilter({}, "country", "ca")).toEqual({ country: "CA" });
+  });
+
+  it("never mutates the filters it was given", () => {
+    const filters = { channel: "Direct" };
+    setTextFilter(filters, "channel", "Referral");
+    removeFilter(filters, "channel");
+    expect(filters).toEqual({ channel: "Direct" });
+  });
+
+  it("lists typed filters as chips, with a country named and flagged", () => {
     expect(
-      filterSessions(sessions, "FIREFOX").map((item) => item.sessionId),
-    ).toEqual(["aaa"]);
-  });
-
-  it("finds sessions by linked user identity", () => {
-    expect(
-      filterSessions(sessions, "rod.dev").map((item) => item.sessionId),
-    ).toEqual(["bbb"]);
-  });
-
-  it("tolerates null nested objects", () => {
-    expect(() => filterSessions(sessions, "vancouver")).not.toThrow();
-    expect(
-      filterSessions(sessions, "vancouver").map((item) => item.sessionId),
-    ).toEqual(["aaa"]);
-  });
-
-  it("searches IPs by any linked visitor id", () => {
-    const ips = [
-      { ip: "198.51.100.1", visitorIds: ["visitor-xyz"] },
-      { ip: "198.51.100.2", visitorIds: [] },
-    ] as unknown as IpUser[];
-    expect(filterIpUsers(ips, "xyz").map((item) => item.ip)).toEqual([
-      "198.51.100.1",
+      filterChips({ country: "CA", visitorId: "v-1", replay: true }),
+    ).toEqual([
+      {
+        key: "country",
+        label: "Country",
+        display: "🇨🇦 Canada (CA)",
+        value: "CA",
+      },
+      { key: "visitorId", label: "Visitor", display: "v-1", value: "v-1" },
     ]);
   });
 
-  it("searches visitors by last IP", () => {
-    const visitors = [
-      { visitorId: "v1", lastIp: "198.51.100.1" },
-      { visitorId: "v2", lastIp: null },
-    ] as unknown as Visitor[];
+  it("counts the on/off filters as filtering too", () => {
+    expect(hasFilters({})).toBe(false);
+    expect(hasFilters({ engaged: false })).toBe(false);
+    expect(hasFilters({ engaged: true })).toBe(true);
+    expect(hasFilters({ ip: "203.0.113.5" })).toBe(true);
+  });
+
+  it("keys filters by content, not insertion order", () => {
+    expect(filtersKey({ ip: "1", path: "/" })).toBe(
+      filtersKey({ path: "/", ip: "1" }),
+    );
+    expect(filtersKey({ replay: false })).toBe(filtersKey({}));
+    expect(filtersKey({ replay: true })).not.toBe(filtersKey({}));
+  });
+});
+
+describe("sort values", () => {
+  it("round-trips every sort option through its select value", () => {
+    for (const option of SORT_OPTIONS) {
+      expect(parseSortValue(sortValue(option.sort))).toEqual(option.sort);
+    }
+  });
+
+  it("falls back to newest first for an unknown value", () => {
+    expect(parseSortValue("bogus:up")).toEqual(DEFAULT_SORT);
+  });
+});
+
+describe("buildJourney", () => {
+  it("numbers pageviews in time order and interleaves events", () => {
+    const journey = buildJourney(
+      [
+        view("b", "2026-09-01T10:02:00.000Z"),
+        view("a", "2026-09-01T10:00:00.000Z"),
+      ],
+      [event("signup", "2026-09-01T10:01:00.000Z")],
+    );
     expect(
-      filterVisitors(visitors, "100.1").map((item) => item.visitorId),
-    ).toEqual(["v1"]);
+      journey.map((entry) =>
+        entry.kind === "view"
+          ? `${entry.step}:${entry.view.id}`
+          : entry.event.name,
+      ),
+    ).toEqual(["1:a", "signup", "2:b"]);
+  });
+
+  it("puts an event stamped with its pageview's instant after the pageview", () => {
+    const at = "2026-09-01T10:00:00.000Z";
+    const journey = buildJourney([view("a", at)], [event("outbound", at)]);
+    expect(journey.map((entry) => entry.kind)).toEqual(["view", "event"]);
+  });
+
+  it("keeps same-instant events in their recorded order", () => {
+    const at = "2026-09-01T10:00:00.000Z";
+    const journey = buildJourney([], [event("first", at), event("second", at)]);
+    expect(
+      journey.map((entry) => entry.kind === "event" && entry.event.name),
+    ).toEqual(["first", "second"]);
+  });
+
+  it("gives every row a distinct key", () => {
+    const at = "2026-09-01T10:00:00.000Z";
+    const journey = buildJourney(
+      [view("a", at)],
+      [event("x", at), event("x", at)],
+    );
+    const keys = journey.map(journeyKey);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
 
-describe("buildTimeline", () => {
-  it("merges chronologically and keeps each entry's session", () => {
-    const timeline = buildTimeline(
-      [
-        {
-          sessionId: "s2",
-          url: "https://x/b",
-          path: "/b",
-          title: "B",
-          timestamp: "2026-09-01T10:02:00Z",
-        },
-        {
-          sessionId: "s1",
-          url: "https://x/a",
-          path: "/a",
-          title: "A",
-          timestamp: "2026-09-01T10:00:00Z",
-        },
-      ],
-      [
-        {
-          sessionId: "s1",
-          category: "ui",
-          action: "click",
-          label: null,
-          timestamp: "2026-09-01T10:01:00Z",
-        },
-      ],
-    );
-    expect(timeline.map((entry) => `${entry.type}:${entry.sessionId}`)).toEqual(
-      ["pageview:s1", "event:s1", "pageview:s2"],
-    );
-  });
-
-  it("keeps page views ahead of events at the same instant", () => {
-    const timeline = buildTimeline(
-      [{ url: "u", path: "/", title: null, timestamp: "2026-09-01T10:00:00Z" }],
-      [
-        {
-          category: "c",
-          action: "a",
-          label: null,
-          timestamp: "2026-09-01T10:00:00Z",
-        },
-      ],
-    );
-    expect(timeline.map((entry) => entry.type)).toEqual(["pageview", "event"]);
-  });
-});
-
-describe("IP detail helpers", () => {
-  it("rebuilds the cross-session timeline so rows keep their session tag", () => {
-    const detail = ipDetail({
-      pageViews: [
-        {
-          sessionId: "s9",
-          url: "u",
-          path: "/",
-          title: null,
-          timestamp: "2026-09-01T10:00:00Z",
-        },
-      ],
-      // The service's merged timeline has no sessionId
-      timeline: [
-        { type: "pageview", timestamp: "2026-09-01T10:00:00Z", path: "/" },
-      ],
-    });
-    expect(ipTimeline(detail)[0].sessionId).toBe("s9");
-  });
-
-  it("falls back to the service timeline when raw records are absent", () => {
-    const timeline = [
-      { type: "event" as const, timestamp: "2026-09-01T10:00:00Z" },
-    ];
-    expect(ipTimeline(ipDetail({ timeline }))).toBe(timeline);
-  });
-
-  it("takes the newest session's fingerprint, skipping sessions without one", () => {
-    const detail = ipDetail({
-      sessions: [
-        session({ sessionId: "newest", fingerprintId: null }),
-        session({ sessionId: "older", fingerprintId: "fp-older" }),
-      ],
-    });
-    expect(ipFingerprint(detail)).toBe("fp-older");
-    expect(ipFingerprint(ipDetail({}))).toBeNull();
-  });
-
-  it("takes the latest activity across sessions, not the newest session's", () => {
-    const detail = ipDetail({
-      lastSeen: "2026-09-01T10:05:00.000Z",
-      sessions: [
-        session({ sessionId: "newest", updatedAt: "2026-09-01T10:05:00.000Z" }),
-        session({
-          sessionId: "long-lived",
-          updatedAt: "2026-09-01T18:00:00.000Z",
+describe("eventProps", () => {
+  it("lists props as text and drops empty values", () => {
+    expect(
+      eventProps(
+        event("outbound", "2026-09-01T10:00:00.000Z", {
+          props: {
+            url: "https://x.dev",
+            count: 2,
+            ok: false,
+            gone: null,
+            blank: "",
+          },
         }),
-      ],
-    });
-    expect(ipLastSeen(detail)).toBe("2026-09-01T18:00:00.000Z");
-    expect(ipLastSeen(ipDetail({}))).toBeNull();
+      ),
+    ).toEqual([
+      ["url", "https://x.dev"],
+      ["count", "2"],
+      ["ok", "false"],
+    ]);
+  });
+
+  it("has nothing to list for an event without props", () => {
+    expect(eventProps(event("tap", "2026-09-01T10:00:00.000Z"))).toEqual([]);
   });
 });

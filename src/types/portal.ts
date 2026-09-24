@@ -847,268 +847,306 @@ export interface BreadcrumbSegment {
 }
 
 // ─── Session Analytics (First-Party) ────────────────────────
+// sessions-service GET /stats/*, passed through verbatim by portal-service
+// at /session-analytics/*. Durations are MILLISECONDS; rates are 0–1
+// ratios (like GA4). Timestamps are ISO strings; a session is "in range"
+// by its startedAt, pageviews/events by their own time.
 
-/** A tracked project from sessions-service. */
-export interface SessionProject {
-  projectId: string;
-  sessionCount: number;
-  uniqueVisitors: number;
-  lastActivity: string;
-}
+/** The viewport band a heatmap point was recorded in (width <768 | ≤1200 | >1200). */
+export type SessionBand = "mobile" | "tablet" | "desktop";
 
-/** Overview stats from sessions-service. */
-export interface SessionOverview {
-  totalSessions: number;
-  uniqueVisitors: number;
-  totalPageViews: number;
-  totalDuration: number;
-  avgSessionDuration: number;
-  engagedSessions: number;
-  /** Percentage 0–100 (unlike GA's 0–1 ratios). */
-  engagementRate: number;
-  /** Percentage 0–100 (unlike GA's 0–1 ratios). */
-  bounceRate: number;
-}
-
-// Session explorer (/stats/ips, /visitors, /sessions, /ip/:ip, /session/:id).
-// Nullable where the service can send null: a visitorId, a geo lookup, a
-// parsed browser/OS/device can each be missing on real sessions.
-
-export interface NamedVersion {
-  name: string | null;
-  version: string | null;
-}
-
-export interface DeviceInfo {
-  type: string | null;
-  vendor: string | null;
-}
-
-export interface GeoInfo {
-  country: string | null;
-  city: string | null;
-  countryCode: string | null;
-}
-
-export interface Viewport {
-  width: number;
-  height: number;
-}
-
-/** GET /stats/ips row — sessions grouped by IP (a "pseudo-user"). */
-export interface IpUser {
-  ip: string;
-  visitorIds: string[];
-  /** Newest 30 only; `sessionCount` is the real total. */
-  sessionIds: string[];
-  sessionCount: number;
-  /** Milliseconds. */
-  totalDuration: number;
-  firstSeen: string;
-  lastSeen: string;
-  projects: string[];
-  lastBrowser: NamedVersion | null;
-  lastOs: NamedVersion | null;
-  lastDevice: DeviceInfo | null;
-  lastGeo: GeoInfo | null;
-  lastFingerprintId: string | null;
-  lastReferrer: string | null;
-  lastViewport: Viewport | null;
-}
-
-/** GET /stats/visitors row — sessions grouped by client visitorId. */
-export interface Visitor {
-  visitorId: string;
-  sessionCount: number;
-  /** Milliseconds. */
-  totalDuration: number;
-  firstSeen: string;
-  lastSeen: string;
-  lastIp: string | null;
-  lastBrowser: NamedVersion | null;
-  lastOs: NamedVersion | null;
-  lastDevice: DeviceInfo | null;
-  lastGeo: GeoInfo | null;
-  lastReferrer: string | null;
-  lastViewport: Viewport | null;
-  /** Newest 20 only; `sessionCount` is the real total. */
-  sessionIds: string[];
-}
-
-/** GET /stats/sessions row (also the `sessions` of an IP detail). */
-export interface ExplorerSession {
-  sessionId: string;
-  visitorId: string | null;
-  projectId: string | null;
-  /** Logged-in identity linked by the tracker (portal/prism/reels/music). */
-  userId?: string | null;
-  /** Crawler traffic — kept in explorer lists so it can be inspected. */
-  isBot?: boolean;
-  ip: string;
-  fingerprintId: string | null;
-  browser: NamedVersion | null;
-  os: NamedVersion | null;
-  device: DeviceInfo | null;
-  geo: GeoInfo | null;
-  viewport: Viewport | null;
-  referrer: string | null;
-  /** Milliseconds. */
-  duration: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/** A session updated within the live window — no IP or fingerprint, bots excluded. */
-export type LiveSession = Omit<
-  ExplorerSession,
-  "ip" | "fingerprintId" | "isBot"
->;
-
-export interface PageViewRecord {
-  sessionId?: string;
-  url: string;
-  path: string;
-  title: string | null;
-  timestamp: string;
-}
-
-export interface EventRecord {
-  sessionId?: string;
-  category: string;
-  action: string;
-  label: string | null;
-  value?: unknown;
-  timestamp: string;
-}
-
-export interface TimelineEntry {
-  type: "pageview" | "event";
-  timestamp: string;
-  sessionId?: string;
-  path?: string;
-  title?: string | null;
-  url?: string;
-  category?: string;
-  action?: string;
-  label?: string | null;
-}
-
-/** GET /stats/session/:id */
-export interface SessionDetail extends ExplorerSession {
-  userAgent: string | null;
-  locale: string | null;
-  utm: Record<string, string> | null;
-  pageViews: PageViewRecord[];
-  events: EventRecord[];
-  timeline: TimelineEntry[];
-  /** True when an rrweb recording exists (play-button gate). */
-  hasReplay?: boolean;
-}
+/** Which interaction a page heatmap counts. */
+export type SessionHeatmapType = "click" | "move";
 
 /**
- * GET /stats/ip/:ip — at most the newest 100 sessions. Unlike the /ips
- * listing it sends no lastFingerprintId/lastReferrer/lastViewport, and its
- * merged `timeline` drops each entry's sessionId.
+ * The window a ranged stats request covers: a rolling `period` ending now
+ * (`all`, `<n>h`, `<n>d`), or whole calendar days `from`–`to` (YYYY-MM-DD,
+ * `to` inclusive) in the request's `tz`.
  */
-export interface IpDetail {
-  ip: string;
-  visitorIds: string[];
-  projects: string[];
-  sessionCount: number;
-  totalDuration: number;
-  firstSeen: string | null;
-  lastSeen: string | null;
-  lastBrowser: NamedVersion | null;
-  lastOs: NamedVersion | null;
-  lastDevice: DeviceInfo | null;
-  lastGeo: GeoInfo | null;
-  lastLocale?: string | null;
-  sessions: ExplorerSession[];
-  pageViews: PageViewRecord[];
-  events: EventRecord[];
-  timeline: TimelineEntry[];
+export type SessionRange = { period: string } | { from: string; to: string };
+
+/** GET /stats/projects row — every project ever seen, with the range's numbers. */
+export interface SessionProjectSummary {
+  projectId: string;
+  visitors: number;
+  sessions: number;
+  pageviews: number;
+  engagedMs: number;
+  /** Sessions seen in the last 5 minutes. */
+  live: number;
+  /** All-time. */
+  firstSeenAt: string;
+  lastSeenAt: string;
 }
 
-/** A page of a paginated explorer list. */
-export interface ExplorerPage {
+/** The totals of one range (a report's `summary`, or its `previous`). */
+export interface SessionReportSummary {
+  visitors: number;
+  /** Visitors whose FIRST session is in the range. */
+  newVisitors: number;
+  sessions: number;
+  engagedSessions: number;
+  pageviews: number;
+  engagedMs: number;
+  /** engagedMs / sessions. */
+  avgEngagedMs: number;
+  engagementRate: number;
+  /** 1 − engagementRate (0 when there are no sessions). */
+  bounceRate: number;
+  pagesPerSession: number;
+}
+
+export interface SessionSeriesPoint {
+  /** "YYYY-MM-DD" (day buckets) or "YYYY-MM-DDTHH" (hour buckets), in the report's tz. */
+  bucket: string;
+  visitors: number;
+  sessions: number;
+  pageviews: number;
+  engagedMs: number;
+}
+
+export interface SessionPageRow {
+  path: string;
+  views: number;
+  visitors: number;
+  avgEngagedMs: number;
+  /** 0–100. */
+  avgScroll: number;
+  entries: number;
+  exits: number;
+}
+
+export interface SessionChannelRow {
+  /** GA4 default channel group ("Direct", "Organic Search", …). */
+  channel: string;
+  sessions: number;
+  visitors: number;
+  engagementRate: number;
+}
+
+export interface SessionReferrerRow {
+  host: string;
+  sessions: number;
+  visitors: number;
+}
+
+export interface SessionCampaignRow {
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  sessions: number;
+  visitors: number;
+}
+
+export interface SessionCountryRow {
+  /** ISO 3166-1 alpha-2. */
+  country: string;
+  name: string;
+  sessions: number;
+  visitors: number;
+}
+
+export interface SessionCityRow {
+  country: string;
+  region: string | null;
+  city: string;
+  sessions: number;
+}
+
+export interface SessionNamedCount {
+  name: string;
+  sessions: number;
+}
+
+export interface SessionEventRow {
+  name: string;
+  count: number;
+  sessions: number;
+}
+
+/** Sessions started in one weekday × hour of the report's tz (non-zero cells only). */
+export interface SessionHourCell {
+  /** 0 = Sunday. */
+  weekday: number;
+  hour: number;
+  sessions: number;
+}
+
+/** GET /stats/report */
+export interface SessionReport {
+  range: {
+    /** null for period=all. */
+    from: string | null;
+    to: string;
+    /** "hour" when the range is ≤ 48 h. */
+    bucket: "hour" | "day";
+    tz: string;
+  };
+  summary: SessionReportSummary;
+  /** The equal-length range right before `from`; null for period=all. */
+  previous: SessionReportSummary | null;
+  /** Every bucket of the range, zero-filled. */
+  series: SessionSeriesPoint[];
+  /** Top 50 by views. */
+  pages: SessionPageRow[];
+  channels: SessionChannelRow[];
+  /** Top 25 external hosts. */
+  referrers: SessionReferrerRow[];
+  /** Top 25 utm source/medium/campaign combinations. */
+  campaigns: SessionCampaignRow[];
+  countries: SessionCountryRow[];
+  /** Top 25. */
+  cities: SessionCityRow[];
+  /** Device type (desktop, mobile, tablet, …). */
+  devices: SessionNamedCount[];
+  browsers: SessionNamedCount[];
+  os: SessionNamedCount[];
+  /** Top 10. */
+  screens: SessionNamedCount[];
+  /** Top 10, as the browser sent them ("en-US"). */
+  languages: SessionNamedCount[];
+  /** Top 25 custom events. */
+  events: SessionEventRow[];
+  hours: SessionHourCell[];
+}
+
+/** A session seen in the last 5 minutes. */
+export interface LiveSession {
+  sessionId: string;
+  projectId: string;
+  visitorId: string;
+  /** The page it is on now (its exit path). */
+  path: string;
+  country: string | null;
+  city: string | null;
+  device: string;
+  browser: string | null;
+  channel: string;
+  referrerHost: string | null;
+  startedAt: string;
+  lastSeenAt: string;
+  pageviews: number;
+  engagedMs: number;
+}
+
+/** GET /stats/live */
+export interface SessionLive {
+  /** Sessions seen in the last 5 minutes (exact). */
+  active: number;
+  /** The 50 most recent. */
+  sessions: LiveSession[];
+  /** Active sessions by current page, busiest first. */
+  pages: { path: string; active: number }[];
+}
+
+/** Exact-match filters of GET /stats/sessions. */
+export interface SessionFilters {
+  visitorId?: string;
+  ip?: string;
+  userId?: string;
+  /** ISO 3166-1 alpha-2. */
+  country?: string;
+  channel?: string;
+  /** Sessions that viewed this path in the range. */
+  path?: string;
+  /** Only sessions with a replay recording. */
+  replay?: boolean;
+  /** Only engaged sessions. */
+  engaged?: boolean;
+}
+
+export type SessionSortKey =
+  "startedAt" | "lastSeenAt" | "engagedMs" | "pageviews";
+
+export interface SessionSort {
+  sort: SessionSortKey;
+  order: "asc" | "desc";
+}
+
+export interface SessionPaging {
+  /** 1–200. */
+  limit: number;
+  offset: number;
+}
+
+/** GET /stats/sessions row. */
+export interface SessionSummary {
+  sessionId: string;
+  projectId: string;
+  visitorId: string;
+  userId: string | null;
+  startedAt: string;
+  lastSeenAt: string;
+  pageviews: number;
+  engagedMs: number;
+  isEngaged: boolean;
+  /** 1 for the visitor's first session in this project. */
+  sessionNumber: number;
+  entryPath: string;
+  exitPath: string;
+  channel: string;
+  source: string | null;
+  referrerHost: string | null;
+  campaign: string | null;
+  /** ISO 3166-1 alpha-2. */
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  ip: string | null;
+  device: string;
+  browser: string | null;
+  os: string | null;
+  screen: string | null;
+  hasReplay: boolean;
+}
+
+/** GET /stats/sessions */
+export interface SessionsPage {
+  sessions: SessionSummary[];
   total: number;
   limit: number;
   offset: number;
 }
 
-export interface IpUsersPage extends ExplorerPage {
-  ips: IpUser[];
-}
-
-export interface VisitorsPage extends ExplorerPage {
-  visitors: Visitor[];
-}
-
-export interface SessionsPage extends ExplorerPage {
-  sessions: ExplorerSession[];
-}
-
-/** Top page entry from sessions-service. */
-export interface SessionPageRow {
+/** One pageview of a session, in order. */
+export interface SessionView {
+  id: string;
   path: string;
-  views: number;
-  uniqueVisitors: number;
+  title: string | null;
+  at: string;
+  engagedMs: number;
+  /** Max scroll depth, 0–100. */
+  scroll: number;
 }
 
-/** Referrer entry. */
-export interface SessionReferrerRow {
-  referrer: string;
-  sessions: number;
+/** One custom (or automatic, e.g. "outbound") event of a session. */
+export interface SessionEvent {
+  name: string;
+  props: Record<string, unknown> | null;
+  path: string | null;
+  at: string;
 }
 
-/** Geo breakdown entry. */
-export interface SessionGeoRow {
-  country: string | null;
-  countryCode: string | null;
-  city: string | null;
-  sessions: number;
-  uniqueVisitors: number;
-}
-
-/** Device breakdown from sessions-service. */
-export interface SessionDeviceBreakdown {
-  browsers: { name: string; sessions: number }[];
-  operatingSystems: { name: string; sessions: number }[];
-  deviceTypes: { type: string; sessions: number }[];
-}
-
-/** Time series point. */
-export interface SessionTimeSeriesPoint {
-  date: string;
-  sessions: number;
-  uniqueVisitors: number;
-  pageViews: number;
-}
-
-/** Live sessions response. */
-export interface SessionLiveResponse {
-  activeSessions: number;
-  sessions: LiveSession[];
-}
-
-/** Top event entry. */
-export interface SessionTopEvent {
-  category: string;
-  action: string;
-  count: number;
-}
-
-/** GET /stats/heatmap — a grid×grid density matrix for one page path. */
-export interface SessionHeatmap {
-  path: string;
-  band: string | null;
-  type: string;
-  grid: number;
-  /** The densest cell's count. */
-  max: number;
-  total: number;
-  /** Non-empty cells only. */
-  cells: { gx: number; gy: number; count: number }[];
+/** GET /stats/sessions/:sessionId */
+export interface SessionDetail extends SessionSummary {
+  hostname: string;
+  referrer: string | null;
+  medium: string | null;
+  term: string | null;
+  content: string | null;
+  clickId: string | null;
+  browserVersion: string | null;
+  osVersion: string | null;
+  viewport: string | null;
+  timezone: string | null;
+  language: string | null;
+  userAgent: string;
+  /** null when nothing was recorded. */
+  replay: { chunks: number; bytes: number } | null;
+  views: SessionView[];
+  events: SessionEvent[];
+  /** This visitor across the project, all time. */
+  visitor: { sessions: number; firstSeenAt: string };
 }
 
 /** One recorded rrweb event, stored verbatim by sessions-service. */
@@ -1117,11 +1155,34 @@ export interface RrwebEvent {
   [key: string]: unknown;
 }
 
-/** GET /stats/session/:id/replay — every chunk's events, ordered by timestamp. */
+/** GET /stats/sessions/:sessionId/replay — chunks in recording order, events by timestamp. */
 export interface SessionReplay {
   sessionId: string;
-  eventCount: number;
   events: RrwebEvent[];
+  eventCount: number;
+  totalChunks: number;
+  returnedChunks: number;
+  /** True when the per-session byte budget cut the recording short. */
+  truncated: boolean;
+}
+
+/** GET /stats/heatmap — a grid×grid density matrix over one page's full document. */
+export interface SessionHeatmap {
+  path: string;
+  band: SessionBand;
+  type: SessionHeatmapType;
+  /** Columns: gx is in [0, grid). */
+  grid: number;
+  /** Rows, sized so cells are square on the median page: gy is in [0, rows). */
+  rows: number;
+  /** The densest cell's count. */
+  max: number;
+  total: number;
+  sessions: number;
+  /** Median document height / width of the recorded batches (1 when none). */
+  aspect: number;
+  /** Non-empty cells only. */
+  cells: { gx: number; gy: number; count: number }[];
 }
 
 /**
@@ -1133,21 +1194,13 @@ export interface SessionsEnvelope<T> {
   data: T;
 }
 
-/** The `data` of each GET /session-analytics/<report>, by report. */
-export interface SessionReportsByName {
-  projects: SessionProject[];
-  overview: SessionOverview;
+/** The `data` of each ranged GET /session-analytics/<route>, by route. */
+export interface SessionStatsByRoute {
+  projects: SessionProjectSummary[];
+  report: SessionReport;
+  live: SessionLive;
   sessions: SessionsPage;
-  pages: SessionPageRow[];
-  referrers: SessionReferrerRow[];
-  geo: SessionGeoRow[];
-  devices: SessionDeviceBreakdown;
-  timeseries: SessionTimeSeriesPoint[];
-  live: SessionLiveResponse;
-  events: SessionTopEvent[];
   heatmap: SessionHeatmap;
-  visitors: VisitorsPage;
-  ips: IpUsersPage;
 }
 
 // ─── Integrations ───────────────────────────────────────────

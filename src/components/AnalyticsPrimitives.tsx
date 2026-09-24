@@ -34,8 +34,10 @@ type PanelIcon = React.ComponentType<{
 
 export function DeltaBadge({ value }: { value?: number | null }) {
   if (value == null || !Number.isFinite(value)) return null;
-  const percentage = (value * 100).toFixed(1);
-  const isUp = value >= 0;
+  // A change that rounds to zero reads "+0.0%", never "-0.0%"
+  const rounded = Math.round(value * 1000) / 10;
+  const percentage = (rounded === 0 ? 0 : rounded).toFixed(1);
+  const isUp = rounded >= 0;
   const Icon = isUp ? ArrowUpRight : ArrowDownRight;
   return (
     <span
@@ -105,6 +107,9 @@ export function HorizontalBar({
   color,
   suffix = "",
   formatValue = formatCompact,
+  note,
+  onSelect,
+  selectLabel,
 }: {
   label: string;
   value: number;
@@ -113,14 +118,33 @@ export function HorizontalBar({
   suffix?: string;
   /** Value formatter — e.g. formatBytes for storage sizes. */
   formatValue?: (value: number) => string;
+  /** A secondary figure shown beside the value (e.g. "62% engaged"). */
+  note?: string;
+  /** Makes the label a button (e.g. drill down into this row). */
+  onSelect?: () => void;
+  /** The button's accessible name — what selecting does. */
+  selectLabel?: string;
 }) {
   const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className={styles["bar-row"]}>
       <div className={styles["bar-info"]}>
-        <span className={styles["bar-label"]} title={label}>
-          {label}
-        </span>
+        {onSelect ? (
+          <button
+            type="button"
+            className={`${styles["bar-label"]} ${styles["bar-label-button"]}`}
+            title={selectLabel ?? label}
+            aria-label={selectLabel}
+            onClick={onSelect}
+          >
+            {label}
+          </button>
+        ) : (
+          <span className={styles["bar-label"]} title={label}>
+            {label}
+          </span>
+        )}
+        {note && <span className={styles["bar-note"]}>{note}</span>}
         <span className={styles["bar-value"]}>
           {formatValue(value)}
           {suffix}
@@ -317,7 +341,15 @@ export function DonutPanel({
 
 // ── Bar-list Panel (title + ranked horizontal bars) ───────────
 
-export function BarListPanel({
+export interface BarListItem {
+  key: string;
+  label: string;
+  value: number;
+  /** Secondary figure beside the value. */
+  note?: string;
+}
+
+export function BarListPanel<Bar extends BarListItem>({
   icon,
   title,
   meta,
@@ -325,14 +357,20 @@ export function BarListPanel({
   colorOffset = 0,
   suffix = "",
   limit = 10,
+  onSelect,
+  selectLabel,
 }: {
   icon: PanelIcon;
   title: string;
   meta?: string;
-  bars: { key: string; label: string; value: number }[];
+  bars: Bar[];
   colorOffset?: number;
   suffix?: string;
   limit?: number;
+  /** Makes each label a button that hands back its bar. */
+  onSelect?: (bar: Bar) => void;
+  /** Accessible name of a bar's button, e.g. "Show sessions from Canada". */
+  selectLabel?: (bar: Bar) => string;
 }) {
   if (bars.length === 0) return null;
   const max = Math.max(...bars.map((bar) => bar.value));
@@ -350,6 +388,9 @@ export function BarListPanel({
               max={max}
               color={chartColor(index, colorOffset)}
               suffix={suffix}
+              note={bar.note}
+              onSelect={onSelect && (() => onSelect(bar))}
+              selectLabel={selectLabel?.(bar)}
             />
           ))}
         </div>
@@ -365,11 +406,14 @@ export function TrendsPanel({
   title,
   series,
   metrics,
+  meta,
 }: {
   icon: PanelIcon;
   title: string;
   series: Record<string, unknown>[];
   metrics: { key: string; label: string; color: string }[];
+  /** Shown at the header's end — e.g. the span the chart covers. */
+  meta?: string;
 }) {
   if (!series || series.length === 0) return null;
 
@@ -383,6 +427,7 @@ export function TrendsPanel({
           aria-hidden
         />
         <span className={styles["chart-title"]}>{title}</span>
+        {meta && <span className={styles["panel-meta"]}>{meta}</span>}
       </div>
       <div
         className={styles["chart-body"]}
@@ -433,10 +478,13 @@ export function RealtimeBanner({
   label,
   count,
   meta,
+  children,
 }: {
   label: string;
   count: number | null;
   meta: string;
+  /** Detail beside the count — e.g. the pages being viewed right now. */
+  children?: React.ReactNode;
 }) {
   return (
     <div className={styles["realtime-banner"]}>
@@ -450,6 +498,7 @@ export function RealtimeBanner({
           {count !== null ? formatCompact(count) : "—"}
         </span>
       </div>
+      {children}
       <span className={styles["realtime-meta"]}>{meta}</span>
     </div>
   );
