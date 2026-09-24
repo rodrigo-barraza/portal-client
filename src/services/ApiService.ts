@@ -27,7 +27,6 @@ import type {
   GARealtimeReport,
   GAReportsByName,
   IntegrationsData,
-  IpDetail,
   LanguagesResponse,
   LoggableContainersResponse,
   ProjectAnalysis,
@@ -35,9 +34,15 @@ import type {
   ServiceActionResponse,
   ServiceRollbackStatus,
   ServicesResponse,
+  SessionBand,
   SessionDetail,
+  SessionFilters,
+  SessionHeatmapType,
+  SessionPaging,
+  SessionRange,
   SessionReplay,
-  SessionReportsByName,
+  SessionSort,
+  SessionStatsByRoute,
   SessionsEnvelope,
   StorageBucket,
   StorageDeleteResponse,
@@ -74,17 +79,36 @@ function send<Body>(
   return request<Body>(method, path, options);
 }
 
-type SessionSort = "createdAt" | "updatedAt" | "duration" | (string & {});
-
 /** A GA4 period report's body, by report name. */
 type GAReport<Report extends keyof GAReportsByName> = Promise<
   GAReportsByName[Report]
 >;
 
-/** A sessions-service stats report, still in its `{ success, data }` envelope. */
-type SessionReport<Report extends keyof SessionReportsByName> = Promise<
-  SessionsEnvelope<SessionReportsByName[Report]>
+/** A sessions-service stats body, still in its `{ success, data }` envelope. */
+type SessionStats<Route extends keyof SessionStatsByRoute> = Promise<
+  SessionsEnvelope<SessionStatsByRoute[Route]>
 >;
+
+/**
+ * The browser's IANA time zone ("America/Vancouver"). sessions-service
+ * buckets reports and reads date-only bounds in it; UTC when the runtime
+ * cannot say.
+ */
+export function browserTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+/** A range's query params — `period`, or `from` + `to` — plus the browser's `tz`. */
+function rangeParams(range: SessionRange): Record<string, string> {
+  const tz = browserTimeZone();
+  return "period" in range
+    ? { period: range.period, tz }
+    : { from: range.from, to: range.to, tz };
+}
 
 export default class ApiService {
   // ── Projects ──────────────────────────────────────────────────
@@ -597,195 +621,118 @@ export default class ApiService {
   }
 
   // ── Session Analytics (first-party, proxied sessions-service) ──
-  // Success bodies come back in sessions-service's `{ success, data }`
-  // envelope.
+  // portal-service passes sessions-service's `{ success, data }` bodies
+  // through verbatim. Every ranged request carries the browser's IANA
+  // time zone, which sets the report's buckets and where a custom range's
+  // calendar days start and end.
 
-  /** Distinct projects tracked by sessions-service. */
+  /** Every project sessions-service has seen, with the range's numbers and live count. */
   static getSessionProjects(
-    period = "30d",
+    range: SessionRange,
     options?: RequestOptions,
-  ): SessionReport<"projects"> {
-    return ApiService.sessionStats("projects", { period }, options);
+  ): SessionStats<"projects"> {
+    return ApiService.sessionStats("projects", rangeParams(range), options);
   }
 
-  static getSessionOverview(
+  /** One project's whole report for the range (and the range before it). */
+  static getSessionReport(
     projectId: string,
-    period = "30d",
+    range: SessionRange,
     options?: RequestOptions,
-  ): SessionReport<"overview"> {
-    return ApiService.sessionStats("overview", { projectId, period }, options);
+  ): SessionStats<"report"> {
+    return ApiService.sessionStats(
+      "report",
+      { projectId, ...rangeParams(range) },
+      options,
+    );
   }
 
-  /** Paginated session list with full detail (IP, geo, device). */
+  /** Sessions active in the last 5 minutes — one project's, or every project's. */
+  static getSessionLive(
+    projectId?: string,
+    options?: RequestOptions,
+  ): SessionStats<"live"> {
+    return ApiService.sessionStats("live", { projectId }, options);
+  }
+
+  /** One page of the project's sessions in the range, filtered and sorted server-side. */
   static getSessionsList(
     projectId: string,
-    period = "30d",
-    limit = 50,
-    offset = 0,
-    sort: SessionSort = "createdAt",
-    order: "asc" | "desc" = "desc",
+    range: SessionRange,
+    filters: SessionFilters = {},
+    paging: SessionPaging = { limit: 50, offset: 0 },
+    sort: SessionSort = { sort: "startedAt", order: "desc" },
     options?: RequestOptions,
-  ): SessionReport<"sessions"> {
+  ): SessionStats<"sessions"> {
     return ApiService.sessionStats(
       "sessions",
-      { projectId, period, limit, offset, sort, order },
+      {
+        projectId,
+        ...rangeParams(range),
+        limit: paging.limit,
+        offset: paging.offset,
+        visitorId: filters.visitorId,
+        ip: filters.ip,
+        userId: filters.userId,
+        country: filters.country,
+        channel: filters.channel,
+        path: filters.path,
+        replay: filters.replay ? 1 : undefined,
+        engaged: filters.engaged ? 1 : undefined,
+        sort: sort.sort,
+        order: sort.order,
+      },
       options,
     );
   }
 
-  /** Top pages by view count. */
-  static getSessionPages(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"pages"> {
-    return ApiService.sessionStats("pages", { projectId, period }, options);
-  }
-
-  static getSessionReferrers(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"referrers"> {
-    return ApiService.sessionStats("referrers", { projectId, period }, options);
-  }
-
-  static getSessionGeo(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"geo"> {
-    return ApiService.sessionStats("geo", { projectId, period }, options);
-  }
-
-  /** Device/browser/OS breakdown. */
-  static getSessionDevices(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"devices"> {
-    return ApiService.sessionStats("devices", { projectId, period }, options);
-  }
-
-  static getSessionTimeSeries(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"timeseries"> {
-    return ApiService.sessionStats(
-      "timeseries",
-      { projectId, period },
-      options,
-    );
-  }
-
-  /** Sessions active within the last `minutes`. */
-  static getSessionLive(
-    projectId: string,
-    minutes = 5,
-    options?: RequestOptions,
-  ): SessionReport<"live"> {
-    return ApiService.sessionStats("live", { projectId, minutes }, options);
-  }
-
-  /** Top events by category/action. */
-  static getSessionEvents(
-    projectId: string,
-    period = "30d",
-    options?: RequestOptions,
-  ): SessionReport<"events"> {
-    return ApiService.sessionStats("events", { projectId, period }, options);
-  }
-
-  /** One session with its page views, events and timeline. */
+  /** One session: identity, client, acquisition, its pageviews and events. */
   static getSessionDetail(
     sessionId: string,
     options?: RequestOptions,
   ): Promise<SessionsEnvelope<SessionDetail>> {
-    return get(`/session-analytics/session/${pathSegment(sessionId)}`, options);
+    return get(
+      `/session-analytics/sessions/${pathSegment(sessionId)}`,
+      options,
+    );
   }
 
-  /** The ordered rrweb event stream of a session's replay. */
+  /** The session's rrweb recording, events ordered by timestamp. */
   static getSessionReplay(
     sessionId: string,
     options?: RequestOptions,
   ): Promise<SessionsEnvelope<SessionReplay>> {
     return get(
-      `/session-analytics/session/${pathSegment(sessionId)}/replay`,
+      `/session-analytics/sessions/${pathSegment(sessionId)}/replay`,
       options,
     );
   }
 
   /**
-   * Normalized cursor/click/scroll density grid for one page path. Pass a
-   * viewport band (mobile/tablet/desktop) so a phone and a desktop layout
-   * aren't averaged into the same grid.
+   * Click or cursor-movement density over one page path's full document,
+   * for one viewport band — a phone and a desktop layout are never mixed.
    */
   static getSessionHeatmap(
     projectId: string,
     path: string,
-    period = "30d",
-    type: "move" | "click" | "scroll" = "move",
-    band?: "mobile" | "tablet" | "desktop",
-    grid = 50,
+    range: SessionRange,
+    band: SessionBand = "desktop",
+    type: SessionHeatmapType = "click",
     options?: RequestOptions,
-  ): SessionReport<"heatmap"> {
+  ): SessionStats<"heatmap"> {
     return ApiService.sessionStats(
       "heatmap",
-      { projectId, path, period, type, band, grid },
+      { projectId, path, ...rangeParams(range), band, type },
       options,
     );
   }
 
-  /** Distinct visitors with session counts and device metadata. */
-  static getSessionVisitors(
-    projectId: string,
-    period = "30d",
-    limit = 50,
-    offset = 0,
-    options?: RequestOptions,
-  ): SessionReport<"visitors"> {
-    return ApiService.sessionStats(
-      "visitors",
-      { projectId, period, limit, offset },
-      options,
-    );
-  }
-
-  /** IP-based pseudo-users with session/visitor aggregation. */
-  static getSessionIpUsers(
-    projectId: string,
-    period = "30d",
-    limit = 50,
-    offset = 0,
-    options?: RequestOptions,
-  ): SessionReport<"ips"> {
-    return ApiService.sessionStats(
-      "ips",
-      { projectId, period, limit, offset },
-      options,
-    );
-  }
-
-  /** One IP — all its sessions and a cross-session timeline. */
-  static getSessionIpDetail(
-    ip: string,
-    projectId?: string,
-    period = "all",
-    options?: RequestOptions,
-  ): Promise<SessionsEnvelope<IpDetail>> {
-    return get(
-      `/session-analytics/ip/${pathSegment(ip)}${queryString({ period, projectId })}`,
-      options,
-    );
-  }
-
-  private static sessionStats<Report extends keyof SessionReportsByName>(
-    report: Report,
+  private static sessionStats<Route extends keyof SessionStatsByRoute>(
+    route: Route,
     params: Record<string, string | number | undefined>,
     options?: RequestOptions,
-  ): SessionReport<Report> {
-    return get(`/session-analytics/${report}${queryString(params)}`, options);
+  ): SessionStats<Route> {
+    return get(`/session-analytics/${route}${queryString(params)}`, options);
   }
 
   // ── External APIs (Google Cloud Monitoring + providers) ───────
