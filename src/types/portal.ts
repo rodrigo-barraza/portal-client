@@ -1171,14 +1171,17 @@ export interface SessionHeatmap {
   path: string;
   band: SessionBand;
   type: SessionHeatmapType;
+  /** Columns: gx is in [0, grid). */
   grid: number;
+  /** Rows, sized so cells are square on the median page: gy is in [0, rows). */
+  rows: number;
   /** The densest cell's count. */
   max: number;
   total: number;
   sessions: number;
   /** Median document height / width of the recorded batches (1 when none). */
   aspect: number;
-  /** Non-empty cells only; gx, gy in [0, grid). */
+  /** Non-empty cells only. */
   cells: { gx: number; gy: number; count: number }[];
 }
 

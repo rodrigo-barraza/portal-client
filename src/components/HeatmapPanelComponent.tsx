@@ -58,8 +58,8 @@ const TYPE_NAMES: Record<
  * Paint the density grid. Blurred rects give a smooth heat gradient; hue
  * runs from blue (cold/low) to red (hot/high) with alpha scaled by
  * intensity. Cells are clamped into the grid so a malformed coordinate
- * can't paint outside the canvas. Grid cells are as tall as the page is
- * long: gx and gy each divide their own axis into `grid` steps.
+ * can't paint outside the canvas. The server sizes `rows` to the page's
+ * shape, so cells are square unless a very long page is compressed.
  */
 function paintHeatmap(
   context: CanvasRenderingContext2D,
@@ -75,15 +75,16 @@ function paintHeatmap(
   if (!data || data.cells.length === 0 || data.max <= 0) return;
 
   const grid = data.grid > 0 ? data.grid : DEFAULT_GRID;
+  const rows = data.rows > 0 ? data.rows : grid;
   const cellWidth = width / grid;
-  const cellHeight = height / grid;
-  // Sized from both sides: on a long page a cell is several times taller
-  // than wide, and a blur fit to its width left visible vertical steps
+  const cellHeight = height / rows;
+  // Sized from both sides: a compressed long page still has cells taller
+  // than wide, and a blur fit to the width alone left vertical steps
   const blur = Math.sqrt(cellWidth * cellHeight) * 0.85;
   context.filter = `blur(${Math.max(blur, 2)}px)`;
   for (const cell of data.cells) {
     const column = Math.min(Math.max(Math.floor(cell.gx), 0), grid - 1);
-    const row = Math.min(Math.max(Math.floor(cell.gy), 0), grid - 1);
+    const row = Math.min(Math.max(Math.floor(cell.gy), 0), rows - 1);
     const intensity = Math.min(cell.count / data.max, 1);
     const hue = (1 - intensity) * 240;
     const alpha = 0.15 + intensity * 0.8;

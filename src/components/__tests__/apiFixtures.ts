@@ -407,6 +407,7 @@ export function sessionHeatmap(
     band: "desktop",
     type: "click",
     grid: 50,
+    rows: 50,
     max: 0,
     total: 0,
     sessions: 0,
