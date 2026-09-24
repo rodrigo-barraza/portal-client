@@ -1,311 +1,209 @@
 "use client";
 
-import { Network, Users } from "lucide-react";
+import { ArrowRight, Film } from "lucide-react";
 import { timeAgo } from "@rodrigo-barraza/utilities-library";
-import { BotTag, DeviceIcon } from "./ExplorerPrimitives";
+import { DeviceIcon } from "./ExplorerPrimitives";
 import {
-  formatCount,
+  countryFlag,
   formatDurationMs,
-  formatLocation,
+  formatExact,
+  formatSessionLocation,
+  formatTimestamp,
+  joinMeta,
   shortId,
 } from "./analyticsFormat";
-import type {
-  DeviceInfo,
-  ExplorerSession,
-  IpUser,
-  NamedVersion,
-  Visitor,
-} from "@/types/portal";
+import type { SessionSortKey, SessionSummary } from "@/types/portal";
 import styles from "../SessionExplorerComponent.module.css";
 
 /**
- * TableComponent column definitions for the explorer's table view.
+ * TableComponent columns of the session explorer. Sorting happens on the
+ * server, so only the columns sessions-service can sort by are sortable,
+ * and their keys ARE the API's sort keys.
  *
- * The library table's row click is mouse-only (no focusable row), so each
- * row whose click opens a detail also renders its identifier as a real
- * button — the keyboard path to the same view.
+ * The library table's row click is mouse-only (no focusable row), so the
+ * Started cell renders a real button — the keyboard path to the detail.
  */
 
-function timeValue(value: string | null | undefined): number {
-  const time = value ? new Date(value).getTime() : Number.NaN;
-  return Number.isNaN(time) ? 0 : time;
-}
+/** The columns whose header sorts the list — keyed by the API sort key. */
+export const SORTABLE_COLUMNS: readonly SessionSortKey[] = [
+  "startedAt",
+  "pageviews",
+  "engagedMs",
+];
 
-function DeviceCell({
-  device,
-  browser,
-  os,
-}: {
-  device: DeviceInfo | null | undefined;
-  browser: NamedVersion | null | undefined;
-  os: NamedVersion | null | undefined;
-}) {
+function VisitorCell({ row }: { row: SessionSummary }) {
+  const returning = row.sessionNumber > 1;
   return (
-    <span className={styles["session-table-device"]}>
-      <DeviceIcon type={device?.type} />
-      {browser?.name || "?"} / {os?.name || "?"}
+    <span className={styles["cell-stack"]}>
+      <span
+        className={`${styles["cell-primary"]} ${styles["cell-mono"]}`}
+        title={row.visitorId}
+      >
+        {shortId(row.visitorId, 8)}
+      </span>
+      <span className={styles["cell-secondary"]}>
+        <span
+          className={`${styles["tag"]} ${returning ? styles["tag-returning"] : styles["tag-new"]}`}
+        >
+          {returning ? `returning #${row.sessionNumber}` : "new"}
+        </span>
+        {row.userId && <span title={row.userId}>{row.userId}</span>}
+      </span>
     </span>
   );
 }
 
-export function ipColumns(onOpenIp: (ip: string) => void) {
-  return [
-    {
-      key: "ip",
-      label: "IP Address",
-      width: "15%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <button
-          type="button"
-          className={`${styles["session-table-id"]} ${styles["table-open-button"]}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenIp(row.ip);
-          }}
-        >
-          <Network size={11} strokeWidth={2} aria-hidden />
-          {row.ip}
-        </button>
-      ),
-      sortValue: (row: IpUser) => row.ip,
-    },
-    {
-      key: "visitorCount",
-      label: "Visitors",
-      width: "15%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <span className={styles["session-table-ip"]}>
-          {formatCount(row.visitorIds.length, "visitor")} ·{" "}
-          {formatCount(row.sessionCount, "session")}
+function SourceCell({ row }: { row: SessionSummary }) {
+  const from = row.referrerHost ?? row.source;
+  return (
+    <span className={styles["cell-stack"]}>
+      <span className={styles["cell-primary"]}>{row.channel}</span>
+      {(from || row.campaign) && (
+        <span className={styles["cell-secondary"]}>
+          {from && <span title={from}>{from}</span>}
+          {row.campaign && (
+            <span
+              className={`${styles["tag"]} ${styles["tag-campaign"]}`}
+              title={`Campaign ${row.campaign}`}
+            >
+              {row.campaign}
+            </span>
+          )}
         </span>
-      ),
-      sortValue: (row: IpUser) => row.sessionCount,
-    },
-    {
-      key: "browser",
-      label: "Browser / OS",
-      width: "23%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <DeviceCell
-          device={row.lastDevice}
-          browser={row.lastBrowser}
-          os={row.lastOs}
-        />
-      ),
-      sortValue: (row: IpUser) => row.lastBrowser?.name || "",
-    },
-    {
-      key: "location",
-      label: "Location",
-      width: "23%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <span className={styles["session-table-geo"]}>
-          {formatLocation(row.lastGeo)}
-        </span>
-      ),
-      sortValue: (row: IpUser) => row.lastGeo?.country || "",
-    },
-    {
-      key: "duration",
-      label: "Duration",
-      width: "12%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <span className={styles["session-table-duration"]}>
-          {formatDurationMs(row.totalDuration)}
-        </span>
-      ),
-      sortValue: (row: IpUser) => row.totalDuration,
-    },
-    {
-      key: "lastSeen",
-      label: "Last Seen",
-      width: "12%",
-      sortable: true,
-      render: (row: IpUser) => (
-        <span className={styles["session-table-time"]}>
-          {timeAgo(row.lastSeen)}
-        </span>
-      ),
-      sortValue: (row: IpUser) => timeValue(row.lastSeen),
-    },
-  ];
+      )}
+    </span>
+  );
 }
 
-export function visitorColumns(onOpenIp: (ip: string) => void) {
-  return [
-    {
-      key: "visitorId",
-      label: "Visitor ID",
-      width: "15%",
-      sortable: true,
-      render: (row: Visitor) => (
-        <span className={styles["session-table-id"]} title={row.visitorId}>
-          <Users size={11} strokeWidth={2} aria-hidden />
-          {shortId(row.visitorId, 12)}
+function PathCell({ row }: { row: SessionSummary }) {
+  const exitedElsewhere = row.exitPath && row.exitPath !== row.entryPath;
+  return (
+    <span className={styles["cell-stack"]}>
+      <span className={styles["cell-path"]} title={row.entryPath}>
+        {row.entryPath}
+      </span>
+      {exitedElsewhere && (
+        <span className={styles["cell-secondary"]} title={row.exitPath}>
+          <ArrowRight size={10} strokeWidth={2.2} aria-label="exited on" />
+          <span className={styles["cell-mono"]}>{row.exitPath}</span>
         </span>
-      ),
-      sortValue: (row: Visitor) => row.visitorId,
-    },
-    {
-      key: "lastIp",
-      label: "IP",
-      width: "15%",
-      sortable: true,
-      render: (row: Visitor) =>
-        row.lastIp ? (
-          <button
-            type="button"
-            className={`${styles["session-table-ip"]} ${styles["visitor-meta-link"]}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpenIp(row.lastIp!);
-            }}
-          >
-            {row.lastIp}
-          </button>
-        ) : (
-          <span className={styles["session-table-ip"]}>—</span>
-        ),
-      sortValue: (row: Visitor) => row.lastIp || "",
-    },
-    {
-      key: "browser",
-      label: "Browser / OS",
-      width: "23%",
-      sortable: true,
-      render: (row: Visitor) => (
-        <DeviceCell
-          device={row.lastDevice}
-          browser={row.lastBrowser}
-          os={row.lastOs}
-        />
-      ),
-      sortValue: (row: Visitor) => row.lastBrowser?.name || "",
-    },
-    {
-      key: "location",
-      label: "Location",
-      width: "23%",
-      sortable: true,
-      render: (row: Visitor) => (
-        <span className={styles["session-table-geo"]}>
-          {formatLocation(row.lastGeo)}
-        </span>
-      ),
-      sortValue: (row: Visitor) => row.lastGeo?.country || "",
-    },
-    {
-      key: "sessionCount",
-      label: "Sessions",
-      width: "12%",
-      sortable: true,
-      render: (row: Visitor) => (
-        <span className={styles["session-table-duration"]}>
-          {formatCount(row.sessionCount, "session")}
-        </span>
-      ),
-      sortValue: (row: Visitor) => row.sessionCount,
-    },
-    {
-      key: "lastSeen",
-      label: "Last Seen",
-      width: "12%",
-      sortable: true,
-      render: (row: Visitor) => (
-        <span className={styles["session-table-time"]}>
-          {timeAgo(row.lastSeen)}
-        </span>
-      ),
-      sortValue: (row: Visitor) => timeValue(row.lastSeen),
-    },
-  ];
+      )}
+    </span>
+  );
 }
 
 export function sessionColumns(onOpenSession: (sessionId: string) => void) {
   return [
     {
-      key: "sessionId",
-      label: "Session",
-      width: "15%",
+      key: "startedAt",
+      label: "Started",
       sortable: true,
-      render: (row: ExplorerSession) => (
-        <span className={styles["session-table-id"]}>
+      render: (row: SessionSummary) => (
+        <span className={styles["cell-stack"]}>
           <button
             type="button"
             className={styles["table-open-button"]}
-            title={row.sessionId}
+            aria-label={`Open session started ${formatTimestamp(row.startedAt)}`}
             onClick={(event) => {
               event.stopPropagation();
               onOpenSession(row.sessionId);
             }}
           >
-            {shortId(row.sessionId, 8)}
+            {formatTimestamp(row.startedAt)}
           </button>
-          {row.isBot && <BotTag />}
+          <span className={styles["cell-secondary"]}>
+            seen {timeAgo(row.lastSeenAt)}
+          </span>
         </span>
       ),
-      sortValue: (row: ExplorerSession) => row.sessionId,
     },
     {
-      key: "ip",
-      label: "IP",
-      width: "15%",
-      sortable: true,
-      render: (row: ExplorerSession) => (
-        <span className={styles["session-table-ip"]}>{row.ip}</span>
-      ),
-      sortValue: (row: ExplorerSession) => row.ip,
-    },
-    {
-      key: "device",
-      label: "Device",
-      width: "23%",
-      sortable: true,
-      render: (row: ExplorerSession) => (
-        <DeviceCell device={row.device} browser={row.browser} os={row.os} />
-      ),
-      sortValue: (row: ExplorerSession) => row.browser?.name || "",
+      key: "visitor",
+      label: "Visitor",
+      sortable: false,
+      render: (row: SessionSummary) => <VisitorCell row={row} />,
     },
     {
       key: "location",
       label: "Location",
-      width: "23%",
-      sortable: true,
-      render: (row: ExplorerSession) => (
-        <span className={styles["session-table-geo"]}>
-          {formatLocation(row.geo)}
+      sortable: false,
+      render: (row: SessionSummary) => (
+        <span className={styles["cell-stack"]}>
+          <span
+            className={styles["cell-primary"]}
+            title={joinMeta(row.city, row.region, row.country)}
+          >
+            {[countryFlag(row.country), formatSessionLocation(row, "Unknown")]
+              .filter(Boolean)
+              .join(" ")}
+          </span>
         </span>
       ),
-      sortValue: (row: ExplorerSession) => row.geo?.country || "",
     },
     {
-      key: "duration",
-      label: "Duration",
-      width: "12%",
-      sortable: true,
-      render: (row: ExplorerSession) => (
-        <span className={styles["session-table-duration"]}>
-          {formatDurationMs(row.duration)}
+      key: "client",
+      label: "Device · Browser · OS",
+      sortable: false,
+      render: (row: SessionSummary) => (
+        <span className={styles["cell-stack"]}>
+          <span className={styles["session-table-device"]}>
+            <DeviceIcon type={row.device} />
+            {joinMeta(row.browser ?? "Unknown", row.os ?? "Unknown")}
+          </span>
+          <span className={styles["cell-secondary"]}>
+            {joinMeta(row.device, row.screen)}
+          </span>
         </span>
       ),
-      sortValue: (row: ExplorerSession) => row.duration,
     },
     {
-      key: "lastActive",
-      label: "Last Active",
-      width: "12%",
+      key: "source",
+      label: "Source",
+      sortable: false,
+      render: (row: SessionSummary) => <SourceCell row={row} />,
+    },
+    {
+      key: "path",
+      label: "Entry → Exit",
+      sortable: false,
+      render: (row: SessionSummary) => <PathCell row={row} />,
+    },
+    {
+      key: "pageviews",
+      label: "Pages",
       sortable: true,
-      render: (row: ExplorerSession) => (
-        <span className={styles["session-table-time"]}>
-          {timeAgo(row.updatedAt)}
+      align: "right" as const,
+      render: (row: SessionSummary) => (
+        <span className={styles["cell-number"]}>
+          {formatExact(row.pageviews)}
         </span>
       ),
-      sortValue: (row: ExplorerSession) => timeValue(row.updatedAt),
+    },
+    {
+      key: "engagedMs",
+      label: "Engaged",
+      sortable: true,
+      align: "right" as const,
+      render: (row: SessionSummary) => (
+        <span className={styles["cell-number"]}>
+          {formatDurationMs(row.engagedMs)}
+        </span>
+      ),
+    },
+    {
+      key: "replay",
+      label: "Replay",
+      sortable: false,
+      align: "center" as const,
+      render: (row: SessionSummary) =>
+        row.hasReplay ? (
+          <span
+            className={styles["replay-mark"]}
+            title="Has a replay recording"
+          >
+            <Film size={13} strokeWidth={2.2} aria-label="Has a replay" />
+          </span>
+        ) : null,
     },
   ];
 }

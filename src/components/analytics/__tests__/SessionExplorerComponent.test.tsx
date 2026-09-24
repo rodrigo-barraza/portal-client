@@ -1,11 +1,15 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useState } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  envelope,
+  sessionDetail,
+  sessionSummary,
+  sessionsPage,
+} from "../../__tests__/apiFixtures";
 
 const api = vi.hoisted(() => ({
-  getSessionIpUsers: vi.fn(),
-  getSessionVisitors: vi.fn(),
   getSessionsList: vi.fn(),
-  getSessionIpDetail: vi.fn(),
   getSessionDetail: vi.fn(),
   getSessionReplay: vi.fn(),
 }));
@@ -17,244 +21,319 @@ vi.mock("next/dynamic", () => ({
 }));
 
 import SessionExplorerComponent from "../../SessionExplorerComponent";
+import { INITIAL_EXPLORER_STATE, type ExplorerState } from "../explorerModel";
 
-const IP = "203.0.113.5";
+const PROJECT = "rod-dev-client";
 const SESSION_ID = "session-aaaaaaaaaaaa";
 
-const client = {
-  browser: { name: "Firefox", version: "130" },
-  os: { name: "Linux", version: null },
-  device: { type: "desktop", vendor: null },
-  geo: { country: "Canada", city: "Vancouver", countryCode: "CA" },
-};
+/** The explorer is controlled by its report; this plays the report. */
+function Harness({
+  period = "30d",
+  initial = INITIAL_EXPLORER_STATE,
+}: {
+  period?: string;
+  initial?: ExplorerState;
+}) {
+  const [state, setState] = useState(initial);
+  return (
+    <SessionExplorerComponent
+      projectId={PROJECT}
+      period={period}
+      state={state}
+      onStateChange={setState}
+    />
+  );
+}
 
-function sessionRow(overrides = {}) {
+/** The arguments of the most recent list request, without the signal. */
+function lastListCall() {
+  const call = api.getSessionsList.mock.calls.at(-1)!;
   return {
-    sessionId: SESSION_ID,
-    visitorId: "visitor-1",
-    projectId: "rod-dev-client",
-    ip: IP,
-    fingerprintId: "fp-1",
-    ...client,
-    viewport: null,
-    referrer: null,
-    duration: 65_000,
-    createdAt: "2026-09-01T10:00:00.000Z",
-    updatedAt: "2026-09-01T10:05:00.000Z",
-    ...overrides,
+    projectId: call[0],
+    range: call[1],
+    filters: call[2],
+    paging: call[3],
+    sort: call[4],
   };
 }
 
-beforeAll(() => {
-  // SegmentedControlComponent measures itself with a ResizeObserver
-  globalThis.ResizeObserver ??= class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  } as unknown as typeof ResizeObserver;
-});
+async function openFirstSession() {
+  fireEvent.click(
+    await screen.findByRole("button", { name: /^Open session started/ }),
+  );
+  await screen.findByRole("region", { name: "Journey" });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
-  api.getSessionIpUsers.mockResolvedValue({
-    success: true,
-    data: {
-      ips: [
-        {
-          ip: IP,
-          visitorIds: ["visitor-1"],
-          sessionIds: [SESSION_ID],
-          sessionCount: 1,
-          totalDuration: 65_000,
-          firstSeen: "2026-09-01T10:00:00.000Z",
-          lastSeen: "2026-09-01T10:05:00.000Z",
-          projects: ["rod-dev-client"],
-          lastBrowser: client.browser,
-          lastOs: client.os,
-          lastDevice: client.device,
-          lastGeo: client.geo,
-          lastFingerprintId: "fp-1",
-          lastReferrer: null,
-          lastViewport: null,
-        },
-      ],
-      total: 1,
-    },
+  api.getSessionsList.mockResolvedValue(
+    envelope(sessionsPage([sessionSummary({ hasReplay: true })])),
+  );
+  api.getSessionDetail.mockResolvedValue(envelope(sessionDetail()));
+});
+
+describe("SessionExplorerComponent — list", () => {
+  it("asks for the newest 50 sessions of the dashboard's range", async () => {
+    render(<Harness />);
+    await screen.findByRole("button", { name: /^Open session started/ });
+    expect(lastListCall()).toEqual({
+      projectId: PROJECT,
+      range: { period: "30d" },
+      filters: {},
+      paging: { limit: 50, offset: 0 },
+      sort: { sort: "startedAt", order: "desc" },
+    });
   });
-  api.getSessionVisitors.mockResolvedValue({
-    success: true,
-    data: {
-      visitors: [
-        {
-          visitorId: "visitor-1",
-          sessionCount: 40,
-          totalDuration: 1000,
-          firstSeen: "2026-09-01T10:00:00.000Z",
-          lastSeen: "2026-09-01T10:05:00.000Z",
-          lastIp: IP,
-          lastBrowser: client.browser,
-          lastOs: client.os,
-          lastDevice: client.device,
-          lastGeo: client.geo,
-          lastReferrer: null,
-          lastViewport: null,
-          // The service caps this list at the newest 20
-          sessionIds: Array.from({ length: 20 }, (_, index) => `s-${index}`),
-        },
-      ],
-      total: 1,
-    },
+
+  it("sends a custom dashboard range as its calendar days", async () => {
+    render(<Harness period="2026-09-01_2026-09-10" />);
+    await screen.findByRole("button", { name: /^Open session started/ });
+    expect(lastListCall().range).toEqual({
+      from: "2026-09-01",
+      to: "2026-09-10",
+    });
   });
-  api.getSessionsList.mockResolvedValue({
-    success: true,
-    data: { sessions: [sessionRow({ isBot: true })], total: 1 },
+
+  it("shows who, where, on what, from where and what they did", async () => {
+    render(<Harness />);
+    const table = await screen.findByRole("table");
+    expect(within(table).getByText("visitor-…")).toBeInTheDocument();
+    expect(within(table).getByText("returning #3")).toBeInTheDocument();
+    expect(within(table).getByText("🇨🇦 Vancouver, Canada")).toBeInTheDocument();
+    expect(within(table).getByText("Chrome · macOS")).toBeInTheDocument();
+    expect(within(table).getByText("Organic Search")).toBeInTheDocument();
+    expect(within(table).getByText("www.google.com")).toBeInTheDocument();
+    expect(within(table).getByText("/pricing")).toBeInTheDocument();
+    expect(within(table).getByLabelText("Has a replay")).toBeInTheDocument();
   });
-  api.getSessionIpDetail.mockResolvedValue({
-    success: true,
-    data: {
-      ip: IP,
-      visitorIds: ["visitor-1"],
-      projects: ["rod-dev-client"],
-      sessionCount: 1,
-      totalDuration: 65_000,
-      firstSeen: "2026-09-01T10:00:00.000Z",
-      lastSeen: "2026-09-01T10:05:00.000Z",
-      lastBrowser: client.browser,
-      lastOs: client.os,
-      lastDevice: client.device,
-      lastGeo: client.geo,
-      sessions: [sessionRow()],
-      pageViews: [
-        {
-          sessionId: SESSION_ID,
-          url: "https://rod.dev/",
-          path: "/",
-          title: "Home",
-          timestamp: "2026-09-01T10:00:00.000Z",
-        },
-      ],
-      events: [],
-      // The service's merged timeline drops sessionId
-      timeline: [
-        { type: "pageview", timestamp: "2026-09-01T10:00:00.000Z", path: "/" },
-      ],
-    },
+
+  it("filters on the server with the replay and engaged toggles", async () => {
+    render(<Harness />);
+    await screen.findByRole("table");
+    fireEvent.click(screen.getByRole("button", { name: "With replay" }));
+    fireEvent.click(screen.getByRole("button", { name: "Engaged only" }));
+    await vi.waitFor(() =>
+      expect(lastListCall().filters).toEqual({ replay: true, engaged: true }),
+    );
+    expect(screen.getByRole("button", { name: "With replay" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
-  api.getSessionDetail.mockResolvedValue({
-    success: true,
-    data: {
-      ...sessionRow({ userId: "hello@rod.dev" }),
-      userAgent: "Mozilla/5.0",
-      locale: "en-CA",
-      utm: null,
-      pageViews: [],
-      events: [],
-      timeline: [],
-      hasReplay: false,
-    },
+
+  it("adds a typed filter as a removable chip", async () => {
+    render(<Harness />);
+    await screen.findByRole("table");
+    fireEvent.change(screen.getByLabelText("Filter by"), {
+      target: { value: "country" },
+    });
+    fireEvent.change(screen.getByLabelText("Filter value"), {
+      target: { value: " ca " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add filter" }));
+
+    const chips = await screen.findByRole("list", { name: "Active filters" });
+    expect(within(chips).getByText("🇨🇦 Canada (CA)")).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(lastListCall().filters).toEqual({ country: "CA" }),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove filter Country: CA" }),
+    );
+    await vi.waitFor(() => expect(lastListCall().filters).toEqual({}));
+    expect(
+      screen.queryByRole("list", { name: "Active filters" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sorts on the server", async () => {
+    render(<Harness />);
+    await screen.findByRole("table");
+    fireEvent.change(screen.getByLabelText("Sort sessions"), {
+      target: { value: "engagedMs:desc" },
+    });
+    await vi.waitFor(() =>
+      expect(lastListCall().sort).toEqual({ sort: "engagedMs", order: "desc" }),
+    );
+  });
+
+  it("pages through the server's total and starts over for a new query", async () => {
+    api.getSessionsList.mockResolvedValue(
+      envelope(sessionsPage([sessionSummary()], { total: 120 })),
+    );
+    render(<Harness />);
+    await screen.findByRole("table");
+    expect(screen.getByText("120 sessions")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await vi.waitFor(() =>
+      expect(lastListCall().paging).toEqual({ limit: 50, offset: 50 }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Engaged only" }));
+    await vi.waitFor(() =>
+      expect(lastListCall()).toMatchObject({
+        filters: { engaged: true },
+        paging: { limit: 50, offset: 0 },
+      }),
+    );
+  });
+
+  it("searches all time from the scope control", async () => {
+    render(<Harness />);
+    await screen.findByRole("table");
+    fireEvent.click(screen.getByRole("radio", { name: "All time" }));
+    await vi.waitFor(() =>
+      expect(lastListCall().range).toEqual({ period: "all" }),
+    );
+  });
+
+  it("explains an empty range and offers all time", async () => {
+    api.getSessionsList.mockResolvedValue(envelope(sessionsPage([])));
+    render(<Harness />);
+    expect(
+      await screen.findByText(/No sessions in this range yet/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Search all time" }));
+    await vi.waitFor(() =>
+      expect(lastListCall().range).toEqual({ period: "all" }),
+    );
+  });
+
+  it("offers to clear filters that match nothing", async () => {
+    api.getSessionsList.mockResolvedValue(envelope(sessionsPage([])));
+    render(
+      <Harness
+        initial={{ ...INITIAL_EXPLORER_STATE, filters: { ip: "198.51.100.1" } }}
+      />,
+    );
+    expect(
+      await screen.findByText(/No sessions match these filters/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    await vi.waitFor(() => expect(lastListCall().filters).toEqual({}));
+  });
+
+  it("reports a failed list as an error, not as an empty range", async () => {
+    api.getSessionsList.mockRejectedValue(new Error("Unauthorized"));
+    render(<Harness />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Could not load sessions: Unauthorized",
+    );
+    expect(
+      screen.queryByText(/No sessions in this range/),
+    ).not.toBeInTheDocument();
+  });
+
+  it('never shows a bare `{ error: true }` body as the text "true"', async () => {
+    api.getSessionsList.mockRejectedValue(new Error(String(true)));
+    render(<Harness />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /^Could not load sessions\.$/,
+    );
   });
 });
 
-describe("SessionExplorerComponent", () => {
-  it("walks list → IP → session → IP and back through the same stack", async () => {
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
-    );
-
-    fireEvent.click(
-      await screen.findByRole("button", { name: new RegExp(IP) }),
-    );
-    expect(
-      await screen.findByText("Cross-Session Timeline"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Back to list" }),
-    ).toBeInTheDocument();
-
-    // Open the session from the IP profile
-    fireEvent.click(
-      screen.getByRole("button", { name: `Open session ${SESSION_ID}` }),
-    );
-    expect(await screen.findByText("hello@rod.dev")).toBeInTheDocument();
-
-    // The IP link in a session used to do nothing (the session view won)
-    fireEvent.click(screen.getByRole("button", { name: `Open IP ${IP}` }));
-    expect(
-      await screen.findByText("Cross-Session Timeline"),
-    ).toBeInTheDocument();
-    expect(api.getSessionIpDetail).toHaveBeenCalledWith(
-      IP,
-      "rod-dev-client",
-      "30d",
-      {
-        signal: expect.any(AbortSignal),
-      },
-    );
-
-    // Back pops one level at a time
-    fireEvent.click(screen.getByRole("button", { name: /Back to session/ }));
-    expect(await screen.findByText("hello@rod.dev")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: `Back to ${IP}` }));
-    expect(
-      await screen.findByText("Cross-Session Timeline"),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
-    expect(await screen.findByRole("tablist")).toBeInTheDocument();
-  });
-
-  it("tags cross-session timeline rows with their session", async () => {
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
-    );
-    fireEvent.click(
-      await screen.findByRole("button", { name: new RegExp(IP) }),
-    );
-
-    const timeline = await screen.findByRole("region", {
-      name: "Cross-Session Timeline",
+describe("SessionExplorerComponent — session detail", () => {
+  it("opens a session from its row's button and returns to the list", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    expect(api.getSessionDetail).toHaveBeenCalledWith(SESSION_ID, {
+      signal: expect.any(AbortSignal),
     });
-    expect(within(timeline).getByTitle(SESSION_ID)).toHaveTextContent(
-      "sessio…",
-    );
-  });
-
-  it("counts hidden sessions from the visitor's total, not the capped id list", async () => {
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
-    );
-    fireEvent.click(await screen.findByRole("tab", { name: /Visitors/ }));
-    // 40 sessions, 5 pills shown → 35 more (was "+15": 20 capped ids − 5)
-    expect(await screen.findByText("+35 more")).toBeInTheDocument();
-  });
-
-  it("flags bot sessions in the list", async () => {
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
-    );
-    fireEvent.click(await screen.findByRole("tab", { name: /Sessions/ }));
     expect(
-      await screen.findByTitle("Flagged as crawler/bot traffic"),
+      screen.getByRole("heading", { name: "Session session-aaaa…" }),
+    ).toHaveFocus();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to sessions" }));
+    expect(await screen.findByRole("table")).toBeInTheDocument();
+  });
+
+  it("walks the journey: pages in order with time and scroll, events between", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    const journey = screen.getByRole("region", { name: "Journey" });
+    const steps = within(journey)
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(steps).toHaveLength(3);
+    expect(steps[0]).toMatch(/Page 1.*\/ — Home.*20\.0s engaged.*80% scrolled/);
+    expect(steps[1]).toMatch(
+      /Event.*outbound on \/.*url.*https:\/\/github\.com\/rod/,
+    );
+    expect(steps[2]).toMatch(
+      /Page 2.*\/pricing — Pricing.*45\.0s engaged.*35% scrolled/,
+    );
+  });
+
+  it("shows identity, client and acquisition details", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    expect(screen.getByText("203.0.113.5")).toBeInTheDocument();
+    expect(screen.getByText("Chrome 140")).toBeInTheDocument();
+    expect(screen.getByText("macOS 15")).toBeInTheDocument();
+    expect(screen.getByText("google / organic")).toBeInTheDocument();
+    expect(screen.getByText("en-CA")).toBeInTheDocument();
+    expect(screen.getByText(/returning · session #3 of 7/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Mozilla/5.0 (Macintosh) Chrome/140"),
     ).toBeInTheDocument();
   });
 
-  it("reports a failed list as an error, not as an empty period", async () => {
-    api.getSessionIpUsers.mockRejectedValue(new Error("Unauthorized"));
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+  it("mounts the replay player only for a session with a recording", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    expect(screen.queryByTestId("replay-stub")).not.toBeInTheDocument();
+
+    api.getSessionDetail.mockResolvedValue(
+      envelope(sessionDetail({ replay: { chunks: 3, bytes: 90_000 } })),
     );
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not load IPs: Unauthorized",
-    );
-    expect(screen.queryByText(/No IPs in this period/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back to sessions" }));
+    await openFirstSession();
+    expect(screen.getByTestId("replay-stub")).toBeInTheDocument();
   });
 
-  it('never shows a proxied `{ error: true }` body as the text "true"', async () => {
-    api.getSessionIpUsers.mockRejectedValue(new Error(String(true)));
-    render(
-      <SessionExplorerComponent projectId="rod-dev-client" period="30d" />,
+  it("lists every session of the visitor, all time", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "All sessions from this visitor (7)",
+      }),
+    );
+    await screen.findByRole("table");
+    expect(lastListCall()).toMatchObject({
+      range: { period: "all" },
+      filters: { visitorId: "visitor-1234567890" },
+    });
+    expect(screen.getByRole("radio", { name: "All time" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("lists every session of the IP, all time", async () => {
+    render(<Harness />);
+    await openFirstSession();
+    fireEvent.click(
+      screen.getByRole("button", { name: "All sessions from this IP" }),
+    );
+    await screen.findByRole("table");
+    expect(lastListCall()).toMatchObject({
+      range: { period: "all" },
+      filters: { ip: "203.0.113.5" },
+    });
+  });
+
+  it("reports a session that failed to load", async () => {
+    api.getSessionDetail.mockRejectedValue(new Error("Session not found"));
+    render(<Harness />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: /^Open session started/ }),
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      /^Could not load IPs\.$/,
+      "Could not load this session: Session not found",
     );
   });
 });

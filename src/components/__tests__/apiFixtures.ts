@@ -18,6 +18,14 @@ import type {
   LoggableContainer,
   ProjectAnalysis,
   ServiceActionResponse,
+  SessionDetail,
+  SessionHeatmap,
+  SessionLive,
+  SessionReport,
+  SessionReportSummary,
+  SessionsEnvelope,
+  SessionsPage,
+  SessionSummary,
   StorageBucket,
   StorageObject,
   StorageObjectStat,
@@ -232,4 +240,178 @@ export function containerActionResponse(
   device = "synology",
 ): ContainerActionResponse {
   return { success: true, container, device, message: "OK" };
+}
+
+// ── Session analytics (sessions-service /stats, via portal-service) ──
+
+/** A body in sessions-service's `{ success, data }` envelope. */
+export function envelope<T>(data: T): SessionsEnvelope<T> {
+  return { success: true, data };
+}
+
+/** One row of GET /session-analytics/sessions: a returning Canadian on Chrome. */
+export function sessionSummary(
+  overrides: Partial<SessionSummary> = {},
+): SessionSummary {
+  return {
+    sessionId: "session-aaaaaaaaaaaa",
+    projectId: "rod-dev-client",
+    visitorId: "visitor-1234567890",
+    userId: null,
+    startedAt: "2026-09-22T10:00:00.000Z",
+    lastSeenAt: "2026-09-22T10:05:00.000Z",
+    pageviews: 3,
+    engagedMs: 65_000,
+    isEngaged: true,
+    sessionNumber: 3,
+    entryPath: "/",
+    exitPath: "/pricing",
+    channel: "Organic Search",
+    source: "google",
+    referrerHost: "www.google.com",
+    campaign: null,
+    country: "CA",
+    region: "BC",
+    city: "Vancouver",
+    ip: "203.0.113.5",
+    device: "desktop",
+    browser: "Chrome",
+    os: "macOS",
+    screen: "1920x1080",
+    hasReplay: false,
+    ...overrides,
+  };
+}
+
+export function sessionsPage(
+  sessions: SessionSummary[],
+  overrides: Partial<SessionsPage> = {},
+): SessionsPage {
+  return {
+    sessions,
+    total: sessions.length,
+    limit: 50,
+    offset: 0,
+    ...overrides,
+  };
+}
+
+/** GET /session-analytics/sessions/:id for {@link sessionSummary}'s session. */
+export function sessionDetail(
+  overrides: Partial<SessionDetail> = {},
+): SessionDetail {
+  return {
+    ...sessionSummary(),
+    hostname: "rod.dev",
+    referrer: "https://www.google.com/",
+    medium: "organic",
+    term: null,
+    content: null,
+    clickId: null,
+    browserVersion: "140",
+    osVersion: "15",
+    viewport: "1280x800",
+    timezone: "America/Vancouver",
+    language: "en-CA",
+    userAgent: "Mozilla/5.0 (Macintosh) Chrome/140",
+    replay: null,
+    views: [
+      {
+        id: "pv-1",
+        path: "/",
+        title: "Home",
+        at: "2026-09-22T10:00:00.000Z",
+        engagedMs: 20_000,
+        scroll: 80,
+      },
+      {
+        id: "pv-2",
+        path: "/pricing",
+        title: "Pricing",
+        at: "2026-09-22T10:02:00.000Z",
+        engagedMs: 45_000,
+        scroll: 35,
+      },
+    ],
+    events: [
+      {
+        name: "outbound",
+        props: { url: "https://github.com/rod" },
+        path: "/",
+        at: "2026-09-22T10:01:00.000Z",
+      },
+    ],
+    visitor: { sessions: 7, firstSeenAt: "2026-09-01T08:00:00.000Z" },
+    ...overrides,
+  };
+}
+
+export function sessionReportSummary(
+  overrides: Partial<SessionReportSummary> = {},
+): SessionReportSummary {
+  return {
+    visitors: 0,
+    newVisitors: 0,
+    sessions: 0,
+    engagedSessions: 0,
+    pageviews: 0,
+    engagedMs: 0,
+    avgEngagedMs: 0,
+    engagementRate: 0,
+    bounceRate: 0,
+    pagesPerSession: 0,
+    ...overrides,
+  };
+}
+
+/** GET /session-analytics/report for a project with no visits yet. */
+export function sessionReport(
+  overrides: Partial<SessionReport> = {},
+): SessionReport {
+  return {
+    range: {
+      from: "2026-08-24T07:00:00.000Z",
+      to: "2026-09-23T07:00:00.000Z",
+      bucket: "day",
+      tz: "America/Vancouver",
+    },
+    summary: sessionReportSummary(),
+    previous: sessionReportSummary(),
+    series: [],
+    pages: [],
+    channels: [],
+    referrers: [],
+    campaigns: [],
+    countries: [],
+    cities: [],
+    devices: [],
+    browsers: [],
+    os: [],
+    screens: [],
+    languages: [],
+    events: [],
+    hours: [],
+    ...overrides,
+  };
+}
+
+export function sessionLive(overrides: Partial<SessionLive> = {}): SessionLive {
+  return { active: 0, sessions: [], pages: [], ...overrides };
+}
+
+export function sessionHeatmap(
+  overrides: Partial<SessionHeatmap> = {},
+): SessionHeatmap {
+  return {
+    path: "/",
+    band: "desktop",
+    type: "click",
+    grid: 50,
+    max: 0,
+    total: 0,
+    sessions: 0,
+    aspect: 1,
+    cells: [],
+    ...overrides,
+  };
 }

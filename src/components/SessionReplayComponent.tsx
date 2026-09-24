@@ -60,7 +60,12 @@ export default function SessionReplayComponent({
     sessionId: string;
     state: ReplayStatus;
   } | null>(null);
-  const [eventCount, setEventCount] = useState(0);
+  const [recording, setRecording] = useState<{
+    eventCount: number;
+    returnedChunks: number;
+    totalChunks: number;
+    truncated: boolean;
+  } | null>(null);
 
   // Derived, so a new sessionId reads as loading in the same render
   const replayStatus: ReplayStatus =
@@ -77,12 +82,13 @@ export default function SessionReplayComponent({
 
     (async () => {
       try {
-        const { events } = unwrapData(
+        const replay = unwrapData(
           await ApiService.getSessionReplay(sessionId, {
             signal: controller.signal,
           }),
         );
         if (cancelled) return;
+        const { events } = replay;
 
         // rrweb needs at least a full snapshot plus one incremental event.
         if (events.length < 2) return settle("empty");
@@ -106,7 +112,12 @@ export default function SessionReplayComponent({
             skipInactive: true,
           },
         }) as unknown as ReplayPlayer;
-        setEventCount(events.length);
+        setRecording({
+          eventCount: events.length,
+          returnedChunks: replay.returnedChunks,
+          totalChunks: replay.totalChunks,
+          truncated: replay.truncated,
+        });
         settle("ready");
       } catch {
         settle("error");
@@ -126,12 +137,20 @@ export default function SessionReplayComponent({
       <div className={styles["replay-header"]}>
         <Film size={14} strokeWidth={2.2} aria-hidden />
         <span>Session Replay</span>
-        {replayStatus === "ready" && (
+        {replayStatus === "ready" && recording && (
           <span className={styles["replay-count"]}>
-            {formatCount(eventCount, "event")}
+            {formatCount(recording.eventCount, "event")}
           </span>
         )}
       </div>
+
+      {replayStatus === "ready" && recording?.truncated && (
+        <div className={styles["replay-note"]} role="note">
+          Recording cut short at the per-session storage budget — playing the
+          first {formatCount(recording.returnedChunks, "chunk")} of{" "}
+          {recording.totalChunks}.
+        </div>
+      )}
 
       {replayStatus === "loading" && (
         <LoadingIndicatorComponent size="small" label="Loading recording…" />
