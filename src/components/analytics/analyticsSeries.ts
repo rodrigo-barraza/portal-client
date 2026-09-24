@@ -9,7 +9,11 @@
 
 import { formatExact, percentChange } from "./analyticsFormat";
 import { CHART_COLORS, SOURCE_COLORS, chartColor } from "./palette";
-import type { DonutSegment } from "../../types/portal";
+import type {
+  DonutSegment,
+  SessionHourCell,
+  SessionRange,
+} from "../../types/portal";
 
 const DAY_MS = 86_400_000;
 /** Refuse to fill more than ~10 years of days — guards against junk dates. */
@@ -77,10 +81,11 @@ export function isCustomPeriod(period: string): boolean {
 }
 
 /**
- * Turn a DatePicker selection into GA's custom period, "YYYY-MM-DD_YYYY-MM-DD".
+ * Turn a DatePicker selection into a custom period, "YYYY-MM-DD_YYYY-MM-DD".
  * The picker can emit datetimes ("2026-09-01T08:30") and ranges in either
- * order; GA (and portal-service's validator) accept whole days only, start
- * first. Null when the selection is empty or unusable.
+ * order; GA (and portal-service's validator) and sessions-service take
+ * whole days only, start first. Null when the selection is empty or
+ * unusable.
  */
 export function toCustomPeriod(from: string, to: string): string | null {
   const fromDay = from.slice(0, 10);
@@ -91,23 +96,32 @@ export function toCustomPeriod(from: string, to: string): string | null {
   return fromTime <= toTime ? `${fromDay}_${toDay}` : `${toDay}_${fromDay}`;
 }
 
+/**
+ * The dashboard's period as a sessions-service range: a custom period is
+ * its two calendar days (`to` inclusive, read in the request's tz), a
+ * preset ("30d", "all") is passed through as a rolling period.
+ */
+export function toSessionRange(period: string): SessionRange {
+  const custom = parseCustomPeriod(period);
+  return custom ? { from: custom.from, to: custom.to } : { period };
+}
+
+/** "Last 30 days", "2026-09-01 → 2026-09-10", "2026-09-22", "All time". */
+export function describePeriod(period: string): string {
+  if (period === "all") return "All time";
+  const custom = parseCustomPeriod(period);
+  if (custom)
+    return custom.from === custom.to
+      ? custom.from
+      : `${custom.from} → ${custom.to}`;
+  const days = presetDays(period);
+  if (days === 1) return "Last day";
+  return days ? `Last ${days} days` : period;
+}
+
 export interface DayWindow {
   start: string;
   end: string;
-}
-
-/**
- * The calendar days a sessions-service series can span. Its "Nd" window is
- * a rolling N×24h ending now, bucketed by UTC day (`$dateToString` on UTC
- * dates) — so the first and last buckets are partial days.
- */
-export function sessionsSeriesWindow(
-  period: string,
-  now: number = Date.now(),
-): DayWindow | null {
-  const days = presetDays(period);
-  if (days === null) return null;
-  return { start: formatIsoDay(now - days * DAY_MS), end: formatIsoDay(now) };
 }
 
 /**
@@ -125,9 +139,9 @@ export function gaSeriesWindow(period: string): DayWindow | null {
 
 /**
  * Insert zero points for days missing from a daily series. GA omits rows
- * whose metrics are all zero and sessions-service only groups days that
- * have documents, so without this a quiet week collapses into its
- * neighbours and the sparkline reads as continuous traffic.
+ * whose metrics are all zero, so without this a quiet week collapses into
+ * its neighbours and the sparkline reads as continuous traffic.
+ * (sessions-service zero-fills its own series.)
  *
  * Fills every day between the first and last point, widened to `window`
  * when given. A series with any undated/malformed point is returned as-is.
@@ -164,23 +178,37 @@ export function fillDailySeries<T extends { date?: string }>(
   return filled;
 }
 
+const HOUR_BUCKET_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2})$/;
+
+/** Whether a series point's date is an hour bucket, "YYYY-MM-DDTHH". */
+export function isHourBucket(date: unknown): boolean {
+  return typeof date === "string" && HOUR_BUCKET_PATTERN.test(date);
+}
+
+/** A series bucket for people: "2026-09-22 14:00" for an hour, the day as-is. */
+export function formatBucket(bucket: string): string {
+  const hour = HOUR_BUCKET_PATTERN.exec(bucket);
+  return hour ? `${hour[1]} ${hour[2]}:00` : bucket;
+}
+
 /**
  * One-sentence text alternative for a stacked sparkline panel, e.g.
  * "30 days, 2026-08-24 to 2026-09-22. Pageviews: 1,204 total, peak 98 on 2026-09-01."
+ * Points dated "YYYY-MM-DDTHH" read as hours.
  */
 export function describeSeries(
   series: readonly Record<string, unknown>[],
   metrics: readonly { key: string; label: string }[],
 ): string {
   if (series.length === 0) return "No data.";
-  const firstDate = typeof series[0].date === "string" ? series[0].date : null;
-  const lastDate =
-    typeof series[series.length - 1].date === "string"
-      ? (series[series.length - 1].date as string)
-      : null;
+  const dateOf = (point: Record<string, unknown>) =>
+    typeof point.date === "string" ? formatBucket(point.date) : null;
+  const firstDate = dateOf(series[0]);
+  const lastDate = dateOf(series[series.length - 1]);
+  const unit = isHourBucket(series[0].date) ? "hour" : "day";
   const span =
     firstDate && lastDate
-      ? `${series.length} days, ${firstDate} to ${lastDate}.`
+      ? `${series.length} ${series.length === 1 ? unit : `${unit}s`}, ${firstDate} to ${lastDate}.`
       : `${series.length} points.`;
 
   const parts = metrics.map((metric) => {
@@ -192,7 +220,7 @@ export function describeSeries(
       total += value;
       if (value > peak) {
         peak = value;
-        peakDate = typeof point.date === "string" ? point.date : null;
+        peakDate = dateOf(point);
       }
     }
     const peakText = peakDate
@@ -204,8 +232,9 @@ export function describeSeries(
   return [span, ...parts].join(" ");
 }
 
-// ── GA hourly traffic grid ────────────────────────────────────
+// ── Hour-of-week traffic grid ─────────────────────────────────
 
+/** The grid's rows, Monday-first (ISO week). */
 export const WEEKDAYS = [
   "Monday",
   "Tuesday",
@@ -216,43 +245,99 @@ export const WEEKDAYS = [
   "Sunday",
 ] as const;
 
+/** Sunday-first names, indexed like `Date#getDay` and sessions-service's `weekday`. */
+const SUNDAY_FIRST = [WEEKDAYS[6], ...WEEKDAYS.slice(0, 6)];
+
+/** One weekday × hour count, whatever the source. */
+export interface HourlyCell {
+  /** 0 = Sunday … 6 = Saturday. */
+  weekday: number;
+  hour: number;
+  value: number;
+}
+
 export interface HourlyGrid {
   /** values[dayIndex][hour], Monday-first. */
   values: number[][];
   max: number;
   total: number;
-  peak: { day: string; hour: number; users: number } | null;
+  peak: { day: string; hour: number; value: number } | null;
+}
+
+/** GA's (dayOfWeekName × hour) active-user rows; unknown day names are dropped. */
+export function gaHourlyCells(
+  cells: readonly { day: string; hour: number; users: number }[],
+): HourlyCell[] {
+  return cells.flatMap((cell) => {
+    const weekday = SUNDAY_FIRST.indexOf(cell.day as (typeof WEEKDAYS)[number]);
+    return weekday < 0 ? [] : [{ weekday, hour: cell.hour, value: cell.users }];
+  });
+}
+
+/** sessions-service's sessions-started cells (weekday 0 = Sunday, in the report's tz). */
+export function sessionHourlyCells(
+  cells: readonly SessionHourCell[],
+): HourlyCell[] {
+  return cells.map((cell) => ({
+    weekday: cell.weekday,
+    hour: cell.hour,
+    value: cell.sessions,
+  }));
 }
 
 /**
- * Fold GA's (dayOfWeekName × hour) rows into a Monday-first 7×24 matrix.
- * Rows for an unknown day or an out-of-range hour are dropped.
+ * Fold weekday × hour cells into a Monday-first 7×24 matrix. Cells with
+ * an out-of-range weekday or hour are dropped.
  */
-export function buildHourlyGrid(
-  cells: readonly { day: string; hour: number; users: number }[],
-): HourlyGrid {
+export function buildHourlyGrid(cells: readonly HourlyCell[]): HourlyGrid {
   const values = WEEKDAYS.map(() => new Array<number>(24).fill(0));
   for (const cell of cells) {
-    const dayIndex = WEEKDAYS.indexOf(cell.day as (typeof WEEKDAYS)[number]);
+    const weekday = Number(cell.weekday);
     const hour = Number(cell.hour);
-    if (dayIndex < 0 || !Number.isInteger(hour) || hour < 0 || hour > 23)
+    if (
+      !Number.isInteger(weekday) ||
+      weekday < 0 ||
+      weekday > 6 ||
+      !Number.isInteger(hour) ||
+      hour < 0 ||
+      hour > 23
+    )
       continue;
-    values[dayIndex][hour] += Number(cell.users) || 0;
+    // Sunday (0) is the last row of a Monday-first week
+    values[(weekday + 6) % 7][hour] += Number(cell.value) || 0;
   }
 
   let max = 0;
   let total = 0;
   let peak: HourlyGrid["peak"] = null;
   values.forEach((row, dayIndex) =>
-    row.forEach((users, hour) => {
-      total += users;
-      if (users > max) {
-        max = users;
-        peak = { day: WEEKDAYS[dayIndex], hour, users };
+    row.forEach((value, hour) => {
+      total += value;
+      if (value > max) {
+        max = value;
+        peak = { day: WEEKDAYS[dayIndex], hour, value };
       }
     }),
   );
   return { values, max, total, peak };
+}
+
+// ── Page heatmap ──────────────────────────────────────────────
+
+/** A page heatmap taller than this (height / width) is drawn compressed. */
+export const HEATMAP_MAX_ASPECT = 8;
+const HEATMAP_MIN_ASPECT = 0.25;
+
+/**
+ * The height / width a page heatmap is drawn at: the page's own median
+ * aspect, bounded so a very long (or junk) value stays a usable canvas.
+ * Square when unknown.
+ */
+export function heatmapDisplayAspect(
+  aspect: number | null | undefined,
+): number {
+  if (!aspect || !Number.isFinite(aspect) || aspect <= 0) return 1;
+  return Math.min(Math.max(aspect, HEATMAP_MIN_ASPECT), HEATMAP_MAX_ASPECT);
 }
 
 // ── Donut segments ────────────────────────────────────────────
@@ -272,23 +357,25 @@ export function toDonutSegments<T>(
 }
 
 const NEW_VS_RETURNING: Record<string, { label: string; color: string }> = {
-  new: { label: "New Users", color: SOURCE_COLORS.ga },
-  returning: { label: "Returning Users", color: SOURCE_COLORS.sessions },
+  new: { label: "New", color: SOURCE_COLORS.ga },
+  returning: { label: "Returning", color: SOURCE_COLORS.sessions },
 };
 
 /**
- * GA's newVsReturning rows as donut segments. Colored by segment NAME, not
- * position: GA sorts rows by users, so index-based colors swapped "new"
- * and "returning" whenever returning users outnumbered new ones.
+ * New vs returning rows as donut segments ("New Users", or "New Visitors"
+ * with `noun`). Colored by segment NAME, not position: GA sorts rows by
+ * users, so index-based colors swapped "new" and "returning" whenever
+ * returning users outnumbered new ones.
  */
 export function newVsReturningSegments(
   segments: readonly { segment: string; users: number }[] | null | undefined,
+  noun = "Users",
 ): DonutSegment[] {
   let otherIndex = 0;
   return (segments ?? []).map((segment) => {
     const known = NEW_VS_RETURNING[segment.segment];
     return {
-      label: known?.label ?? segment.segment,
+      label: known ? `${known.label} ${noun}` : segment.segment,
       value: segment.users,
       // Skip the two palette entries reserved for new/returning
       color:

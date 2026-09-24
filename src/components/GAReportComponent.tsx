@@ -46,6 +46,7 @@ import {
 } from "./analytics/analyticsFormat";
 import {
   fillDailySeries,
+  gaHourlyCells,
   gaOverviewDelta,
   gaSeriesWindow,
   newVsReturningSegments,
@@ -392,7 +393,9 @@ export default function GAReportComponent({
       )}
 
       {/* ── Hourly Traffic Heatmap ────────────────────────── */}
-      {heatmap?.cells && <HourlyHeatmapComponent cells={heatmap.cells} />}
+      {heatmap?.cells && (
+        <HourlyHeatmapComponent cells={gaHourlyCells(heatmap.cells)} />
+      )}
 
       {/* ── Channels + Sources ─────────────────────────────── */}
       <div className={styles["content-grid"]}>

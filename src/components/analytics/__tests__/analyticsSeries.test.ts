@@ -1,19 +1,26 @@
 import { describe, it, expect } from "vitest";
 import {
+  HEATMAP_MAX_ASPECT,
   buildHourlyGrid,
+  describePeriod,
   describeSeries,
   fillDailySeries,
+  formatBucket,
+  gaHourlyCells,
   gaOverviewDelta,
   gaSeriesWindow,
+  heatmapDisplayAspect,
   isCustomPeriod,
+  isHourBucket,
   newVsReturningSegments,
   parseCustomPeriod,
   parseIsoDay,
   presetDays,
-  sessionsSeriesWindow,
+  sessionHourlyCells,
   shiftIsoDay,
   toCustomPeriod,
   toDonutSegments,
+  toSessionRange,
 } from "../analyticsSeries";
 import { CHART_COLORS, SOURCE_COLORS } from "../palette";
 
@@ -78,18 +85,28 @@ describe("periods", () => {
     expect(toCustomPeriod("2026-09-01", "")).toBeNull();
     expect(toCustomPeriod("garbage", "2026-09-01")).toBeNull();
   });
+
+  it("hands sessions-service a custom period as its calendar days", () => {
+    expect(toSessionRange("2026-09-01_2026-09-10")).toEqual({
+      from: "2026-09-01",
+      to: "2026-09-10",
+    });
+    expect(toSessionRange("30d")).toEqual({ period: "30d" });
+    expect(toSessionRange("all")).toEqual({ period: "all" });
+  });
+
+  it("describes periods for people", () => {
+    expect(describePeriod("30d")).toBe("Last 30 days");
+    expect(describePeriod("1d")).toBe("Last day");
+    expect(describePeriod("all")).toBe("All time");
+    expect(describePeriod("2026-09-01_2026-09-10")).toBe(
+      "2026-09-01 → 2026-09-10",
+    );
+    expect(describePeriod("2026-09-22_2026-09-22")).toBe("2026-09-22");
+  });
 });
 
 describe("series windows", () => {
-  it("covers every UTC day a rolling sessions-service window can touch", () => {
-    const now = Date.UTC(2026, 8, 22, 3, 0, 0); // 2026-09-22T03:00Z
-    expect(sessionsSeriesWindow("7d", now)).toEqual({
-      start: "2026-09-15",
-      end: "2026-09-22",
-    });
-    expect(sessionsSeriesWindow("2026-09-01_2026-09-02", now)).toBeNull();
-  });
-
   it("only pins GA windows for custom ranges", () => {
     expect(gaSeriesWindow("2026-09-01_2026-09-10")).toEqual({
       start: "2026-09-01",
@@ -185,30 +202,100 @@ describe("describeSeries", () => {
   it("handles an empty series", () => {
     expect(describeSeries([], [{ key: "x", label: "X" }])).toBe("No data.");
   });
+
+  it("reads hour buckets as hours", () => {
+    const text = describeSeries(
+      [
+        { date: "2026-09-22T00", sessions: 1 },
+        { date: "2026-09-22T01", sessions: 4 },
+      ],
+      [{ key: "sessions", label: "Sessions" }],
+    );
+    expect(text).toBe(
+      "2 hours, 2026-09-22 00:00 to 2026-09-22 01:00. Sessions: 5 total, peak 4 on 2026-09-22 01:00.",
+    );
+  });
+
+  it("does not pluralize a single point", () => {
+    expect(
+      describeSeries(
+        [{ date: "2026-09-22", x: 1 }],
+        [{ key: "x", label: "X" }],
+      ),
+    ).toMatch(/^1 day, /);
+  });
+});
+
+describe("series buckets", () => {
+  it("tells hour buckets from day buckets", () => {
+    expect(isHourBucket("2026-09-22T14")).toBe(true);
+    expect(isHourBucket("2026-09-22")).toBe(false);
+    expect(isHourBucket(undefined)).toBe(false);
+  });
+
+  it("formats hour buckets as a clock time and leaves days alone", () => {
+    expect(formatBucket("2026-09-22T09")).toBe("2026-09-22 09:00");
+    expect(formatBucket("2026-09-22")).toBe("2026-09-22");
+  });
 });
 
 describe("buildHourlyGrid", () => {
-  it("folds rows into a Monday-first 7×24 grid and finds the peak", () => {
-    const grid = buildHourlyGrid([
-      { day: "Sunday", hour: 23, users: 4 },
-      { day: "Monday", hour: 0, users: 2 },
-      { day: "Monday", hour: 0, users: 3 },
-    ]);
+  it("folds GA's day-name rows into a Monday-first 7×24 grid and finds the peak", () => {
+    const grid = buildHourlyGrid(
+      gaHourlyCells([
+        { day: "Sunday", hour: 23, users: 4 },
+        { day: "Monday", hour: 0, users: 2 },
+        { day: "Monday", hour: 0, users: 3 },
+      ]),
+    );
     expect(grid.values).toHaveLength(7);
     expect(grid.values[0][0]).toBe(5);
     expect(grid.values[6][23]).toBe(4);
     expect(grid.max).toBe(5);
     expect(grid.total).toBe(9);
-    expect(grid.peak).toEqual({ day: "Monday", hour: 0, users: 5 });
+    expect(grid.peak).toEqual({ day: "Monday", hour: 0, value: 5 });
   });
 
-  it("drops unknown days and out-of-range hours", () => {
+  it("places sessions-service weekdays (0 = Sunday) on the same grid", () => {
+    const grid = buildHourlyGrid(
+      sessionHourlyCells([
+        { weekday: 0, hour: 9, sessions: 7 },
+        { weekday: 1, hour: 9, sessions: 2 },
+        { weekday: 6, hour: 22, sessions: 1 },
+      ]),
+    );
+    expect(grid.values[6][9]).toBe(7); // Sunday is the last row
+    expect(grid.values[0][9]).toBe(2); // Monday is the first
+    expect(grid.values[5][22]).toBe(1); // Saturday
+    expect(grid.peak).toEqual({ day: "Sunday", hour: 9, value: 7 });
+  });
+
+  it("drops unknown days and out-of-range weekdays or hours", () => {
+    expect(gaHourlyCells([{ day: "(other)", hour: 3, users: 9 }])).toEqual([]);
     const grid = buildHourlyGrid([
-      { day: "(other)", hour: 3, users: 9 },
-      { day: "Friday", hour: 24, users: 9 },
+      { weekday: 5, hour: 24, value: 9 },
+      { weekday: 7, hour: 3, value: 9 },
+      { weekday: -1, hour: 3, value: 9 },
     ]);
     expect(grid.total).toBe(0);
     expect(grid.peak).toBeNull();
+  });
+});
+
+describe("heatmapDisplayAspect", () => {
+  it("draws a page at its own shape", () => {
+    expect(heatmapDisplayAspect(2.5)).toBe(2.5);
+  });
+
+  it("caps very long pages and floors very wide ones", () => {
+    expect(heatmapDisplayAspect(40)).toBe(HEATMAP_MAX_ASPECT);
+    expect(heatmapDisplayAspect(0.01)).toBe(0.25);
+  });
+
+  it("is square when the aspect is unknown or junk", () => {
+    expect(heatmapDisplayAspect(null)).toBe(1);
+    expect(heatmapDisplayAspect(0)).toBe(1);
+    expect(heatmapDisplayAspect(Number.NaN)).toBe(1);
   });
 });
 
@@ -248,6 +335,18 @@ describe("donut segments", () => {
     expect([SOURCE_COLORS.ga, SOURCE_COLORS.sessions]).not.toContain(
       returningFirst[2].color,
     );
+  });
+
+  it("names the segments after the audience it counts", () => {
+    expect(
+      newVsReturningSegments(
+        [
+          { segment: "new", users: 3 },
+          { segment: "returning", users: 1 },
+        ],
+        "Visitors",
+      ).map((segment) => segment.label),
+    ).toEqual(["New Visitors", "Returning Visitors"]);
   });
 });
 
