@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { SessionTrackerComponent as LibrarySessionTracker } from "@rodrigo-barraza/components-library";
 import { useSession } from "next-auth/react";
 import { PROJECT_NAME } from "@/config";
@@ -23,11 +24,27 @@ function AuthedSessionTracker() {
   );
 }
 
+const subscribeToNothing = () => () => {};
+
+/**
+ * False while hydrating, true after. Settings hydrate with their defaults
+ * (the server has no localStorage), so without this the tracker mounted —
+ * and recorded the page — before a stored "telemetry off" was even read.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+}
+
 export default function SessionTrackerComponent() {
   const { telemetryEnabled } = usePortalSettings();
   const authEnabled = useAuthEnabled();
+  const hydrated = useHydrated();
 
-  if (!telemetryEnabled) return null;
+  if (!hydrated || !telemetryEnabled) return null;
   // With auth disabled there is no SessionProvider in the tree, so
   // useSession() would throw — fall back to anonymous-only tracking.
   if (!authEnabled)
